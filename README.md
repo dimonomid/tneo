@@ -36,7 +36,7 @@ INTEnable(INT_CS0, INT_ENABLED);
 
 The interrupt priority level used by the context switch interrupt should not be configured to use shadow register sets.
 
-**Note:** if tnkernel is built as a separate library, then the file `portable/pic32/tn_int_vec1.S` must be included in the main project itself, in order to dispatch vector1 (core software interrupt 0) correctly.
+**Note:** if tnkernel is built as a separate library, then the file `portable/pic32/tn_port_pic32_int_vec1.S` must be included in the main project itself, in order to dispatch vector1 (core software interrupt 0) correctly.
 
 ##Interrupts
 TNKernel-PIC32 supports nested interrupts. The kernel provides C-language macros for calling C-language interrupt service routines, which can use either MIPS32 or MIPS16e mode. Both software and shadow register interrupt context saving is supported. Usage is as follows:
@@ -59,7 +59,7 @@ tn_srs_isr(_UART_1_VECTOR)
 Alternatively, the kernel provides assembly-language macros for calling C-language interrupt service routines:
 
 ```asm
-#include "tn_port_asm.h"
+#include "tn_port_pic32_asm.h"
 
 #define _CORE_TIMER_VECTOR 0
 #define _TIMER1_VECTOR     4
