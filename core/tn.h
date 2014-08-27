@@ -49,6 +49,11 @@
 #define NULL      0
 #endif
 
+
+
+#define  TN_API_TASK_CREATE__NATIVE       1
+#define  TN_API_TASK_CREATE__CONVENIENT   2
+
    //--- The system configuration (change it for your particular project)
 
 #ifndef  TN_CHECK_PARAM
@@ -65,6 +70,10 @@
 
 #ifndef  TN_MUTEX_REC
 # define TN_MUTEX_REC         1
+#endif
+
+#ifndef  TN_API_TASK_CREATE
+# define TN_API_TASK_CREATE   TN_API_TASK_CREATE__NATIVE
 #endif
 
 #ifndef  USE_EVENTS

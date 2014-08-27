@@ -27,21 +27,77 @@
 
   /* ver 2.7 */
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 #include "tn.h"
+#include "tn_internal.h"
 #include "tn_utils.h"
+
+
+
+/*******************************************************************************
+ *    EXTERNAL DATA
+ ******************************************************************************/
 
 extern CDLL_QUEUE tn_blocked_tasks_list;
 
+
+
+/*******************************************************************************
+ *    PRIVATE FUNCTIONS
+ ******************************************************************************/
+
+#if (TN_API_TASK_CREATE == TN_API_TASK_CREATE__NATIVE)
+static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
+{
+   return user_provided_addr;
+}
+#elif (TN_API_TASK_CREATE == TN_API_TASK_CREATE__CONVENIENT)
+static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
+{
+   return user_provided_addr + task_stack_size - 1;
+}
+#else
+#  error wrong TN_API_TASK_CREATE
+#endif
+
+
+
+/*******************************************************************************
+ *    PUBLIC FUNCTIONS
+ ******************************************************************************/
+
 //-----------------------------------------------------------------------------
+
 int tn_task_create(TN_TCB * task,                 //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
-                 unsigned int * task_stack_start, //-- task stack first addr in memory (bottom)
+                 unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
-                 void * param,                    //-- task function parameter
+                 void *param,                     //-- task function parameter
                  int option)                      //-- Creation option
 {
-   TN_INTSAVE_DATA
+   return _tn_task_create(task, task_func, priority,
+                          _stk_bottom_get(task_stack_start, task_stack_size),
+                          task_stack_size, param, option
+                         );
+}
+
+
+
+//-----------------------------------------------------------------------------
+
+int _tn_task_create(TN_TCB *task,                 //-- task TCB
+                 void (*task_func)(void *param),  //-- task function
+                 int priority,                    //-- task priority
+                 unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
+                 int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
+                 void *param,                     //-- task function parameter
+                 int option)                      //-- Creation option
+{
+   TN_INTSAVE_DATA;
    int rc;
 
    unsigned int * ptr_stack;
@@ -61,7 +117,7 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
          || task_stack_size < TN_MIN_STACK_SIZE
          || task_func == NULL
          || task == NULL
-         || task_stack_start == NULL
+         || task_stack_bottom == NULL
          || task->id_task != 0      //-- task recreation
       )
    {
@@ -71,16 +127,17 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
 
    rc = TERR_NO_ERR;
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
-   if(tn_system_state == TN_ST_STATE_RUNNING)
+   if (tn_system_state == TN_ST_STATE_RUNNING){
       tn_disable_interrupt();
+   }
 
    //--- Init task TCB
 
    task->task_func_addr  = (void*)task_func;
    task->task_func_param = param;
-   task->stk_start       = (unsigned int*)task_stack_start;  //-- Base address of task stack space
+   task->stk_start       = task_stack_bottom;                //-- Base address of task stack space
    task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
    task->base_priority   = priority;                         //-- Task base priority
    task->activate_count  = 0;                                //-- Activation request count
@@ -88,13 +145,13 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
 
    //-- Fill all task stack space by TN_FILL_STACK_VAL - only inside create_task
 
-   for(ptr_stack = task->stk_start,i = 0;i < task->stk_size; i++)
+   for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
       *ptr_stack-- = TN_FILL_STACK_VAL;
+   }
 
    task_set_dormant_state(task);
 
    //--- Init task stack
-
    ptr_stack = tn_stack_init(task->task_func_addr,
                              task->stk_start,
                              task->task_func_param);
@@ -108,11 +165,13 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
    queue_add_tail(&tn_create_queue,&(task->create_queue));
    tn_created_tasks_qty++;
 
-   if((option & TN_TASK_START_ON_CREATION) != 0)
+   if ((option & TN_TASK_START_ON_CREATION) != 0){
       task_to_runnable(task);
+   }
 
-   if(tn_system_state == TN_ST_STATE_RUNNING)
+   if (tn_system_state == TN_ST_STATE_RUNNING){
       tn_enable_interrupt();
+   }
 
    return rc;
 }

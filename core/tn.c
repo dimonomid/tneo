@@ -128,7 +128,7 @@ void tn_start_system(
 
    //--- Timer task
 
-   tn_task_create((TN_TCB*)&tn_timer_task,        //-- task TCB
+   _tn_task_create((TN_TCB*)&tn_timer_task,       //-- task TCB
                   tn_timer_task_func,             //-- task function
                   0,                              //-- task priority
                   &(timer_task_stack              //-- task stack first addr in memory
@@ -139,7 +139,7 @@ void tn_start_system(
 
    //--- Idle task
 
-   tn_task_create((TN_TCB*)&tn_idle_task,         //-- task TCB
+   _tn_task_create((TN_TCB*)&tn_idle_task,        //-- task TCB
                   tn_idle_task_func,              //-- task function
                   TN_NUM_PRIORITY-1,              //-- task priority
                   &(idle_task_stack               //-- task stack first addr in memory
