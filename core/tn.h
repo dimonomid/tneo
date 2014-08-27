@@ -50,42 +50,25 @@
 #endif
 
 
+//--- As a starting point, you might want to copy tn_cfg_default.h -> tn_cfg.h,
+//    and then edit it if you want to change default configuration.
+//    NOTE: the file tn_cfg.h is specified in .hgignore file, in order to not include
+//    project-specific configuration in the common TNKernel repository.
+#include "tn_cfg.h"
 
-#define  TN_API_TASK_CREATE__NATIVE       1
-#define  TN_API_TASK_CREATE__CONVENIENT   2
 
-   //--- The system configuration (change it for your particular project)
 
-#ifndef  TN_CHECK_PARAM
-# define TN_CHECK_PARAM       1
-#endif
-
-#ifndef  TN_MEAS_PERFORMANCE
-# define TN_MEAS_PERFORMANCE  1
-#endif
-
-#ifndef  USE_MUTEXES
-# define USE_MUTEXES          1
-#endif
-
-#ifndef  TN_MUTEX_REC
-# define TN_MUTEX_REC         1
-#endif
-
-#ifndef  TN_API_TASK_CREATE
-# define TN_API_TASK_CREATE   TN_API_TASK_CREATE__NATIVE
-#endif
-
-#ifndef  USE_EVENTS
-# define USE_EVENTS           1
-#endif
-
-   //--- Port
+//--- Port
 
 #include "tn_port.h"
 
 
 //--- Constants
+
+
+#define  TN_API_TASK_CREATE__NATIVE       1     
+#define  TN_API_TASK_CREATE__CONVENIENT   2
+
 
 #define  TN_ST_STATE_NOT_RUN              0
 #define  TN_ST_STATE_RUNNING              1

@@ -8,6 +8,7 @@
 \.mk$
 vimprj[/\\]tags
 vimprj[/\\].+_tags
+[/\\]?tn_cfg\.h$
 
 .*\.bin$
 \.disasm$

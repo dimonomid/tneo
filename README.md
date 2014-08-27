@@ -11,6 +11,14 @@ This port is a fork of ready-made PIC32 port by Anders Montonen: [TNKernel-PIC32
 
 For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation").
 
+##Building the project
+This project is intended to be built as a library, separately from main project (although nothing prevents you from bundle things together, if you want to).
+
+There are various options available which affects API and behavior of TNKernel. But these options are specific for particular project, and aren't related to the TNKernel itself, so we need to keep them separately.
+
+To this end, file `tn.h` includes `tn_cfg.h`, which isn't included in the repository (even more, it is added to `.hgignore` list actually). Instead, default configurate file `tn_cfg_default.h` is provided, and when you just cloned the repository, you might want to copy it as `tn_cfg.h`. Or even better, if your filesystem supports symbolic links, copy it somewhere to your main project's directory (so that you can add it to your VCS there), and create symlink to it named `tn_cfg.h` in the TNKernel directory.
+
+
 ##Context switch
 The context switch is implemented using the core software 0 interrupt. It should be configured to use the lowest priority in the system:
 
