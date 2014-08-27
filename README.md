@@ -16,6 +16,8 @@ The context switch is implemented using the core software 0 interrupt. It should
 
 The interrupt priority level used by the context switch interrupt should not be configured to use shadow register sets.
 
+If tnkernel is built as a separate library, then project itself must include the file `portable/pic32/tn_int_vec1.S` in order to dispatch vector1 (core software interrupt 0) correctly.
+
 ##Interrupts
 TNKernel-PIC32 supports nested interrupts. The kernel provides C-language macros for calling C-language interrupt service routines, which can use either MIPS32 or MIPS16e mode. Both software and shadow register interrupt context saving is supported. Usage is as follows:
 
