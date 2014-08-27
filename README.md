@@ -1,10 +1,15 @@
-TNKernel-PIC32
+TNKernel
 ==============
 
-A port of [TNKernel](http://www.tnkernel.com/ "TNKernel") for PIC32
+A port of [TNKernel](http://www.tnkernel.com/ "TNKernel"), currently for PIC32 only.
 
 ---
-TNKernel-PIC32 is a port of TNKernel 2.7, based on the Cortex-M3 version. For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation").
+PIC32
+--------------
+
+This port is a fork of ready-made PIC32 port by Anders Montonen: [TNKernel-PIC32](https://github.com/andersm/TNKernel-PIC32 "TNKernel-PIC32"). I don't like several design decisions of original TNKernel (and port by Anders Montonen, too), as well as some of the implementation details, so I decided to fork it and implement what I want.
+
+For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation").
 
 ##Context switch
 The context switch is implemented using the core software 0 interrupt. It should be configured to use the lowest priority in the system:
@@ -16,7 +21,7 @@ The context switch is implemented using the core software 0 interrupt. It should
 
 The interrupt priority level used by the context switch interrupt should not be configured to use shadow register sets.
 
-If tnkernel is built as a separate library, then project itself must include the file `portable/pic32/tn_int_vec1.S` in order to dispatch vector1 (core software interrupt 0) correctly.
+**Note:** if tnkernel is built as a separate library, then the file `portable/pic32/tn_int_vec1.S` must be included in the main project itself, in order to dispatch vector1 (core software interrupt 0) correctly.
 
 ##Interrupts
 TNKernel-PIC32 supports nested interrupts. The kernel provides C-language macros for calling C-language interrupt service routines, which can use either MIPS32 or MIPS16e mode. Both software and shadow register interrupt context saving is supported. Usage is as follows:
@@ -63,6 +68,7 @@ The kernel is released under the BSD license as follows:
 
     Copyright © 2004, 2013 Yuri Tiomkin
     PIC32 version modifications copyright © 2013 Anders Montonen
+    Various API modifications and refactoring copyright © 2014 Dmitry Frank
     All rights reserved.
 
     Permission to use, copy, modify, and distribute this software in source
