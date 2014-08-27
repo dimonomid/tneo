@@ -47,17 +47,27 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
    unsigned int * ptr_stack;
    int i;
 
-   //-- Light weight checking of system tasks recreation
-
-   if((priority == 0 && ((option & TN_TASK_TIMER) == 0)) ||
-       (priority == TN_NUM_PRIORITY-1 && (option & TN_TASK_IDLE) == 0))
+   //-- Lightweight checking of system tasks recreation
+   if (0
+         || (priority == 0 && ((option & TN_TASK_TIMER) == 0))
+         || (priority == TN_NUM_PRIORITY-1 && (option & TN_TASK_IDLE) == 0)
+      )
+   {
       return TERR_WRONG_PARAM;
+   }
 
-   if((priority < 0 || priority > TN_NUM_PRIORITY-1) ||
-        task_stack_size < TN_MIN_STACK_SIZE ||
-        task_func == NULL || task == NULL || task_stack_start == NULL ||
-        task->id_task != 0)  //-- recreation
+   if (0
+         || (priority < 0 || priority > TN_NUM_PRIORITY-1)
+         || task_stack_size < TN_MIN_STACK_SIZE
+         || task_func == NULL
+         || task == NULL
+         || task_stack_start == NULL
+         || task->id_task != 0      //-- task recreation
+      )
+   {
+      
       return TERR_WRONG_PARAM;
+   }
 
    rc = TERR_NO_ERR;
 
