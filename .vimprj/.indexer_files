@@ -1,0 +1,5 @@
+
+[tnkernel_df]
+
+$INDEXER_PROJECT_ROOT\**\*.[ch]
+
