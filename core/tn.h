@@ -50,6 +50,15 @@
 #endif
 
 
+//-- Configuration constants
+#define  TN_API_TASK_CREATE__NATIVE       1     
+#define  TN_API_TASK_CREATE__CONVENIENT   2
+
+#define  TN_API_MAKE_ALIG_ARG__TYPE       1     //-- this way is used in the majority of ports.
+#define  TN_API_MAKE_ALIG_ARG__SIZE       2     //-- this way is stated in TNKernel docs
+                                                //   and used in port by AlexB.
+
+
 //--- As a starting point, you might want to copy tn_cfg_default.h -> tn_cfg.h,
 //    and then edit it if you want to change default configuration.
 //    NOTE: the file tn_cfg.h is specified in .hgignore file, in order to not include
@@ -58,16 +67,12 @@
 
 
 
-//--- Port
-
+//--- Port (NOTE: tn_cfg.h must be included before including tn_port.h,
+//    and all configuration constants should be defined as well)
 #include "tn_port.h"
 
 
 //--- Constants
-
-
-#define  TN_API_TASK_CREATE__NATIVE       1     
-#define  TN_API_TASK_CREATE__CONVENIENT   2
 
 
 #define  TN_ST_STATE_NOT_RUN              0
