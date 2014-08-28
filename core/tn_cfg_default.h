@@ -16,27 +16,37 @@
 /*
  * TODO: explain
  */
-#define TN_CHECK_PARAM       1
+#ifndef TN_CHECK_PARAM
+#  define TN_CHECK_PARAM       1
+#endif
 
 /*
  * TODO: explain
  */
-#define TN_MEAS_PERFORMANCE  1
+#ifndef TN_MEAS_PERFORMANCE
+#  define TN_MEAS_PERFORMANCE  1
+#endif
 
 /*
  * Whenter mutexes API should be available
  */
-#define USE_MUTEXES          1
+#ifndef USE_MUTEXES
+#  define USE_MUTEXES          1
+#endif
 
 /*
  * Whether mutexes should allow recursive locking/unlocking
  */
-#define TN_MUTEX_REC         0
+#ifndef TN_MUTEX_REC
+#  define TN_MUTEX_REC         0
+#endif
 
 /*
  * Whether events API should be available
  */
-#define USE_EVENTS           1
+#ifndef USE_EVENTS
+#  define USE_EVENTS           1
+#endif
 
 /*
  * API option for tn_task_create() :
@@ -55,7 +65,9 @@
  *             as an address of array. Just give your array to
  *             tn_task_create(), and you're done.
  */
-#define TN_API_TASK_CREATE   TN_API_TASK_CREATE__NATIVE
+#ifndef TN_API_TASK_CREATE
+#  define TN_API_TASK_CREATE   TN_API_TASK_CREATE__NATIVE
+#endif
 
 /*
  * API option for MAKE_ALIG() macro.
@@ -86,7 +98,9 @@
  *             This way is stated in TNKernel docs
  *             and used in the port for dsPIC/PIC24/PIC32 by AlexB.
  */
-#define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__TYPE
+#ifndef TN_API_MAKE_ALIG_ARG
+#  define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__TYPE
+#endif
 
 
 #endif // _TN_CFG_H

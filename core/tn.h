@@ -65,6 +65,10 @@
 //    project-specific configuration in the common TNKernel repository.
 #include "tn_cfg.h"
 
+//--- default cfg file is included too, so that you are free to not set
+//    all available options in your tn_cfg.h file.
+#include "tn_cfg_default.h"
+
 
 
 //--- Port (NOTE: tn_cfg.h must be included before including tn_port.h,
