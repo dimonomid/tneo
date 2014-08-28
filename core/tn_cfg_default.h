@@ -31,7 +31,7 @@
 /*
  * Whether mutexes should allow recursive locking/unlocking
  */
-#define TN_MUTEX_REC         1
+#define TN_MUTEX_REC         0
 
 /*
  * Whether events API should be available

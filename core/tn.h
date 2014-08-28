@@ -331,15 +331,15 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
 //----- tn.c ----------------------------------
 
 void tn_start_system(
-      unsigned int  *timer_task_stack,
-      unsigned int   timer_task_stack_size,
-      unsigned int  *idle_task_stack,
-      unsigned int   idle_task_stack_size,
-      unsigned int  *int_stack,
-      unsigned int   int_stack_size,
-      void          (*app_in_cb)(void),
-      void          (*cpu_int_en)(void),
-      void          (*idle_user_cb)(void)
+      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
+      unsigned int   timer_task_stack_size,  //-- size of timer task stack
+      unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
+      unsigned int   idle_task_stack_size,   //-- size of idle task stack
+      unsigned int  *int_stack,              //-- pointer to array for interrupt stack
+      unsigned int   int_stack_size,         //-- size of interrupt stack
+      void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
+      void          (*cpu_int_en)(void),     //-- callback function used to enable interrupts
+      void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       );
 void tn_tick_int_processing(void);
 int tn_sys_tslice_ticks(int priority, int value);
