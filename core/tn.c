@@ -29,6 +29,7 @@
   /* ver 2.7 */
 
 #include "tn.h"
+#include "tn_internal.h"
 #include "tn_utils.h"
 
 //  The System uses two levels of priorities for the own purpose:
@@ -76,6 +77,9 @@ static void tn_timer_task_func(void * par);
 TN_TCB  tn_idle_task;
 static void tn_idle_task_func(void * par);
 
+void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
+void (*cpu_interrupt_enbl_callback)(void);      /* Pointer to user interrupt enable function  */
+void (*idle_user_func_callback)(void);          /* Pointer to user idle loop function         */
 
 //----------------------------------------------------------------------------
 // TN main function (never return)
@@ -86,15 +90,17 @@ void tn_start_system(
       unsigned int  *idle_task_stack,
       unsigned int   idle_task_stack_size,
       unsigned int  *int_stack,
-      unsigned int   int_stack_size
+      unsigned int   int_stack_size,
+      void          (*app_in_cb)(void),
+      void          (*cpu_int_en)(void),
+      void          (*idle_user_cb)(void)
       )
 {
    int i;
 
    //-- Clear/set all globals (vars, lists, etc)
 
-   for(i=0;i < TN_NUM_PRIORITY;i++)
-   {
+   for (i = 0; i < TN_NUM_PRIORITY; i++){
       queue_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = NO_TIME_SLICE;
    }
@@ -157,6 +163,10 @@ void tn_start_system(
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
+   appl_init_callback          = app_in_cb;
+   cpu_interrupt_enbl_callback = (cpu_int_en != NULL) ? cpu_int_en : tn_cpu_int_enable;
+   idle_user_func_callback     = idle_user_cb;
+
    //-- Run OS - first context switch
 
    tn_start_exe();
@@ -171,11 +181,11 @@ static void tn_timer_task_func(void * par)
 
    //-- User application init - user's objects initial (tasks etc.) creation
 
-   tn_app_init();
+   appl_init_callback();
 
    //-- Enable interrupt here ( include tick int)
 
-   tn_cpu_int_enable();
+   cpu_interrupt_enbl_callback();
 
    //-------------------------------------------------------------------------
 
@@ -232,6 +242,7 @@ static void tn_idle_task_func(void * par)
       tn_disable_interrupt();
 #endif
 
+      idle_user_func_callback();
       tn_idle_count++;
 
 #ifdef TN_MEAS_PERFORMANCE

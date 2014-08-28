@@ -323,10 +323,6 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
         (que ? CONTAINING_RECORD(que, TN_MUTEX, mutex_queue) : 0)
 
 
-   //--- User function
-
-void tn_app_init(void);
-
 //----- tn.c ----------------------------------
 
 void tn_start_system(
@@ -335,7 +331,10 @@ void tn_start_system(
       unsigned int  *idle_task_stack,
       unsigned int   idle_task_stack_size,
       unsigned int  *int_stack,
-      unsigned int   int_stack_size
+      unsigned int   int_stack_size,
+      void          (*app_in_cb)(void),
+      void          (*cpu_int_en)(void),
+      void          (*idle_user_cb)(void)
       );
 void tn_tick_int_processing(void);
 int tn_sys_tslice_ticks(int priority, int value);
