@@ -5,8 +5,8 @@
  ******************************************************************************/
 
 
-#ifndef _TN_CFG_H
-#define _TN_CFG_H
+#ifndef _TN_CFG_DEFAULT_H
+#define _TN_CFG_DEFAULT_H
 
 
 /*******************************************************************************
@@ -14,38 +14,40 @@
  ******************************************************************************/
 
 /*
- * TODO: explain
+ * Allows additional param checking for most of the system functions.
+ * It's surely useful for debug, but probably better to remove in release.
  */
 #ifndef TN_CHECK_PARAM
-#  define TN_CHECK_PARAM       1
+#  define TN_CHECK_PARAM         1
 #endif
 
 /*
- * TODO: explain
+ * If set, you can check tn_idle_count value that is incremented in idle-task,
+ * so that you can see how busy is your system.
  */
 #ifndef TN_MEAS_PERFORMANCE
-#  define TN_MEAS_PERFORMANCE  1
+#  define TN_MEAS_PERFORMANCE    1
 #endif
 
 /*
  * Whenter mutexes API should be available
  */
 #ifndef TN_USE_MUTEXES
-#  define TN_USE_MUTEXES          1
+#  define TN_USE_MUTEXES         1
 #endif
 
 /*
  * Whether mutexes should allow recursive locking/unlocking
  */
 #ifndef TN_MUTEX_REC
-#  define TN_MUTEX_REC         0
+#  define TN_MUTEX_REC           0
 #endif
 
 /*
  * Whether events API should be available
  */
 #ifndef TN_USE_EVENTS
-#  define TN_USE_EVENTS           1
+#  define TN_USE_EVENTS          1
 #endif
 
 /*
@@ -103,6 +105,6 @@
 #endif
 
 
-#endif // _TN_CFG_H
+#endif // _TN_CFG_DEFAULT_H
 
 
