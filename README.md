@@ -1,17 +1,17 @@
 TNKernel
 ==============
 
-A port of [TNKernel](http://www.tnkernel.com/ "TNKernel"), currently for PIC32 only.
+A port of [TNKernel](http://www.tnkernel.com/ "TNKernel"), currently for PIC32 only. Tested on PIC32MX.
 
 ---
 PIC32
 --------------
 
-This port is a fork of ready-made PIC32 port by Anders Montonen: [TNKernel-PIC32](https://github.com/andersm/TNKernel-PIC32 "TNKernel-PIC32"). I don't like several design decisions of original TNKernel, as well as some of the implementation details, but Anders wants to keep his port as close to original TNKernel as possible. So I decided to fork it and have fun implementing what I want.
+This port is a fork of another PIC32 port by Anders Montonen: [TNKernel-PIC32](https://github.com/andersm/TNKernel-PIC32 "TNKernel-PIC32"). I don't like several design decisions of original TNKernel, as well as some of the implementation details, but Anders wants to keep his port as close to original TNKernel as possible. So I decided to fork it and have fun implementing what I want.
 
 Note that almost all PIC32-dependent routines (such as context switch and so on) are implemented by Anders Montonen; I just examined them in detail and changed a couple of things which I believe should be implemented differently. Anders, great thanks for sharing your job.
 
-Another existing PIC32 port, [the one by Alex Borisov](http://www.tnkernel.com/tn_port_pic24_dsPIC_PIC32.html), definitely also affected my job. In fact, I used to use Alex's port for a long time, but it has several concepts that I don't like, so I had to move. Nevertheless, Alex's port has several nice ideas and solutions, so I didn't hesitate to take what I like from his port. Alex, great thanks for you too.
+Another existing PIC32 port, [the one by Alex Borisov](http://www.tnkernel.com/tn_port_pic24_dsPIC_PIC32.html), also affected my job. In fact, I used to use Alex's port for a long time, but it has several concepts that I don't like, so I had to move eventually. Nevertheless, Alex's port has several nice ideas and solutions, so I didn't hesitate to take what I like from his port. Alex, great thanks to you too.
 
 For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation"). Note though that this port has several differences from original TNKernel, they are explained below.
 
@@ -82,7 +82,6 @@ void tn_start_system(
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
       unsigned int   int_stack_size,         //-- size of interrupt stack
       void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
-      void          (*cpu_int_en)(void),     //-- callback function used to enable interrupts
       void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       );
 ```

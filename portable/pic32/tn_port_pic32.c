@@ -100,7 +100,7 @@ unsigned int * tn_stack_init(void * task_func,
  //-- ERL = 0
  //-- EXL = 0
  //-- IE = 1
-    *stk-- = 1;                             //-- Status
+    *stk-- = 3;                             //-- Status: EXL and IE bits are set
     *stk-- = (unsigned int)tn_task_exit;    //-- ra
     *stk-- = 0x30303030L;                   //-- fp
     *stk-- = (unsigned int)&_gp;            //-- gp - provided by linker

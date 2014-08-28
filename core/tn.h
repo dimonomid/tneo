@@ -338,7 +338,6 @@ void tn_start_system(
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
       unsigned int   int_stack_size,         //-- size of interrupt stack
       void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
-      void          (*cpu_int_en)(void),     //-- callback function used to enable interrupts
       void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       );
 void tn_tick_int_processing(void);

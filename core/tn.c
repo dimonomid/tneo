@@ -78,22 +78,20 @@ TN_TCB  tn_idle_task;
 static void tn_idle_task_func(void * par);
 
 void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
-void (*cpu_interrupt_enbl_callback)(void);      /* Pointer to user interrupt enable function  */
 void (*idle_user_func_callback)(void);          /* Pointer to user idle loop function         */
 
 //----------------------------------------------------------------------------
 // TN main function (never return)
 //----------------------------------------------------------------------------
 void tn_start_system(
-      unsigned int  *timer_task_stack,
-      unsigned int   timer_task_stack_size,
-      unsigned int  *idle_task_stack,
-      unsigned int   idle_task_stack_size,
-      unsigned int  *int_stack,
-      unsigned int   int_stack_size,
-      void          (*app_in_cb)(void),
-      void          (*cpu_int_en)(void),
-      void          (*idle_user_cb)(void)
+      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
+      unsigned int   timer_task_stack_size,  //-- size of timer task stack
+      unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
+      unsigned int   idle_task_stack_size,   //-- size of idle task stack
+      unsigned int  *int_stack,              //-- pointer to array for interrupt stack
+      unsigned int   int_stack_size,         //-- size of interrupt stack
+      void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
+      void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       )
 {
    int i;
@@ -164,7 +162,6 @@ void tn_start_system(
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
    appl_init_callback          = app_in_cb;
-   cpu_interrupt_enbl_callback = (cpu_int_en != NULL) ? cpu_int_en : tn_cpu_int_enable;
    idle_user_func_callback     = idle_user_cb;
 
    //-- Run OS - first context switch
@@ -183,9 +180,9 @@ static void tn_timer_task_func(void * par)
 
    appl_init_callback();
 
-   //-- Enable interrupt here ( include tick int)
+   //-- Enable interrupt here ( including tick int)
 
-   cpu_interrupt_enbl_callback();
+   tn_cpu_int_enable();
 
    //-------------------------------------------------------------------------
 
