@@ -49,6 +49,10 @@ extern CDLL_QUEUE tn_blocked_tasks_list;
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+#if (!defined TN_API_TASK_CREATE)
+#  error TN_API_TASK_CREATE is not defined
+#endif
+
 #if (TN_API_TASK_CREATE == TN_API_TASK_CREATE__NATIVE)
 static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
 {
