@@ -30,8 +30,8 @@
 /*
  * Whenter mutexes API should be available
  */
-#ifndef USE_MUTEXES
-#  define USE_MUTEXES          1
+#ifndef TN_USE_MUTEXES
+#  define TN_USE_MUTEXES          1
 #endif
 
 /*
@@ -44,8 +44,8 @@
 /*
  * Whether events API should be available
  */
-#ifndef USE_EVENTS
-#  define USE_EVENTS           1
+#ifndef TN_USE_EVENTS
+#  define TN_USE_EVENTS           1
 #endif
 
 /*

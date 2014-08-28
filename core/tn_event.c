@@ -30,7 +30,7 @@
 #include "tn.h"
 #include "tn_utils.h"
 
-#ifdef  USE_EVENTS
+#ifdef  TN_USE_EVENTS
 
 static int scan_event_waitqueue(TN_EVENT * evf);
 
@@ -428,7 +428,7 @@ static int scan_event_waitqueue(TN_EVENT * evf)
 
 //----------------------------------------------------------------------------
 
-#endif   //#ifdef  USE_EVENTS
+#endif   //#ifdef  TN_USE_EVENTS
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

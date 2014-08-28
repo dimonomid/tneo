@@ -1,22 +1,21 @@
-TNKernel
+Modified TNKernel-PIC32
 ==============
 
-A port of [TNKernel](http://www.tnkernel.com/ "TNKernel"), currently for PIC32 only. Tested on PIC32MX.
+A port of [TNKernel real-time system](http://www.tnkernel.com/ "TNKernel"). Tested on PIC32MX.
 
----
-PIC32
 --------------
 
 This port is a fork of another PIC32 port by Anders Montonen: [TNKernel-PIC32](https://github.com/andersm/TNKernel-PIC32 "TNKernel-PIC32"). I don't like several design decisions of original TNKernel, as well as some of the implementation details, but Anders wants to keep his port as close to original TNKernel as possible. So I decided to fork it and have fun implementing what I want.
 
 Note that almost all PIC32-dependent routines (such as context switch and so on) are implemented by Anders Montonen; I just examined them in detail and changed a couple of things which I believe should be implemented differently. Anders, great thanks for sharing your job.
 
-Another existing PIC32 port, [the one by Alex Borisov](http://www.tnkernel.com/tn_port_pic24_dsPIC_PIC32.html), also affected my job. In fact, I used to use Alex's port for a long time, but it has several concepts that I don't like, so I had to move eventually. Nevertheless, Alex's port has several nice ideas and solutions, so I didn't hesitate to take what I like from his port. Alex, great thanks to you too.
+Another existing PIC32 port, [the one by Alex Borisov](http://www.tnkernel.com/tn_port_pic24_dsPIC_PIC32.html), also affected my port. In fact, I used to use Alex's port for a long time, but it has several concepts that I don't like, so I had to move eventually. Nevertheless, Alex's port has several nice ideas and solutions, so I didn't hesitate to take what I like from his port. Alex, great thanks to you too.
 
 For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation"). Note though that this port has several differences from original TNKernel, they are explained below.
 
 ##Building the project
-This project is intended to be built as a library, separately from main project (although nothing prevents you from bundle things together, if you want to).
+###Configuration file
+This project is intended to be built as a library, separately from main project (although nothing prevents you from bundling things together, if you want to).
 
 There are various options available which affects API and behavior of TNKernel. But these options are specific for particular project, and aren't related to the TNKernel itself, so we need to keep them separately.
 
@@ -28,6 +27,10 @@ $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
 $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
 ```
 Default configuration file contains detailed comments, so you can read them and configure behavior as you like.
+
+###MPLABX project
+
+MPLABX project resides in the `portable/pic32/tnkernel_df.X` directory. This is a "*library project*" in terms of MPLABX, so if you use MPLABX you can easily add it to your main project by right-clicking `Libraries -> Add Library Project ...`. Alternatively, of course you can just build it and use resulting `tnkernel_df.X.a` file in whatever way you like.
 
 ##PIC32 port implementation details
 ###Context switch
@@ -60,10 +63,10 @@ tn_srs_isr(_UART_1_VECTOR)
    /* here is your ISR code, including clearing of interrupt flag, and so on */
 }
 ```
-Every ISR in your system should use either `tn_soft_isr` or `tn_srs_isr` macro, instead of `__ISR` macro.
+**Note**: every ISR in your system should use kernel-provided macro, either `tn_soft_isr` or `tn_srs_isr`, instead of `__ISR` macro.
 
 ###Interrupt stack
-TNKernel-PIC32 uses a separate stack for interrupt handlers. Switching stack pointers is done automatically in the ISR handler wrapper macros. User should allocate array for interrupt stack and pass it as an argument to `tn_start_system()`.
+TNKernel-PIC32 uses a separate stack for interrupt handlers. Switching stack pointers is done automatically in the ISR handler wrapper macros. User should allocate array for interrupt stack and pass it as an argument to `tn_start_system()` (see details below).
 
 
 ##Differences from original TNKernel
@@ -103,7 +106,9 @@ The port by Alex Borisov also contains them.
 In original TNKernel, `tn_mutex_lock()` returned `TERR_WRONG_PARAM` if `timeout` is 0, but in my opinion this function should behave exactly like `tn_mutex_lock_polling()` in the case of zero timeout. I've made this change. (Well in fact, I've rewritten mutex locking implementation completely, so that now there's just one "worker" function that does the job, and `tn_mutex_lock_polling()` is just a kind of wrapper that always provides zero timeout)
 
 ###Option for recursive mutexes
-Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even mutexes in the Linux kernel aren't recursive. Sometimes they are really useful though, so I decided to implement it optionally, see option `TN_MUTEX_REC` below.
+Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
+
+Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `TERR_ILUSE` when you try to lock mutex that is already locked by this task. Default value: `0`.
 
 ###Task creation API
 In original TNKernel, one should give bottom address of the task stack to `tn_task_create()`, like this: 
@@ -124,7 +129,7 @@ tn_task_create(/* ... several arguments omitted ... */
 ```
 This port has an option `TN_API_TASK_CREATE` with two possible values:
 
-  * `TN_API_TASK_CREATE__NATIVE` - for behavior of original TNKernel;
+  * `TN_API_TASK_CREATE__NATIVE` - default value, for behavior of original TNKernel;
 
   * `TN_API_TASK_CREATE__CONVENIENT` - for behavior of port by Alex.
 
@@ -140,14 +145,41 @@ So, there is an option `TN_API_MAKE_ALIG_ARG` with two possible values;
 
   * `TN_API_MAKE_ALIG_ARG__SIZE` - use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
 
-  * `TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
+  * `TN_API_MAKE_ALIG_ARG__TYPE` - default value, use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
 
 By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
 
-##Why refactor?
-I'm not a huge fan of refactoring, but sometimes I **really** want to rewrite some part of code which I believe is not currently perfect.
+##Differences from the port by Alex Borisov
 
-I really don't like code like this:
+  * Nested interrupts are supported, so, no need to make all interrupts to have the same priority
+  * There are no "*system interrupts*" (the ones that call some system services) or "*user interrupts*" (the ones that don't) : every interrupt should use kernel-provided macro, either `tn_soft_isr` or `tn_srs_isr`, instead of `__ISR` macro;
+  * There is separate stack for interrupts. This has a bunch of consequenses:
+    1. Less RAM usage: there's no need to add interrupt's stack size to every task's stack. Say, if your interrupt needs at most 64 words of stack, and you have 5 tasks, then in the Alex's port you should add 64 words to each tasks's stack: total 320 words. In the port by andersm, 64 words are allocated just once;
+    1. Impossible to have the dreaded situation when interrupt caused full context (34 words) to be saved on the task's stack twice (that happens on Alex's port if system interrupt happened while `tn_switch_context` is saving/restoring context);
+    1. When interrupt happens, there's no need to store all 32 words (well, actually Alex's port saves even 34 words) to the stack, because callee-saved registers `$s0-$s9` are saved automatically by compiler. Only 23 words are saved to the interrupt stack (one additional word is `SRSCtl` register);
+    1. It's possible to implement interrupts that use shadow register set. In this case, only 5 registers are saved to the interrupt stack: `EPC`, `SRSCtl`, `Status`, `hi`, `lo`. This works faster and takes even less memory.
+    1. If some low-priority task is preempted by interrupt, and ISR wakes up some high-priority task, context is switched to new high-priority task about 1.5 times slower.
+  * Core software interrupt 0 is used for context switch routine. You can't use this interrupt in your project;
+  * There is an option for recursive mutexes;
+  * There are no `tn_sys_enter_critical()` / `tn_sys_exit_critical()` functions. You can use `tn_cpu_int_disable()` / `tn_cpu_int_enable()` instead, but keep in mind they aren't totally equivalent: Alex added special "*critical section context*" to its port, and it refuses to enter critical section from non-task context.
+  * Slightly different API of `tn_start_system()`: at least we should provide interrupt stack which isn't present in Alex's port at all. One more thing: in Alex's port, `tn_start_system()` takes two callback functions `app_in_cb` and `cpu_int_en` that are actually called from timer task one-by-one, immediately. I believe there's no need to keep two callback functions, the single `app_in_cb` is fairly enough.
+  * Latest (for now) TNKernel 2.7; at least, Alex's port has buggy ceiling mutexes. In 2.7, these issues are fixed.
+
+So, to summarize:
+###Cons
+  * Context switch is slower when you wake up high-priority task from ISR;
+  * It uses core software interrupt 0, so you can't use it in your project.
+
+###Pros
+  * Context switch is faster if ISR doesn't wake up new task. If you use shadow register set, even more faster;
+  * It uses less RAM, which is always insufficient in the embedded world;
+  * It is safer (because context is saved to the task's stack exactly once, no way for tnkernel to save it several times);
+  * It allows you to use nested interrupts;
+  * It allows you to use recursive mutexes, if you want;
+  * Latest TNKernel 2.7: at least, ceiling mutexes are fixed.
+
+##Why refactor?
+I'm not a huge fan of refactoring, but sometimes I **really** want to rewrite some part of code. The most common example that happens across all TNKernel sources is code like the following:
 ```C
 int my_function(void)
 {
@@ -166,6 +198,7 @@ int my_function(void)
    return SUCCESS;
 }
 ```
+The code above is simplified; in the real TNKernel code things are usually more complicated.
 
 If you have multiple `return` statements or, even more, if you have to perform some action before return (`tn_enable_interrupt()` in the example above), it's great job for `goto`:
 

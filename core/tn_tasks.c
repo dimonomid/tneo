@@ -564,7 +564,7 @@ void tn_task_exit(int attr)
 	*/
    struct  // v.2.7
    {	
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
       CDLL_QUEUE * que;
       TN_MUTEX * mutex;
 #endif
@@ -584,7 +584,7 @@ void tn_task_exit(int attr)
 
    //-- Unlock all mutexes, locked by the task
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
    while(!is_queue_empty(&(tn_curr_run_task->mutex_queue)))
    {
       data.que = queue_remove_head(&(tn_curr_run_task->mutex_queue));
@@ -629,7 +629,7 @@ int tn_task_terminate(TN_TCB * task)
 /* see the structure purpose in tn_task_exit() */
 	 struct // v.2.7
 	 {
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
       CDLL_QUEUE * que;
       TN_MUTEX * mutex;
 #endif
@@ -672,7 +672,7 @@ int tn_task_terminate(TN_TCB * task)
 
       //-- Unlock all mutexes, locked by the task
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
       while(!is_queue_empty(&(task->mutex_queue)))
       {
          data.que = queue_remove_head(&(task->mutex_queue));
@@ -871,7 +871,7 @@ void task_to_runnable(TN_TCB * task)
 //----------------------------------------------------------------------------
 int task_wait_complete(TN_TCB * task) //-- v. 2.6
 {
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
    int fmutex;
    int curr_priority;
    TN_MUTEX * mutex;
@@ -883,7 +883,7 @@ int task_wait_complete(TN_TCB * task) //-- v. 2.6
    if(task == NULL)
       return 0;
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
 
    t_que = NULL;
    if(task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I ||
@@ -914,7 +914,7 @@ int task_wait_complete(TN_TCB * task) //-- v. 2.6
       task->task_state = TSK_STATE_SUSPEND;
 
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
 
    if(fmutex)
    {
@@ -1001,7 +1001,7 @@ int change_running_task_priority(TN_TCB * task, int new_priority)
    return TRUE;
 }
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
 
 //----------------------------------------------------------------------------
 void set_current_priority(TN_TCB * task, int priority)
@@ -1060,7 +1060,7 @@ void task_set_dormant_state(TN_TCB* task)
    queue_reset(&(task->task_queue));
    queue_reset(&(task->timer_queue));
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
 
    queue_reset(&(task->mutex_queue));
 
@@ -1073,7 +1073,7 @@ void task_set_dormant_state(TN_TCB* task)
    task->task_wait_reason = 0;              //-- Reason for waiting
    task->task_wait_rc = TERR_NO_ERR;
 
-#ifdef USE_EVENTS
+#ifdef TN_USE_EVENTS
 
    task->ewait_pattern = 0;                 //-- Event wait pattern
    task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR

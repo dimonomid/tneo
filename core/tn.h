@@ -167,7 +167,7 @@ typedef struct _TN_TCB
                                       // that task has been included for waiting (ver 2.x)
    CDLL_QUEUE create_queue;   //-- Queue is used to include task in create list only
 
-#ifdef USE_MUTEXES
+#ifdef TN_USE_MUTEXES
 
    CDLL_QUEUE mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
 
@@ -189,7 +189,7 @@ typedef struct _TN_TCB
    unsigned long tick_count;  //-- Remaining time until timeout
    int  tslice_count;         //-- Time slice counter
 
-#ifdef  USE_EVENTS
+#ifdef  TN_USE_EVENTS
 
    int  ewait_pattern;        //-- Event wait pattern
    int  ewait_mode;           //-- Event wait mode:  _AND or _OR
