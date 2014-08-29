@@ -429,19 +429,22 @@ int do_unlock_mutex(TN_MUTEX * mutex)
 }
 
 //----------------------------------------------------------------------------
-int find_max_blocked_priority(TN_MUTEX * mutex, int ref_priority)
+int find_max_blocked_priority(TN_MUTEX *mutex, int ref_priority)
 {
-   int priority;
-   CDLL_QUEUE * curr_que;
-   TN_TCB * task;
+   int         priority;
+   CDLL_QUEUE *curr_que;
+   TN_TCB     *task;
 
    priority = ref_priority;
+
    curr_que = mutex->wait_queue.next;
-   while(curr_que != &(mutex->wait_queue))
-   {
+   while (curr_que != &(mutex->wait_queue)){
       task = get_task_by_tsk_queue(curr_que);
-      if(task->priority < priority) //--  task priority is higher
+
+      if(task->priority < priority){
+         //--  task priority is higher
          priority = task->priority;
+      }
 
       curr_que = curr_que->next;
    }

@@ -274,27 +274,25 @@ int tn_task_resume(TN_TCB * task)
 //----------------------------------------------------------------------------
 int tn_task_sleep(unsigned long timeout)
 {
-   TN_INTSAVE_DATA
+   TN_INTSAVE_DATA;
    int rc;
 
-   if(timeout == 0)
-      return  TERR_WRONG_PARAM;
+   if (timeout == 0){
+      return TERR_WRONG_PARAM;
+   }
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
-   if(tn_curr_run_task->wakeup_count > 0)
-   {
+   if (tn_curr_run_task->wakeup_count > 0){
       tn_curr_run_task->wakeup_count--;
       rc = TERR_NO_ERR;
-   }
-   else
-   {
+   } else {
       task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
       tn_enable_interrupt();
       tn_switch_context();
-      return  TERR_NO_ERR;
+      return TERR_NO_ERR;
    }
 
    tn_enable_interrupt();
@@ -803,14 +801,14 @@ void find_next_task_to_run(void)
 #else
    mask = 1;
    tmp = 0;
-   for(i=0; i < TN_BITS_IN_INT; i++)  //-- for each bit in bmp
-   {
-      if(tn_ready_to_run_bmp & mask)
-      {
+
+   for (i = 0; i < TN_BITS_IN_INT; i++){
+      //-- for each bit in bmp
+      if (tn_ready_to_run_bmp & mask){
          tmp = i;
          break;
       }
-      mask = mask<<1;
+      mask = (mask << 1);
    }
 #endif
 
@@ -818,10 +816,10 @@ void find_next_task_to_run(void)
 }
 
 //-----------------------------------------------------------------------------
-void task_to_non_runnable(TN_TCB * task)
+void task_to_non_runnable(TN_TCB *task)
 {
    int priority;
-   CDLL_QUEUE * que;
+   CDLL_QUEUE *que;
 
    priority = task->priority;
    que = &(tn_ready_list[priority]);
@@ -830,21 +828,21 @@ void task_to_non_runnable(TN_TCB * task)
 
    queue_remove_entry(&(task->task_queue));
 
-   if(is_queue_empty(que))  //-- No ready tasks for the curr priority
-   {
+   if (is_queue_empty(que)){
+      //-- No ready tasks for the curr priority
       //-- remove 'ready to run' from the curr priority
 
-      tn_ready_to_run_bmp &= ~(1<<priority);
+      tn_ready_to_run_bmp &= ~(1 << priority);
 
       //-- Find highest priority ready to run -
       //-- at least, MSB bit must be set for the idle task
 
       find_next_task_to_run();   //-- v.2.6
-   }
-   else //-- There are 'ready to run' task(s) for the curr priority
-   {
-      if(tn_next_task_to_run == task)
+   } else {
+      //-- There are 'ready to run' task(s) for the curr priority
+      if (tn_next_task_to_run == task){
          tn_next_task_to_run = get_task_by_tsk_queue(que->next);
+      }
    }
 }
 
@@ -860,74 +858,80 @@ void task_to_runnable(TN_TCB * task)
    //-- Add the task to the end of 'ready queue' for the current priority
 
    queue_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
-   tn_ready_to_run_bmp |= 1 << priority;
+   tn_ready_to_run_bmp |= (1 << priority);
 
    //-- less value - greater priority, so '<' operation is used here
 
-   if(priority < tn_next_task_to_run->priority)
+   if (priority < tn_next_task_to_run->priority){
       tn_next_task_to_run = task;
+   }
 }
 
 //----------------------------------------------------------------------------
-int task_wait_complete(TN_TCB * task) //-- v. 2.6
+int task_wait_complete(TN_TCB *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
-   int fmutex;
-   int curr_priority;
-   TN_MUTEX * mutex;
-   TN_TCB * mt_holder_task;
-   CDLL_QUEUE * t_que;
+   int         fmutex;
+   int         curr_priority;
+   TN_MUTEX   *mutex;
+   TN_TCB     *mt_holder_task;
+   CDLL_QUEUE *t_que;
 #endif
+
    int rc = FALSE;
 
-   if(task == NULL)
-      return 0;
+   if (task == NULL){
+      return FALSE;
+   }
 
 #ifdef TN_USE_MUTEXES
 
    t_que = NULL;
-   if(task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I ||
-         task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
+   if (     task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I
+         || task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C
+      )
    {
       fmutex = TRUE;
       t_que = task->pwait_queue;
-   }
-   else
+   } else {
       fmutex = FALSE;
+   }
 
 #endif
 
    task->pwait_queue  = NULL;
    task->task_wait_rc = TERR_NO_ERR;
 
-   if(task->tick_count != TN_WAIT_INFINITE)
+   //-- remove task from timer queue (if it is there)
+   if (task->tick_count != TN_WAIT_INFINITE){
       queue_remove_entry(&(task->timer_queue));
+   }
 
    task->tick_count = TN_WAIT_INFINITE;
 
-   if(!(task->task_state & TSK_STATE_SUSPEND))
-   {
+   //-- if task isn't suspended, make it runnable
+   if (!(task->task_state & TSK_STATE_SUSPEND)){
       task_to_runnable(task);
       rc = TRUE;
-   }
-   else  //-- remove WAIT state
+   } else {
+      //-- remove WAIT state
       task->task_state = TSK_STATE_SUSPEND;
+   }
 
 
 #ifdef TN_USE_MUTEXES
 
-   if(fmutex)
-   {
+   if (fmutex){
       mutex = get_mutex_by_wait_queque(t_que);
 
       mt_holder_task = mutex->holder;
-      if(mt_holder_task != NULL)
-      {
+      if (mt_holder_task != NULL){
          //-- if task was blocked by another task and its pri was changed
-         //--  - recalc current priority
+         //    - recalc current priority
 
-         if(mt_holder_task->priority != mt_holder_task->base_priority &&
-             mt_holder_task->priority == task->priority)
+         if (     mt_holder_task->priority != mt_holder_task->base_priority
+               && mt_holder_task->priority == task->priority
+            )
          {
             curr_priority = find_max_blocked_priority(mutex,
                                              mt_holder_task->base_priority);
@@ -937,15 +941,17 @@ int task_wait_complete(TN_TCB * task) //-- v. 2.6
          }
       }
    }
+
 #endif
 
-   task->task_wait_reason = 0; //-- Clear wait reason
+   //-- Clear wait reason
+   task->task_wait_reason = TSK_WAIT_REASON_NONE;
 
    return rc;
 }
 
 //----------------------------------------------------------------------------
-void task_curr_to_wait_action(CDLL_QUEUE * wait_que,
+void task_curr_to_wait_action(CDLL_QUEUE *wait_que,
                               int wait_reason,
                               unsigned long timeout)
 {
@@ -957,20 +963,19 @@ void task_curr_to_wait_action(CDLL_QUEUE * wait_que,
 
    //--- Add to the wait queue  - FIFO
 
-   if(wait_que == NULL) //-- Thanks to Vavilov D.O.
-   {
+   if (wait_que == NULL){
+      //-- Thanks to Vavilov D.O.
       queue_reset(&(tn_curr_run_task->task_queue));
-   }
-   else
-   {
+   } else {
       queue_add_tail(wait_que, &(tn_curr_run_task->task_queue));
       tn_curr_run_task->pwait_queue = wait_que;
    }
 
    //--- Add to the timers queue
 
-   if(timeout != TN_WAIT_INFINITE)
+   if (timeout != TN_WAIT_INFINITE){
       queue_add_tail(&tn_wait_timeout_list, &(tn_curr_run_task->timer_queue));
+   }
 }
 
 //----------------------------------------------------------------------------

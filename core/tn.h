@@ -108,6 +108,7 @@
 
    //--- Waiting
 
+#define  TSK_WAIT_REASON_NONE             0
 #define  TSK_WAIT_REASON_SLEEP            0x0001
 #define  TSK_WAIT_REASON_SEM              0x0002
 #define  TSK_WAIT_REASON_EVENT            0x0004

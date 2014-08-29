@@ -202,10 +202,10 @@ static void tn_timer_task_func(void * par)
             if(task->tick_count > 0)
             {
                task->tick_count--;
-               if(task->tick_count == 0) //-- Time out expiried
+               if(task->tick_count == 0) //-- Timeout expired
                {
-                  queue_remove_entry(&(((TN_TCB*)task)->task_queue));
-                  task_wait_complete((TN_TCB*)task);
+                  queue_remove_entry(&(((TN_TCB *)task)->task_queue));
+                  task_wait_complete((TN_TCB *)task);
                   task->task_wait_rc = TERR_TIMEOUT;
                }
             }
