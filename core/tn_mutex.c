@@ -87,8 +87,10 @@ static inline void __mutex_do_lock(TN_MUTEX *mutex)
    }
 }
 
-static inline void __mutex_add_to_wait_queue(TN_MUTEX *mutex, int wait_reason, unsigned long timeout)
+static inline void __mutex_add_to_wait_queue(TN_MUTEX *mutex, unsigned long timeout)
 {
+   int wait_reason;
+
    if (mutex->attr == TN_MUTEX_ATTR_INHERIT){
       //-- Priority inheritance protocol
 
@@ -96,6 +98,11 @@ static inline void __mutex_add_to_wait_queue(TN_MUTEX *mutex, int wait_reason, u
       if (tn_curr_run_task->priority < mutex->holder->priority){
          set_current_priority(mutex->holder, tn_curr_run_task->priority);
       }
+
+      wait_reason = TSK_WAIT_REASON_MUTEX_I;
+   } else {
+      //-- Priority ceiling protocol
+      wait_reason = TSK_WAIT_REASON_MUTEX_C;
    }
 
    task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
@@ -162,9 +169,9 @@ static inline int __mutex_lock(TN_MUTEX *mutex, unsigned long timeout)
          goto out_ei;
       } else {
          //-- timeout specified, so, wait until mutex is free or timeout expired
-         __mutex_add_to_wait_queue(mutex, TSK_WAIT_REASON_MUTEX_C, timeout);
+         __mutex_add_to_wait_queue(mutex, timeout);
 
-         ret = tn_curr_run_task->task_wait_rc;
+         //-- ret will be set later to tn_curr_run_task->task_wait_rc;
          goto out_ei_switch_context;
       }
    }
@@ -183,6 +190,8 @@ out_ei:
 out_ei_switch_context:
    tn_enable_interrupt();
    tn_switch_context();
+
+   ret = tn_curr_run_task->task_wait_rc;
    return ret;
 }
 
