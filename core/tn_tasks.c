@@ -816,6 +816,10 @@ void find_next_task_to_run(void)
 }
 
 //-----------------------------------------------------------------------------
+/**
+ * Remove task from 'ready queue', determine and set
+ * new tn_next_task_to_run.
+ */
 void task_to_non_runnable(TN_TCB *task)
 {
    int priority;
@@ -847,6 +851,12 @@ void task_to_non_runnable(TN_TCB *task)
 }
 
 //----------------------------------------------------------------------------
+/**
+ * Change task's state to runnable,
+ * put it on the 'ready queue' for its priority,
+ * if priority is higher than tn_next_task_to_run's priority,
+ * then set tn_next_task_to_run to this task.
+ */
 void task_to_runnable(TN_TCB * task)
 {
    int priority;
@@ -868,13 +878,21 @@ void task_to_runnable(TN_TCB * task)
 }
 
 //----------------------------------------------------------------------------
+
+/**
+ * Should be called when task finishes waiting for anything.
+ * Remove task from wait queue, 
+ * and make it runnable (if only it isn't suspended)
+ *
+ * If task was waiting for mutex, and mutex holder's priority was changed
+ * because of that, then change holder's priority back.
+ *
+ * @return non-zero if task became runnable, zero otherwise.
+ */
 int task_wait_complete(TN_TCB *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
-   int         curr_priority;
-   TN_MUTEX   *mutex;
-   TN_TCB     *mt_holder_task;
    CDLL_QUEUE *t_que;
 #endif
 
@@ -922,6 +940,10 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
 #ifdef TN_USE_MUTEXES
 
    if (fmutex){
+      int         curr_priority;
+      TN_TCB     *mt_holder_task;
+      TN_MUTEX   *mutex;
+
       mutex = get_mutex_by_wait_queque(t_que);
 
       mt_holder_task = mutex->holder;
@@ -937,7 +959,12 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
                                              mt_holder_task->base_priority);
 
             set_current_priority(mt_holder_task, curr_priority);
-            rc = TRUE;
+
+            //DFRANK_TODO: do we really need "rc = TRUE" here??
+            // It seems, this function should return TRUE if task became runnable,
+            // but mutex stuff seems unrelated here.
+            // So I've commented it out, for now.
+            //rc = TRUE;
          }
       }
    }
