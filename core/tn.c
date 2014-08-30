@@ -290,44 +290,37 @@ int tn_sys_tslice_ticks(int priority,int value)
 //----------------------------------------------------------------------------
 void  tn_tick_int_processing()
 {
-   TN_INTSAVE_DATA_INT
+   TN_INTSAVE_DATA_INT;
 
-   volatile CDLL_QUEUE * curr_que;   //-- Need volatile here only to solve
-   volatile CDLL_QUEUE * pri_queue;  //-- IAR(c) compiler's high optimization mode problem
-   volatile int priority;
-
-   TN_CHECK_INT_CONTEXT_NORETVAL
+   TN_CHECK_INT_CONTEXT_NORETVAL;
 
    tn_idisable_interrupt();
 
-//-------  Round -robin (if is used)
-
-   priority  = tn_curr_run_task->priority;
-
-   if(tn_tslice_ticks[priority] != NO_TIME_SLICE)
+   //-- manage round-robin (if used) {{{
    {
-      tn_curr_run_task->tslice_count++;
-      if(tn_curr_run_task->tslice_count > tn_tslice_ticks[priority])
-      {
-         tn_curr_run_task->tslice_count = 0;
+      volatile CDLL_QUEUE *curr_que;   //-- Need volatile here only to solve
+      volatile CDLL_QUEUE *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
+      volatile int priority = tn_curr_run_task->priority;
 
-         pri_queue = &(tn_ready_list[priority]);
-        //-- If ready queue is not empty and qty  of queue's tasks > 1
-         if(!(is_queue_empty((CDLL_QUEUE *)pri_queue)) && pri_queue->next->next != pri_queue)
-         {
-            // v.2.7  - Thanks to Vyacheslav Ovsiyenko
+      if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
+         tn_curr_run_task->tslice_count++;
 
-           //-- Remove task from head and add it to the tail of
-           //-- ready queue for current priority
+         if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
+            tn_curr_run_task->tslice_count = 0;
 
-            curr_que = queue_remove_head(&(tn_ready_list[priority]));
-            queue_add_tail(&(tn_ready_list[priority]),(CDLL_QUEUE *)curr_que);
+            pri_queue = &(tn_ready_list[priority]);
+            //-- If ready queue is not empty and qty  of queue's tasks > 1
+            if (!(is_queue_empty((CDLL_QUEUE *)pri_queue)) && pri_queue->next->next != pri_queue){
+               //-- Remove task from head and add it to the tail of
+               //-- ready queue for current priority
+
+               curr_que = queue_remove_head(&(tn_ready_list[priority]));
+               queue_add_tail(&(tn_ready_list[priority]),(CDLL_QUEUE *)curr_que);
+            }
          }
       }
    }
-
-   //-- increment system timer
-   tn_sys_time_count++;
+   // }}}
 
 #if 0
    //-- Enable a task with priority 0 - tn_timer_task
@@ -344,8 +337,13 @@ void  tn_tick_int_processing()
    tn_next_task_to_run = &tn_timer_task;
 #endif
 
+   //-- manage tn_wait_timeout_list {{{
+   //   this job was done by tn_timer_task before, but now it is moved right there;
+   //   it works much faster now.
    {
+      volatile CDLL_QUEUE *curr_que;
       volatile TN_TCB * task;
+
       curr_que = tn_wait_timeout_list.next;
       while(curr_que != &tn_wait_timeout_list)
       {
@@ -367,6 +365,10 @@ void  tn_tick_int_processing()
          curr_que = curr_que->next;
       }
    }
+   // }}}
+
+   //-- increment system timer
+   tn_sys_time_count++;
 
    tn_ienable_interrupt();  //--  !!! thanks to Audrius Urmanavicius !!!
 }
