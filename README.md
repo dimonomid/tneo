@@ -7,7 +7,7 @@ A port of [TNKernel real-time system](http://www.tnkernel.com/ "TNKernel"). Test
 
 #Overview
 
-  * Separate interrupt stack
+  * Separate stack for interrupts
   * Nested interrupts are supported
   * Shadow register set interrupts are supported
   * Recursive mutexes (optionally)
