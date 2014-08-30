@@ -5,7 +5,7 @@ A port of [TNKernel real-time system](http://www.tnkernel.com/ "TNKernel"). Test
 
 --------------
 
-Main features:
+#Overview
 
   * Separate interrupt stack
   * Nested interrupts are supported
@@ -21,7 +21,7 @@ Another existing PIC32 port, [the one by Alex Borisov](http://www.tnkernel.com/t
 
 For a full description of the kernel API, please see the [TNKernel project documentation](http://www.tnkernel.com/tn_description.html "TNKernel project documentation"). Note though that this port has several differences from original TNKernel, they are explained below.
 
-Topics:
+#Wiki contents
 
   * [Building the project](building)
   * [PIC32 port implementation details](pic32_details)
