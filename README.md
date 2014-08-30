@@ -23,10 +23,9 @@ For a full description of the kernel API, please see the [TNKernel project docum
 
 #Wiki contents
 
-  * [Building the project](wiki/building)
+  * [Building the project](tnkernel/wiki/building)
   * [PIC32 port implementation details](wiki/pic32_details)
   * [Differences from original TNKernel](wiki/diff_orig_tnkernel)
   * [Differences from the port by Alex Borisov](wiki/diff_alexb_tnkernel)
   * [Why refactor?](wiki/why_refactor)
   * [License](wiki/license)
-
