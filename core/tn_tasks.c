@@ -109,8 +109,8 @@ int _tn_task_create(TN_TCB *task,                 //-- task TCB
 
    //-- Lightweight checking of system tasks recreation
    if (0
-         || (priority == 0 && ((option & TN_TASK_TIMER) == 0))
-         || (priority == TN_NUM_PRIORITY-1 && (option & TN_TASK_IDLE) == 0)
+         || (priority == 0                     && !(option & TN_TASK_TIMER))
+         || (priority == (TN_NUM_PRIORITY - 1) && !(option & TN_TASK_IDLE))
       )
    {
       return TERR_WRONG_PARAM;
@@ -977,7 +977,14 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
    return rc;
 }
 
-//----------------------------------------------------------------------------
+
+/**
+ * calls task_to_non_runnable() for current task, i.e. tn_curr_run_task
+ * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
+ *
+ * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
+ * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
+ */
 void task_curr_to_wait_action(CDLL_QUEUE *wait_que,
                               int wait_reason,
                               unsigned long timeout)

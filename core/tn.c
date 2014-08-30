@@ -321,7 +321,7 @@ void  tn_tick_int_processing()
    tn_timer_task.task_wait_rc     = TERR_NO_ERR;
 
    queue_add_tail(&(tn_ready_list[0]), &(tn_timer_task.task_queue));
-   tn_ready_to_run_bmp |= 1;  // priority 0;
+   tn_ready_to_run_bmp |= (1 << 0/*priority 0*/);
 
    tn_next_task_to_run = &tn_timer_task;
 
