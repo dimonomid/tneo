@@ -84,8 +84,8 @@ void (*idle_user_func_callback)(void);          /* Pointer to user idle loop fun
 // TN main function (never return)
 //----------------------------------------------------------------------------
 void tn_start_system(
-      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
-      unsigned int   timer_task_stack_size,  //-- size of timer task stack
+      //unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
+      //unsigned int   timer_task_stack_size,  //-- size of timer task stack
       unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
@@ -239,7 +239,9 @@ static void tn_idle_task_func(void * par)
    TN_INTSAVE_DATA;
 #endif
 
-   //-- disable interrupt
+   //-- Make sure interrupts are disabled before calling application callback,
+   //   so that this idle task is guaranteed to not be be preempted
+   //   until appl_init_callback() finished its job.
    tn_cpu_int_disable();
 
    //-- User application init - user's objects initial (tasks etc.) creation
