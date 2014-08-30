@@ -71,15 +71,43 @@ TNKernel-PIC32 uses a separate stack for interrupt handlers. Switching stack poi
 
 ##Differences from original TNKernel
 
+###No timer task (by default)
+Yeah, timer task's job is important: it manages `tn_wait_timeout_list`, i.e. it wakes up tasks whose timeout is expired. But it's actually better to do it right in `tn_tick_int_processing()` that is called from timer ISR, because presence of the special task provides significant overhead.
+Look at what happens when timer interrupt is fired (assume we don't use shadow register set for that, which is almost always the case):
+
+  * Current context (23 words) is saved to the interrupt stack;
+  * ISR called: particularly, `tn_tick_int_processing()` is called;
+  * `tn_tick_int_processing()` disables interrupts, manages round-robin (if needed), then it wakes up `tn_timer_task`, sets `tn_next_task_to_run`, and enables interrupts back;
+  * `tn_tick_int_processing()` finishes, so ISR macro checks that `tn_next_task_to_run` is different from `tn_curr_run_task`, and sets `CS0` interrupt bit, so that context should be switched as soon as possible;
+  * Context (23 words) gets restored to whatever task we interrupted;
+  * `CS0` ISR is immediately called, so full context (32 words) gets saved on task's stack, and context of `tn_timer_task` is restored;
+  * `tn_timer_task` disables interrupts, performs its not so big job (manages `tn_wait_timeout_list`), puts itself to wait, enables interrupts and pends context switching again;
+  * `CS0` ISR is immediately called, so full context of `tn_timer_task` gets saved in its stack, and then, after all, context of my own interrupted task gets restored and my task continues to run.
+
+I've measured with MPLABX's stopwatch how much time it takes: with just three tasks (idle task, timer task, my own task with priority 6), i.e. without any sleeping tasks, all this routine takes **682 cycles**.
+So I tried to get rid of `tn_timer_task` and perform its job right in the `tn_tick_int_processing()`. When system starts, application callback is therefore called from idle task. Now, the following steps are performed when timer interrupt is fired:
+
+  * Current context (23 words) is saved to the interrupt stack;
+  * ISR called: particularly, `tn_tick_int_processing()` is called;
+  * `tn_tick_int_processing()` disables interrupts, manages round-robin (if needed), manages `tn_wait_timeout_list`, and enables interrupts back;
+  * `tn_tick_int_processing()` finishes, ISR macro checks that `tn_next_task_to_run` is the same as `tn_curr_run_task`
+  * Context (23 words) gets restored to whatever task we interrupted;
+
+That's all. It takes **251 cycles**: 2.7 times less.
+
+Well, timer task could make sense if we don't use separate interrupt stack: then it might be needed to save stack RAM, because `task_wait_complete()` gets called, which calls other functions as well. So, for the case this TNKernel implementation will be ported to another platform without ability to use separate interrupt task, I just left an option for that: `TN_USE_TIMER_TASK`, which default value is, of course, `0`.
+
+But if we have separate interrupt stack, it's worth to get rid of timer task, and just make sure that interrupt stack size is enough for this job. As a result, RAM is saved (since you don't need to allocate stack for timer task) and things work much faster.
+
+Well, to be honest, I don't think that anyone will ever need an option to use timer task, so I'll probably remove it eventually. But let it be for now.
+
 ###System start
-Original TNKernel code designed to be built together with main project only, there's no way to build as a separate library: at least, arrays for timer-task and idle-task stacks are allocated statically, so size of them is defined at tnkernel compile time.
+Original TNKernel code designed to be built together with main project only, there's no way to build as a separate library: at least, arrays for idle-task stacks are allocated statically, so size of them is defined at tnkernel compile time.
 
 It's much better if we could pass these things to tnkernel at runtime, so, `tn_start_system()` now has the following prototype:
 
 ```C
 void tn_start_system(
-      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
-      unsigned int   timer_task_stack_size,  //-- size of timer task stack
       unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
@@ -88,9 +116,9 @@ void tn_start_system(
       void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       );
 ```
-Besides stacks for idle and timer tasks, there is interrupt stack: it should be also provided.
+Besides stack for idle task, there is interrupt stack: it should be also provided. If the option `TN_USE_TIMER_TASK` is set to `1`, there are two additional arguments for timer task's stack pointer and size.
 
-The port by Alex Borisov has `tn_start_system()` with similar prototype (a bit different though).
+The port by Alex Borisov has similar prototype of `tn_start_system()` (a bit different though).
 
 ###System time
 Added two functions for getting and setting system tick count:

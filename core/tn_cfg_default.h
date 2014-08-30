@@ -22,6 +22,28 @@
 #endif
 
 /*
+ * Whether timer task should be used.
+ * If it isn't used:
+ *    - its job (managing tn_wait_timeout_list) is performed
+ *      right in tn_tick_int_processing(), and we avoid useless context switch;
+ *    - application callback is called from idle task, so its stack size
+ *      now depends on application.
+ *
+ * When tnkernel uses separate interrupt stack (as it is in PIC32 port),
+ * timer task is completely useless.
+ * Benchmarks of system tick:
+ *    - with timer task: 682 cycles
+ *    - with timer task: 251 cycle.
+ *
+ * It's about 2.7 times faster without timer task, and you can save RAM
+ * (since you shouldn't allocate it for timer task)
+ * You just need to make sure your interrupt stack size is enough.
+ */
+#ifndef TN_USE_TIMER_TASK
+#  define TN_USE_TIMER_TASK      0
+#endif
+
+/*
  * If set, you can check tn_idle_count value that is incremented in idle-task,
  * so that you can see how busy is your system.
  */

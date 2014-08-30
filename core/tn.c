@@ -28,6 +28,10 @@
 
   /* ver 2.7 */
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 #include "tn.h"
 #include "tn_internal.h"
 #include "tn_utils.h"
@@ -39,8 +43,9 @@
 
 
 
-    //---- System's  global variables ----
-
+/*******************************************************************************
+ *    PUBLIC DATA
+ ******************************************************************************/
 
 CDLL_QUEUE tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
 CDLL_QUEUE tn_create_queue;                       //-- all created tasks
@@ -67,10 +72,10 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 
 //-- System tasks
 
-//-- timer task - priority 0  - highest
-
-//TN_TCB  tn_timer_task;
-//static void tn_timer_task_func(void * par);
+#if TN_USE_TIMER_TASK
+//-- timer task - priority (0) - highest
+TN_TCB  tn_timer_task;
+#endif
 
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
@@ -80,12 +85,191 @@ static void tn_idle_task_func(void * par);
 void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
 void (*idle_user_func_callback)(void);          /* Pointer to user idle loop function         */
 
+
+
+
+
+/*******************************************************************************
+ *    PRIVATE FUNCTIONS
+ ******************************************************************************/
+
+static inline void _call_appl_callback(void)
+{
+   //-- Make sure interrupts are disabled before calling application callback,
+   //   so that this idle task is guaranteed to not be be preempted
+   //   until appl_init_callback() finished its job.
+   tn_cpu_int_disable();
+
+   //-- User application init - user's objects initial (tasks etc.) creation
+   appl_init_callback();
+
+   //-- Enable interrupt here ( including tick int)
+   tn_cpu_int_enable();
+}
+
+/**
+ * Manage tn_wait_timeout_list.
+ * This job was previously done in tn_timer_task, but now it is preferred
+ * to call it right from tn_tick_int_processing()
+ */
+static inline void _wait_timeout_list_manage(void)
+{
+   volatile CDLL_QUEUE *curr_que;
+   volatile TN_TCB * task;
+
+   curr_que = tn_wait_timeout_list.next;
+   while(curr_que != &tn_wait_timeout_list)
+   {
+      task = get_task_by_timer_queque((CDLL_QUEUE*)curr_que);
+      if(task->tick_count != TN_WAIT_INFINITE)
+      {
+         if(task->tick_count > 0)
+         {
+            task->tick_count--;
+            if(task->tick_count == 0) //-- Timeout expired
+            {
+               queue_remove_entry(&(((TN_TCB *)task)->task_queue));
+               task_wait_complete((TN_TCB *)task);
+               task->task_wait_rc = TERR_TIMEOUT;
+            }
+         }
+      }
+
+      curr_que = curr_que->next;
+   }
+}
+
+/**
+ * Manage round-robin (if used)
+ */
+static inline void _round_robin_manage(void)
+{
+   volatile CDLL_QUEUE *curr_que;   //-- Need volatile here only to solve
+   volatile CDLL_QUEUE *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
+   volatile int priority = tn_curr_run_task->priority;
+
+   if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
+      tn_curr_run_task->tslice_count++;
+
+      if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
+         tn_curr_run_task->tslice_count = 0;
+
+         pri_queue = &(tn_ready_list[priority]);
+         //-- If ready queue is not empty and qty  of queue's tasks > 1
+         if (!(is_queue_empty((CDLL_QUEUE *)pri_queue)) && pri_queue->next->next != pri_queue){
+            //-- Remove task from head and add it to the tail of
+            //-- ready queue for current priority
+
+            curr_que = queue_remove_head(&(tn_ready_list[priority]));
+            queue_add_tail(&(tn_ready_list[priority]),(CDLL_QUEUE *)curr_que);
+         }
+      }
+   }
+}
+
+
+#if TN_USE_TIMER_TASK
+static void tn_timer_task_func(void * par)
+{
+   TN_INTSAVE_DATA;
+
+   _call_appl_callback();
+
+   //-------------------------------------------------------------------------
+
+   for(;;){
+
+      //------------ OS timer tick -------------------------------------
+      tn_disable_interrupt();
+
+      _wait_timeout_list_manage();
+
+      task_curr_to_wait_action(NULL,
+            TSK_WAIT_REASON_SLEEP,
+            TN_WAIT_INFINITE);
+      tn_enable_interrupt();
+
+      tn_switch_context();
+   }
+}
+
+static inline void _timer_task_create(unsigned int  *timer_task_stack,
+                                      unsigned int   timer_task_stack_size)
+{
+   _tn_task_create(
+         (TN_TCB*)&tn_timer_task,                     //-- task TCB
+         tn_timer_task_func,                          //-- task function
+         0,                                           //-- task priority
+         &(timer_task_stack                           //-- task stack first addr in memory
+            [timer_task_stack_size-1]),
+         timer_task_stack_size,                       //-- task stack size (in int,not bytes)
+         NULL,                                        //-- task function parameter
+         (TN_TASK_TIMER)                              //-- Creation option
+         );
+}
+
+static inline void _timer_task_to_runnable(void)
+{
+   task_to_runnable(&tn_timer_task);
+}
+
+static inline void _timer_task_wakeup(void)
+{
+   //-- Enable a task with priority 0 - tn_timer_task
+
+   queue_remove_entry(&(tn_timer_task.task_queue));
+   tn_timer_task.task_wait_reason = 0;
+   tn_timer_task.task_state       = TSK_STATE_RUNNABLE;
+   tn_timer_task.pwait_queue      = NULL;
+   tn_timer_task.task_wait_rc     = TERR_NO_ERR;
+
+   queue_add_tail(&(tn_ready_list[0]), &(tn_timer_task.task_queue));
+   tn_ready_to_run_bmp |= (1 << 0/*priority 0*/);
+
+   tn_next_task_to_run = &tn_timer_task;
+}
+#else
+//-- don't use timer task: just define a couple of stubs
+#  define _timer_task_create(timer_task_stack, timer_task_stack_size)
+#  define _timer_task_to_runnable()
+#  define _timer_task_wakeup()
+#endif
+
+static inline void _idle_task_create(unsigned int  *idle_task_stack,
+                                     unsigned int   idle_task_stack_size)
+{
+   _tn_task_create(
+         (TN_TCB*)&tn_idle_task,                      //-- task TCB
+         tn_idle_task_func,                           //-- task function
+         TN_NUM_PRIORITY - 1,                         //-- task priority
+         &(idle_task_stack                            //-- task stack first addr in memory
+            [idle_task_stack_size-1]),
+         idle_task_stack_size,                        //-- task stack size (in int,not bytes)
+         NULL,                                        //-- task function parameter
+         (TN_TASK_IDLE)                               //-- Creation option
+         );
+}
+
+static inline void _idle_task_to_runnable(void)
+{
+   task_to_runnable(&tn_idle_task);
+}
+
+
+
+
+/*******************************************************************************
+ *    PUBLIC FUNCTIONS
+ ******************************************************************************/
+
 //----------------------------------------------------------------------------
 // TN main function (never return)
 //----------------------------------------------------------------------------
 void tn_start_system(
-      //unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
-      //unsigned int   timer_task_stack_size,  //-- size of timer task stack
+#if TN_USE_TIMER_TASK
+      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
+      unsigned int   timer_task_stack_size,  //-- size of timer task stack
+#endif
       unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
@@ -130,38 +314,26 @@ void tn_start_system(
 
    queue_reset(&tn_wait_timeout_list);
 
-   //--- Timer task
+   /*
+    * NOTE: we need to separate creation of tasks and making them runnable,
+    *       because otherwise tn_next_task_to_run would point on the task
+    *       that isn't yet created, and it produces issues
+    *       with order of task creation.
+    *
+    *       We should keep as little surprizes in the code as possible,
+    *       so, it's better to just separate these steps and avoid any tricks.
+    */
 
-#if 0
-   _tn_task_create((TN_TCB*)&tn_timer_task,       //-- task TCB
-                  tn_timer_task_func,             //-- task function
-                  0,                              //-- task priority
-                  &(timer_task_stack              //-- task stack first addr in memory
-                      [timer_task_stack_size-1]),
-                  timer_task_stack_size,          //-- task stack size (in int,not bytes)
-                  NULL,                           //-- task function parameter
-                  TN_TASK_TIMER);                 //-- Creation option
-#endif
+   //-- create system tasks
+   _timer_task_create(timer_task_stack, timer_task_stack_size);
+   _idle_task_create(idle_task_stack, idle_task_stack_size);
 
-   //--- Idle task
+   //-- Just for the task_to_runnable() proper operation
+   tn_next_task_to_run = &tn_idle_task; 
 
-   _tn_task_create((TN_TCB*)&tn_idle_task,        //-- task TCB
-                  tn_idle_task_func,              //-- task function
-                  TN_NUM_PRIORITY-1,              //-- task priority
-                  &(idle_task_stack               //-- task stack first addr in memory
-                      [idle_task_stack_size-1]),
-                  idle_task_stack_size,           //-- task stack size (in int,not bytes)
-                  NULL,                           //-- task function parameter
-                  TN_TASK_IDLE);                  //-- Creation option
-
-    //-- Activate timer & idle tasks
-
-   tn_next_task_to_run = &tn_idle_task; //-- Just for the task_to_runnable() proper op
-
-   task_to_runnable(&tn_idle_task);
-#if 0
-   task_to_runnable(&tn_timer_task);
-#endif
+   //-- call task_to_runnable() for system tasks
+   _timer_task_to_runnable();
+   _idle_task_to_runnable();
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
@@ -174,60 +346,6 @@ void tn_start_system(
 }
 
 //----------------------------------------------------------------------------
-#if 0
-static void tn_timer_task_func(void * par)
-{
-   TN_INTSAVE_DATA
-   volatile TN_TCB * task;
-   volatile CDLL_QUEUE * curr_que;
-
-   //-- User application init - user's objects initial (tasks etc.) creation
-
-   appl_init_callback();
-
-   //-- Enable interrupt here ( including tick int)
-
-   tn_cpu_int_enable();
-
-   //-------------------------------------------------------------------------
-
-   for(;;)
-   {
-
-     //------------ OS timer tick -------------------------------------
-
-      tn_disable_interrupt();
-
-      curr_que = tn_wait_timeout_list.next;
-      while(curr_que != &tn_wait_timeout_list)
-      {
-         task = get_task_by_timer_queque((CDLL_QUEUE*)curr_que);
-         if(task->tick_count != TN_WAIT_INFINITE)
-         {
-            if(task->tick_count > 0)
-            {
-               task->tick_count--;
-               if(task->tick_count == 0) //-- Timeout expired
-               {
-                  queue_remove_entry(&(((TN_TCB *)task)->task_queue));
-                  task_wait_complete((TN_TCB *)task);
-                  task->task_wait_rc = TERR_TIMEOUT;
-               }
-            }
-         }
-
-         curr_que = curr_que->next;
-      }
-
-      task_curr_to_wait_action(NULL,
-                               TSK_WAIT_REASON_SLEEP,
-                               TN_WAIT_INFINITE);
-      tn_enable_interrupt();
-
-      tn_switch_context();
-   }
-}
-#endif
 
 //----------------------------------------------------------------------------
 //  In fact, this task is always in RUNNABLE state
@@ -239,16 +357,9 @@ static void tn_idle_task_func(void * par)
    TN_INTSAVE_DATA;
 #endif
 
-   //-- Make sure interrupts are disabled before calling application callback,
-   //   so that this idle task is guaranteed to not be be preempted
-   //   until appl_init_callback() finished its job.
-   tn_cpu_int_disable();
-
-   //-- User application init - user's objects initial (tasks etc.) creation
-   appl_init_callback();
-
-   //-- Enable interrupt here ( including tick int)
-   tn_cpu_int_enable();
+#if !TN_USE_TIMER_TASK
+   _call_appl_callback();
+#endif
 
    for(;;)
    {
@@ -296,76 +407,16 @@ void  tn_tick_int_processing()
 
    tn_idisable_interrupt();
 
-   //-- manage round-robin (if used) {{{
-   {
-      volatile CDLL_QUEUE *curr_que;   //-- Need volatile here only to solve
-      volatile CDLL_QUEUE *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
-      volatile int priority = tn_curr_run_task->priority;
+   //-- manage round-robin (if used)
+   _round_robin_manage();
 
-      if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
-         tn_curr_run_task->tslice_count++;
+   //-- wake up timer task (NOTE: it actually depends on TN_USE_TIMER_TASK option)
+   _timer_task_wakeup();
 
-         if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
-            tn_curr_run_task->tslice_count = 0;
-
-            pri_queue = &(tn_ready_list[priority]);
-            //-- If ready queue is not empty and qty  of queue's tasks > 1
-            if (!(is_queue_empty((CDLL_QUEUE *)pri_queue)) && pri_queue->next->next != pri_queue){
-               //-- Remove task from head and add it to the tail of
-               //-- ready queue for current priority
-
-               curr_que = queue_remove_head(&(tn_ready_list[priority]));
-               queue_add_tail(&(tn_ready_list[priority]),(CDLL_QUEUE *)curr_que);
-            }
-         }
-      }
-   }
-   // }}}
-
-#if 0
-   //-- Enable a task with priority 0 - tn_timer_task
-
-   queue_remove_entry(&(tn_timer_task.task_queue));
-   tn_timer_task.task_wait_reason = 0;
-   tn_timer_task.task_state       = TSK_STATE_RUNNABLE;
-   tn_timer_task.pwait_queue      = NULL;
-   tn_timer_task.task_wait_rc     = TERR_NO_ERR;
-
-   queue_add_tail(&(tn_ready_list[0]), &(tn_timer_task.task_queue));
-   tn_ready_to_run_bmp |= (1 << 0/*priority 0*/);
-
-   tn_next_task_to_run = &tn_timer_task;
+#if !TN_USE_TIMER_TASK
+   //-- manage tn_wait_timeout_list
+   _wait_timeout_list_manage();
 #endif
-
-   //-- manage tn_wait_timeout_list {{{
-   //   this job was done by tn_timer_task before, but now it is moved right there;
-   //   it works much faster now.
-   {
-      volatile CDLL_QUEUE *curr_que;
-      volatile TN_TCB * task;
-
-      curr_que = tn_wait_timeout_list.next;
-      while(curr_que != &tn_wait_timeout_list)
-      {
-         task = get_task_by_timer_queque((CDLL_QUEUE*)curr_que);
-         if(task->tick_count != TN_WAIT_INFINITE)
-         {
-            if(task->tick_count > 0)
-            {
-               task->tick_count--;
-               if(task->tick_count == 0) //-- Timeout expired
-               {
-                  queue_remove_entry(&(((TN_TCB *)task)->task_queue));
-                  task_wait_complete((TN_TCB *)task);
-                  task->task_wait_rc = TERR_TIMEOUT;
-               }
-            }
-         }
-
-         curr_que = curr_que->next;
-      }
-   }
-   // }}}
 
    //-- increment system timer
    tn_sys_time_count++;
