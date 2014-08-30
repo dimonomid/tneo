@@ -301,17 +301,14 @@ void tn_start_system(
    tn_curr_run_task    = NULL;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
-
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
    //-- Pre-decrement stack
-
    tn_int_sp = &(int_stack[int_stack_size]);
 
-  //-- System tasks
-
+   //-- reset wait queue
    queue_reset(&tn_wait_timeout_list);
 
    /*
