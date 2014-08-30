@@ -69,8 +69,8 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 
 //-- timer task - priority 0  - highest
 
-TN_TCB  tn_timer_task;
-static void tn_timer_task_func(void * par);
+//TN_TCB  tn_timer_task;
+//static void tn_timer_task_func(void * par);
 
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
@@ -132,6 +132,7 @@ void tn_start_system(
 
    //--- Timer task
 
+#if 0
    _tn_task_create((TN_TCB*)&tn_timer_task,       //-- task TCB
                   tn_timer_task_func,             //-- task function
                   0,                              //-- task priority
@@ -140,6 +141,7 @@ void tn_start_system(
                   timer_task_stack_size,          //-- task stack size (in int,not bytes)
                   NULL,                           //-- task function parameter
                   TN_TASK_TIMER);                 //-- Creation option
+#endif
 
    //--- Idle task
 
@@ -157,7 +159,9 @@ void tn_start_system(
    tn_next_task_to_run = &tn_idle_task; //-- Just for the task_to_runnable() proper op
 
    task_to_runnable(&tn_idle_task);
+#if 0
    task_to_runnable(&tn_timer_task);
+#endif
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
@@ -170,6 +174,7 @@ void tn_start_system(
 }
 
 //----------------------------------------------------------------------------
+#if 0
 static void tn_timer_task_func(void * par)
 {
    TN_INTSAVE_DATA
@@ -222,6 +227,7 @@ static void tn_timer_task_func(void * par)
       tn_switch_context();
    }
 }
+#endif
 
 //----------------------------------------------------------------------------
 //  In fact, this task is always in RUNNABLE state
@@ -230,8 +236,17 @@ static void tn_idle_task_func(void * par)
 {
 
 #ifdef TN_MEAS_PERFORMANCE
-   TN_INTSAVE_DATA
+   TN_INTSAVE_DATA;
 #endif
+
+   //-- disable interrupt
+   tn_cpu_int_disable();
+
+   //-- User application init - user's objects initial (tasks etc.) creation
+   appl_init_callback();
+
+   //-- Enable interrupt here ( including tick int)
+   tn_cpu_int_enable();
 
    for(;;)
    {
@@ -312,6 +327,7 @@ void  tn_tick_int_processing()
    //-- increment system timer
    tn_sys_time_count++;
 
+#if 0
    //-- Enable a task with priority 0 - tn_timer_task
 
    queue_remove_entry(&(tn_timer_task.task_queue));
@@ -324,6 +340,31 @@ void  tn_tick_int_processing()
    tn_ready_to_run_bmp |= (1 << 0/*priority 0*/);
 
    tn_next_task_to_run = &tn_timer_task;
+#endif
+
+   {
+      volatile TN_TCB * task;
+      curr_que = tn_wait_timeout_list.next;
+      while(curr_que != &tn_wait_timeout_list)
+      {
+         task = get_task_by_timer_queque((CDLL_QUEUE*)curr_que);
+         if(task->tick_count != TN_WAIT_INFINITE)
+         {
+            if(task->tick_count > 0)
+            {
+               task->tick_count--;
+               if(task->tick_count == 0) //-- Timeout expired
+               {
+                  queue_remove_entry(&(((TN_TCB *)task)->task_queue));
+                  task_wait_complete((TN_TCB *)task);
+                  task->task_wait_rc = TERR_TIMEOUT;
+               }
+            }
+         }
+
+         curr_que = curr_que->next;
+      }
+   }
 
    tn_ienable_interrupt();  //--  !!! thanks to Audrius Urmanavicius !!!
 }
