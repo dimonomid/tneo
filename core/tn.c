@@ -80,7 +80,7 @@ TN_TCB  tn_timer_task;
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
 TN_TCB  tn_idle_task;
-static void tn_idle_task_func(void * par);
+static void _idle_task_body(void * par);
 
 void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
 void (*idle_user_func_callback)(void);          /* Pointer to user idle loop function         */
@@ -93,6 +93,12 @@ void (*idle_user_func_callback)(void);          /* Pointer to user idle loop fun
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Disable interrupts, call user-provided callback function,
+ * enable interrupts back.
+ *
+ * This function is called by idle task while system is being started.
+ */
 static inline void _call_appl_callback(void)
 {
    //-- Make sure interrupts are disabled before calling application callback,
@@ -106,6 +112,36 @@ static inline void _call_appl_callback(void)
    //-- Enable interrupt here ( including tick int)
    tn_cpu_int_enable();
 }
+
+/**
+ * Idle task body. In fact, this task is always in RUNNABLE state.
+ */
+static void _idle_task_body(void *par)
+{
+
+#ifdef TN_MEAS_PERFORMANCE
+   TN_INTSAVE_DATA;
+#endif
+
+#if !TN_USE_TIMER_TASK
+   _call_appl_callback();
+#endif
+
+   for(;;)
+   {
+#ifdef TN_MEAS_PERFORMANCE
+      tn_disable_interrupt();
+#endif
+
+      idle_user_func_callback();
+      tn_idle_count++;
+
+#ifdef TN_MEAS_PERFORMANCE
+      tn_enable_interrupt();
+#endif
+   }
+}
+
 
 /**
  * Manage tn_wait_timeout_list.
@@ -167,9 +203,40 @@ static inline void _round_robin_manage(void)
    }
 }
 
+/**
+ * Create idle task, the task is NOT started after creation.
+ * _idle_task_to_runnable() is used to make it runnable.
+ */
+static inline void _idle_task_create(unsigned int  *idle_task_stack,
+                                     unsigned int   idle_task_stack_size)
+{
+   _tn_task_create(
+         (TN_TCB*)&tn_idle_task,          //-- task TCB
+         _idle_task_body,                 //-- task function
+         TN_NUM_PRIORITY - 1,             //-- task priority
+         &(idle_task_stack                //-- task stack first addr in memory
+            [idle_task_stack_size-1]),
+         idle_task_stack_size,            //-- task stack size (in int,not bytes)
+         NULL,                            //-- task function parameter
+         (TN_TASK_IDLE)                   //-- Creation option
+         );
+}
 
+/**
+ * Make idle task runnable.
+ */
+static inline void _idle_task_to_runnable(void)
+{
+   task_to_runnable(&tn_idle_task);
+}
+
+//-- obsolete timer task stuff {{{
 #if TN_USE_TIMER_TASK
-static void tn_timer_task_func(void * par)
+/**
+ * Timer task body. Now it is obsolete
+ * (it's better not to use timer task at all)
+ */
+static void _timer_task_body(void * par)
 {
    TN_INTSAVE_DATA;
 
@@ -193,12 +260,16 @@ static void tn_timer_task_func(void * par)
    }
 }
 
+/**
+ * Create timer task, the task is NOT started after creation.
+ * Now it is obsolete (it's better not to use timer task at all)
+ */
 static inline void _timer_task_create(unsigned int  *timer_task_stack,
-                                      unsigned int   timer_task_stack_size)
+      unsigned int   timer_task_stack_size)
 {
    _tn_task_create(
          (TN_TCB*)&tn_timer_task,                     //-- task TCB
-         tn_timer_task_func,                          //-- task function
+         _timer_task_body,                            //-- task function
          0,                                           //-- task priority
          &(timer_task_stack                           //-- task stack first addr in memory
             [timer_task_stack_size-1]),
@@ -208,11 +279,19 @@ static inline void _timer_task_create(unsigned int  *timer_task_stack,
          );
 }
 
+/**
+ * Put timer task on run. Now it is obsolete
+ * (it's better not to use timer task at all)
+ */
 static inline void _timer_task_to_runnable(void)
 {
    task_to_runnable(&tn_timer_task);
 }
 
+/**
+ * Wake up timer task. This function was called each system tick,
+ * but now it is obsolete (it's better not to use timer task at all)
+ */
 static inline void _timer_task_wakeup(void)
 {
    //-- Enable a task with priority 0 - tn_timer_task
@@ -234,26 +313,7 @@ static inline void _timer_task_wakeup(void)
 #  define _timer_task_to_runnable()
 #  define _timer_task_wakeup()
 #endif
-
-static inline void _idle_task_create(unsigned int  *idle_task_stack,
-                                     unsigned int   idle_task_stack_size)
-{
-   _tn_task_create(
-         (TN_TCB*)&tn_idle_task,                      //-- task TCB
-         tn_idle_task_func,                           //-- task function
-         TN_NUM_PRIORITY - 1,                         //-- task priority
-         &(idle_task_stack                            //-- task stack first addr in memory
-            [idle_task_stack_size-1]),
-         idle_task_stack_size,                        //-- task stack size (in int,not bytes)
-         NULL,                                        //-- task function parameter
-         (TN_TASK_IDLE)                               //-- Creation option
-         );
-}
-
-static inline void _idle_task_to_runnable(void)
-{
-   task_to_runnable(&tn_idle_task);
-}
+// }}}
 
 
 
@@ -262,9 +322,10 @@ static inline void _idle_task_to_runnable(void)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-//----------------------------------------------------------------------------
-// TN main function (never return)
-//----------------------------------------------------------------------------
+/**
+ * Main TNKernel function, never returns.
+ * Typically called from main().
+ */
 void tn_start_system(
 #if TN_USE_TIMER_TASK
       unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
@@ -334,69 +395,21 @@ void tn_start_system(
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
+   //-- remember user-provided callbacks
    appl_init_callback          = app_in_cb;
    idle_user_func_callback     = idle_user_cb;
 
    //-- Run OS - first context switch
-
    tn_start_exe();
 }
 
-//----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//  In fact, this task is always in RUNNABLE state
-//----------------------------------------------------------------------------
-static void tn_idle_task_func(void * par)
-{
 
-#ifdef TN_MEAS_PERFORMANCE
-   TN_INTSAVE_DATA;
-#endif
-
-#if !TN_USE_TIMER_TASK
-   _call_appl_callback();
-#endif
-
-   for(;;)
-   {
-#ifdef TN_MEAS_PERFORMANCE
-      tn_disable_interrupt();
-#endif
-
-      idle_user_func_callback();
-      tn_idle_count++;
-
-#ifdef TN_MEAS_PERFORMANCE
-      tn_enable_interrupt();
-#endif
-   }
-}
-
-//--- Set time slice ticks value for priority for round-robin scheduling
-//--- If value is NO_TIME_SLICE there are no round-robin scheduling
-//--- for tasks with priority. NO_TIME_SLICE is default value.
-//----------------------------------------------------------------------------
-int tn_sys_tslice_ticks(int priority,int value)
-{
-   TN_INTSAVE_DATA
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(priority <= 0 || priority >= TN_NUM_PRIORITY-1 ||
-                                value < 0 || value > MAX_TIME_SLICE)
-      return TERR_WRONG_PARAM;
-
-   tn_tslice_ticks[priority] = value;
-
-   tn_enable_interrupt();
-   return TERR_NO_ERR;
-}
-
-//----------------------------------------------------------------------------
-void  tn_tick_int_processing()
+/**
+ * Process system tick. Should be called periodically, typically
+ * from some kind of timer ISR.
+ */
+void tn_tick_int_processing(void)
 {
    TN_INTSAVE_DATA_INT;
 
@@ -421,14 +434,54 @@ void  tn_tick_int_processing()
    tn_ienable_interrupt();  //--  !!! thanks to Audrius Urmanavicius !!!
 }
 
+/**
+ * Set time slice ticks value for specified priority (round-robin scheduling).
+ * 
+ * @param priority   priority of tasks for which time slice value should be set
+ * @param value      time slice value. Set to NO_TIME_SLICE for no round-robin
+ *                   scheduling for given priority (it's default value).
+ */
+int tn_sys_tslice_ticks(int priority, int value)
+{
+   int ret = TERR_NO_ERR;
 
-//----------------------------------------------------------------------------
+   TN_INTSAVE_DATA;
+   TN_CHECK_NON_INT_CONTEXT;
+
+   if (     priority <= 0 || priority >= (TN_NUM_PRIORITY - 1)
+         || value    <  0 || value    >   MAX_TIME_SLICE)
+   {
+      ret = TERR_WRONG_PARAM;
+      goto out;
+   }
+
+   tn_disable_interrupt();
+
+   tn_tslice_ticks[priority] = value;
+
+   tn_enable_interrupt();
+
+out:
+   return ret;
+}
+
+/**
+ * Get system ticks count.
+ */
 unsigned int tn_sys_time_get(void)
 {
    //-- NOTE: it works if only read access to unsigned int is atomic!
    return tn_sys_time_count;
 }
 
+/**
+ * Set system ticks count. Note that this value does NOT affect
+ * any of the internal TNKernel routines, it is just incremented
+ * each system tick (i.e. in tn_tick_int_processing())
+ * and is returned by tn_sys_time_get().
+ *
+ * It is not used by TNKernel itself at all.
+ */
 void tn_sys_time_set(unsigned int value)
 {
    if (tn_inside_int()){
@@ -445,10 +498,5 @@ void tn_sys_time_set(unsigned int value)
 
 }
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 
 
