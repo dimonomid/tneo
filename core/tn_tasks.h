@@ -1,0 +1,207 @@
+/***************************************************************************************************
+ *   Description:   TODO
+ *
+ **************************************************************************************************/
+
+#ifndef _TN_TASKS_H
+#define _TN_TASKS_H
+
+/***************************************************************************************************
+ *                                         INCLUDED FILES                                          *
+ **************************************************************************************************/
+
+/***************************************************************************************************
+ *                                          PUBLIC TYPES                                           *
+ **************************************************************************************************/
+
+/***************************************************************************************************
+ *                                         GLOBAL VARIABLES                                        *
+ **************************************************************************************************/
+
+/***************************************************************************************************
+ *                                           DEFINITIONS                                           *
+ **************************************************************************************************/
+
+/***************************************************************************************************
+ *                                    PUBLIC FUNCTION PROTOTYPES                                   *
+ **************************************************************************************************/
+
+/**
+ * Create task.
+ *
+ * This function creates a task. A field id_task of the structure task must be set to 0 before invoking this
+ * function. A memory for the task TCB and a task stack must be allocated before the function call. An
+ * allocation may be static (global variables of the TN_TCB type for the task and
+ * unsigned int [task_stack_size] for the task stack) or dynamic, if the user application supports
+ * malloc/alloc (TNKernel itself does not use dynamic memory allocation).
+ * The task_stack_size value must to be chosen big enough to fit the task_func local variables and its switch
+ * context (processor registers, stack and instruction pointers, etc.).
+ * The task stack must to be created as an array of unsigned int. Actually, the size of stack array element
+ * must be identical to the processor register size (for most 32-bits and 16-bits processors a register size
+ * equals sizeof(int)).
+ * A parameter task_stack_start must point to the stack bottom. For instance, if the processor stack grows
+ * from the high to the low memory addresses and the task stack array is defined as
+ * unsigned int xxx_xxx[task_stack_size] (in C-language notation),
+ * then the task_stack_start parameter has to be &xxx_xxx[task_stack_size - 1].
+ *
+ * @param task       Ready-allocated TN_TCB structure. A field id_task of it must be 
+ *                   set to 0 before invocation of tn_task_create().
+ * @param task_func  Task body function.
+ * @param priority   Priority for new task. NOTE: the lower value, the higher priority.
+ *                   Must be > 0 and < (TN_NUM_PRIORITY - 1).
+ * @param task_stack_start    Task start pointer.
+ *                            A task must be created as an array of int. Actually, the size
+ *                            of stack array element must be identical to the processor 
+ *                            register size (for most 32-bits and 16-bits processors
+ *                            a register size equals sizeof(int)).
+ *                            NOTE: See option TN_API_TASK_CREATE for further details.
+ * @param task_stack_size     Size of task stack
+ *                            (actually, size of array that is used for task_stack_start).
+ * @param            Parameter that is passed to task_func.
+ * @option           (0): task is created in DORMANT state,
+ *                        you need to call tn_task_activate() after task creation.
+ *                   (TN_TASK_START_ON_CREATION): task is created and activated.
+ *                   
+ */
+int tn_task_create(TN_TCB *task,                  //-- task TCB
+                 void (*task_func)(void *param),  //-- task function
+                 int priority,                    //-- task priority
+                 unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
+                 int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
+                 void *param,                     //-- task function parameter
+                 int option);                     //-- creation option
+
+
+/**
+ * If the task is runnable, it is moved to the SUSPENDED state. If the task
+ * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
+ */
+int tn_task_suspend(TN_TCB *task);
+
+/**
+ * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
+ * it is moved to READY state; afterwards it has the lowest precedence amoung
+ * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
+ * it is moved to WAITING state.
+ */
+int tn_task_resume(TN_TCB *task);
+
+/**
+ * Put current task to sleep for at most timeout ticks. When the timeout
+ * expires and the task was not suspended during the sleep, it is switched
+ * to runnable state. If the timeout value is TN_WAIT_INFINITE and the task
+ * was not suspended during the sleep, the task will sleep until another
+ * function call (like tn_task_wakeup() or similar) will make it runnable.
+ *
+ * Each task has a wakeup request counter. If its value for currently
+ * running task is greater then 0, the counter is decremented by 1 and the
+ * currently running task is not switched to the sleeping mode and
+ * continues execution.
+ */
+int tn_task_sleep(unsigned long timeout);
+
+/**
+ * Wake up task from sleep.
+ *
+ * These functions wakes up the task specified by the task from sleep mode.
+ * The function placing the task into the sleep mode will return to the task
+ * without errors. If the task is not in the sleep mode, the wakeup request
+ * for the task is queued and the wakeup_count is incremented by 1.
+ *
+ * TODO: is it actually good idea about wakeup_count?
+ *       it seems just like dirty hack to prevent race conditions.
+ *       It makes the programmer able to not create proper syncronization.
+ */
+int tn_task_wakeup(TN_TCB *task);
+int tn_task_iwakeup(TN_TCB *task);
+
+/**
+ * Activate task that was created by tn_task_create() without TN_TASK_START_ON_CREATION
+ * option.
+ *
+ * Task is moved from DORMANT state to the READY state.
+ * If task isn't in DORMANT state, activate_count is incremented.
+ * If activate_count is already non-zero, TERR_OVERFLOW is returned.
+ * TODO: is it actually good idea about activate_count?
+ *       it seems just like dirty hack to prevent race conditions.
+ *       It makes the programmer able to not create proper syncronization.
+ */
+int tn_task_activate(TN_TCB *task);
+int tn_task_iactivate(TN_TCB *task);
+
+/**
+ * Release task from WAIT state.
+ *
+ * These functions forcibly release task from any waiting state.
+ * If task is in WAITING state, it is moved to READY state.
+ * If task is in WAITING_SUSPENDED state, it is moved to SUSPENDED state.
+ */
+int tn_task_release_wait(TN_TCB *task);
+int tn_task_irelease_wait(TN_TCB *task);
+
+/**
+ * This function terminates the currently running task. The task is moved to the DORMANT state.
+ * If activate requests exist (activation request count is 1) the count 
+ * is decremented and the task is moved to the READY state.
+ * In this case the task starts execution from the beginning (as after creation and activation),
+ * all mutexes locked by the task are unlocked etc.
+ * The task will have the lowest precedence among all tasks with the same priority in the READY state.
+ *
+ * After exiting, the task may be reactivated by the tn_task_iactivate()
+ * function or the tn_task_activate() function call.
+ * In this case task starts execution from beginning (as after creation/activation).
+ * The task will have the lowest precedence among all tasks with the same
+ * priority in the READY state.
+ *
+ * If this function is invoked with TN_EXIT_AND_DELETE_TASK parameter value, the task will be deleted
+ * after termination and cannot be reactivated (needs recreation).
+ * 
+ * This function cannot be invoked from interrupts.
+ */
+void tn_task_exit(int attr);
+
+
+/**
+ * This function terminates the task specified by the task. The task is moved to the DORMANT state.
+ * When the task is waiting in a wait queue, the task is removed from the queue.
+ * If activate requests exist (activation request count is 1) the count 
+ * is decremented and the task is moved to the READY state.
+ * In this case the task starts execution from beginning (as after creation and activation), all
+ * mutexes locked by the task are unlocked etc.
+ * The task will have the lowest precedence among all tasks with the same priority in the READY state.
+ *
+ * After termination, the task may be reactivated by the tn_task_iactivate()
+ * function or the tn_task_activate() function call.
+ * In this case the task starts execution from the beginning (as after creation/activation).
+ * The task will have the lowest precedence among all tasks with the same
+ * priority in the READY state.
+ *
+ * A task must not terminate itself by this function (use the tn_task_exit() function instead).
+ * This function cannot be used in interrupts.
+ */
+int tn_task_terminate(TN_TCB *task);
+
+/**
+ * This function deletes the task specified by the task. The task must be in the DORMANT state,
+ * otherwise TERR_WCONTEXT will be returned.
+ *
+ * This function resets the id_task field in the task structure to 0
+ * and removes the task from the system tasks list.
+ * The task can not be reactivated after this function call (the task must be recreated).
+ *
+ * This function cannot be invoked from interrupts.
+ */
+int tn_task_delete(TN_TCB *task);
+
+/**
+ * Set new priority for task.
+ * If priority is 0, then task's base_priority is set.
+ */
+int tn_task_change_priority(TN_TCB *task, int new_priority);
+
+#endif // _TN_TASKS_H
+/***************************************************************************************************
+  end of file
+ **************************************************************************************************/
+
+

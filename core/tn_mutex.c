@@ -33,6 +33,7 @@
 
 #include "tn.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 
 #ifdef TN_USE_MUTEXES
@@ -82,7 +83,7 @@ static inline void __mutex_do_lock(TN_MUTEX *mutex)
       //-- Ceiling protocol
 
       if(tn_curr_run_task->priority > mutex->ceil_priority){
-         change_running_task_priority(tn_curr_run_task, mutex->ceil_priority);
+         _tn_change_running_task_priority(tn_curr_run_task, mutex->ceil_priority);
       }
    }
 }
@@ -96,7 +97,7 @@ static inline void __mutex_add_to_wait_queue(TN_MUTEX *mutex, unsigned long time
 
       //-- if run_task curr priority higher holder's curr priority
       if (tn_curr_run_task->priority < mutex->holder->priority){
-         set_current_priority(mutex->holder, tn_curr_run_task->priority);
+         _tn_set_current_priority(mutex->holder, tn_curr_run_task->priority);
       }
 
       wait_reason = TSK_WAIT_REASON_MUTEX_I;
@@ -105,7 +106,7 @@ static inline void __mutex_add_to_wait_queue(TN_MUTEX *mutex, unsigned long time
       wait_reason = TSK_WAIT_REASON_MUTEX_C;
    }
 
-   task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
+   _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
 }
 
 /*
@@ -266,7 +267,7 @@ int tn_mutex_delete(TN_MUTEX * mutex)
 
     //-- If the task in system's blocked list, remove it
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -401,7 +402,7 @@ int do_unlock_mutex(TN_MUTEX * mutex)
    //-- Restore original priority
 
    if(pr != tn_curr_run_task->priority)
-      change_running_task_priority(tn_curr_run_task, pr);
+      _tn_change_running_task_priority(tn_curr_run_task, pr);
 
 
    //-- Check for the task(s) that want to lock the mutex
@@ -422,7 +423,7 @@ int do_unlock_mutex(TN_MUTEX * mutex)
                              task->priority > mutex->ceil_priority)
       task->priority = mutex->ceil_priority;
 
-   task_wait_complete(task);
+   _tn_task_wait_complete(task);
    queue_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
    return TRUE;

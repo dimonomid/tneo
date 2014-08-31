@@ -29,6 +29,7 @@
 
 #include "tn.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 //-- Local function prototypes --
 
@@ -136,7 +137,7 @@ int tn_fmem_delete(TN_FMP * fmp)
 
       que = queue_remove_head(&(fmp->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -178,7 +179,7 @@ int tn_fmem_get(TN_FMP * fmp, void ** p_data, unsigned long timeout)
    }
    else
    {
-      task_curr_to_wait_action(&(fmp->wait_queue),
+      _tn_task_curr_to_wait_action(&(fmp->wait_queue),
                                      TSK_WAIT_REASON_WFIXMEM, timeout);
       tn_enable_interrupt();
       tn_switch_context();
@@ -285,7 +286,7 @@ int tn_fmem_release(TN_FMP * fmp,void * p_data)
 
       task->data_elem = p_data;
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -327,7 +328,7 @@ int tn_fmem_irelease(TN_FMP * fmp, void * p_data)
 
       task->data_elem = p_data;
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_ienable_interrupt();
          return TERR_NO_ERR;

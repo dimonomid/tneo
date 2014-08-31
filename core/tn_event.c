@@ -29,6 +29,7 @@
 
 #include "tn.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 #ifdef  TN_USE_EVENTS
 
@@ -88,7 +89,7 @@ int tn_event_delete(TN_EVENT * evf)
 
       que = queue_remove_head(&(evf->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -154,9 +155,9 @@ int tn_event_wait(TN_EVENT * evf,
       {
          tn_curr_run_task->ewait_mode = wait_mode;
          tn_curr_run_task->ewait_pattern = wait_pattern;
-         task_curr_to_wait_action(&(evf->wait_queue),
-                                  TSK_WAIT_REASON_EVENT,
-                                  timeout);
+         _tn_task_curr_to_wait_action(&(evf->wait_queue),
+                                        TSK_WAIT_REASON_EVENT,
+                                        timeout);
          tn_enable_interrupt();
          tn_switch_context();
 
@@ -418,7 +419,7 @@ static int scan_event_waitqueue(TN_EVENT * evf)
       {
          queue_remove_entry(&task->task_queue);
          task->ewait_pattern = evf->pattern;
-         if(task_wait_complete(task))   // v.2.7 - thanks to Eugene Scopal
+         if(_tn_task_wait_complete(task))   // v.2.7 - thanks to Eugene Scopal
             rc = 1;
       }
    }

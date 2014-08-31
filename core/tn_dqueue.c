@@ -29,6 +29,7 @@
 
 #include "tn.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
@@ -87,7 +88,7 @@ int tn_queue_delete(TN_DQUE * dque)
 
       que = queue_remove_head(&(dque->wait_send_list));
       task = get_task_by_tsk_queue(que);
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -102,7 +103,7 @@ int tn_queue_delete(TN_DQUE * dque)
 
       que = queue_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -147,7 +148,7 @@ int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout)
 
       task->data_elem = data_ptr;
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -161,7 +162,7 @@ int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout)
       if(rc != TERR_NO_ERR)  //-- No free entries in the data queue
       {
          tn_curr_run_task->data_elem = data_ptr;  //-- Store data_ptr
-         task_curr_to_wait_action(&(dque->wait_send_list),
+         _tn_task_curr_to_wait_action(&(dque->wait_send_list),
                                          TSK_WAIT_REASON_DQUE_WSEND, timeout);
          tn_enable_interrupt();
          tn_switch_context();
@@ -201,7 +202,7 @@ int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr)
 
       task->data_elem = data_ptr;
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -247,7 +248,7 @@ int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr)
 
       task->data_elem = data_ptr;
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_ienable_interrupt();
          return TERR_NO_ERR;
@@ -296,7 +297,7 @@ int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -313,7 +314,7 @@ int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
 
          *data_ptr = task->data_elem; //-- Return to caller
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -323,7 +324,7 @@ int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
       }
       else //-- wait_send_list is empty
       {
-         task_curr_to_wait_action(&(dque->wait_receive_list),
+         _tn_task_curr_to_wait_action(&(dque->wait_receive_list),
                                      TSK_WAIT_REASON_DQUE_WRECEIVE,timeout);
          tn_enable_interrupt();
          tn_switch_context();
@@ -370,7 +371,7 @@ int tn_queue_receive_polling(TN_DQUE * dque,void ** data_ptr)
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -387,7 +388,7 @@ int tn_queue_receive_polling(TN_DQUE * dque,void ** data_ptr)
 
          *data_ptr = task->data_elem; //-- Return to caller
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -433,7 +434,7 @@ int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_ienable_interrupt();
             return TERR_NO_ERR;
@@ -449,7 +450,7 @@ int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
 
         *data_ptr = task->data_elem; //-- Return to caller
 
-         if(task_wait_complete(task))
+         if(_tn_task_wait_complete(task))
          {
             tn_ienable_interrupt();
             return TERR_NO_ERR;

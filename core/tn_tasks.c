@@ -49,6 +49,10 @@ extern CDLL_QUEUE tn_blocked_tasks_list;
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Depending on TN_API_TASK_CREATE, provinde proper method for getting
+ * bottom stack address from user-provided stack pointer.
+ */
 #if (!defined TN_API_TASK_CREATE)
 #  error TN_API_TASK_CREATE is not defined
 #endif
@@ -67,21 +71,259 @@ static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, in
 #  error wrong TN_API_TASK_CREATE
 #endif
 
+//-- Private utilities {{{
 
+static void _find_next_task_to_run(void)
+{
+   int tmp;
+
+#ifndef USE_ASM_FFS
+   int i;
+   unsigned int mask;
+#endif
+
+#ifdef USE_ASM_FFS
+   tmp = ffs_asm(tn_ready_to_run_bmp);
+   tmp--;
+#else
+   mask = 1;
+   tmp = 0;
+
+   for (i = 0; i < TN_BITS_IN_INT; i++){
+      //-- for each bit in bmp
+      if (tn_ready_to_run_bmp & mask){
+         tmp = i;
+         break;
+      }
+      mask = (mask << 1);
+   }
+#endif
+
+   tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[tmp].next);
+}
+
+/**
+ * Remove task from 'ready queue', determine and set
+ * new tn_next_task_to_run.
+ */
+static void _task_to_non_runnable(TN_TCB *task)
+{
+   int priority;
+   CDLL_QUEUE *que;
+
+   priority = task->priority;
+   que = &(tn_ready_list[priority]);
+
+   //-- remove the curr task from any queue (now - from ready queue)
+
+   queue_remove_entry(&(task->task_queue));
+
+   if (is_queue_empty(que)){
+      //-- No ready tasks for the curr priority
+      //-- remove 'ready to run' from the curr priority
+
+      tn_ready_to_run_bmp &= ~(1 << priority);
+
+      //-- Find highest priority ready to run -
+      //-- at least, MSB bit must be set for the idle task
+
+      _find_next_task_to_run();   //-- v.2.6
+   } else {
+      //-- There are 'ready to run' task(s) for the curr priority
+      if (tn_next_task_to_run == task){
+         tn_next_task_to_run = get_task_by_tsk_queue(que->next);
+      }
+   }
+}
+
+
+static void _task_set_dormant_state(TN_TCB* task)
+{
+   // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
+   queue_reset(&(task->task_queue));
+   queue_reset(&(task->timer_queue));
+
+#ifdef TN_USE_MUTEXES
+
+   queue_reset(&(task->mutex_queue));
+
+#endif
+
+   task->pwait_queue = NULL;
+
+   task->priority    = task->base_priority; //-- Task curr priority
+   task->task_state  = TSK_STATE_DORMANT;   //-- Task state
+   task->task_wait_reason = 0;              //-- Reason for waiting
+   task->task_wait_rc = TERR_NO_ERR;
+
+#ifdef TN_USE_EVENTS
+
+   task->ewait_pattern = 0;                 //-- Event wait pattern
+   task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR
+
+#endif
+
+   task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
+
+   task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
+   task->wakeup_count  = 0;                 //-- Wakeup request count
+   task->suspend_count = 0;                 //-- Suspension count
+
+   task->tslice_count  = 0;
+}
+
+// }}}
+
+//-- Inline functions {{{
+
+
+/**
+ * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
+ */
+static inline int _task_wakeup(TN_TCB *task, int *p_need_switch_context)
+{
+   int rc = TERR_NO_ERR;
+   *p_need_switch_context = 0;
+
+   if (task->task_state == TSK_STATE_DORMANT){
+      rc = TERR_WCONTEXT;
+   } else {
+
+      if (     (task->task_state & TSK_STATE_WAIT)
+            && (task->task_wait_reason == TSK_WAIT_REASON_SLEEP))
+      {
+         //-- Task is sleeping, so, let's wake it up.
+
+         *p_need_switch_context = _tn_task_wait_complete(task);
+      } else {
+         //-- Task isn't sleeping. Probably it is in WAIT state,
+         //   but not because of call to tn_task_sleep().
+
+         //-- Check for 0 - case max wakeup_count value is 1  
+         if (task->wakeup_count == 0){                           
+            //-- there isn't wakeup request yet, so, increment counter
+            task->wakeup_count++;
+         } else {
+            //-- too many wakeup requests; return error.
+            rc = TERR_OVERFLOW;
+         }
+      }
+   }
+
+   return rc;
+}
+
+static inline int _task_release_wait(TN_TCB *task, int *p_need_switch_context)
+{
+   int rc = TERR_NO_ERR;
+   *p_need_switch_context = 0;
+
+   if ((task->task_state & TSK_STATE_WAIT)){
+      //-- task is in WAIT state, so, let's release it from that state.
+      *p_need_switch_context = _tn_task_wait_complete(task);
+   } else {
+      rc = TERR_WCONTEXT;
+   }
+
+   return rc;
+}
+
+/**
+ * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
+ */
+static inline int _task_activate(TN_TCB *task, int *p_need_switch_context)
+{
+   int rc = TERR_NO_ERR;
+   *p_need_switch_context = 0;
+
+   if (task->task_state == TSK_STATE_DORMANT){
+      _tn_task_to_runnable(task);
+      *p_need_switch_context = 1;
+   } else {
+      if (task->activate_count == 0){
+         task->activate_count++;
+      } else {
+         rc = TERR_OVERFLOW;
+      }
+   }
+
+   return rc;
+}
+
+static inline int _task_job_perform(
+      TN_TCB *task,
+      int (p_worker)(TN_TCB *task, int *p_need_switch_context)
+      )
+{
+   TN_INTSAVE_DATA;
+   int rc = TERR_NO_ERR;
+   int need_switch_context = 0;
+
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   rc = p_worker(task, &need_switch_context);
+
+   tn_enable_interrupt();
+   if (need_switch_context){
+      tn_switch_context();
+   }
+
+   return rc;
+}
+
+static inline int _task_job_iperform(
+      TN_TCB *task,
+      int (p_worker)(TN_TCB *task, int *p_need_switch_context)
+      )
+{
+   TN_INTSAVE_DATA_INT;
+   int rc = TERR_NO_ERR;
+   int need_switch_context = 0;
+
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_INT_CONTEXT;
+
+   tn_idisable_interrupt();
+
+   rc = p_worker(task, &need_switch_context);
+
+   tn_ienable_interrupt();
+   //-- inside interrupt, we ignore need_switch_context
+
+   return rc;
+}
+
+// }}}
 
 /*******************************************************************************
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-//-----------------------------------------------------------------------------
-
-int tn_task_create(TN_TCB * task,                 //-- task TCB
+/**
+ * Create task. See comments in tn_tasks.h file.
+ */
+int tn_task_create(TN_TCB *task,                  //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option)                      //-- Creation option
+                 int option)                      //-- creation option
 {
    return _tn_task_create(task, task_func, priority,
                           _stk_bottom_get(task_stack_start, task_stack_size),
@@ -91,7 +333,467 @@ int tn_task_create(TN_TCB * task,                 //-- task TCB
 
 
 
-//-----------------------------------------------------------------------------
+/**
+ * If the task is runnable, it is moved to the SUSPENDED state. If the task
+ * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
+ */
+int tn_task_suspend(TN_TCB *task)
+{
+   TN_INTSAVE_DATA;
+   int rc = TERR_NO_ERR;
+
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return  TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   if (task->task_state & TSK_STATE_SUSPEND){
+      rc = TERR_OVERFLOW;
+      goto out_ei;
+   }
+
+   if (task->task_state == TSK_STATE_DORMANT){
+      rc = TERR_WSTATE;
+      goto out_ei;
+   }
+
+   if (task->task_state == TSK_STATE_RUNNABLE){
+      task->task_state = TSK_STATE_SUSPEND;
+      _task_to_non_runnable(task);
+
+      goto out_ei_switch_context;
+   } else {
+      task->task_state |= TSK_STATE_SUSPEND;
+      goto out_ei;
+   }
+
+out_ei:
+   tn_enable_interrupt();
+   return rc;
+
+out_ei_switch_context:
+   tn_enable_interrupt();
+   tn_switch_context();
+
+   return rc;
+}
+
+/**
+ * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
+ * it is moved to READY state; afterwards it has the lowest precedence amoung
+ * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
+ * it is moved to WAITING state.
+ */
+int tn_task_resume(TN_TCB *task)
+{
+   TN_INTSAVE_DATA;
+   int rc = TERR_NO_ERR;
+
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return  TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   if (!(task->task_state & TSK_STATE_SUSPEND)){
+      rc = TERR_WSTATE;
+      goto out_ei;
+   }
+
+   if (!(task->task_state & TSK_STATE_WAIT)){
+      //-- The task is not in the WAIT-SUSPEND state,
+      //   so we need to make it runnable and switch context
+      _tn_task_to_runnable(task);
+      goto out_ei_switch_context;
+   } else {
+      //-- Just remove TSK_STATE_SUSPEND from the task state
+      task->task_state &= ~TSK_STATE_SUSPEND;
+      goto out_ei;
+   }
+
+out_ei:
+   tn_enable_interrupt();
+   return rc;
+
+out_ei_switch_context:
+   tn_enable_interrupt();
+   tn_switch_context();
+
+   return rc;
+}
+
+/**
+ * Put current task to sleep for at most timeout ticks. When the timeout
+ * expires and the task was not suspended during the sleep, it is switched
+ * to runnable state. If the timeout value is TN_WAIT_INFINITE and the task
+ * was not suspended during the sleep, the task will sleep until another
+ * function call (like tn_task_wakeup() or similar) will make it runnable.
+ *
+ * Each task has a wakeup request counter. If its value for currently
+ * running task is greater then 0, the counter is decremented by 1 and the
+ * currently running task is not switched to the sleeping mode and
+ * continues execution.
+ */
+int tn_task_sleep(unsigned long timeout)
+{
+   TN_INTSAVE_DATA;
+   int rc;
+
+   if (timeout == 0){
+      return TERR_WRONG_PARAM;
+   }
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   if (tn_curr_run_task->wakeup_count > 0){
+      tn_curr_run_task->wakeup_count--;
+      rc = TERR_NO_ERR;
+      goto out_ei;
+   } else {
+      _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
+      rc = TERR_NO_ERR;
+      //-- task was just put to sleep, so we need to switch context
+      goto out_ei_switch_context;
+   }
+
+out_ei:
+   tn_enable_interrupt();
+   return rc;
+
+out_ei_switch_context:
+   tn_enable_interrupt();
+   tn_switch_context();
+
+   return rc;
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_wakeup() function, in which real job is done.
+ * It then re-enables interrupts, switches context if needed, and returns.
+ */
+int tn_task_wakeup(TN_TCB *task)
+{
+   return _task_job_perform(task, _task_wakeup);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_wakeup() function, in which real job is done.
+ * It then re-enables interrupts and returns.
+ */
+int tn_task_iwakeup(TN_TCB *task)
+{
+   return _task_job_iperform(task, _task_wakeup);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_activate() function, in which real job is done.
+ * It then re-enables interrupts, switches context if needed, and returns.
+ */
+int tn_task_activate(TN_TCB *task)
+{
+   return _task_job_perform(task, _task_activate);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_activate() function, in which real job is done.
+ * It then re-enables interrupts and returns.
+ */
+int tn_task_iactivate(TN_TCB *task)
+{
+   return _task_job_iperform(task, _task_activate);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_release_wait() function, in which real job is done.
+ * It then re-enables interrupts, switches context if needed, and returns.
+ */
+int tn_task_release_wait(TN_TCB *task)
+{
+   return _task_job_perform(task, _task_release_wait);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ *
+ * This function merely performs little checks, disables interrupts
+ * and calls _task_release_wait() function, in which real job is done.
+ * It then re-enables interrupts and returns.
+ */
+int tn_task_irelease_wait(TN_TCB *task)
+{
+   return _task_job_iperform(task, _task_release_wait);
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ */
+void tn_task_exit(int attr)
+{
+	/*  
+	 * The structure is used to force GCC compiler properly locate and use
+    * 'stack_exp' - thanks to Angelo R. Di Filippo
+	 */
+   struct  // v.2.7
+   {	
+#ifdef TN_USE_MUTEXES
+      CDLL_QUEUE * que;
+      TN_MUTEX * mutex;
+#endif
+      TN_TCB * task;
+      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
+   } data;
+	 
+   TN_CHECK_NON_INT_CONTEXT_NORETVAL;
+
+#ifdef TNKERNEL_PORT_MSP430X
+   __disable_interrupt();
+#else
+   tn_cpu_save_sr();  //-- For ARM - disable interrupts without saving SPSR
+#endif
+
+   //--------------------------------------------------
+
+   //-- Unlock all mutexes locked by the task
+
+#ifdef TN_USE_MUTEXES
+   while (!is_queue_empty(&(tn_curr_run_task->mutex_queue))){
+      data.que = queue_remove_head(&(tn_curr_run_task->mutex_queue));
+      data.mutex = get_mutex_by_mutex_queque(data.que);
+      do_unlock_mutex(data.mutex);
+   }
+#endif
+
+   data.task = tn_curr_run_task;
+   _task_to_non_runnable(tn_curr_run_task);
+
+   _task_set_dormant_state(data.task);
+	 //-- Pointer to task top of stack,when not running
+   data.task->task_stk = tn_stack_init(data.task->task_func_addr,
+                                  data.task->stk_start,
+                                  data.task->task_func_param);
+
+   if (data.task->activate_count > 0){
+      //-- Cannot exit
+      data.task->activate_count--;
+      _tn_task_to_runnable(data.task);
+   } else {
+      // V 2.6 Thanks to Alex Borisov
+      if(attr == TN_EXIT_AND_DELETE_TASK)
+      {
+         queue_remove_entry(&(data.task->create_queue));
+         tn_created_tasks_qty--;
+         data.task->id_task = 0;
+      }
+   }
+
+   tn_switch_context_exit();  // interrupts will be enabled inside tn_switch_context_exit()
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ */
+int tn_task_terminate(TN_TCB *task)
+{
+   TN_INTSAVE_DATA;
+
+   int rc;
+/* see the structure purpose in tn_task_exit() */
+	 struct // v.2.7
+	 {
+#ifdef TN_USE_MUTEXES
+      CDLL_QUEUE * que;
+      TN_MUTEX * mutex;
+#endif
+      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
+   }data; 
+	 
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return  TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+
+   //--------------------------------------------------
+
+   rc = TERR_NO_ERR;
+
+   if (task->task_state == TSK_STATE_DORMANT){
+      //-- The task is already terminated
+      rc = TERR_WCONTEXT;
+   } else if (tn_curr_run_task == task){
+      //-- Cannot terminate currently running task
+      //   (use tn_task_exit() instead)
+      rc = TERR_WCONTEXT;
+   } else {
+      if (task->task_state == TSK_STATE_RUNNABLE){
+         _task_to_non_runnable(task);
+      } else if (task->task_state & TSK_STATE_WAIT){
+         //-- Free all queues, involved in the 'waiting'
+
+         queue_remove_entry(&(task->task_queue));
+
+         //-----------------------------------------
+
+         if (task->tick_count != TN_WAIT_INFINITE){
+            queue_remove_entry(&(task->timer_queue));
+         }
+      }
+
+
+#ifdef TN_USE_MUTEXES
+      //-- Unlock all mutexes locked by the task
+      while (!is_queue_empty(&(task->mutex_queue))){
+         data.que = queue_remove_head(&(task->mutex_queue));
+         data.mutex = get_mutex_by_mutex_queque(data.que);
+         do_unlock_mutex(data.mutex);
+      }
+#endif
+
+      _task_set_dormant_state(task);
+			//-- Pointer to task top of the stack when not running
+
+      task->task_stk = tn_stack_init(task->task_func_addr,
+                                     task->stk_start,
+                                     task->task_func_param);
+       
+      if (task->activate_count > 0){
+         //-- Cannot terminate
+         task->activate_count--;
+
+         _tn_task_to_runnable(task);
+         tn_enable_interrupt();
+         tn_switch_context();
+
+         return TERR_NO_ERR;
+      }
+   }
+
+   tn_enable_interrupt();
+
+   return rc;
+}
+
+/**
+ * See comments in the file tn_tasks.h .
+ */
+int tn_task_delete(TN_TCB *task)
+{
+   TN_INTSAVE_DATA;
+   int rc;
+
+#if TN_CHECK_PARAM
+   if(task == NULL)
+      return TERR_WRONG_PARAM;
+   if(task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   rc = TERR_NO_ERR;
+
+   if (task->task_state != TSK_STATE_DORMANT){
+      //-- Cannot delete not-terminated task
+      rc = TERR_WCONTEXT;
+   } else {
+      queue_remove_entry(&(task->create_queue));
+      tn_created_tasks_qty--;
+      task->id_task = 0;
+   }
+
+   tn_enable_interrupt();
+
+   return rc;
+}
+
+/**
+ * Set new priority for task.
+ * If priority is 0, then task's base_priority is set.
+ */
+int tn_task_change_priority(TN_TCB *task, int new_priority)
+{
+   TN_INTSAVE_DATA;
+   int rc;
+
+#if TN_CHECK_PARAM
+   if (task == NULL)
+      return  TERR_WRONG_PARAM;
+   if (task->id_task != TN_ID_TASK)
+      return TERR_NOEXS;
+   if (new_priority < 0 || new_priority >= (TN_NUM_PRIORITY - 1))
+      return TERR_WRONG_PARAM; //-- tried to set priority reverved by system
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   if(new_priority == 0){
+      new_priority = task->base_priority;
+   }
+
+   rc = TERR_NO_ERR;
+
+   if (task->task_state == TSK_STATE_DORMANT){
+      rc = TERR_WCONTEXT;
+   } else if (task->task_state == TSK_STATE_RUNNABLE){
+      if (_tn_change_running_task_priority(task,new_priority)){
+         tn_enable_interrupt();
+         tn_switch_context();
+         return TERR_NO_ERR;
+      }
+   } else {
+      task->priority = new_priority;
+   }
+
+   tn_enable_interrupt();
+
+   return rc;
+}
+
+
+
+
+
+/*******************************************************************************
+ *    INTERNAL TNKERNEL FUNCTIONS
+ ******************************************************************************/
 
 int _tn_task_create(TN_TCB *task,                 //-- task TCB
                  void (*task_func)(void *param),  //-- task function
@@ -153,7 +855,7 @@ int _tn_task_create(TN_TCB *task,                 //-- task TCB
       *ptr_stack-- = TN_FILL_STACK_VAL;
    }
 
-   task_set_dormant_state(task);
+   _task_set_dormant_state(task);
 
    //--- Init task stack
    ptr_stack = tn_stack_init(task->task_func_addr,
@@ -170,7 +872,7 @@ int _tn_task_create(TN_TCB *task,                 //-- task TCB
    tn_created_tasks_qty++;
 
    if ((option & TN_TASK_START_ON_CREATION) != 0){
-      task_to_runnable(task);
+      _tn_task_to_runnable(task);
    }
 
    if (tn_system_state == TN_ST_STATE_RUNNING){
@@ -179,705 +881,6 @@ int _tn_task_create(TN_TCB *task,                 //-- task TCB
 
    return rc;
 }
-
-//----------------------------------------------------------------------------
-//  If the task is runnable, it is moved to the SUSPENDED state. If the task
-//  is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
-//----------------------------------------------------------------------------
-int tn_task_suspend(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(task->task_state & TSK_STATE_SUSPEND)
-      rc = TERR_OVERFLOW;
-   else
-   {
-      if(task->task_state == TSK_STATE_DORMANT)
-         rc = TERR_WSTATE;
-      else
-      {
-         if(task->task_state == TSK_STATE_RUNNABLE)
-         {
-            task->task_state = TSK_STATE_SUSPEND;
-            task_to_non_runnable(task);
-            tn_enable_interrupt();
-            tn_switch_context();
-
-            return TERR_NO_ERR;
-         }
-         else
-         {
-            task->task_state |= TSK_STATE_SUSPEND;
-            rc = TERR_NO_ERR;
-         }
-      }
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_resume(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(!(task->task_state & TSK_STATE_SUSPEND))
-      rc = TERR_WSTATE;
-   else
-   {
-      if(!(task->task_state & TSK_STATE_WAIT)) //- The task is not in the WAIT-SUSPEND state
-      {
-         task_to_runnable(task);
-         tn_enable_interrupt();
-         tn_switch_context();
-
-         return TERR_NO_ERR;
-      }
-      else  //-- Just remove TSK_STATE_SUSPEND from the task state
-      {
-         task->task_state &= ~TSK_STATE_SUSPEND;
-         rc = TERR_NO_ERR;
-      }
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_sleep(unsigned long timeout)
-{
-   TN_INTSAVE_DATA;
-   int rc;
-
-   if (timeout == 0){
-      return TERR_WRONG_PARAM;
-   }
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-   if (tn_curr_run_task->wakeup_count > 0){
-      tn_curr_run_task->wakeup_count--;
-      rc = TERR_NO_ERR;
-   } else {
-      task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
-      tn_enable_interrupt();
-      tn_switch_context();
-      return TERR_NO_ERR;
-   }
-
-   tn_enable_interrupt();
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_wakeup(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(task->task_state == TSK_STATE_DORMANT)
-   {
-      rc = TERR_WCONTEXT;
-   }
-   else
-   {
-      if((task->task_state & TSK_STATE_WAIT) &&
-                 task->task_wait_reason == TSK_WAIT_REASON_SLEEP)
-      {
-         if(task_wait_complete(task))
-         {
-            tn_enable_interrupt();
-            tn_switch_context();
-            return TERR_NO_ERR;
-         }
-         rc = TERR_NO_ERR;
-      }
-      else
-      {      // v.2.7 - Thanks to Eugene Scopal
-         //-- Check for 0 - case max wakeup_count value is 1  
-         if(task->wakeup_count == 0) //-- if here - the task is
-         {                           //-- not in the SLEEP mode
-            task->wakeup_count++;
-            rc = TERR_NO_ERR;
-         }
-         else
-            rc = TERR_OVERFLOW;
-      }
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_iwakeup(TN_TCB * task)
-{
-   TN_INTSAVE_DATA_INT
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
-
-   tn_idisable_interrupt();
-
-   if(task->task_state == TSK_STATE_DORMANT)
-   {
-      rc = TERR_WCONTEXT;
-   }
-   else
-   {
-      if((task->task_state & TSK_STATE_WAIT) &&
-                 task->task_wait_reason == TSK_WAIT_REASON_SLEEP)
-      {
-         if(task_wait_complete(task))
-         {
-            tn_ienable_interrupt();
-            return TERR_NO_ERR;
-         }
-         rc = TERR_NO_ERR;
-      }
-      else
-      {     // v.2.7 - Thanks to Eugene Scopal
-         if(task->wakeup_count == 0)  //-- if here - the task is
-         {                            //-- not in the SLEEP mode
-            task->wakeup_count++;
-            rc = TERR_NO_ERR;
-         }
-         else
-            rc = TERR_OVERFLOW;
-      }
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_activate(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(task->task_state == TSK_STATE_DORMANT)
-   {
-      task_to_runnable(task);
-      tn_enable_interrupt();
-      tn_switch_context();
-
-      return TERR_NO_ERR;
-   }
-   else
-   {
-      if(task->activate_count == 0)
-      {
-         task->activate_count++;
-         rc = TERR_NO_ERR;
-      }
-      else
-         rc = TERR_OVERFLOW;
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_iactivate(TN_TCB * task)
-{
-   TN_INTSAVE_DATA_INT
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
-
-   tn_idisable_interrupt();
-
-   if(task->task_state == TSK_STATE_DORMANT)
-   {
-      task_to_runnable(task);
-      tn_ienable_interrupt();
-
-      return TERR_NO_ERR;
-   }
-   else
-   {
-      if(task->activate_count == 0)
-      {
-         task->activate_count++;
-         rc = TERR_NO_ERR;
-      }
-      else
-         rc = TERR_OVERFLOW;
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_release_wait(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if((task->task_state & TSK_STATE_WAIT) == 0)
-   {
-      rc = TERR_WCONTEXT;
-   }
-   else
-   {
-      queue_remove_entry(&(task->task_queue));
-      if(task_wait_complete(task))
-      {
-         tn_enable_interrupt();
-         tn_switch_context();
-         return TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_irelease_wait(TN_TCB * task)
-{
-   TN_INTSAVE_DATA_INT
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
-
-   tn_idisable_interrupt();
-
-   if((task->task_state & TSK_STATE_WAIT) == 0)
-      rc = TERR_WCONTEXT;
-   else
-   {
-      queue_remove_entry(&(task->task_queue));
-      task_wait_complete(task);
-
-      rc = TERR_NO_ERR;
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-void tn_task_exit(int attr)
-{
-	/*  
-	  The structure is used to force GCC compiler properly locate and use
-   	'stack_exp' - thanks to Angelo R. Di Filippo
-	*/
-   struct  // v.2.7
-   {	
-#ifdef TN_USE_MUTEXES
-      CDLL_QUEUE * que;
-      TN_MUTEX * mutex;
-#endif
-      TN_TCB * task;
-      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
-   }data;
-	 
-   TN_CHECK_NON_INT_CONTEXT_NORETVAL
-
-#ifdef TNKERNEL_PORT_MSP430X
-   __disable_interrupt();
-#else
-   tn_cpu_save_sr();  //-- For ARM - disable interrupts without saving SPSR
-#endif
-
-   //--------------------------------------------------
-
-   //-- Unlock all mutexes, locked by the task
-
-#ifdef TN_USE_MUTEXES
-   while(!is_queue_empty(&(tn_curr_run_task->mutex_queue)))
-   {
-      data.que = queue_remove_head(&(tn_curr_run_task->mutex_queue));
-      data.mutex = get_mutex_by_mutex_queque(data.que);
-      do_unlock_mutex(data.mutex);
-   }
-#endif
-
-   data.task = tn_curr_run_task;
-   task_to_non_runnable(tn_curr_run_task);
-
-   task_set_dormant_state(data.task);
-	 //-- Pointer to task top of stack,when not running
-   data.task->task_stk = tn_stack_init(data.task->task_func_addr,
-                                  data.task->stk_start,
-                                  data.task->task_func_param);
-
-   if(data.task->activate_count > 0)  //-- Cannot exit
-   {
-      data.task->activate_count--;
-      task_to_runnable(data.task);
-   }
-   else  // V 2.6 Thanks to Alex Borisov
-   {
-      if(attr == TN_EXIT_AND_DELETE_TASK)
-      {
-         queue_remove_entry(&(data.task->create_queue));
-         tn_created_tasks_qty--;
-         data.task->id_task = 0;
-      }
-   }
-
-   tn_switch_context_exit();  // interrupts will be enabled inside tn_switch_context_exit()
-}
-
-//-----------------------------------------------------------------------------
-int tn_task_terminate(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-
-   int rc;
-/* see the structure purpose in tn_task_exit() */
-	 struct // v.2.7
-	 {
-#ifdef TN_USE_MUTEXES
-      CDLL_QUEUE * que;
-      TN_MUTEX * mutex;
-#endif
-      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
-   }data; 
-	 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-
-   //--------------------------------------------------
-
-   rc = TERR_NO_ERR;
-
-   if(task->task_state == TSK_STATE_DORMANT || tn_curr_run_task == task)
-      rc = TERR_WCONTEXT; //-- Cannot terminate running task
-   else
-   {
-      if(task->task_state == TSK_STATE_RUNNABLE)
-         task_to_non_runnable(task);
-      else if(task->task_state & TSK_STATE_WAIT)
-      {
-         //-- Free all queues, involved in the 'waiting'
-
-         queue_remove_entry(&(task->task_queue));
-
-         //-----------------------------------------
-
-         if(task->tick_count != TN_WAIT_INFINITE)
-            queue_remove_entry(&(task->timer_queue));
-      }
-
-      //-- Unlock all mutexes, locked by the task
-
-#ifdef TN_USE_MUTEXES
-      while(!is_queue_empty(&(task->mutex_queue)))
-      {
-         data.que = queue_remove_head(&(task->mutex_queue));
-         data.mutex = get_mutex_by_mutex_queque(data.que);
-         do_unlock_mutex(data.mutex);
-      }
-#endif
-
-      task_set_dormant_state(task);
-			//-- Pointer to task top of the stack when not running
-
-      task->task_stk = tn_stack_init(task->task_func_addr,
-                                     task->stk_start,
-                                     task->task_func_param);
-       
-      if(task->activate_count > 0) //-- Cannot terminate
-      {
-         task->activate_count--;
-
-         task_to_runnable(task);
-         tn_enable_interrupt();
-         tn_switch_context();
-
-         return TERR_NO_ERR;
-      }
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//-----------------------------------------------------------------------------
-int tn_task_delete(TN_TCB * task)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   rc = TERR_NO_ERR;
-
-   if(task->task_state != TSK_STATE_DORMANT)
-      rc = TERR_WCONTEXT;  //-- Cannot delete not-terminated task
-   else
-   {
-      queue_remove_entry(&(task->create_queue));
-      tn_created_tasks_qty--;
-      task->id_task = 0;
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-int tn_task_change_priority(TN_TCB * task, int new_priority)
-{
-   TN_INTSAVE_DATA
-   int rc;
-
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TERR_WRONG_PARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
-   if(new_priority < 0 || new_priority > TN_NUM_PRIORITY - 2) //-- try to set pri
-      return TERR_WRONG_PARAM;                                // reserved by sys
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(new_priority == 0)
-      new_priority = task->base_priority;
-
-   rc = TERR_NO_ERR;
-
-   if(task->task_state == TSK_STATE_DORMANT)
-      rc = TERR_WCONTEXT;
-   else if(task->task_state == TSK_STATE_RUNNABLE)
-   {
-      if(change_running_task_priority(task,new_priority))
-      {
-         tn_enable_interrupt();
-         tn_switch_context();
-         return TERR_NO_ERR;
-      }
-   }
-   else
-   {
-      task->priority = new_priority;
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-//  Utilities
-//----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-void find_next_task_to_run(void)
-{
-   int tmp;
-
-#ifndef USE_ASM_FFS
-   int i;
-   unsigned int mask;
-#endif
-
-#ifdef USE_ASM_FFS
-   tmp = ffs_asm(tn_ready_to_run_bmp);
-   tmp--;
-#else
-   mask = 1;
-   tmp = 0;
-
-   for (i = 0; i < TN_BITS_IN_INT; i++){
-      //-- for each bit in bmp
-      if (tn_ready_to_run_bmp & mask){
-         tmp = i;
-         break;
-      }
-      mask = (mask << 1);
-   }
-#endif
-
-   tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[tmp].next);
-}
-
-//-----------------------------------------------------------------------------
-/**
- * Remove task from 'ready queue', determine and set
- * new tn_next_task_to_run.
- */
-void task_to_non_runnable(TN_TCB *task)
-{
-   int priority;
-   CDLL_QUEUE *que;
-
-   priority = task->priority;
-   que = &(tn_ready_list[priority]);
-
-   //-- remove the curr task from any queue (now - from ready queue)
-
-   queue_remove_entry(&(task->task_queue));
-
-   if (is_queue_empty(que)){
-      //-- No ready tasks for the curr priority
-      //-- remove 'ready to run' from the curr priority
-
-      tn_ready_to_run_bmp &= ~(1 << priority);
-
-      //-- Find highest priority ready to run -
-      //-- at least, MSB bit must be set for the idle task
-
-      find_next_task_to_run();   //-- v.2.6
-   } else {
-      //-- There are 'ready to run' task(s) for the curr priority
-      if (tn_next_task_to_run == task){
-         tn_next_task_to_run = get_task_by_tsk_queue(que->next);
-      }
-   }
-}
-
-//----------------------------------------------------------------------------
-/**
- * Change task's state to runnable,
- * put it on the 'ready queue' for its priority,
- * if priority is higher than tn_next_task_to_run's priority,
- * then set tn_next_task_to_run to this task.
- */
-void task_to_runnable(TN_TCB * task)
-{
-   int priority;
-
-   priority          = task->priority;
-   task->task_state  = TSK_STATE_RUNNABLE;
-   task->pwait_queue = NULL;
-
-   //-- Add the task to the end of 'ready queue' for the current priority
-
-   queue_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
-   tn_ready_to_run_bmp |= (1 << priority);
-
-   //-- less value - greater priority, so '<' operation is used here
-
-   if (priority < tn_next_task_to_run->priority){
-      tn_next_task_to_run = task;
-   }
-}
-
-//----------------------------------------------------------------------------
 
 /**
  * Should be called when task finishes waiting for anything.
@@ -889,7 +892,7 @@ void task_to_runnable(TN_TCB * task)
  *
  * @return non-zero if task became runnable, zero otherwise.
  */
-int task_wait_complete(TN_TCB *task) //-- v. 2.6
+int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
@@ -929,7 +932,7 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
 
    //-- if task isn't suspended, make it runnable
    if (!(task->task_state & TSK_STATE_SUSPEND)){
-      task_to_runnable(task);
+      _tn_task_to_runnable(task);
       rc = TRUE;
    } else {
       //-- remove WAIT state
@@ -956,9 +959,9 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
             )
          {
             curr_priority = find_max_blocked_priority(mutex,
-                                             mt_holder_task->base_priority);
+                  mt_holder_task->base_priority);
 
-            set_current_priority(mt_holder_task, curr_priority);
+            _tn_set_current_priority(mt_holder_task, curr_priority);
 
             //DFRANK_TODO: do we really need "rc = TRUE" here??
             // It seems, this function should return TRUE if task became runnable,
@@ -977,19 +980,45 @@ int task_wait_complete(TN_TCB *task) //-- v. 2.6
    return rc;
 }
 
+/**
+ * Change task's state to runnable,
+ * put it on the 'ready queue' for its priority,
+ * if priority is higher than tn_next_task_to_run's priority,
+ * then set tn_next_task_to_run to this task.
+ */
+void _tn_task_to_runnable(TN_TCB * task)
+{
+   int priority;
+
+   priority          = task->priority;
+   task->task_state  = TSK_STATE_RUNNABLE;
+   task->pwait_queue = NULL;
+
+   //-- Add the task to the end of 'ready queue' for the current priority
+
+   queue_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
+   tn_ready_to_run_bmp |= (1 << priority);
+
+   //-- less value - greater priority, so '<' operation is used here
+
+   if (priority < tn_next_task_to_run->priority){
+      tn_next_task_to_run = task;
+   }
+}
+
 
 /**
- * calls task_to_non_runnable() for current task, i.e. tn_curr_run_task
+ * calls _task_to_non_runnable() for current task, i.e. tn_curr_run_task
  * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
  *
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
-void task_curr_to_wait_action(CDLL_QUEUE *wait_que,
-                              int wait_reason,
-                              unsigned long timeout)
+void _tn_task_curr_to_wait_action(CDLL_QUEUE *wait_que,
+      int wait_reason,
+      unsigned long timeout)
 {
-   task_to_non_runnable(tn_curr_run_task);
+   _task_to_non_runnable(tn_curr_run_task);
 
    tn_curr_run_task->task_state       = TSK_STATE_WAIT;
    tn_curr_run_task->task_wait_reason = wait_reason;
@@ -1012,38 +1041,35 @@ void task_curr_to_wait_action(CDLL_QUEUE *wait_que,
    }
 }
 
-//----------------------------------------------------------------------------
-int change_running_task_priority(TN_TCB * task, int new_priority)
+int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
 {
    int old_priority;
 
    old_priority = task->priority;
 
-  //-- remove curr task from any (wait/ready) queue
+   //-- remove curr task from any (wait/ready) queue
 
    queue_remove_entry(&(task->task_queue));
 
-  //-- If there are no ready tasks for the old priority
-  //-- clear ready bit for old priority
+   //-- If there are no ready tasks for the old priority
+   //-- clear ready bit for old priority
 
    if(is_queue_empty(&(tn_ready_list[old_priority])))
       tn_ready_to_run_bmp &= ~(1<<old_priority);
 
    task->priority = new_priority;
 
-  //-- Add task to the end of ready queue for current priority
+   //-- Add task to the end of ready queue for current priority
 
    queue_add_tail(&(tn_ready_list[new_priority]), &(task->task_queue));
    tn_ready_to_run_bmp |= 1 << new_priority;
-   find_next_task_to_run();
+   _find_next_task_to_run();
 
    return TRUE;
 }
 
 #ifdef TN_USE_MUTEXES
-
-//----------------------------------------------------------------------------
-void set_current_priority(TN_TCB * task, int priority)
+void _tn_set_current_priority(TN_TCB * task, int priority)
 {
    TN_MUTEX * mutex;
 
@@ -1068,7 +1094,7 @@ void set_current_priority(TN_TCB * task, int priority)
 
       if(task->task_state == TSK_STATE_RUNNABLE)
       {
-         change_running_task_priority(task, priority);
+         _tn_change_running_task_priority(task, priority);
          return;
       }
 
@@ -1089,48 +1115,5 @@ void set_current_priority(TN_TCB * task, int priority)
       return;
    }
 }
-
 #endif
-
-//----------------------------------------------------------------------------
-void task_set_dormant_state(TN_TCB* task)
-{
-	     // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
-   queue_reset(&(task->task_queue));
-   queue_reset(&(task->timer_queue));
-
-#ifdef TN_USE_MUTEXES
-
-   queue_reset(&(task->mutex_queue));
-
-#endif
-
-   task->pwait_queue = NULL;
-
-   task->priority    = task->base_priority; //-- Task curr priority
-   task->task_state  = TSK_STATE_DORMANT;   //-- Task state
-   task->task_wait_reason = 0;              //-- Reason for waiting
-   task->task_wait_rc = TERR_NO_ERR;
-
-#ifdef TN_USE_EVENTS
-
-   task->ewait_pattern = 0;                 //-- Event wait pattern
-   task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR
-
-#endif
-
-   task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
-
-   task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
-   task->wakeup_count  = 0;                 //-- Wakeup request count
-   task->suspend_count = 0;                 //-- Suspension count
-
-   task->tslice_count  = 0;
-}
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 

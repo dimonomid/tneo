@@ -354,39 +354,7 @@ void tn_sys_time_set(unsigned int value);
 
 //----- tn_tasks.c ----------------------------------
 
-int tn_task_create(TN_TCB * task,
-                 void (*task_func)(void *param),
-                 int priority,
-                 unsigned int * task_stack_start,
-                 int task_stack_size,
-                 void * param,
-                 int option);
-int tn_task_suspend(TN_TCB * task);
-int tn_task_resume(TN_TCB * task);
-int tn_task_sleep(unsigned long timeout);
-int tn_task_wakeup(TN_TCB * task);
-int tn_task_iwakeup(TN_TCB * task);
-int tn_task_activate(TN_TCB * task);
-int tn_task_iactivate(TN_TCB * task);
-int tn_task_release_wait(TN_TCB * task);
-int tn_task_irelease_wait(TN_TCB * task);
-void tn_task_exit(int attr);
-int tn_task_terminate(TN_TCB * task);
-int tn_task_delete(TN_TCB * task);
-int tn_task_change_priority(TN_TCB * task, int new_priority);
-
-  //-- Routines
-
-void task_set_dormant_state(TN_TCB* task);
-void task_to_non_runnable(TN_TCB * task);
-void task_to_runnable(TN_TCB * task);
-int  task_wait_complete(TN_TCB * task);
-void task_curr_to_wait_action(CDLL_QUEUE * wait_que,
-                              int wait_reason,
-                              unsigned long timeout);
-int change_running_task_priority(TN_TCB * task, int new_priority);
-void set_current_priority(TN_TCB * task, int priority);
-void find_next_task_to_run(void);
+#include "tn_tasks.h"
 
 //----- tn_sem.c ----------------------------------
 

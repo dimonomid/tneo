@@ -165,7 +165,7 @@ static inline void _wait_timeout_list_manage(void)
             if(task->tick_count == 0) //-- Timeout expired
             {
                queue_remove_entry(&(((TN_TCB *)task)->task_queue));
-               task_wait_complete((TN_TCB *)task);
+               _tn_task_wait_complete((TN_TCB *)task);
                task->task_wait_rc = TERR_TIMEOUT;
             }
          }
@@ -227,7 +227,7 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
  */
 static inline void _idle_task_to_runnable(void)
 {
-   task_to_runnable(&tn_idle_task);
+   _tn_task_to_runnable(&tn_idle_task);
 }
 
 //-- obsolete timer task stuff {{{
@@ -285,7 +285,7 @@ static inline void _timer_task_create(unsigned int  *timer_task_stack,
  */
 static inline void _timer_task_to_runnable(void)
 {
-   task_to_runnable(&tn_timer_task);
+   _tn_task_to_runnable(&tn_timer_task);
 }
 
 /**
@@ -386,10 +386,10 @@ void tn_start_system(
    _timer_task_create(timer_task_stack, timer_task_stack_size);
    _idle_task_create(idle_task_stack, idle_task_stack_size);
 
-   //-- Just for the task_to_runnable() proper operation
+   //-- Just for the _tn_task_to_runnable() proper operation
    tn_next_task_to_run = &tn_idle_task; 
 
-   //-- call task_to_runnable() for system tasks
+   //-- call _tn_task_to_runnable() for system tasks
    _timer_task_to_runnable();
    _idle_task_to_runnable();
 
