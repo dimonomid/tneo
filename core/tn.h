@@ -252,20 +252,11 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
 
 //-- v.2.7
 
-#define get_task_by_tsk_queue(que)                  \
-        (que ? CONTAINING_RECORD(que, struct _TN_TCB, task_queue) : 0)
-
-#define get_task_by_timer_queque(que)               \
-        (que ? CONTAINING_RECORD(que, struct _TN_TCB, timer_queue) : 0)
-
 #define get_mutex_by_mutex_queque(que)              \
         (que ? CONTAINING_RECORD(que, TN_MUTEX, mutex_queue) : 0)
 
 #define get_mutex_by_wait_queque(que)               \
         (que ? CONTAINING_RECORD(que, TN_MUTEX, wait_queue) : 0)
-
-#define get_task_by_block_queque(que)  \
-        (que ? CONTAINING_RECORD(que, struct _TN_TCB, block_queue) : 0)
 
 #define get_mutex_by_lock_mutex_queque(que) \
         (que ? CONTAINING_RECORD(que, TN_MUTEX, mutex_queue) : 0)
