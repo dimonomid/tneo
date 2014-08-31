@@ -3,4 +3,13 @@
 
    * [ ] Implement a kind of `list_for_each`
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
+   * [ ] Should we actually allow to delete mutex while it's hold?
+
+== bad things in TNKernel ==
+
+   * [ ] Is it really good idea that task does have wakeup_count, so you can call tn_task_wakeup before tn_task_sleep, and on the next tn_task_sleep call task won't go to sleep? It seems just like dirty hack to prevent race conditions. This dirty hack makes programmer able to not provide proper syncronization, this is really bad idea IMO.
+   * [ ] Is it really good idea that we are able to suspend any non-current task? It should be totally up to the task itself when it should sleep and when it shouldn't. If we need to pause some task from outside, we should implement a message to this task, and then task should put itself to sleep.
+   * [ ] Even more, is it really good idea that we are able to terminate any task? More, tasks in TNKernel don't even have any callback like "destructor" that should be called when task is terminated. So any non-tnkernel resources (such as memory from heap) that might be held by task will leak.
+   * [ ] The rule "one entry point, one exit point" is violated constantly across the whole sources.
+   * [ ] Code organization in general is far from perfect: this is just one header file with lots of stuff, including some private-to-tnkernel definitions like task_to_runnable, task_wait_complete etc.
 

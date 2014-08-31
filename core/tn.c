@@ -499,4 +499,32 @@ void tn_sys_time_set(unsigned int value)
 }
 
 
+/*******************************************************************************
+ *    INTERNAL TNKERNEL FUNCTIONS
+ ******************************************************************************/
+
+/**
+ * Remove all tasks from wait queue, returning the TERR_DLT code.
+ * Note: this function sleeps if there is at least one element in wait_queue.
+ */
+void _tn_wait_queue_notify_deleted(CDLL_QUEUE *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
+{
+   CDLL_QUEUE *que;
+   TN_TCB *task;
+
+   while (!is_queue_empty(wait_queue)){
+      //--- delete from wait queue
+
+      que = queue_remove_head(wait_queue);
+      task = get_task_by_tsk_queue(que);
+
+      if (_tn_task_wait_complete(task)){
+         task->task_wait_rc = TERR_DLT;
+         tn_enable_interrupt();
+         tn_switch_context();
+         tn_disable_interrupt();
+      }
+   }
+}
+
 

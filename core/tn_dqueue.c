@@ -34,12 +34,13 @@
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
 //-------------------------------------------------------------------------
-int tn_queue_create(TN_DQUE * dque,     //-- Ptr to already existing TN_DQUE
-                    void ** data_fifo,  //-- Ptr to already existing array of void * to store data queue entries.Can be NULL
-                    int num_entries)    //-- Capacity of data queue(num entries).Can be 0
-
+int tn_queue_create(
+      TN_DQUE *dque,      //-- Ptr to already existing TN_DQUE
+      void **data_fifo,   //-- Ptr to already existing array of void * to store data queue entries.
+                          //   Can be NULL.
+      int num_entries     //-- Capacity of data queue(num entries). Can be 0
+      )
 {
-
 #if TN_CHECK_PARAM
    if(dque == NULL)
       return TERR_WRONG_PARAM;
@@ -50,17 +51,18 @@ int tn_queue_create(TN_DQUE * dque,     //-- Ptr to already existing TN_DQUE
    queue_reset(&(dque->wait_send_list));
    queue_reset(&(dque->wait_receive_list));
 
-   dque->data_fifo = data_fifo;
-   dque->num_entries = num_entries;
-   if(dque->data_fifo == NULL)
+   dque->data_fifo      = data_fifo;
+   dque->num_entries    = num_entries;
+   if (dque->data_fifo == NULL){
       dque->num_entries = 0;
+   }
 
    dque->tail_cnt   = 0;
    dque->header_cnt = 0;
 
    dque->id_dque = TN_ID_DATAQUEUE;
 
-   return  TERR_NO_ERR;
+   return TERR_NO_ERR;
 }
 
 //----------------------------------------------------------------------------

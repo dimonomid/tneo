@@ -13,6 +13,13 @@
  *    INTERNAL TNKERNEL FUNCTIONS
  ******************************************************************************/
 
+//-- system {{{
+/**
+ * Note: this function sleeps if there is at least one element in wait_queue.
+ */
+void _tn_wait_queue_notify_deleted(CDLL_QUEUE *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
+// }}}
+
 //-- tn_tasks.c {{{
 int  _tn_task_create(TN_TCB *task,                 //-- task TCB
       void (*task_func)(void *param),  //-- task function

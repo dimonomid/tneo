@@ -239,10 +239,7 @@ int tn_mutex_create(TN_MUTEX * mutex,
 //----------------------------------------------------------------------------
 int tn_mutex_delete(TN_MUTEX * mutex)
 {
-   TN_INTSAVE_DATA
-
-   CDLL_QUEUE * que;
-   TN_TCB * task;
+   TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(mutex == NULL)
@@ -260,21 +257,7 @@ int tn_mutex_delete(TN_MUTEX * mutex)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while(!is_queue_empty(&(mutex->wait_queue)))
-   {
-      que  = queue_remove_head(&(mutex->wait_queue));
-      task = get_task_by_tsk_queue(que);
-
-    //-- If the task in system's blocked list, remove it
-
-      if(_tn_task_wait_complete(task))
-      {
-         task->task_wait_rc = TERR_DLT;
-         tn_enable_interrupt();
-         tn_switch_context();
-         tn_disable_interrupt(); // v.2.7
-      }
-   }
+   _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
 
    if(mutex->holder != NULL)  //-- If the mutex is locked
    {

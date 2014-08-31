@@ -107,6 +107,8 @@ extern "C"  {
 
 #define  TN_INTSAVE_DATA_INT     int tn_save_status_reg = 0;
 #define  TN_INTSAVE_DATA         int tn_save_status_reg = 0;
+#define  TN_INTSAVE_DATA_ARG_DEC    int tn_save_status_reg  //-- used in function prototypes
+#define  TN_INTSAVE_DATA_ARG_GIVE   (tn_save_status_reg)    //-- used to give argument to function
 
 #ifdef __mips16
 # define tn_disable_interrupt()  tn_save_status_reg = tn_cpu_save_sr()
