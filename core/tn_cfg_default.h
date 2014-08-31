@@ -32,8 +32,8 @@
  * When tnkernel uses separate interrupt stack (as it is in PIC32 port),
  * timer task is completely useless.
  * Benchmarks of system tick:
- *    - with timer task: 682 cycles
- *    - with timer task: 251 cycle.
+ *    - with timer task:      682 cycles
+ *    - without timer task:   251 cycle.
  *
  * It's about 2.7 times faster without timer task, and you can save RAM
  * (since you shouldn't allocate it for timer task)
