@@ -25,56 +25,35 @@
 
 */
 
-  /* ver 2.7  */
+/* ver 2.7  */
+
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
 
 #include "tn.h"
 #include "tn_utils.h"
 #include "tn_internal.h"
 
-//-- Local function prototypes --
+
+
 
 /*******************************************************************************
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static void *_fm_get(TN_FMP * fmp)
-{
-   void * p_tmp;
-
-   if(fmp->fblkcnt > 0)
-   {
-      p_tmp = fmp->free_list;
-      fmp->free_list = *(void **)fmp->free_list;   //-- ptr - to new free list
-      fmp->fblkcnt--;
-
-      return p_tmp;
-   }
-
-   return NULL;
-}
-
-static int _fm_put(TN_FMP * fmp, void * mem)
-{
-   if(fmp->fblkcnt < fmp->num_blocks)
-   {
-      *(void **)mem  = fmp->free_list;   //-- insert block into free block list
-      fmp->free_list = mem;
-      fmp->fblkcnt++;
-
-      return TERR_NO_ERR;
-   }
-
-   return TERR_OVERFLOW;
-}
-
 static inline int _fmem_get(TN_FMP *fmp, void **p_data)
 {
    int rc;
-   void *ptr;
+   void *ptr = NULL;
 
-   ptr = _fm_get(fmp);
+   if (fmp->fblkcnt > 0){
+      ptr = fmp->free_list;
+      fmp->free_list = *(void **)fmp->free_list;   //-- ptr - to new free list
+      fmp->fblkcnt--;
+   }
+
    if (ptr != NULL){
-      //-- Get memory
       *p_data = ptr;
       rc = TERR_NO_ERR;
    } else {
@@ -100,7 +79,13 @@ static inline int _fmem_release(TN_FMP *fmp, void *p_data, int *p_need_switch_co
 
       *p_need_switch_context = _tn_task_wait_complete(task);
    } else {
-      _fm_put(fmp,p_data);
+      if (fmp->fblkcnt < fmp->num_blocks){
+         *(void **)p_data = fmp->free_list;   //-- insert block into free block list
+         fmp->free_list = p_data;
+         fmp->fblkcnt++;
+      } else {
+         rc = TERR_OVERFLOW;
+      }
    }
 
    return rc;
@@ -173,9 +158,9 @@ static inline int _check_param_fmem_release(TN_FMP *fmp, void *p_data)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-//----------------------------------------------------------------------------
-//  Structure's field fmp->id_id_fmp have to be set to 0
-//----------------------------------------------------------------------------
+/**
+ * Structure's field fmp->id_id_fmp have to be set to 0
+ */
 int tn_fmem_create(TN_FMP *fmp,
                      void *start_addr,
                      unsigned int block_size,
@@ -244,7 +229,6 @@ int tn_fmem_create(TN_FMP *fmp,
 
    fmp->id_fmp = TN_ID_FSMEMORYPOOL;
 
-  //-----------------------------------------
 
 out:
    return rc;
