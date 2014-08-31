@@ -1,0 +1,6 @@
+
+= tnkernel_df dev =
+
+   * [ ] Implement a kind of `list_for_each`
+   * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
+

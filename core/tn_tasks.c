@@ -102,41 +102,6 @@ static void _find_next_task_to_run(void)
    tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[tmp].next);
 }
 
-/**
- * Remove task from 'ready queue', determine and set
- * new tn_next_task_to_run.
- */
-static void _task_to_non_runnable(TN_TCB *task)
-{
-   int priority;
-   CDLL_QUEUE *que;
-
-   priority = task->priority;
-   que = &(tn_ready_list[priority]);
-
-   //-- remove the curr task from any queue (now - from ready queue)
-
-   queue_remove_entry(&(task->task_queue));
-
-   if (is_queue_empty(que)){
-      //-- No ready tasks for the curr priority
-      //-- remove 'ready to run' from the curr priority
-
-      tn_ready_to_run_bmp &= ~(1 << priority);
-
-      //-- Find highest priority ready to run -
-      //-- at least, MSB bit must be set for the idle task
-
-      _find_next_task_to_run();   //-- v.2.6
-   } else {
-      //-- There are 'ready to run' task(s) for the curr priority
-      if (tn_next_task_to_run == task){
-         tn_next_task_to_run = get_task_by_tsk_queue(que->next);
-      }
-   }
-}
-
-
 static void _task_set_dormant_state(TN_TCB* task)
 {
    // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
@@ -365,7 +330,7 @@ int tn_task_suspend(TN_TCB *task)
 
    if (task->task_state == TSK_STATE_RUNNABLE){
       task->task_state = TSK_STATE_SUSPEND;
-      _task_to_non_runnable(task);
+      _tn_task_to_non_runnable(task);
 
       goto out_ei_switch_context;
    } else {
@@ -592,7 +557,7 @@ void tn_task_exit(int attr)
 #endif
 
    data.task = tn_curr_run_task;
-   _task_to_non_runnable(tn_curr_run_task);
+   _tn_task_to_non_runnable(tn_curr_run_task);
 
    _task_set_dormant_state(data.task);
 	 //-- Pointer to task top of stack,when not running
@@ -660,7 +625,7 @@ int tn_task_terminate(TN_TCB *task)
       rc = TERR_WCONTEXT;
    } else {
       if (task->task_state == TSK_STATE_RUNNABLE){
-         _task_to_non_runnable(task);
+         _tn_task_to_non_runnable(task);
       } else if (task->task_state & TSK_STATE_WAIT){
          //-- Free all queues, involved in the 'waiting'
 
@@ -1006,9 +971,46 @@ void _tn_task_to_runnable(TN_TCB * task)
    }
 }
 
+/**
+ * Remove task from 'ready queue', determine and set
+ * new tn_next_task_to_run.
+ */
+void _tn_task_to_non_runnable(TN_TCB *task)
+{
+   int priority;
+   CDLL_QUEUE *que;
+
+   priority = task->priority;
+   que = &(tn_ready_list[priority]);
+
+   //-- remove the curr task from any queue (now - from ready queue)
+   queue_remove_entry(&(task->task_queue));
+
+   //-- and reset task's queue
+   queue_reset(&(task->task_queue));
+
+   if (is_queue_empty(que)){
+      //-- No ready tasks for the curr priority
+      //-- remove 'ready to run' from the curr priority
+
+      tn_ready_to_run_bmp &= ~(1 << priority);
+
+      //-- Find highest priority ready to run -
+      //-- at least, MSB bit must be set for the idle task
+
+      _find_next_task_to_run();   //-- v.2.6
+   } else {
+      //-- There are 'ready to run' task(s) for the curr priority
+      if (tn_next_task_to_run == task){
+         tn_next_task_to_run = get_task_by_tsk_queue(que->next);
+      }
+   }
+}
+
+
 
 /**
- * calls _task_to_non_runnable() for current task, i.e. tn_curr_run_task
+ * calls _tn_task_to_non_runnable() for current task, i.e. tn_curr_run_task
  * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
  *
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
@@ -1018,7 +1020,7 @@ void _tn_task_curr_to_wait_action(CDLL_QUEUE *wait_que,
       int wait_reason,
       unsigned long timeout)
 {
-   _task_to_non_runnable(tn_curr_run_task);
+   _tn_task_to_non_runnable(tn_curr_run_task);
 
    tn_curr_run_task->task_state       = TSK_STATE_WAIT;
    tn_curr_run_task->task_wait_reason = wait_reason;
@@ -1026,12 +1028,12 @@ void _tn_task_curr_to_wait_action(CDLL_QUEUE *wait_que,
 
    //--- Add to the wait queue  - FIFO
 
-   if (wait_que == NULL){
-      //-- Thanks to Vavilov D.O.
-      queue_reset(&(tn_curr_run_task->task_queue));
-   } else {
+   if (wait_que != NULL){
       queue_add_tail(wait_que, &(tn_curr_run_task->task_queue));
       tn_curr_run_task->pwait_queue = wait_que;
+   } else {
+      //-- NOTE: we don't need to reset task_queue because
+      //   it is already reset in _tn_task_to_non_runnable().
    }
 
    //--- Add to the timers queue
@@ -1054,15 +1056,16 @@ int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
    //-- If there are no ready tasks for the old priority
    //-- clear ready bit for old priority
 
-   if(is_queue_empty(&(tn_ready_list[old_priority])))
-      tn_ready_to_run_bmp &= ~(1<<old_priority);
+   if (is_queue_empty(&(tn_ready_list[old_priority]))){
+      tn_ready_to_run_bmp &= ~(1 << old_priority);
+   }
 
    task->priority = new_priority;
 
    //-- Add task to the end of ready queue for current priority
 
    queue_add_tail(&(tn_ready_list[new_priority]), &(task->task_queue));
-   tn_ready_to_run_bmp |= 1 << new_priority;
+   tn_ready_to_run_bmp |= (1 << new_priority);
    _find_next_task_to_run();
 
    return TRUE;

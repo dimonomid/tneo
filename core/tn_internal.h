@@ -24,6 +24,7 @@ int  _tn_task_create(TN_TCB *task,                 //-- task TCB
 
 int   _tn_task_wait_complete  (TN_TCB *task);
 void  _tn_task_to_runnable    (TN_TCB *task);
+void  _tn_task_to_non_runnable(TN_TCB *task);
 
 void _tn_task_curr_to_wait_action(
       CDLL_QUEUE *wait_que,
