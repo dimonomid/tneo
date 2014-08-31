@@ -3,8 +3,8 @@
  *
  ******************************************************************************/
 
-#ifndef _TN_MEM_H
-#define _TN_MEM_H
+#ifndef _TN_DQUEUE_H
+#define _TN_DQUEUE_H
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -12,24 +12,23 @@
 
 #include "tn_utils.h"
 
-
-
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_FMP
+typedef struct _TN_DQUE
 {
-   CDLL_QUEUE wait_queue;
+   CDLL_QUEUE  wait_send_list;
+   CDLL_QUEUE  wait_receive_list;
 
-   unsigned int block_size; //-- Actual block size (in bytes)
-   int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)
-   void *start_addr;        //-- Memory pool actual start address
-   void *free_list;         //-- Ptr to free block list
-   int fblkcnt;             //-- Num of free blocks
-   int id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
-                            // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
-} TN_FMP;
+   void ** data_fifo;   //-- Array of void* to store data queue entries
+   int  num_entries;    //-- Capacity of data_fifo(num entries)
+   int  tail_cnt;       //-- Counter to processing data queue's Array of void*
+   int  header_cnt;     //-- Counter to processing data queue's Array of void*
+   int  id_dque;        //-- ID for verification(is it a data queue or another object?)
+   // All data queues have the same id_dque magic number (ver 2.x)
+} TN_DQUE;
+
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
@@ -43,19 +42,19 @@ typedef struct _TN_FMP
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_fmem_create(TN_FMP  * fmp,
-      void * start_addr,
-      unsigned int block_size,
-      int num_blocks);
-int tn_fmem_delete(TN_FMP * fmp);
-int tn_fmem_get(TN_FMP * fmp, void ** p_data, unsigned long timeout);
-int tn_fmem_get_polling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_get_ipolling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_release(TN_FMP * fmp, void * p_data);
-int tn_fmem_irelease(TN_FMP * fmp, void * p_data);
+int tn_queue_create(TN_DQUE * dque,
+      void ** data_fifo,
+      int num_entries);
+int tn_queue_delete(TN_DQUE * dque);
+int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout);
+int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr);
+int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr);
+int tn_queue_receive(TN_DQUE * dque, void ** data_ptr, unsigned long timeout);
+int tn_queue_receive_polling(TN_DQUE * dque, void ** data_ptr);
+int tn_queue_ireceive(TN_DQUE * dque, void ** data_ptr);
 
 
-#endif // _TN_MEM_H
+#endif // _TN_DQUEUE_H
 
 /*******************************************************************************
  *    end of file

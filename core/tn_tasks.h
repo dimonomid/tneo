@@ -10,6 +10,8 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "tn_utils.h"
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -69,6 +71,24 @@ typedef struct _TN_TCB
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
+
+//-- options for tn_task_create()
+#define  TN_TASK_START_ON_CREATION        1
+#define  TN_TASK_TIMER                 0x80
+#define  TN_TASK_IDLE                  0x40
+
+
+//-- task states
+#define  TSK_STATE_RUNNABLE            0x01
+#define  TSK_STATE_WAIT                0x04
+#define  TSK_STATE_SUSPEND             0x08
+#define  TSK_STATE_WAITSUSP            (TSK_STATE_SUSPEND | TSK_STATE_WAIT)
+#define  TSK_STATE_DORMANT             0x10
+
+
+//-- attr for tn_task_exit()
+#define  TN_EXIT_AND_DELETE_TASK          1
+
 
 #define get_task_by_tsk_queue(que)                                   \
    (que ? CONTAINING_RECORD(que, struct _TN_TCB, task_queue) : 0)

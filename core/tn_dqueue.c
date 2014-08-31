@@ -27,9 +27,17 @@
 
   /* ver 2.7  */
 
-#include "tn.h"
+#include "tn_common.h"
+#include "tn_sys.h"
+#include "tn_user.h"
+#include "tn_dqueue.h"
+#include "tn_tasks.h"
 #include "tn_utils.h"
 #include "tn_internal.h"
+
+
+static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr);
+static int  dque_fifo_read(TN_DQUE * dque, void ** data_ptr);
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
@@ -469,6 +477,72 @@ int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
 
    return rc;
 }
+
+
+
+//---------------------------------------------------------------------------
+//    Data queue storage FIFO processing
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr)
+{
+   register int flag;
+
+#if TN_CHECK_PARAM
+   if(dque == NULL)
+      return TERR_WRONG_PARAM;
+#endif
+
+   //-- v.2.7
+
+   if(dque->num_entries <= 0)
+      return TERR_OUT_OF_MEM;
+
+   flag = ((dque->tail_cnt == 0 && dque->header_cnt == dque->num_entries - 1)
+         || dque->header_cnt == dque->tail_cnt-1);
+   if(flag)
+      return  TERR_OVERFLOW;  //--  full
+
+   //-- wr  data
+
+   dque->data_fifo[dque->header_cnt] = data_ptr;
+   dque->header_cnt++;
+   if(dque->header_cnt >= dque->num_entries)
+      dque->header_cnt = 0;
+   return TERR_NO_ERR;
+}
+
+//----------------------------------------------------------------------------
+static int  dque_fifo_read(TN_DQUE * dque, void ** data_ptr)
+{
+
+#if TN_CHECK_PARAM
+   if(dque == NULL || data_ptr == NULL)
+      return TERR_WRONG_PARAM;
+#endif
+
+   //-- v.2.7  Thanks to kosyak© from electronix.ru
+
+   if(dque->num_entries <= 0)
+      return TERR_OUT_OF_MEM;
+
+   if(dque->tail_cnt == dque->header_cnt)
+      return TERR_UNDERFLOW; //-- empty
+
+   //-- rd data
+
+   *data_ptr  =  dque->data_fifo[dque->tail_cnt];
+   dque->tail_cnt++;
+   if(dque->tail_cnt >= dque->num_entries)
+      dque->tail_cnt = 0;
+
+   return TERR_NO_ERR;
+}
+
+
+
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

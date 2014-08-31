@@ -31,9 +31,13 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn.h"
-#include "tn_internal.h"
+#include "tn_common.h"
+#include "tn_sys.h"
+#include "tn_user.h"
+#include "tn_mutex.h"
+#include "tn_tasks.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 
 
@@ -864,10 +868,10 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
    CDLL_QUEUE *t_que;
 #endif
 
-   int rc = FALSE;
+   int rc = 0/*false*/;
 
    if (task == NULL){
-      return FALSE;
+      return 0/*false*/;
    }
 
 #ifdef TN_USE_MUTEXES
@@ -877,10 +881,10 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
          || task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C
       )
    {
-      fmutex = TRUE;
+      fmutex = 1/*true*/;
       t_que = task->pwait_queue;
    } else {
-      fmutex = FALSE;
+      fmutex = 0/*false*/;
    }
 
 #endif
@@ -898,7 +902,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
    //-- if task isn't suspended, make it runnable
    if (!(task->task_state & TSK_STATE_SUSPEND)){
       _tn_task_to_runnable(task);
-      rc = TRUE;
+      rc = 1/*true*/;
    } else {
       //-- remove WAIT state
       task->task_state = TSK_STATE_SUSPEND;
@@ -1068,7 +1072,7 @@ int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
    tn_ready_to_run_bmp |= (1 << new_priority);
    _find_next_task_to_run();
 
-   return TRUE;
+   return 1/*true*/;
 }
 
 #ifdef TN_USE_MUTEXES

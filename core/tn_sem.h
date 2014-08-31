@@ -3,8 +3,8 @@
  *
  ******************************************************************************/
 
-#ifndef _TN_MEM_H
-#define _TN_MEM_H
+#ifndef _TN_SEM_H
+#define _TN_SEM_H
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -18,18 +18,15 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_FMP
+typedef struct _TN_SEM
 {
-   CDLL_QUEUE wait_queue;
+   CDLL_QUEUE  wait_queue;
+   int count;
+   int max_count;
+   int id_sem;     //-- ID for verification(is it a semaphore or another object?)
+                   // All semaphores have the same id_sem magic number (ver 2.x)
+} TN_SEM;
 
-   unsigned int block_size; //-- Actual block size (in bytes)
-   int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)
-   void *start_addr;        //-- Memory pool actual start address
-   void *free_list;         //-- Ptr to free block list
-   int fblkcnt;             //-- Num of free blocks
-   int id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
-                            // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
-} TN_FMP;
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
@@ -43,19 +40,16 @@ typedef struct _TN_FMP
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_fmem_create(TN_FMP  * fmp,
-      void * start_addr,
-      unsigned int block_size,
-      int num_blocks);
-int tn_fmem_delete(TN_FMP * fmp);
-int tn_fmem_get(TN_FMP * fmp, void ** p_data, unsigned long timeout);
-int tn_fmem_get_polling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_get_ipolling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_release(TN_FMP * fmp, void * p_data);
-int tn_fmem_irelease(TN_FMP * fmp, void * p_data);
+int tn_sem_create(TN_SEM * sem, int start_value, int max_val);
+int tn_sem_delete(TN_SEM * sem);
+int tn_sem_signal(TN_SEM * sem);
+int tn_sem_isignal(TN_SEM * sem);
+int tn_sem_acquire(TN_SEM * sem, unsigned long timeout);
+int tn_sem_polling(TN_SEM * sem);
+int tn_sem_ipolling(TN_SEM * sem);
 
 
-#endif // _TN_MEM_H
+#endif // _TN_SEM_H
 
 /*******************************************************************************
  *    end of file

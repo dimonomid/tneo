@@ -28,7 +28,7 @@
 
   /* ver 2.7 */
 
-#include "tn.h"
+#include "tn_tasks.h"
 
 extern unsigned long _gp;
 

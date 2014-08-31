@@ -27,21 +27,18 @@
 /* ver 2.7  */
 
 /*******************************************************************************
- *   Circular double-linked list queue
+ *   User-provided function prototypes
  ******************************************************************************/
 
 
 
-#ifndef  _TN_UTILS_H
-#define  _TN_UTILS_H
+#ifndef  _TN_USER_H
+#define  _TN_USER_H
 
 
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
-
-struct _TN_DQUE;
-
 
 #ifdef __cplusplus
 extern "C"  {     /*}*/
@@ -50,12 +47,6 @@ extern "C"  {     /*}*/
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
-
-typedef struct TNQueueHead
-{
-   struct TNQueueHead *prev;
-   struct TNQueueHead *next;
-} CDLL_QUEUE;
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
@@ -69,24 +60,16 @@ typedef struct TNQueueHead
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-void queue_reset(CDLL_QUEUE *que);
-int  is_queue_empty(CDLL_QUEUE *que);
-void queue_add_head(CDLL_QUEUE * que, CDLL_QUEUE * entry);
-void queue_add_tail(CDLL_QUEUE * que, CDLL_QUEUE * entry);
-CDLL_QUEUE * queue_remove_head(CDLL_QUEUE * que);
-CDLL_QUEUE * queue_remove_tail(CDLL_QUEUE * que);
-void queue_remove_entry(CDLL_QUEUE * entry);
-int  queue_contains_entry(CDLL_QUEUE * que, CDLL_QUEUE * entry);
-
-//int  dque_fifo_write(struct _TN_DQUE *dque, void * data_ptr);
-//int  dque_fifo_read(struct _TN_DQUE *dque, void ** data_ptr);
+void tn_cpu_int_enable(void);
+void tn_cpu_int_disable(void);
+int  tn_inside_int(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif // _TN_UTILS_H
+#endif // _TN_USER_H
 
 /*******************************************************************************
  *    end of file

@@ -27,8 +27,12 @@
 
   /* ver 2.7  */
 
-#include "tn.h"
+#include "tn_common.h"
+#include "tn_event.h"
 #include "tn_utils.h"
+#include "tn_sys.h"
+#include "tn_user.h"
+#include "tn_tasks.h"
 #include "tn_internal.h"
 
 #ifdef  TN_USE_EVENTS

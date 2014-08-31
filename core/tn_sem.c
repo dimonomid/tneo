@@ -27,8 +27,13 @@
 
   /* ver 2.7  */
 
-#include "tn.h"
+#include "tn_common.h"
+#include "tn_sys.h"
+#include "tn_sem.h"
+#include "tn_user.h"
+#include "tn_tasks.h"
 #include "tn_utils.h"
+#include "tn_internal.h"
 
 //----------------------------------------------------------------------------
 //   Structure's field sem->id_sem have to be set to 0
@@ -49,7 +54,7 @@ int tn_sem_create(TN_SEM * sem,
    }
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    queue_reset(&(sem->wait_queue));
 
@@ -84,7 +89,7 @@ int tn_sem_delete(TN_SEM * sem)
 
       que = queue_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -130,7 +135,7 @@ int tn_sem_signal(TN_SEM * sem)
       que = queue_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -185,7 +190,7 @@ int tn_sem_isignal(TN_SEM * sem)
       que = queue_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
-      if(task_wait_complete(task))
+      if(_tn_task_wait_complete(task))
       {
          tn_ienable_interrupt();
 
@@ -237,7 +242,7 @@ int tn_sem_acquire(TN_SEM * sem, unsigned long timeout)
    }
    else
    {
-      task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
+      _tn_task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
       tn_enable_interrupt();
       tn_switch_context();
 

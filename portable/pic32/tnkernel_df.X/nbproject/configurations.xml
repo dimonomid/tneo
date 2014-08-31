@@ -17,10 +17,10 @@
         <itemPath>../../../core/tn_utils.c</itemPath>
         <itemPath>../../../core/tn_sem.c</itemPath>
         <itemPath>../../../core/tn_mem.c</itemPath>
-        <itemPath>../../../core/tn.c</itemPath>
         <itemPath>../../../core/tn_tasks.c</itemPath>
         <itemPath>../../../core/tn_dqueue.c</itemPath>
         <itemPath>../../../core/tn_event.c</itemPath>
+        <itemPath>../../../core/tn_sys.c</itemPath>
       </logicalFolder>
       <logicalFolder name="portable" displayName="portable" projectFiles="true">
         <logicalFolder name="pic32" displayName="pic32" projectFiles="true">

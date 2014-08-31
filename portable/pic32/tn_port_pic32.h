@@ -30,9 +30,8 @@
 
 
 
-#ifndef  _TN_PORT_H_
-#define  _TN_PORT_H_
-
+#ifndef  _TN_PORT_PIC32_H
+#define  _TN_PORT_PIC32_H
 
   /* --------- PIC32 port -------- */
 
@@ -395,4 +394,4 @@ void __attribute__((naked, nomips16))__attribute__((vector(vec))) _isr##vec(void
                                                                                  \
 } __attribute((__noinline__)) void _func##vec(void)
 
-#endif
+#endif   // _TN_PORT_PIC32_H

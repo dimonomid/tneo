@@ -31,7 +31,10 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn.h"
+#include "tn_sys.h"
+#include "tn_tasks.h"
+#include "tn_user.h"
+#include "tn_mutex.h"
 #include "tn_utils.h"
 #include "tn_internal.h"
 
@@ -393,7 +396,7 @@ int do_unlock_mutex(TN_MUTEX * mutex)
    if(is_queue_empty(&(mutex->wait_queue)))
    {
       mutex->holder = NULL;
-      return TRUE;
+      return 1/*true*/;
    }
 
    //--- Now lock the mutex by the first task in the mutex queue
@@ -409,7 +412,7 @@ int do_unlock_mutex(TN_MUTEX * mutex)
    _tn_task_wait_complete(task);
    queue_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
-   return TRUE;
+   return 1/*true*/;
 }
 
 //----------------------------------------------------------------------------
