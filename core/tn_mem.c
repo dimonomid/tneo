@@ -32,6 +32,7 @@
  ******************************************************************************/
 
 #include "tn_common.h"
+#include "tn_sys.h"
 #include "tn_user.h"
 #include "tn_mem.h"
 #include "tn_tasks.h"
@@ -43,7 +44,6 @@
  *    EXTERNAL DATA
  ******************************************************************************/
 
-extern struct _TN_TCB *tn_curr_run_task;  //-- Task that is running now
 
 
 

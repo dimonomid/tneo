@@ -59,6 +59,10 @@ extern CDLL_QUEUE tn_blocked_tasks_list;
  */
 #if (!defined TN_API_TASK_CREATE)
 #  error TN_API_TASK_CREATE is not defined
+#elif (!defined TN_API_TASK_CREATE__NATIVE)
+#  error TN_API_TASK_CREATE__NATIVE is not defined
+#elif (!defined TN_API_TASK_CREATE__CONVENIENT)
+#  error TN_API_TASK_CREATE__CONVENIENT is not defined
 #endif
 
 #if (TN_API_TASK_CREATE == TN_API_TASK_CREATE__NATIVE)

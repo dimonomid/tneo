@@ -40,9 +40,6 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-struct _TN_DQUE;
-
-
 #ifdef __cplusplus
 extern "C"  {     /*}*/
 #endif
@@ -77,9 +74,6 @@ CDLL_QUEUE * queue_remove_head(CDLL_QUEUE * que);
 CDLL_QUEUE * queue_remove_tail(CDLL_QUEUE * que);
 void queue_remove_entry(CDLL_QUEUE * entry);
 int  queue_contains_entry(CDLL_QUEUE * que, CDLL_QUEUE * entry);
-
-//int  dque_fifo_write(struct _TN_DQUE *dque, void * data_ptr);
-//int  dque_fifo_read(struct _TN_DQUE *dque, void ** data_ptr);
 
 #ifdef __cplusplus
 }

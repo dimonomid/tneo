@@ -28,7 +28,6 @@
   /* ver 2.7  */
 
 #include "tn_common.h"
-#include "tn_dqueue.h"
 #include "tn_utils.h"
 
 //----------------------------------------------------------------------------
