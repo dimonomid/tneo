@@ -560,7 +560,8 @@ void tn_task_exit(int attr)
    _tn_task_to_non_runnable(tn_curr_run_task);
 
    _task_set_dormant_state(data.task);
-	 //-- Pointer to task top of stack,when not running
+
+	 //-- Pointer to task top of stack, when not running
    data.task->task_stk = tn_stack_init(data.task->task_func_addr,
                                   data.task->stk_start,
                                   data.task->task_func_param);
@@ -571,8 +572,7 @@ void tn_task_exit(int attr)
       _tn_task_to_runnable(data.task);
    } else {
       // V 2.6 Thanks to Alex Borisov
-      if(attr == TN_EXIT_AND_DELETE_TASK)
-      {
+      if (attr == TN_EXIT_AND_DELETE_TASK){
          queue_remove_entry(&(data.task->create_queue));
          tn_created_tasks_qty--;
          data.task->id_task = 0;

@@ -14,6 +14,54 @@
  *                                          PUBLIC TYPES                                           *
  **************************************************************************************************/
 
+typedef struct _TN_TCB
+{
+   unsigned int * task_stk;   //-- Pointer to task's top of stack
+   CDLL_QUEUE task_queue;     //-- Queue is used to include task in ready/wait lists
+   CDLL_QUEUE timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
+   CDLL_QUEUE * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
+                                      // that task has been included for waiting (ver 2.x)
+   CDLL_QUEUE create_queue;   //-- Queue is used to include task in create list only
+
+#ifdef TN_USE_MUTEXES
+
+   CDLL_QUEUE mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
+
+#endif
+
+   unsigned int * stk_start;  //-- Base address of task's stack space
+   int   stk_size;            //-- Task's stack size (in sizeof(void*),not bytes)
+   void * task_func_addr;     //-- filled on creation  (ver 2.x)
+   void * task_func_param;    //-- filled on creation  (ver 2.x)
+
+   int  base_priority;        //-- Task base priority  (ver 2.x)
+   int  priority;             //-- Task current priority
+   int  id_task;              //-- ID for verification(is it a task or another object?)
+                                      // All tasks have the same id_task magic number (ver 2.x)
+
+   int  task_state;           //-- Task state
+   int  task_wait_reason;     //-- Reason for waiting
+   int  task_wait_rc;         //-- Waiting return code(reason why waiting  finished)
+   unsigned long tick_count;  //-- Remaining time until timeout
+   int  tslice_count;         //-- Time slice counter
+
+#ifdef  TN_USE_EVENTS
+
+   int  ewait_pattern;        //-- Event wait pattern
+   int  ewait_mode;           //-- Event wait mode:  _AND or _OR
+
+#endif
+
+   void * data_elem;          //-- Store data queue entry,if data queue is full
+
+   int  activate_count;       //-- Activation request count - for statistic
+   int  wakeup_count;         //-- Wakeup request count - for statistic
+   int  suspend_count;        //-- Suspension count - for statistic
+
+// Other implementation specific fields may be added below
+
+} TN_TCB;
+
 /***************************************************************************************************
  *                                         GLOBAL VARIABLES                                        *
  **************************************************************************************************/

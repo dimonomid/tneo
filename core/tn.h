@@ -75,6 +75,7 @@
 //    and all configuration constants should be defined as well)
 #include "tn_port.h"
 
+struct _TN_TCB;
 
 //--- Constants
 
@@ -159,54 +160,6 @@ typedef struct _CDLL_QUEUE
 
 //-- Task Control Block --
 
-typedef struct _TN_TCB
-{
-   unsigned int * task_stk;   //-- Pointer to task's top of stack
-   CDLL_QUEUE task_queue;     //-- Queue is used to include task in ready/wait lists
-   CDLL_QUEUE timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
-   CDLL_QUEUE * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
-                                      // that task has been included for waiting (ver 2.x)
-   CDLL_QUEUE create_queue;   //-- Queue is used to include task in create list only
-
-#ifdef TN_USE_MUTEXES
-
-   CDLL_QUEUE mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
-
-#endif
-
-   unsigned int * stk_start;  //-- Base address of task's stack space
-   int   stk_size;            //-- Task's stack size (in sizeof(void*),not bytes)
-   void * task_func_addr;     //-- filled on creation  (ver 2.x)
-   void * task_func_param;    //-- filled on creation  (ver 2.x)
-
-   int  base_priority;        //-- Task base priority  (ver 2.x)
-   int  priority;             //-- Task current priority
-   int  id_task;              //-- ID for verification(is it a task or another object?)
-                                      // All tasks have the same id_task magic number (ver 2.x)
-
-   int  task_state;           //-- Task state
-   int  task_wait_reason;     //-- Reason for waiting
-   int  task_wait_rc;         //-- Waiting return code(reason why waiting  finished)
-   unsigned long tick_count;  //-- Remaining time until timeout
-   int  tslice_count;         //-- Time slice counter
-
-#ifdef  TN_USE_EVENTS
-
-   int  ewait_pattern;        //-- Event wait pattern
-   int  ewait_mode;           //-- Event wait mode:  _AND or _OR
-
-#endif
-
-   void * data_elem;          //-- Store data queue entry,if data queue is full
-
-   int  activate_count;       //-- Activation request count - for statistic
-   int  wakeup_count;         //-- Wakeup request count - for statistic
-   int  suspend_count;        //-- Suspension count - for statistic
-
-// Other implementation specific fields may be added below
-
-}TN_TCB;
-
 //----- Semaphore -----
 
 typedef struct _TN_SEM
@@ -244,21 +197,6 @@ typedef struct _TN_DQUE
                                // All data queues have the same id_dque magic number (ver 2.x)
 }TN_DQUE;
 
-//----- Fixed-sized blocks memory pool --------------
-
-typedef struct _TN_FMP
-{
-   CDLL_QUEUE wait_queue;
-
-   unsigned int block_size; //-- Actual block size (in bytes)
-   int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)
-   void * start_addr;       //-- Memory pool actual start address
-   void * free_list;        //-- Ptr to free block list
-   int fblkcnt;             //-- Num of free blocks
-   int id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
-                                 // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
-}TN_FMP;
-
 
 //----- Mutex ------------
 
@@ -269,7 +207,7 @@ typedef struct _TN_MUTEX
    CDLL_QUEUE lock_mutex_queue;  //-- To include in system's locked mutexes list
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
-   TN_TCB * holder;              //-- Current mutex owner(task that locked mutex)
+   struct _TN_TCB *holder;       //-- Current mutex owner(task that locked mutex)
    int ceil_priority;            //-- When mutex created with CEILING attr
    int cnt;                      //-- Lock count
    int id_mutex;                 //-- ID for verification(is it a mutex or another object?)
@@ -291,8 +229,8 @@ extern CDLL_QUEUE tn_wait_timeout_list;             //-- all tasks that wait tim
 
 extern volatile int tn_system_state;    //-- System state -(running/not running,etc.)
 
-extern TN_TCB * tn_curr_run_task;       //-- Task that  run now
-extern TN_TCB * tn_next_task_to_run;    //-- Task to be run after switch context
+extern struct _TN_TCB * tn_curr_run_task;       //-- Task that  run now
+extern struct _TN_TCB * tn_next_task_to_run;    //-- Task to be run after switch context
 
 extern volatile unsigned int tn_ready_to_run_bmp;
 extern volatile unsigned long tn_idle_count;
@@ -315,10 +253,10 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
 //-- v.2.7
 
 #define get_task_by_tsk_queue(que)                  \
-        (que ? CONTAINING_RECORD(que, TN_TCB, task_queue) : 0)
+        (que ? CONTAINING_RECORD(que, struct _TN_TCB, task_queue) : 0)
 
 #define get_task_by_timer_queque(que)               \
-        (que ? CONTAINING_RECORD(que, TN_TCB, timer_queue) : 0)
+        (que ? CONTAINING_RECORD(que, struct _TN_TCB, timer_queue) : 0)
 
 #define get_mutex_by_mutex_queque(que)              \
         (que ? CONTAINING_RECORD(que, TN_MUTEX, mutex_queue) : 0)
@@ -327,7 +265,7 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
         (que ? CONTAINING_RECORD(que, TN_MUTEX, wait_queue) : 0)
 
 #define get_task_by_block_queque(que)  \
-        (que ? CONTAINING_RECORD(que, TN_TCB, block_queue) : 0)
+        (que ? CONTAINING_RECORD(que, struct _TN_TCB, block_queue) : 0)
 
 #define get_mutex_by_lock_mutex_queque(que) \
         (que ? CONTAINING_RECORD(que, TN_MUTEX, mutex_queue) : 0)
@@ -405,16 +343,7 @@ int tn_event_iclear(TN_EVENT * evf, unsigned int pattern);
 
 //----- tn_mem.c ----------------------------------
 
-int tn_fmem_create(TN_FMP  * fmp,
-                     void * start_addr,
-                     unsigned int block_size,
-                     int num_blocks);
-int tn_fmem_delete(TN_FMP * fmp);
-int tn_fmem_get(TN_FMP * fmp, void ** p_data, unsigned long timeout);
-int tn_fmem_get_polling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_get_ipolling(TN_FMP * fmp, void ** p_data);
-int tn_fmem_release(TN_FMP * fmp, void * p_data);
-int tn_fmem_irelease(TN_FMP * fmp, void * p_data);
+#include "tn_mem.h"
 
   //--- tn_mutex.c ---
 
@@ -429,7 +358,7 @@ int tn_mutex_unlock(TN_MUTEX * mutex);
         //-- Routines
 
 int find_max_blocked_priority(TN_MUTEX * mutex, int ref_priority);
-int try_lock_mutex(TN_TCB * task);
+int try_lock_mutex(struct _TN_TCB * task);
 int do_unlock_mutex(TN_MUTEX * mutex);
 
   //--- tn_port.c ---
