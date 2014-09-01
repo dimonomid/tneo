@@ -24,9 +24,9 @@ typedef struct tn_mutex       TN_MUTEX;
 typedef struct tn_dqueue      TN_DQUE;
 typedef struct tn_event       TN_EVENT;
 typedef struct tn_task        TN_TCB;
+typedef struct tn_fmp         TN_FMP;
 
 #if 0
-typedef struct _TN_FMP TN_FMP;
 typedef struct _TN_SEM TN_SEM;
 #endif
 
@@ -49,6 +49,7 @@ typedef struct _TN_SEM TN_SEM;
 #define  _TN_DQUE       tn_dqueue
 #define  _TN_EVENT      tn_event
 #define  _TN_TCB        tn_task
+#define  _TN_FMP        tn_fmp
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
