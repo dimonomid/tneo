@@ -357,19 +357,18 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 {
-#if 0
-   struct TN_ListItem *curr_que;
-#endif
-
    {
       int pr;
 
       //-- Delete curr mutex from task's locked mutexes queue
       tn_list_remove_entry(&(mutex->mutex_queue));
+
+      //-- Now, we need to determine new priority of current task.
+      //   We start from its base priority, but if there are other
+      //   mutexes that are locked by the task, we should check
+      //   what priority we should set.
       pr = tn_curr_run_task->base_priority;
 
-      //-- If there are other mutexes locked by current task,
-      //   determine new priority of it
       {
          struct TN_Mutex *tmp_mutex;
          tn_list_for_each_entry(tmp_mutex, &(tn_curr_run_task->mutex_queue), mutex_queue){
@@ -391,28 +390,8 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
             }
          }
       }
-#if 0
-      if (!tn_is_list_empty(&(tn_curr_run_task->mutex_queue))){
-         curr_que = tn_curr_run_task->mutex_queue.next;
-         while(curr_que != &(tn_curr_run_task->mutex_queue))
-         {
-            tmp_mutex = get_mutex_by_mutex_queque(curr_que);
 
-            if(tmp_mutex->attr == TN_MUTEX_ATTR_CEILING)
-            {
-               if(tmp_mutex->ceil_priority < pr)
-                  pr = tmp_mutex->ceil_priority;
-            }
-            else if(tmp_mutex->attr == TN_MUTEX_ATTR_INHERIT)
-            {
-               pr = find_max_blocked_priority(tmp_mutex, pr);
-            }
-            curr_que = curr_que->next;
-         }
-      }
-#endif
-
-      //-- Set priority
+      //-- New priority determined, set it
       if (pr != tn_curr_run_task->priority){
          _tn_change_running_task_priority(tn_curr_run_task, pr);
       }
@@ -429,10 +408,6 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
       //   so, lock it by the first task in the queue
       struct TN_Task *task;
 
-#if 0
-      curr_que = tn_list_remove_head(&(mutex->wait_queue));
-      task     = get_task_by_tsk_queue(curr_que);
-#endif
       task = tn_list_first_entry_remove(&(mutex->wait_queue), typeof(*task), task_queue);
 
       mutex->holder = task;
@@ -453,22 +428,18 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 //----------------------------------------------------------------------------
 enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
-   int         priority;
-   struct TN_ListItem *curr_que;
-   struct TN_Task     *task;
+   int               priority;
+   struct TN_Task   *task;
 
    priority = ref_priority;
 
-   curr_que = mutex->wait_queue.next;
-   while (curr_que != &(mutex->wait_queue)){
-      task = get_task_by_tsk_queue(curr_que);
-
+   //-- Iterate through all the tasks that wait for lock mutex.
+   //   Highest priority (i.e. lowest number) will be returned eventually.
+   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
       if(task->priority < priority){
-         //--  task priority is higher
+         //--  task priority is higher, remember it
          priority = task->priority;
       }
-
-      curr_que = curr_que->next;
    }
 
    return priority;
