@@ -43,10 +43,6 @@
  *    DEFINITIONS
  ******************************************************************************/
 
-//-- System state
-#define  TN_ST_STATE_NOT_RUN              0
-#define  TN_ST_STATE_RUNNING              1
-
 
 //-- Object IDs
 #define  TN_ID_TASK              ((int)0x47ABCF69)

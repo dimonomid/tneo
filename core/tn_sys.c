@@ -57,7 +57,7 @@ struct tn_que_head tn_wait_timeout_list;                  //-- all tasks that wa
 
 unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];  //-- for round-robin only
 
-volatile int tn_system_state;                     //-- System state -(running/not running/etc.)
+volatile enum tn_state tn_system_state;                     //-- System state -(running/not running/etc.)
 
 struct tn_task * tn_next_task_to_run;                     //-- Task to be run after switch context
 struct tn_task * tn_curr_run_task;                        //-- Task that is running now

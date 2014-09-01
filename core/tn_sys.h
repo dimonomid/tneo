@@ -26,27 +26,49 @@
 
 */
 
-  /* ver 2.7 */
+/* ver 2.7 */
 
-#ifndef _TH_H_
-#define _TH_H_
+#ifndef _TN_SYS_H
+#define _TN_SYS_H
 
 
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
 
 #include "tn_utils.h"
 #include "tn_port.h"
+
+//-- Thanks to megajohn from electronix.ru - for IAR Embedded C++ compatibility
+#ifdef __cplusplus
+extern "C"  {  /*}*/
+#endif
+
+
+
+/*******************************************************************************
+ *    EXTERNAL TYPES
+ ******************************************************************************/
 
 struct tn_task;
 
 
 
-//-- Thanks to megajohn from electronix.ru - for IAR Embedded C++ compatibility
-#ifdef __cplusplus
-extern "C"  {
-#endif
+/*******************************************************************************
+ *    PUBLIC TYPES
+ ******************************************************************************/
 
- //-- Global vars
+enum tn_state {
+   TN_ST_STATE_NOT_RUN,
+   TN_ST_STATE_RUNNING,
+};
+
+
+
+/*******************************************************************************
+ *    GLOBAL VARIABLES
+ ******************************************************************************/
 
 extern struct tn_que_head tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
 extern struct tn_que_head tn_create_queue;                  //-- all created tasks(now - for statictic only)
@@ -54,7 +76,7 @@ extern volatile int tn_created_tasks_qty;           //-- num of created tasks
 extern struct tn_que_head tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
 
 
-extern volatile int tn_system_state;    //-- System state -(running/not running,etc.)
+extern volatile enum tn_state tn_system_state;    //-- System state -(running/not running,etc.)
 
 extern struct tn_task * tn_curr_run_task;       //-- Task that  run now
 extern struct tn_task * tn_next_task_to_run;    //-- Task to be run after switch context
@@ -70,9 +92,12 @@ extern volatile int tn_int_nest_count;
 extern void * tn_user_sp;               //-- Saved task stack pointer
 extern void * tn_int_sp;                //-- Saved ISR stack pointer
 
-//-- v.2.7
 
-//----- tn.c ----------------------------------
+
+
+/*******************************************************************************
+ *    PUBLIC FUNCTION PROTOTYPES
+ ******************************************************************************/
 
 void tn_start_system(
 #if TN_USE_TIMER_TASK
@@ -96,4 +121,4 @@ void tn_sys_time_set(unsigned int value);
 }  /* extern "C" */
 #endif
 
-#endif
+#endif   // _TN_SYS_H
