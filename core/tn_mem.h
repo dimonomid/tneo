@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 
 
@@ -26,7 +27,7 @@ struct tn_fmp {
    void *start_addr;        //-- Memory pool actual start address
    void *free_list;         //-- Ptr to free block list
    int fblkcnt;             //-- Num of free blocks
-   int id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
+   enum tn_obj_id id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
                             // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
 };
 

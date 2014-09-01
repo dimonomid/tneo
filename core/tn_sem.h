@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 
 
@@ -22,7 +23,7 @@ struct tn_sem {
    struct tn_que_head  wait_queue;
    int count;
    int max_count;
-   int id_sem;     //-- ID for verification(is it a semaphore or another object?)
+   enum tn_obj_id id_sem;     //-- ID for verification(is it a semaphore or another object?)
                    // All semaphores have the same id_sem magic number (ver 2.x)
 };
 

@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 
 /*******************************************************************************
@@ -26,7 +27,7 @@ struct tn_mutex {
    struct tn_task *holder;       //-- Current mutex owner(task that locked mutex)
    int ceil_priority;            //-- When mutex created with CEILING attr
    int cnt;                      //-- Lock count
-   int id_mutex;                 //-- ID for verification(is it a mutex or another object?)
+   enum tn_obj_id id_mutex;                 //-- ID for verification(is it a mutex or another object?)
                      // All mutexes have the same id_mutex magic number (ver 2.x)
 };
 

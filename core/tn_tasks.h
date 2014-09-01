@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 
 
@@ -39,8 +40,8 @@ struct tn_task {
 
    int  base_priority;        //-- Task base priority  (ver 2.x)
    int  priority;             //-- Task current priority
-   int  id_task;              //-- ID for verification(is it a task or another object?)
-                                      // All tasks have the same id_task magic number (ver 2.x)
+   enum tn_obj_id  id_task;   //-- ID for verification(is it a task or another object?)
+                              // All tasks have the same id_task magic number (ver 2.x)
 
    int  task_state;           //-- Task state
    int  task_wait_reason;     //-- Reason for waiting

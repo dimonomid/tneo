@@ -35,6 +35,18 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
+enum tn_obj_id {
+   TN_ID_TASK           = 0x47ABCF69,
+   TN_ID_SEMAPHORE      = 0x6FA173EB,
+   TN_ID_EVENT          = 0x5E224F25,
+   TN_ID_DATAQUEUE      = 0x8C8A6C89,
+   TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,
+   TN_ID_MUTEX          = 0x17129E45,
+   TN_ID_RENDEZVOUS     = 0x74289EBD,
+};
+
+
+
 /*******************************************************************************
  *    GLOBAL VARIABLES
  ******************************************************************************/
@@ -42,16 +54,6 @@
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
-
-
-//-- Object IDs
-#define  TN_ID_TASK              ((int)0x47ABCF69)
-#define  TN_ID_SEMAPHORE         ((int)0x6FA173EB)
-#define  TN_ID_EVENT             ((int)0x5E224F25)
-#define  TN_ID_DATAQUEUE         ((int)0x8C8A6C89)
-#define  TN_ID_FSMEMORYPOOL      ((int)0x26B7CE8B)
-#define  TN_ID_MUTEX             ((int)0x17129E45)
-#define  TN_ID_RENDEZVOUS        ((int)0x74289EBD)
 
 
 //--- wait reasons

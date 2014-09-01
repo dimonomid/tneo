@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 /*******************************************************************************
  *    PUBLIC TYPES
@@ -24,7 +25,7 @@ struct tn_dqueue {
    int  num_entries;    //-- Capacity of data_fifo(num entries)
    int  tail_cnt;       //-- Counter to processing data queue's Array of void*
    int  header_cnt;     //-- Counter to processing data queue's Array of void*
-   int  id_dque;        //-- ID for verification(is it a data queue or another object?)
+   enum tn_obj_id  id_dque;        //-- ID for verification(is it a data queue or another object?)
    // All data queues have the same id_dque magic number (ver 2.x)
 };
 

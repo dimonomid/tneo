@@ -11,6 +11,7 @@
  ******************************************************************************/
 
 #include "tn_utils.h"
+#include "tn_common.h"
 
 
 
@@ -22,7 +23,7 @@ struct tn_event {
    struct tn_que_head wait_queue;
    int attr;               //-- Eventflag attribute
    unsigned int pattern;   //-- Initial value of the eventflag bit pattern
-   int id_event;           //-- ID for verification(is it a event or another object?)
+   enum tn_obj_id id_event;           //-- ID for verification(is it a event or another object?)
    // All events have the same id_event magic number (ver 2.x)
 };
 
