@@ -37,7 +37,7 @@
 #include "tn_utils.h"
 #include "tn_port.h"
 
-struct _TN_TCB;
+struct tn_task;
 
 
 
@@ -56,8 +56,8 @@ extern struct tn_que_head tn_wait_timeout_list;             //-- all tasks that 
 
 extern volatile int tn_system_state;    //-- System state -(running/not running,etc.)
 
-extern struct _TN_TCB * tn_curr_run_task;       //-- Task that  run now
-extern struct _TN_TCB * tn_next_task_to_run;    //-- Task to be run after switch context
+extern struct tn_task * tn_curr_run_task;       //-- Task that  run now
+extern struct tn_task * tn_next_task_to_run;    //-- Task to be run after switch context
 
 extern volatile unsigned int tn_ready_to_run_bmp;
 extern volatile unsigned long tn_idle_count;

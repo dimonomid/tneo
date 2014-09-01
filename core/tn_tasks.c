@@ -113,7 +113,7 @@ static void _find_next_task_to_run(void)
    tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[tmp].next);
 }
 
-static void _task_set_dormant_state(TN_TCB* task)
+static void _task_set_dormant_state(struct tn_task* task)
 {
    // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
    queue_reset(&(task->task_queue));
@@ -156,7 +156,7 @@ static void _task_set_dormant_state(TN_TCB* task)
 /**
  * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
  */
-static inline int _task_wakeup(TN_TCB *task, int *p_need_switch_context)
+static inline int _task_wakeup(struct tn_task *task, int *p_need_switch_context)
 {
    int rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
@@ -189,7 +189,7 @@ static inline int _task_wakeup(TN_TCB *task, int *p_need_switch_context)
    return rc;
 }
 
-static inline int _task_release_wait(TN_TCB *task, int *p_need_switch_context)
+static inline int _task_release_wait(struct tn_task *task, int *p_need_switch_context)
 {
    int rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
@@ -207,7 +207,7 @@ static inline int _task_release_wait(TN_TCB *task, int *p_need_switch_context)
 /**
  * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
  */
-static inline int _task_activate(TN_TCB *task, int *p_need_switch_context)
+static inline int _task_activate(struct tn_task *task, int *p_need_switch_context)
 {
    int rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
@@ -227,8 +227,8 @@ static inline int _task_activate(TN_TCB *task, int *p_need_switch_context)
 }
 
 static inline int _task_job_perform(
-      TN_TCB *task,
-      int (p_worker)(TN_TCB *task, int *p_need_switch_context)
+      struct tn_task *task,
+      int (p_worker)(struct tn_task *task, int *p_need_switch_context)
       )
 {
    TN_INTSAVE_DATA;
@@ -257,8 +257,8 @@ static inline int _task_job_perform(
 }
 
 static inline int _task_job_iperform(
-      TN_TCB *task,
-      int (p_worker)(TN_TCB *task, int *p_need_switch_context)
+      struct tn_task *task,
+      int (p_worker)(struct tn_task *task, int *p_need_switch_context)
       )
 {
    TN_INTSAVE_DATA_INT;
@@ -293,7 +293,7 @@ static inline int _task_job_iperform(
 /**
  * Create task. See comments in tn_tasks.h file.
  */
-int tn_task_create(TN_TCB *task,                  //-- task TCB
+int tn_task_create(struct tn_task *task,                  //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
@@ -313,7 +313,7 @@ int tn_task_create(TN_TCB *task,                  //-- task TCB
  * If the task is runnable, it is moved to the SUSPENDED state. If the task
  * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
  */
-int tn_task_suspend(TN_TCB *task)
+int tn_task_suspend(struct tn_task *task)
 {
    TN_INTSAVE_DATA;
    int rc = TERR_NO_ERR;
@@ -366,7 +366,7 @@ out_ei_switch_context:
  * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
  * it is moved to WAITING state.
  */
-int tn_task_resume(TN_TCB *task)
+int tn_task_resume(struct tn_task *task)
 {
    TN_INTSAVE_DATA;
    int rc = TERR_NO_ERR;
@@ -463,7 +463,7 @@ out_ei_switch_context:
  * and calls _task_wakeup() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-int tn_task_wakeup(TN_TCB *task)
+int tn_task_wakeup(struct tn_task *task)
 {
    return _task_job_perform(task, _task_wakeup);
 }
@@ -475,7 +475,7 @@ int tn_task_wakeup(TN_TCB *task)
  * and calls _task_wakeup() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-int tn_task_iwakeup(TN_TCB *task)
+int tn_task_iwakeup(struct tn_task *task)
 {
    return _task_job_iperform(task, _task_wakeup);
 }
@@ -487,7 +487,7 @@ int tn_task_iwakeup(TN_TCB *task)
  * and calls _task_activate() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-int tn_task_activate(TN_TCB *task)
+int tn_task_activate(struct tn_task *task)
 {
    return _task_job_perform(task, _task_activate);
 }
@@ -499,7 +499,7 @@ int tn_task_activate(TN_TCB *task)
  * and calls _task_activate() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-int tn_task_iactivate(TN_TCB *task)
+int tn_task_iactivate(struct tn_task *task)
 {
    return _task_job_iperform(task, _task_activate);
 }
@@ -511,7 +511,7 @@ int tn_task_iactivate(TN_TCB *task)
  * and calls _task_release_wait() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-int tn_task_release_wait(TN_TCB *task)
+int tn_task_release_wait(struct tn_task *task)
 {
    return _task_job_perform(task, _task_release_wait);
 }
@@ -523,7 +523,7 @@ int tn_task_release_wait(TN_TCB *task)
  * and calls _task_release_wait() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-int tn_task_irelease_wait(TN_TCB *task)
+int tn_task_irelease_wait(struct tn_task *task)
 {
    return _task_job_iperform(task, _task_release_wait);
 }
@@ -543,7 +543,7 @@ void tn_task_exit(int attr)
       struct tn_que_head * que;
       struct tn_mutex * mutex;
 #endif
-      TN_TCB * task;
+      struct tn_task * task;
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
    } data;
 	 
@@ -596,7 +596,7 @@ void tn_task_exit(int attr)
 /**
  * See comments in the file tn_tasks.h .
  */
-int tn_task_terminate(TN_TCB *task)
+int tn_task_terminate(struct tn_task *task)
 {
    TN_INTSAVE_DATA;
 
@@ -686,7 +686,7 @@ int tn_task_terminate(TN_TCB *task)
 /**
  * See comments in the file tn_tasks.h .
  */
-int tn_task_delete(TN_TCB *task)
+int tn_task_delete(struct tn_task *task)
 {
    TN_INTSAVE_DATA;
    int rc;
@@ -722,7 +722,7 @@ int tn_task_delete(TN_TCB *task)
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
  */
-int tn_task_change_priority(TN_TCB *task, int new_priority)
+int tn_task_change_priority(struct tn_task *task, int new_priority)
 {
    TN_INTSAVE_DATA;
    int rc;
@@ -771,7 +771,7 @@ int tn_task_change_priority(TN_TCB *task, int new_priority)
  *    INTERNAL TNKERNEL FUNCTIONS
  ******************************************************************************/
 
-int _tn_task_create(TN_TCB *task,                 //-- task TCB
+int _tn_task_create(struct tn_task *task,                 //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
@@ -868,7 +868,7 @@ int _tn_task_create(TN_TCB *task,                 //-- task TCB
  *
  * @return non-zero if task became runnable, zero otherwise.
  */
-int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
+int _tn_task_wait_complete(struct tn_task *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
@@ -920,7 +920,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
 
    if (fmutex){
       int         curr_priority;
-      TN_TCB     *mt_holder_task;
+      struct tn_task     *mt_holder_task;
       struct tn_mutex   *mutex;
 
       mutex = get_mutex_by_wait_queque(t_que);
@@ -962,7 +962,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
  * if priority is higher than tn_next_task_to_run's priority,
  * then set tn_next_task_to_run to this task.
  */
-void _tn_task_to_runnable(TN_TCB * task)
+void _tn_task_to_runnable(struct tn_task * task)
 {
    int priority;
 
@@ -986,7 +986,7 @@ void _tn_task_to_runnable(TN_TCB * task)
  * Remove task from 'ready queue', determine and set
  * new tn_next_task_to_run.
  */
-void _tn_task_to_non_runnable(TN_TCB *task)
+void _tn_task_to_non_runnable(struct tn_task *task)
 {
    int priority;
    struct tn_que_head *que;
@@ -1054,7 +1054,7 @@ void _tn_task_curr_to_wait_action(struct tn_que_head *wait_que,
    }
 }
 
-int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
+int _tn_change_running_task_priority(struct tn_task * task, int new_priority)
 {
    int old_priority;
 
@@ -1083,7 +1083,7 @@ int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
 }
 
 #ifdef TN_USE_MUTEXES
-void _tn_set_current_priority(TN_TCB * task, int priority)
+void _tn_set_current_priority(struct tn_task * task, int priority)
 {
    struct tn_mutex * mutex;
 

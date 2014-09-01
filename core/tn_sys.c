@@ -59,8 +59,8 @@ unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];  //-- for round-robin only
 
 volatile int tn_system_state;                     //-- System state -(running/not running/etc.)
 
-TN_TCB * tn_next_task_to_run;                     //-- Task to be run after switch context
-TN_TCB * tn_curr_run_task;                        //-- Task that is running now
+struct tn_task * tn_next_task_to_run;                     //-- Task to be run after switch context
+struct tn_task * tn_curr_run_task;                        //-- Task that is running now
 
 volatile unsigned int tn_ready_to_run_bmp;
 volatile unsigned long tn_idle_count;
@@ -77,12 +77,12 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 
 #if TN_USE_TIMER_TASK
 //-- timer task - priority (0) - highest
-TN_TCB  tn_timer_task;
+struct tn_task  tn_timer_task;
 #endif
 
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
-TN_TCB  tn_idle_task;
+struct tn_task  tn_idle_task;
 static void _idle_task_body(void * par);
 
 void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
@@ -154,7 +154,7 @@ static void _idle_task_body(void *par)
 static inline void _wait_timeout_list_manage(void)
 {
    volatile struct tn_que_head *curr_que;
-   volatile TN_TCB * task;
+   volatile struct tn_task * task;
 
    curr_que = tn_wait_timeout_list.next;
    while(curr_que != &tn_wait_timeout_list)
@@ -167,8 +167,8 @@ static inline void _wait_timeout_list_manage(void)
             task->tick_count--;
             if(task->tick_count == 0) //-- Timeout expired
             {
-               queue_remove_entry(&(((TN_TCB *)task)->task_queue));
-               _tn_task_wait_complete((TN_TCB *)task);
+               queue_remove_entry(&(((struct tn_task *)task)->task_queue));
+               _tn_task_wait_complete((struct tn_task *)task);
                task->task_wait_rc = TERR_TIMEOUT;
             }
          }
@@ -214,7 +214,7 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
 {
    _tn_task_create(
-         (TN_TCB*)&tn_idle_task,          //-- task TCB
+         (struct tn_task*)&tn_idle_task,          //-- task TCB
          _idle_task_body,                 //-- task function
          TN_NUM_PRIORITY - 1,             //-- task priority
          &(idle_task_stack                //-- task stack first addr in memory
@@ -271,7 +271,7 @@ static inline void _timer_task_create(unsigned int  *timer_task_stack,
       unsigned int   timer_task_stack_size)
 {
    _tn_task_create(
-         (TN_TCB*)&tn_timer_task,                     //-- task TCB
+         (struct tn_task*)&tn_timer_task,                     //-- task TCB
          _timer_task_body,                            //-- task function
          0,                                           //-- task priority
          &(timer_task_stack                           //-- task stack first addr in memory
@@ -513,7 +513,7 @@ void tn_sys_time_set(unsigned int value)
 void _tn_wait_queue_notify_deleted(struct tn_que_head *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
 {
    struct tn_que_head *que;
-   TN_TCB *task;
+   struct tn_task *task;
 
    while (!is_queue_empty(wait_queue)){
       //--- delete from wait queue

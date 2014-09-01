@@ -78,7 +78,7 @@ int tn_queue_delete(struct tn_dqueue * dque)
 {
    TN_INTSAVE_DATA
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -136,7 +136,7 @@ int tn_queue_send(struct tn_dqueue * dque, void * data_ptr, unsigned long timeou
    TN_INTSAVE_DATA
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0)
@@ -190,7 +190,7 @@ int tn_queue_send_polling(struct tn_dqueue * dque, void * data_ptr)
    TN_INTSAVE_DATA
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -236,7 +236,7 @@ int tn_queue_isend_polling(struct tn_dqueue * dque, void * data_ptr)
    TN_INTSAVE_DATA_INT
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -284,7 +284,7 @@ int tn_queue_receive(struct tn_dqueue * dque,void ** data_ptr,unsigned long time
    TN_INTSAVE_DATA
    int rc; //-- return code
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0 || data_ptr == NULL)
@@ -358,7 +358,7 @@ int tn_queue_receive_polling(struct tn_dqueue * dque,void ** data_ptr)
    TN_INTSAVE_DATA
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || data_ptr == NULL)
@@ -421,7 +421,7 @@ int tn_queue_ireceive(struct tn_dqueue * dque,void ** data_ptr)
    TN_INTSAVE_DATA_INT
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || data_ptr == NULL)

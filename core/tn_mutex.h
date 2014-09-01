@@ -23,7 +23,7 @@ struct tn_mutex {
    struct tn_que_head lock_mutex_queue;  //-- To include in system's locked mutexes list
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
-   struct _TN_TCB *holder;       //-- Current mutex owner(task that locked mutex)
+   struct tn_task *holder;       //-- Current mutex owner(task that locked mutex)
    int ceil_priority;            //-- When mutex created with CEILING attr
    int cnt;                      //-- Lock count
    int id_mutex;                 //-- ID for verification(is it a mutex or another object?)

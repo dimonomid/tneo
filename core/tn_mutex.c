@@ -359,7 +359,7 @@ int do_unlock_mutex(struct tn_mutex * mutex)
 {
    struct tn_que_head * curr_que;
    struct tn_mutex * tmp_mutex;
-   TN_TCB * task;
+   struct tn_task * task;
    int pr;
 
    //-- Delete curr mutex from task's locked mutexes queue
@@ -424,7 +424,7 @@ int find_max_blocked_priority(struct tn_mutex *mutex, int ref_priority)
 {
    int         priority;
    struct tn_que_head *curr_que;
-   TN_TCB     *task;
+   struct tn_task     *task;
 
    priority = ref_priority;
 

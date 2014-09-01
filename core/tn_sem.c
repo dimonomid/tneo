@@ -75,7 +75,7 @@ int tn_sem_delete(TN_SEM * sem)
 {
    TN_INTSAVE_DATA
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -118,7 +118,7 @@ int tn_sem_signal(TN_SEM * sem)
    TN_INTSAVE_DATA
    int rc; //-- return code
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -173,7 +173,7 @@ int tn_sem_isignal(TN_SEM * sem)
    TN_INTSAVE_DATA_INT
    int rc;
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)

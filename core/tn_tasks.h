@@ -18,7 +18,7 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_TCB {
+struct tn_task {
    unsigned int * task_stk;   //-- Pointer to task's top of stack
    struct tn_que_head task_queue;     //-- Queue is used to include task in ready/wait lists
    struct tn_que_head timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
@@ -63,7 +63,7 @@ typedef struct _TN_TCB {
 
 // Other implementation specific fields may be added below
 
-} TN_TCB;
+};
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
@@ -92,13 +92,13 @@ typedef struct _TN_TCB {
 
 
 #define get_task_by_tsk_queue(que)                                   \
-   (que ? CONTAINING_RECORD(que, struct _TN_TCB, task_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_task, task_queue) : 0)
 
 #define get_task_by_timer_queque(que)                                \
-   (que ? CONTAINING_RECORD(que, struct _TN_TCB, timer_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_task, timer_queue) : 0)
 
 #define get_task_by_block_queque(que)                                \
-   (que ? CONTAINING_RECORD(que, struct _TN_TCB, block_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_task, block_queue) : 0)
 
 
 
@@ -112,7 +112,7 @@ typedef struct _TN_TCB {
  *
  * This function creates a task. A field id_task of the structure task must be set to 0 before invoking this
  * function. A memory for the task TCB and a task stack must be allocated before the function call. An
- * allocation may be static (global variables of the TN_TCB type for the task and
+ * allocation may be static (global variables of the struct tn_task type for the task and
  * unsigned int [task_stack_size] for the task stack) or dynamic, if the user application supports
  * malloc/alloc (TNKernel itself does not use dynamic memory allocation).
  * The task_stack_size value must to be chosen big enough to fit the task_func local variables and its switch
@@ -125,7 +125,7 @@ typedef struct _TN_TCB {
  * unsigned int xxx_xxx[task_stack_size] (in C-language notation),
  * then the task_stack_start parameter has to be &xxx_xxx[task_stack_size - 1].
  *
- * @param task       Ready-allocated TN_TCB structure. A field id_task of it must be 
+ * @param task       Ready-allocated struct tn_task structure. A field id_task of it must be 
  *                   set to 0 before invocation of tn_task_create().
  * @param task_func  Task body function.
  * @param priority   Priority for new task. NOTE: the lower value, the higher priority.
@@ -144,7 +144,7 @@ typedef struct _TN_TCB {
  *                   (TN_TASK_START_ON_CREATION): task is created and activated.
  *                   
  */
-int tn_task_create(TN_TCB *task,                  //-- task TCB
+int tn_task_create(struct tn_task *task,                  //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
@@ -157,7 +157,7 @@ int tn_task_create(TN_TCB *task,                  //-- task TCB
  * If the task is runnable, it is moved to the SUSPENDED state. If the task
  * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
  */
-int tn_task_suspend(TN_TCB *task);
+int tn_task_suspend(struct tn_task *task);
 
 /**
  * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
@@ -165,7 +165,7 @@ int tn_task_suspend(TN_TCB *task);
  * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
  * it is moved to WAITING state.
  */
-int tn_task_resume(TN_TCB *task);
+int tn_task_resume(struct tn_task *task);
 
 /**
  * Put current task to sleep for at most timeout ticks. When the timeout
@@ -193,8 +193,8 @@ int tn_task_sleep(unsigned long timeout);
  *       it seems just like dirty hack to prevent race conditions.
  *       It makes the programmer able to not create proper syncronization.
  */
-int tn_task_wakeup(TN_TCB *task);
-int tn_task_iwakeup(TN_TCB *task);
+int tn_task_wakeup(struct tn_task *task);
+int tn_task_iwakeup(struct tn_task *task);
 
 /**
  * Activate task that was created by tn_task_create() without TN_TASK_START_ON_CREATION
@@ -207,8 +207,8 @@ int tn_task_iwakeup(TN_TCB *task);
  *       it seems just like dirty hack to prevent race conditions.
  *       It makes the programmer able to not create proper syncronization.
  */
-int tn_task_activate(TN_TCB *task);
-int tn_task_iactivate(TN_TCB *task);
+int tn_task_activate(struct tn_task *task);
+int tn_task_iactivate(struct tn_task *task);
 
 /**
  * Release task from WAIT state.
@@ -217,8 +217,8 @@ int tn_task_iactivate(TN_TCB *task);
  * If task is in WAITING state, it is moved to READY state.
  * If task is in WAITING_SUSPENDED state, it is moved to SUSPENDED state.
  */
-int tn_task_release_wait(TN_TCB *task);
-int tn_task_irelease_wait(TN_TCB *task);
+int tn_task_release_wait(struct tn_task *task);
+int tn_task_irelease_wait(struct tn_task *task);
 
 /**
  * This function terminates the currently running task. The task is moved to the DORMANT state.
@@ -260,7 +260,7 @@ void tn_task_exit(int attr);
  * A task must not terminate itself by this function (use the tn_task_exit() function instead).
  * This function cannot be used in interrupts.
  */
-int tn_task_terminate(TN_TCB *task);
+int tn_task_terminate(struct tn_task *task);
 
 /**
  * This function deletes the task specified by the task. The task must be in the DORMANT state,
@@ -272,13 +272,13 @@ int tn_task_terminate(TN_TCB *task);
  *
  * This function cannot be invoked from interrupts.
  */
-int tn_task_delete(TN_TCB *task);
+int tn_task_delete(struct tn_task *task);
 
 /**
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
  */
-int tn_task_change_priority(TN_TCB *task, int new_priority);
+int tn_task_change_priority(struct tn_task *task, int new_priority);
 
 #endif // _TN_TASKS_H
 

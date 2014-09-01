@@ -77,7 +77,7 @@ int tn_event_delete(struct tn_event * evf)
 {
    TN_INTSAVE_DATA
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
 
 #if TN_CHECK_PARAM
    if(evf == NULL)
@@ -399,7 +399,7 @@ int tn_event_iclear(struct tn_event * evf, unsigned int pattern)
 static int scan_event_waitqueue(struct tn_event * evf)
 {
    struct tn_que_head * que;
-   TN_TCB * task;
+   struct tn_task * task;
    int fCond;
    int rc = 0;
 
