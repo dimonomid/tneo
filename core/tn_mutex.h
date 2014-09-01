@@ -44,13 +44,13 @@ struct TN_Mutex {
 
 
 #define get_mutex_by_mutex_queque(que)              \
-   (que ? CONTAINING_RECORD(que, struct TN_Mutex, mutex_queue) : 0)
+   (que ? container_of(que, struct TN_Mutex, mutex_queue) : 0)
 
 #define get_mutex_by_wait_queque(que)               \
-   (que ? CONTAINING_RECORD(que, struct TN_Mutex, wait_queue) : 0)
+   (que ? container_of(que, struct TN_Mutex, wait_queue) : 0)
 
 #define get_mutex_by_lock_mutex_queque(que) \
-   (que ? CONTAINING_RECORD(que, struct TN_Mutex, mutex_queue) : 0)
+   (que ? container_of(que, struct TN_Mutex, mutex_queue) : 0)
 
 
 

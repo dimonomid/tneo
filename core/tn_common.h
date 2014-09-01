@@ -111,11 +111,11 @@ enum TN_WaitReason {
 #endif
 
 
-//-- Thanks to Vyacheslav Ovsiyenko - for his highly optimized code
-
-#ifndef CONTAINING_RECORD
-#define CONTAINING_RECORD(address, type, field)     \
-   ((type *)((unsigned char *)(address) - (unsigned char *)(&((type *)0)->field)))
+#if !defined(container_of)
+/* given a pointer @ptr to the field @member embedded into type (usually
+ * struct) @type, return pointer to the embedding instance of @type. */
+#define container_of(ptr, type, member) \
+   ((type *)((char *)(ptr)-(char *)(&((type *)0)->member)))
 #endif
 
 
