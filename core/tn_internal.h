@@ -44,7 +44,7 @@ void  _tn_task_to_non_runnable(struct TN_Task *task);
 
 void _tn_task_curr_to_wait_action(
       struct TN_QueHead *wait_que,
-      int wait_reason,
+      enum TN_WaitReason wait_reason,
       unsigned long timeout);
 enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 

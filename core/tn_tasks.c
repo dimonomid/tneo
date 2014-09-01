@@ -1028,7 +1028,7 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
 void _tn_task_curr_to_wait_action(struct TN_QueHead *wait_que,
-      int wait_reason,
+      enum TN_WaitReason wait_reason,
       unsigned long timeout)
 {
    _tn_task_to_non_runnable(tn_curr_run_task);

@@ -40,11 +40,11 @@ struct TN_Task {
 
    int  base_priority;        //-- Task base priority  (ver 2.x)
    int  priority;             //-- Task current priority
-   enum TN_ObjId  id_task;   //-- ID for verification(is it a task or another object?)
+   enum TN_ObjId  id_task;    //-- ID for verification(is it a task or another object?)
                               // All tasks have the same id_task magic number (ver 2.x)
 
    int  task_state;           //-- Task state
-   int  task_wait_reason;     //-- Reason for waiting
+   enum TN_WaitReason  task_wait_reason;  //-- Reason for waiting
    int  task_wait_rc;         //-- Waiting return code(reason why waiting  finished)
    unsigned long tick_count;  //-- Remaining time until timeout
    int  tslice_count;         //-- Time slice counter

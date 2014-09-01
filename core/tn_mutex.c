@@ -97,7 +97,7 @@ static inline void __mutex_do_lock(struct TN_Mutex *mutex)
 
 static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
 {
-   int wait_reason;
+   enum TN_WaitReason wait_reason;
 
    if (mutex->attr == TN_MUTEX_ATTR_INHERIT){
       //-- Priority inheritance protocol
