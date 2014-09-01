@@ -40,6 +40,8 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "tn_common.h"
+
 #ifdef __cplusplus
 extern "C"  {     /*}*/
 #endif
@@ -66,13 +68,13 @@ struct TN_ListItem {
  ******************************************************************************/
 
 void tn_list_reset(struct TN_ListItem *list);
-int  tn_is_list_empty(struct TN_ListItem *list);
+BOOL tn_is_list_empty(struct TN_ListItem *list);
 void tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry);
 void tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry);
 struct TN_ListItem *tn_list_remove_head(struct TN_ListItem *list);
 struct TN_ListItem *tn_list_remove_tail(struct TN_ListItem *list);
 void tn_list_remove_entry(struct TN_ListItem *entry);
-int  tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
+BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
 
 #ifdef __cplusplus
 }

@@ -400,7 +400,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
    if(tn_is_list_empty(&(mutex->wait_queue)))
    {
       mutex->holder = NULL;
-      return 1/*true*/;
+      return TRUE;
    }
 
    //--- Now lock the mutex by the first task in the mutex queue
@@ -416,7 +416,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
    _tn_task_wait_complete(task);
    tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
-   return 1/*true*/;
+   return TRUE;
 }
 
 //----------------------------------------------------------------------------

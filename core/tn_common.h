@@ -95,7 +95,19 @@ enum TN_WaitReason {
 
 
 #ifndef NULL
-#define NULL      0
+#  define NULL       ((void *)0)
+#endif
+
+#ifndef BOOL
+#  define BOOL       int
+#endif
+
+#ifndef TRUE
+#  define TRUE       (1 == 1)
+#endif
+
+#ifndef FALSE
+#  define FALSE      (1 == 0)
 #endif
 
 

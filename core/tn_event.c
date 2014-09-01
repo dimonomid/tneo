@@ -40,7 +40,7 @@
 
 #ifdef  TN_USE_EVENTS
 
-static enum TN_Retval scan_event_waitqueue(struct TN_Event * evf);
+static BOOL scan_event_waitqueue(struct TN_Event * evf);
 
 //----------------------------------------------------------------------------
 //  Structure's field evf->id_event have to be set to 0
@@ -396,12 +396,12 @@ enum TN_Retval tn_event_iclear(struct TN_Event * evf, unsigned int pattern)
 }
 
 //----------------------------------------------------------------------------
-static enum TN_Retval scan_event_waitqueue(struct TN_Event * evf)
+static BOOL scan_event_waitqueue(struct TN_Event * evf)
 {
    struct TN_ListItem * que;
    struct TN_Task * task;
    int fCond;
-   enum TN_Retval rc = 0;
+   BOOL rc = FALSE;
 
    que = evf->wait_queue.next;
 
@@ -426,8 +426,10 @@ static enum TN_Retval scan_event_waitqueue(struct TN_Event * evf)
       {
          tn_list_remove_entry(&task->task_queue);
          task->ewait_pattern = evf->pattern;
-         if(_tn_task_wait_complete(task))   // v.2.7 - thanks to Eugene Scopal
-            rc = 1;
+         if (_tn_task_wait_complete(task)){
+            // v.2.7 - thanks to Eugene Scopal
+            rc = TRUE;
+         }
       }
    }
 

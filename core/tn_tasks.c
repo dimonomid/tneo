@@ -875,10 +875,10 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
    struct TN_ListItem *t_que;
 #endif
 
-   enum TN_Retval rc = 0/*false*/;
+   enum TN_Retval rc = FALSE;
 
    if (task == NULL){
-      return 0/*false*/;
+      return FALSE;
    }
 
 #ifdef TN_USE_MUTEXES
@@ -888,10 +888,10 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
          || task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C
       )
    {
-      fmutex = 1/*true*/;
+      fmutex = TRUE;
       t_que = task->pwait_queue;
    } else {
-      fmutex = 0/*false*/;
+      fmutex = FALSE;
    }
 
 #endif
@@ -909,7 +909,7 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
    //-- if task isn't suspended, make it runnable
    if (!(task->task_state & TSK_STATE_SUSPEND)){
       _tn_task_to_runnable(task);
-      rc = 1/*true*/;
+      rc = TRUE;
    } else {
       //-- remove WAIT state
       task->task_state = TSK_STATE_SUSPEND;
@@ -1079,7 +1079,7 @@ enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_p
    tn_ready_to_run_bmp |= (1 << new_priority);
    _find_next_task_to_run();
 
-   return 1/*true*/;
+   return TRUE;
 }
 
 #ifdef TN_USE_MUTEXES

@@ -43,11 +43,9 @@ void tn_list_reset(struct TN_ListItem *list)
 }
 
 //----------------------------------------------------------------------------
-int  tn_is_list_empty(struct TN_ListItem *list)
+BOOL tn_is_list_empty(struct TN_ListItem *list)
 {
-   if(list->next == list && list->prev == list)
-      return 1;
-   return 0;
+   return (list->next == list && list->prev == list);
 }
 
 //----------------------------------------------------------------------------
@@ -77,14 +75,16 @@ struct TN_ListItem *tn_list_remove_head(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the head of the queue.
 
-   struct TN_ListItem *entry;
+   struct TN_ListItem *entry = NULL;
 
-   if(list == NULL || list->next == list)
-      return (struct TN_ListItem *) 0;
+   if (list != NULL && list->next != list){
+      entry             = list->next;
+      entry->next->prev = list;
+      list->next        = entry->next;
+   } else {
+      //-- NULL will be returned
+   }
 
-   entry = list->next;
-   entry->next->prev = list;
-   list->next = entry->next;
    return entry;
 }
 
@@ -114,22 +114,20 @@ void tn_list_remove_entry(struct TN_ListItem *entry)
 }
 
 //----------------------------------------------------------------------------
-int  tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
+BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
-  //-- The entry in the queue ???
-
    struct TN_ListItem *curr_que;
 
    curr_que = list->next;
-   while(curr_que != list)
-   {
-      if(curr_que == entry)
-         return 1/*true*/;   //-- Found
+
+   while(curr_que != list){
+      if (curr_que == entry)
+         return TRUE;   //-- Found
 
       curr_que = curr_que->next;
    }
 
-   return 0/*false*/;
+   return FALSE;
 }
 
 //----------------------------------------------------------------------------
