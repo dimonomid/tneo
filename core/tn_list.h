@@ -99,6 +99,18 @@ struct TN_ListItem {
    tn_list_entry((ptr)->next, type, member)
 
 /**
+ * tn_list_first_entry_remove - remove the first element from a list
+ * and return it
+ * @ptr:	the list head to take the element from.
+ * @type:	the type of the struct this is embedded in.
+ * @member:	the name of the TN_ListItem member within the struct.
+ *
+ * Note, that list is expected to be not empty.
+ */
+#define tn_list_first_entry_remove(ptr, type, member) \
+   tn_list_entry(tn_list_remove_head(ptr), type, member)
+
+/**
  * tn_list_last_entry - get the last element from a list
  * @ptr:	the list head to take the element from.
  * @type:	the type of the struct this is embedded in.

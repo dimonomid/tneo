@@ -147,6 +147,7 @@ extern "C"  {
 
 
 
+#define  TN_FATAL_ERROR(error_msg, ...)         {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
 
 /*----------------------------------------------------------------------------
  * Interrupt handler wrapper macro for software context saving IPL

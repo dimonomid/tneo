@@ -123,18 +123,17 @@ void tn_list_remove_entry(struct TN_ListItem *entry)
 //----------------------------------------------------------------------------
 BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
-   struct TN_ListItem *curr_que;
+   BOOL ret = FALSE;
+   struct TN_ListItem *item;
 
-   curr_que = list->next;
-
-   while(curr_que != list){
-      if (curr_que == entry)
-         return TRUE;   //-- Found
-
-      curr_que = curr_que->next;
+   tn_list_for_each(item, list){
+      if (item == list){
+         ret = TRUE;
+         break;
+      }
    }
 
-   return FALSE;
+   return ret;
 }
 
 //----------------------------------------------------------------------------
