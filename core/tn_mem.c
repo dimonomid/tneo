@@ -291,7 +291,7 @@ int tn_fmem_get(TN_FMP *fmp, void **p_data, unsigned long timeout)
 
    rc = _fmem_get(fmp, p_data);
 
-   if (rc == TERR_TIMEOUT){
+   if (rc == TERR_TIMEOUT && timeout > 0){
       _tn_task_curr_to_wait_action( &(fmp->wait_queue),
             TSK_WAIT_REASON_WFIXMEM,
             timeout );
@@ -363,7 +363,7 @@ int tn_fmem_release(TN_FMP *fmp, void *p_data)
    TN_INTSAVE_DATA;
    int rc;
 
-   rc = _check_param_fmem_get(fmp, p_data);
+   rc = _check_param_fmem_release(fmp, p_data);
    if (rc != TERR_NO_ERR){
       goto out;
    }
@@ -391,7 +391,7 @@ int tn_fmem_irelease(TN_FMP *fmp, void *p_data)
    TN_INTSAVE_DATA_INT;
    int rc;
    
-   rc = _check_param_fmem_get(fmp, p_data);
+   rc = _check_param_fmem_release(fmp, p_data);
    if (rc != TERR_NO_ERR){
       goto out;
    }
