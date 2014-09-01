@@ -6,9 +6,9 @@
    * [X] remove `typedef`s, use `struct TNCamelCase` instead.
    * [X] `tn_common.h`: convert macros to enums.
    * [X] rename queue_... functions to list_.. (because it is actually a list, not a queue)
+   * [X] rename `tn_list.h` to `tn_list.h` or something like that
    * [ ] clear tn_sys c/h files up
    * [ ] Implement a kind of `list_for_each`
-   * [ ] rename `tn_utils.h` to `tn_list.h` or something like that
    * [ ] probably add bool/true/false
 
 

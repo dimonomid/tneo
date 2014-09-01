@@ -18,7 +18,7 @@
 #include "core/tn_mutex.h"
 #include "core/tn_sem.h"
 #include "core/tn_tasks.h"
-#include "core/tn_utils.h"
+#include "core/tn_list.h"
 
 
 //-- include old symbols for compatibility with old projects

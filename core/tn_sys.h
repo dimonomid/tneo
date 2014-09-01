@@ -37,7 +37,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_utils.h"
+#include "tn_list.h"
 #include "tn_port.h"
 
 //-- Thanks to megajohn from electronix.ru - for IAR Embedded C++ compatibility
