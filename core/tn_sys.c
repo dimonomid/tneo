@@ -50,10 +50,10 @@
  *    PUBLIC DATA
  ******************************************************************************/
 
-CDLL_QUEUE tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
-CDLL_QUEUE tn_create_queue;                       //-- all created tasks
+struct TNQueueHead tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
+struct TNQueueHead tn_create_queue;                       //-- all created tasks
 volatile int tn_created_tasks_qty;                //-- num of created tasks
-CDLL_QUEUE tn_wait_timeout_list;                  //-- all tasks that wait timeout expiration
+struct TNQueueHead tn_wait_timeout_list;                  //-- all tasks that wait timeout expiration
 
 unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];  //-- for round-robin only
 
@@ -153,13 +153,13 @@ static void _idle_task_body(void *par)
  */
 static inline void _wait_timeout_list_manage(void)
 {
-   volatile CDLL_QUEUE *curr_que;
+   volatile struct TNQueueHead *curr_que;
    volatile TN_TCB * task;
 
    curr_que = tn_wait_timeout_list.next;
    while(curr_que != &tn_wait_timeout_list)
    {
-      task = get_task_by_timer_queque((CDLL_QUEUE*)curr_que);
+      task = get_task_by_timer_queque((struct TNQueueHead*)curr_que);
       if(task->tick_count != TN_WAIT_INFINITE)
       {
          if(task->tick_count > 0)
@@ -183,8 +183,8 @@ static inline void _wait_timeout_list_manage(void)
  */
 static inline void _round_robin_manage(void)
 {
-   volatile CDLL_QUEUE *curr_que;   //-- Need volatile here only to solve
-   volatile CDLL_QUEUE *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
+   volatile struct TNQueueHead *curr_que;   //-- Need volatile here only to solve
+   volatile struct TNQueueHead *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
    volatile int priority = tn_curr_run_task->priority;
 
    if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
@@ -195,12 +195,12 @@ static inline void _round_robin_manage(void)
 
          pri_queue = &(tn_ready_list[priority]);
          //-- If ready queue is not empty and qty  of queue's tasks > 1
-         if (!(is_queue_empty((CDLL_QUEUE *)pri_queue)) && pri_queue->next->next != pri_queue){
+         if (!(is_queue_empty((struct TNQueueHead *)pri_queue)) && pri_queue->next->next != pri_queue){
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
             curr_que = queue_remove_head(&(tn_ready_list[priority]));
-            queue_add_tail(&(tn_ready_list[priority]),(CDLL_QUEUE *)curr_que);
+            queue_add_tail(&(tn_ready_list[priority]),(struct TNQueueHead *)curr_que);
          }
       }
    }
@@ -510,9 +510,9 @@ void tn_sys_time_set(unsigned int value)
  * Remove all tasks from wait queue, returning the TERR_DLT code.
  * Note: this function sleeps if there is at least one element in wait_queue.
  */
-void _tn_wait_queue_notify_deleted(CDLL_QUEUE *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
+void _tn_wait_queue_notify_deleted(struct TNQueueHead *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
 {
-   CDLL_QUEUE *que;
+   struct TNQueueHead *que;
    TN_TCB *task;
 
    while (!is_queue_empty(wait_queue)){

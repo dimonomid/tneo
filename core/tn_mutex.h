@@ -17,11 +17,10 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_MUTEX
-{
-   CDLL_QUEUE wait_queue;        //-- List of tasks that wait a mutex
-   CDLL_QUEUE mutex_queue;       //-- To include in task's locked mutexes list (if any)
-   CDLL_QUEUE lock_mutex_queue;  //-- To include in system's locked mutexes list
+typedef struct _TN_MUTEX {
+   struct TNQueueHead wait_queue;        //-- List of tasks that wait a mutex
+   struct TNQueueHead mutex_queue;       //-- To include in task's locked mutexes list (if any)
+   struct TNQueueHead lock_mutex_queue;  //-- To include in system's locked mutexes list
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
    struct _TN_TCB *holder;       //-- Current mutex owner(task that locked mutex)

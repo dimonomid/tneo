@@ -1,30 +1,36 @@
 /*******************************************************************************
- *   Description:   TODO
+ *   Description:   This file contains compatibility layer for old projects
+ *                  that use old tnkernel names.
+ *
+ *                  Usage of them in new projects is discouraged.
+ *                  Typedefs that hide structures are bad practices.
+ *                  So, instead of "TN_MUTEX" use "struct TNMutex".
  *
  ******************************************************************************/
 
-#ifndef _TN_SEM_H
-#define _TN_SEM_H
+#ifndef _TN_OLDSYMBOLS_H
+#define _TN_OLDSYMBOLS_H
 
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_utils.h"
-
-
-
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_SEM {
-   struct TNQueueHead  wait_queue;
-   int count;
-   int max_count;
-   int id_sem;     //-- ID for verification(is it a semaphore or another object?)
-                   // All semaphores have the same id_sem magic number (ver 2.x)
-} TN_SEM;
+typedef struct TNQueueHead CDLL_QUEUE;
+
+#if 0
+typedef struct _TN_EVENT TN_EVENT;
+typedef struct _TN_TCB TN_TCB;
+typedef struct _TN_MUTEX TN_MUTEX;
+typedef struct _TN_FMP TN_FMP;
+typedef struct _TN_DQUE TN_DQUE;
+typedef struct _TN_SEM TN_SEM;
+#endif
+
+
 
 
 /*******************************************************************************
@@ -35,20 +41,15 @@ typedef struct _TN_SEM {
  *    DEFINITIONS
  ******************************************************************************/
 
+#define  _CDLL_QUEUE    TNQueueHead
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_sem_create(TN_SEM * sem, int start_value, int max_val);
-int tn_sem_delete(TN_SEM * sem);
-int tn_sem_signal(TN_SEM * sem);
-int tn_sem_isignal(TN_SEM * sem);
-int tn_sem_acquire(TN_SEM * sem, unsigned long timeout);
-int tn_sem_polling(TN_SEM * sem);
-int tn_sem_ipolling(TN_SEM * sem);
 
+#endif // _TN_OLDSYMBOLS_H
 
-#endif // _TN_SEM_H
 
 /*******************************************************************************
  *    end of file

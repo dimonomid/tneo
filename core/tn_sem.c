@@ -74,7 +74,7 @@ int tn_sem_create(TN_SEM * sem,
 int tn_sem_delete(TN_SEM * sem)
 {
    TN_INTSAVE_DATA
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -117,7 +117,7 @@ int tn_sem_signal(TN_SEM * sem)
 {
    TN_INTSAVE_DATA
    int rc; //-- return code
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -172,7 +172,7 @@ int tn_sem_isignal(TN_SEM * sem)
 {
    TN_INTSAVE_DATA_INT
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM

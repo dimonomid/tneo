@@ -20,6 +20,11 @@
 #include "core/tn_tasks.h"
 #include "core/tn_utils.h"
 
+
+//-- include old symbols for compatibility with old projects
+#include "core/tn_oldsymbols.h"
+
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/

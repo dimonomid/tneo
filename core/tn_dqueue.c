@@ -77,7 +77,7 @@ int tn_queue_create(
 int tn_queue_delete(TN_DQUE * dque)
 {
    TN_INTSAVE_DATA
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -135,7 +135,7 @@ int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -189,7 +189,7 @@ int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -235,7 +235,7 @@ int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -283,7 +283,7 @@ int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc; //-- return code
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -357,7 +357,7 @@ int tn_queue_receive_polling(TN_DQUE * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -420,7 +420,7 @@ int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM

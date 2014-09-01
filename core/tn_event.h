@@ -18,9 +18,8 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_EVENT
-{
-   CDLL_QUEUE wait_queue;
+typedef struct _TN_EVENT {
+   struct TNQueueHead wait_queue;
    int attr;               //-- Eventflag attribute
    unsigned int pattern;   //-- Initial value of the eventflag bit pattern
    int id_event;           //-- ID for verification(is it a event or another object?)

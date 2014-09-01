@@ -37,13 +37,13 @@
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-void queue_reset(CDLL_QUEUE *que)
+void queue_reset(struct TNQueueHead *que)
 {
    que->prev = que->next = que;
 }
 
 //----------------------------------------------------------------------------
-int  is_queue_empty(CDLL_QUEUE *que)
+int  is_queue_empty(struct TNQueueHead *que)
 {
    if(que->next == que && que->prev == que)
       return 1;
@@ -51,7 +51,7 @@ int  is_queue_empty(CDLL_QUEUE *que)
 }
 
 //----------------------------------------------------------------------------
-void queue_add_head(CDLL_QUEUE * que, CDLL_QUEUE * entry)
+void queue_add_head(struct TNQueueHead * que, struct TNQueueHead * entry)
 {
   //--  Insert an entry at the head of the queue.
 
@@ -62,7 +62,7 @@ void queue_add_head(CDLL_QUEUE * que, CDLL_QUEUE * entry)
 }
 
 //----------------------------------------------------------------------------
-void queue_add_tail(CDLL_QUEUE * que, CDLL_QUEUE * entry)
+void queue_add_tail(struct TNQueueHead * que, struct TNQueueHead * entry)
 {
   //-- Insert an entry at the tail of the queue.
 
@@ -73,14 +73,14 @@ void queue_add_tail(CDLL_QUEUE * que, CDLL_QUEUE * entry)
 }
 
 //----------------------------------------------------------------------------
-CDLL_QUEUE * queue_remove_head(CDLL_QUEUE * que)
+struct TNQueueHead * queue_remove_head(struct TNQueueHead * que)
 {
    //-- Remove and return an entry at the head of the queue.
 
-   CDLL_QUEUE * entry;
+   struct TNQueueHead * entry;
 
    if(que == NULL || que->next == que)
-      return (CDLL_QUEUE *) 0;
+      return (struct TNQueueHead *) 0;
 
    entry = que->next;
    entry->next->prev = que;
@@ -89,14 +89,14 @@ CDLL_QUEUE * queue_remove_head(CDLL_QUEUE * que)
 }
 
 //----------------------------------------------------------------------------
-CDLL_QUEUE * queue_remove_tail(CDLL_QUEUE * que)
+struct TNQueueHead * queue_remove_tail(struct TNQueueHead * que)
 {
    //-- Remove and return an entry at the tail of the queue.
 
-   CDLL_QUEUE * entry;
+   struct TNQueueHead * entry;
 
    if(que->prev == que)
-      return (CDLL_QUEUE *) 0;
+      return (struct TNQueueHead *) 0;
 
    entry = que->prev;
    entry->prev->next = que;
@@ -105,7 +105,7 @@ CDLL_QUEUE * queue_remove_tail(CDLL_QUEUE * que)
 }
 
 //----------------------------------------------------------------------------
-void queue_remove_entry(CDLL_QUEUE * entry)
+void queue_remove_entry(struct TNQueueHead * entry)
 {
    //--  Remove an entry from the queue.
 
@@ -114,11 +114,11 @@ void queue_remove_entry(CDLL_QUEUE * entry)
 }
 
 //----------------------------------------------------------------------------
-int  queue_contains_entry(CDLL_QUEUE * que, CDLL_QUEUE * entry)
+int  queue_contains_entry(struct TNQueueHead * que, struct TNQueueHead * entry)
 {
   //-- The entry in the queue ???
 
-   CDLL_QUEUE * curr_que;
+   struct TNQueueHead * curr_que;
 
    curr_que = que->next;
    while(curr_que != que)

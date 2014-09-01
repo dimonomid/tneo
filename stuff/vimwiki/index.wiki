@@ -1,9 +1,22 @@
 
 = tnkernel_df dev =
 
+== mods that don't change API ==
+
    * [ ] Implement a kind of `list_for_each`
+   * [ ] remove `typedef`s, use `struct TNCamelCase` instead.
+   * [ ] `tn_common.h`: convert macros to enums.
+   * [ ] probably add bool/true/false
+
+
+== mods that DO change API ==
+
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
    * [ ] Should we actually allow to delete mutex while it's hold?
+   * [ ] Should we maintain wakeup_count, activate_count?
+
+
+
 
 == bad things in TNKernel ==
 

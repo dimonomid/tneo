@@ -18,18 +18,17 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_TCB
-{
+typedef struct _TN_TCB {
    unsigned int * task_stk;   //-- Pointer to task's top of stack
-   CDLL_QUEUE task_queue;     //-- Queue is used to include task in ready/wait lists
-   CDLL_QUEUE timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
-   CDLL_QUEUE * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
+   struct TNQueueHead task_queue;     //-- Queue is used to include task in ready/wait lists
+   struct TNQueueHead timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
+   struct TNQueueHead * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
                                       // that task has been included for waiting (ver 2.x)
-   CDLL_QUEUE create_queue;   //-- Queue is used to include task in create list only
+   struct TNQueueHead create_queue;   //-- Queue is used to include task in create list only
 
 #ifdef TN_USE_MUTEXES
 
-   CDLL_QUEUE mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
+   struct TNQueueHead mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
 
 #endif
 

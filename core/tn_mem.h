@@ -18,9 +18,8 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_FMP
-{
-   CDLL_QUEUE wait_queue;
+typedef struct _TN_FMP {
+   struct TNQueueHead wait_queue;
 
    unsigned int block_size; //-- Actual block size (in bytes)
    int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)

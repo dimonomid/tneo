@@ -16,10 +16,9 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_DQUE
-{
-   CDLL_QUEUE  wait_send_list;
-   CDLL_QUEUE  wait_receive_list;
+typedef struct _TN_DQUE {
+   struct TNQueueHead  wait_send_list;
+   struct TNQueueHead  wait_receive_list;
 
    void ** data_fifo;   //-- Array of void* to store data queue entries
    int  num_entries;    //-- Capacity of data_fifo(num entries)

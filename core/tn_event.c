@@ -76,7 +76,7 @@ int tn_event_create(TN_EVENT * evf,
 int tn_event_delete(TN_EVENT * evf)
 {
    TN_INTSAVE_DATA
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
 
 #if TN_CHECK_PARAM
@@ -398,7 +398,7 @@ int tn_event_iclear(TN_EVENT * evf, unsigned int pattern)
 //----------------------------------------------------------------------------
 static int scan_event_waitqueue(TN_EVENT * evf)
 {
-   CDLL_QUEUE * que;
+   struct TNQueueHead * que;
    TN_TCB * task;
    int fCond;
    int rc = 0;

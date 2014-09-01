@@ -48,7 +48,7 @@
  *    EXTERNAL DATA
  ******************************************************************************/
 
-extern CDLL_QUEUE tn_blocked_tasks_list;
+extern struct TNQueueHead tn_blocked_tasks_list;
 
 
 
@@ -540,7 +540,7 @@ void tn_task_exit(int attr)
    struct  // v.2.7
    {	
 #ifdef TN_USE_MUTEXES
-      CDLL_QUEUE * que;
+      struct TNQueueHead * que;
       TN_MUTEX * mutex;
 #endif
       TN_TCB * task;
@@ -605,7 +605,7 @@ int tn_task_terminate(TN_TCB *task)
 	 struct // v.2.7
 	 {
 #ifdef TN_USE_MUTEXES
-      CDLL_QUEUE * que;
+      struct TNQueueHead * que;
       TN_MUTEX * mutex;
 #endif
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
@@ -872,7 +872,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
-   CDLL_QUEUE *t_que;
+   struct TNQueueHead *t_que;
 #endif
 
    int rc = 0/*false*/;
@@ -989,7 +989,7 @@ void _tn_task_to_runnable(TN_TCB * task)
 void _tn_task_to_non_runnable(TN_TCB *task)
 {
    int priority;
-   CDLL_QUEUE *que;
+   struct TNQueueHead *que;
 
    priority = task->priority;
    que = &(tn_ready_list[priority]);
@@ -1027,7 +1027,7 @@ void _tn_task_to_non_runnable(TN_TCB *task)
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
-void _tn_task_curr_to_wait_action(CDLL_QUEUE *wait_que,
+void _tn_task_curr_to_wait_action(struct TNQueueHead *wait_que,
       int wait_reason,
       unsigned long timeout)
 {

@@ -357,7 +357,7 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 int do_unlock_mutex(TN_MUTEX * mutex)
 {
-   CDLL_QUEUE * curr_que;
+   struct TNQueueHead * curr_que;
    TN_MUTEX * tmp_mutex;
    TN_TCB * task;
    int pr;
@@ -423,7 +423,7 @@ int do_unlock_mutex(TN_MUTEX * mutex)
 int find_max_blocked_priority(TN_MUTEX *mutex, int ref_priority)
 {
    int         priority;
-   CDLL_QUEUE *curr_que;
+   struct TNQueueHead *curr_que;
    TN_TCB     *task;
 
    priority = ref_priority;
