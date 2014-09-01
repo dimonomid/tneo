@@ -16,7 +16,7 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_DQUE {
+struct TNDQueue {
    struct TNQueueHead  wait_send_list;
    struct TNQueueHead  wait_receive_list;
 
@@ -26,7 +26,7 @@ typedef struct _TN_DQUE {
    int  header_cnt;     //-- Counter to processing data queue's Array of void*
    int  id_dque;        //-- ID for verification(is it a data queue or another object?)
    // All data queues have the same id_dque magic number (ver 2.x)
-} TN_DQUE;
+};
 
 
 /*******************************************************************************
@@ -41,16 +41,16 @@ typedef struct _TN_DQUE {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_queue_create(TN_DQUE * dque,
+int tn_queue_create(struct TNDQueue * dque,
       void ** data_fifo,
       int num_entries);
-int tn_queue_delete(TN_DQUE * dque);
-int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout);
-int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr);
-int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr);
-int tn_queue_receive(TN_DQUE * dque, void ** data_ptr, unsigned long timeout);
-int tn_queue_receive_polling(TN_DQUE * dque, void ** data_ptr);
-int tn_queue_ireceive(TN_DQUE * dque, void ** data_ptr);
+int tn_queue_delete(struct TNDQueue * dque);
+int tn_queue_send(struct TNDQueue * dque, void * data_ptr, unsigned long timeout);
+int tn_queue_send_polling(struct TNDQueue * dque, void * data_ptr);
+int tn_queue_isend_polling(struct TNDQueue * dque, void * data_ptr);
+int tn_queue_receive(struct TNDQueue * dque, void ** data_ptr, unsigned long timeout);
+int tn_queue_receive_polling(struct TNDQueue * dque, void ** data_ptr);
+int tn_queue_ireceive(struct TNDQueue * dque, void ** data_ptr);
 
 
 #endif // _TN_DQUEUE_H

@@ -36,14 +36,14 @@
 #include "tn_tasks.h"
 
 
-static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr);
-static int  dque_fifo_read(TN_DQUE * dque, void ** data_ptr);
+static int  dque_fifo_write(struct TNDQueue * dque, void * data_ptr);
+static int  dque_fifo_read(struct TNDQueue * dque, void ** data_ptr);
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
 //-------------------------------------------------------------------------
 int tn_queue_create(
-      TN_DQUE *dque,      //-- Ptr to already existing TN_DQUE
+      struct TNDQueue *dque,      //-- Ptr to already existing struct TNDQueue
       void **data_fifo,   //-- Ptr to already existing array of void * to store data queue entries.
                           //   Can be NULL.
       int num_entries     //-- Capacity of data queue(num entries). Can be 0
@@ -74,7 +74,7 @@ int tn_queue_create(
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_delete(TN_DQUE * dque)
+int tn_queue_delete(struct TNDQueue * dque)
 {
    TN_INTSAVE_DATA
    struct TNQueueHead * que;
@@ -131,7 +131,7 @@ int tn_queue_delete(TN_DQUE * dque)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout)
+int tn_queue_send(struct TNDQueue * dque, void * data_ptr, unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc;
@@ -185,7 +185,7 @@ int tn_queue_send(TN_DQUE * dque, void * data_ptr, unsigned long timeout)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr)
+int tn_queue_send_polling(struct TNDQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
@@ -231,7 +231,7 @@ int tn_queue_send_polling(TN_DQUE * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr)
+int tn_queue_isend_polling(struct TNDQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
@@ -279,7 +279,7 @@ int tn_queue_isend_polling(TN_DQUE * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
+int tn_queue_receive(struct TNDQueue * dque,void ** data_ptr,unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc; //-- return code
@@ -353,7 +353,7 @@ int tn_queue_receive(TN_DQUE * dque,void ** data_ptr,unsigned long timeout)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive_polling(TN_DQUE * dque,void ** data_ptr)
+int tn_queue_receive_polling(struct TNDQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
@@ -416,7 +416,7 @@ int tn_queue_receive_polling(TN_DQUE * dque,void ** data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
+int tn_queue_ireceive(struct TNDQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
@@ -485,7 +485,7 @@ int tn_queue_ireceive(TN_DQUE * dque,void ** data_ptr)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr)
+static int  dque_fifo_write(struct TNDQueue * dque, void * data_ptr)
 {
    register int flag;
 
@@ -514,7 +514,7 @@ static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-static int  dque_fifo_read(TN_DQUE * dque, void ** data_ptr)
+static int  dque_fifo_read(struct TNDQueue * dque, void ** data_ptr)
 {
 
 #if TN_CHECK_PARAM
