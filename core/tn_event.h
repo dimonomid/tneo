@@ -50,27 +50,27 @@ struct TN_Event {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_event_create(struct TN_Event * evf,
+enum TN_Retval tn_event_create(struct TN_Event * evf,
                       int attr,
                       unsigned int pattern);
-int tn_event_delete(struct TN_Event * evf);
-int tn_event_wait(struct TN_Event * evf,
+enum TN_Retval tn_event_delete(struct TN_Event * evf);
+enum TN_Retval tn_event_wait(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern,
                     unsigned long timeout);
-int tn_event_wait_polling(struct TN_Event * evf,
+enum TN_Retval tn_event_wait_polling(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern);
-int tn_event_iwait(struct TN_Event * evf,
+enum TN_Retval tn_event_iwait(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern);
-int tn_event_set(struct TN_Event * evf, unsigned int pattern);
-int tn_event_iset(struct TN_Event * evf, unsigned int pattern);
-int tn_event_clear(struct TN_Event * evf, unsigned int pattern);
-int tn_event_iclear(struct TN_Event * evf, unsigned int pattern);
+enum TN_Retval tn_event_set(struct TN_Event * evf, unsigned int pattern);
+enum TN_Retval tn_event_iset(struct TN_Event * evf, unsigned int pattern);
+enum TN_Retval tn_event_clear(struct TN_Event * evf, unsigned int pattern);
+enum TN_Retval tn_event_iclear(struct TN_Event * evf, unsigned int pattern);
 
 
 #endif // _TN_EVENT_H

@@ -36,13 +36,13 @@
 #include "tn_tasks.h"
 
 
-static int  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr);
-static int  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr);
+static enum TN_Retval  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr);
+static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr);
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
 //-------------------------------------------------------------------------
-int tn_queue_create(
+enum TN_Retval tn_queue_create(
       struct TN_DQueue *dque,      //-- Ptr to already existing struct TN_DQueue
       void **data_fifo,   //-- Ptr to already existing array of void * to store data queue entries.
                           //   Can be NULL.
@@ -74,7 +74,7 @@ int tn_queue_create(
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_delete(struct TN_DQueue * dque)
+enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA
    struct TN_QueHead * que;
@@ -131,10 +131,10 @@ int tn_queue_delete(struct TN_DQueue * dque)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout)
+enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout)
 {
    TN_INTSAVE_DATA
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -185,10 +185,10 @@ int tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeou
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
+enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -231,10 +231,10 @@ int tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
+enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA_INT
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -279,10 +279,10 @@ int tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long timeout)
+enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long timeout)
 {
    TN_INTSAVE_DATA
-   int rc; //-- return code
+   enum TN_Retval rc; //-- return code
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -353,10 +353,10 @@ int tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long time
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
+enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -416,10 +416,10 @@ int tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
+enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA_INT
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -485,7 +485,7 @@ int tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-static int  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr)
+static enum TN_Retval  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr)
 {
    register int flag;
 
@@ -514,7 +514,7 @@ static int  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-static int  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr)
+static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr)
 {
 
 #if TN_CHECK_PARAM

@@ -43,7 +43,7 @@
 //----------------------------------------------------------------------------
 //   Structure's field sem->id_sem have to be set to 0
 //----------------------------------------------------------------------------
-int tn_sem_create(struct TN_Sem * sem,
+enum TN_Retval tn_sem_create(struct TN_Sem * sem,
                   int start_value,
                   int max_val)
 {
@@ -71,7 +71,7 @@ int tn_sem_create(struct TN_Sem * sem,
 }
 
 //----------------------------------------------------------------------------
-int tn_sem_delete(struct TN_Sem * sem)
+enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA
    struct TN_QueHead * que;
@@ -113,10 +113,10 @@ int tn_sem_delete(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 //  Release Semaphore Resource
 //----------------------------------------------------------------------------
-int tn_sem_signal(struct TN_Sem * sem)
+enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA
-   int rc; //-- return code
+   enum TN_Retval rc; //-- return code
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -168,10 +168,10 @@ int tn_sem_signal(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 // Release Semaphore Resource inside Interrupt
 //----------------------------------------------------------------------------
-int tn_sem_isignal(struct TN_Sem * sem)
+enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA_INT
-   int rc;
+   enum TN_Retval rc;
    struct TN_QueHead * que;
    struct TN_Task * task;
 
@@ -222,10 +222,10 @@ int tn_sem_isignal(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 //   Acquire Semaphore Resource
 //----------------------------------------------------------------------------
-int tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
+enum TN_Retval tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
 {
    TN_INTSAVE_DATA
-   int rc; //-- return code
+   enum TN_Retval rc; //-- return code
 
 #if TN_CHECK_PARAM
    if(sem == NULL || timeout == 0)
@@ -262,10 +262,10 @@ int tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
 //----------------------------------------------------------------------------
 //  Acquire(Polling) Semaphore Resource (do not call  in the interrupt)
 //----------------------------------------------------------------------------
-int tn_sem_polling(struct TN_Sem * sem)
+enum TN_Retval tn_sem_polling(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA
-   int rc;
+   enum TN_Retval rc;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -296,10 +296,10 @@ int tn_sem_polling(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 // Acquire(Polling) Semaphore Resource inside interrupt
 //----------------------------------------------------------------------------
-int tn_sem_ipolling(struct TN_Sem * sem)
+enum TN_Retval tn_sem_ipolling(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA_INT
-   int rc;
+   enum TN_Retval rc;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)

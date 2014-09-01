@@ -56,9 +56,9 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline int _fmem_get(struct TN_Fmp *fmp, void **p_data)
+static inline enum TN_Retval _fmem_get(struct TN_Fmp *fmp, void **p_data)
 {
-   int rc;
+   enum TN_Retval rc;
    void *ptr = NULL;
 
    if (fmp->fblkcnt > 0){
@@ -77,12 +77,12 @@ static inline int _fmem_get(struct TN_Fmp *fmp, void **p_data)
    return rc;
 }
 
-static inline int _fmem_release(struct TN_Fmp *fmp, void *p_data, int *p_need_switch_context)
+static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data, int *p_need_switch_context)
 {
    struct TN_QueHead * que;
    struct TN_Task * task;
 
-   int rc = TERR_NO_ERR;
+   enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
    if (!is_queue_empty(&(fmp->wait_queue))){
@@ -108,9 +108,9 @@ static inline int _fmem_release(struct TN_Fmp *fmp, void *p_data, int *p_need_sw
 
 
 #if TN_CHECK_PARAM
-static inline int _check_param_fmem_create(struct TN_Fmp *fmp)
+static inline enum TN_Retval _check_param_fmem_create(struct TN_Fmp *fmp)
 {
-   int rc = TERR_NO_ERR;
+   enum TN_Retval rc = TERR_NO_ERR;
 
    if (fmp == NULL){
       rc = TERR_WRONG_PARAM;
@@ -121,9 +121,9 @@ static inline int _check_param_fmem_create(struct TN_Fmp *fmp)
    return rc;
 }
 
-static inline int _check_param_fmem_delete(struct TN_Fmp *fmp)
+static inline enum TN_Retval _check_param_fmem_delete(struct TN_Fmp *fmp)
 {
-   int rc = TERR_NO_ERR;
+   enum TN_Retval rc = TERR_NO_ERR;
 
    if (fmp == NULL){
       rc = TERR_WRONG_PARAM;
@@ -134,9 +134,9 @@ static inline int _check_param_fmem_delete(struct TN_Fmp *fmp)
    return rc;
 }
 
-static inline int _check_param_fmem_get(struct TN_Fmp *fmp, void **p_data)
+static inline enum TN_Retval _check_param_fmem_get(struct TN_Fmp *fmp, void **p_data)
 {
-   int rc = TERR_NO_ERR;
+   enum TN_Retval rc = TERR_NO_ERR;
 
    if (fmp == NULL || p_data == NULL){
       rc = TERR_WRONG_PARAM;
@@ -147,9 +147,9 @@ static inline int _check_param_fmem_get(struct TN_Fmp *fmp, void **p_data)
    return rc;
 }
 
-static inline int _check_param_fmem_release(struct TN_Fmp *fmp, void *p_data)
+static inline enum TN_Retval _check_param_fmem_release(struct TN_Fmp *fmp, void *p_data)
 {
-   int rc = TERR_NO_ERR;
+   enum TN_Retval rc = TERR_NO_ERR;
 
    if (fmp == NULL || p_data == NULL){
       rc = TERR_WRONG_PARAM;
@@ -175,7 +175,7 @@ static inline int _check_param_fmem_release(struct TN_Fmp *fmp, void *p_data)
 /**
  * Structure's field fmp->id_id_fmp have to be set to 0
  */
-int tn_fmem_create(struct TN_Fmp *fmp,
+enum TN_Retval tn_fmem_create(struct TN_Fmp *fmp,
                      void *start_addr,
                      unsigned int block_size,
                      int num_blocks)
@@ -183,7 +183,7 @@ int tn_fmem_create(struct TN_Fmp *fmp,
    void ** p_tmp;
    unsigned char *p_block;
    unsigned long i, j;
-   int rc;
+   enum TN_Retval rc;
 
    rc = _check_param_fmem_create(fmp);
    if (rc != TERR_NO_ERR){
@@ -249,10 +249,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_delete(struct TN_Fmp *fmp)
+enum TN_Retval tn_fmem_delete(struct TN_Fmp *fmp)
 {
    TN_INTSAVE_DATA;
-   int rc;
+   enum TN_Retval rc;
    
    rc = _check_param_fmem_delete(fmp);
    if (rc != TERR_NO_ERR){
@@ -275,10 +275,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long timeout)
+enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
-   int rc;
+   enum TN_Retval rc;
    
    rc = _check_param_fmem_get(fmp, p_data);
    if (rc != TERR_NO_ERR){
@@ -312,10 +312,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_get_polling(struct TN_Fmp *fmp,void **p_data)
+enum TN_Retval tn_fmem_get_polling(struct TN_Fmp *fmp,void **p_data)
 {
    TN_INTSAVE_DATA;
-   int rc;
+   enum TN_Retval rc;
 
    rc = _check_param_fmem_get(fmp, p_data);
    if (rc != TERR_NO_ERR){
@@ -335,10 +335,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_get_ipolling(struct TN_Fmp *fmp, void **p_data)
+enum TN_Retval tn_fmem_get_ipolling(struct TN_Fmp *fmp, void **p_data)
 {
    TN_INTSAVE_DATA_INT;
-   int rc;
+   enum TN_Retval rc;
 
    rc = _check_param_fmem_get(fmp, p_data);
    if (rc != TERR_NO_ERR){
@@ -358,10 +358,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_release(struct TN_Fmp *fmp, void *p_data)
+enum TN_Retval tn_fmem_release(struct TN_Fmp *fmp, void *p_data)
 {
    TN_INTSAVE_DATA;
-   int rc;
+   enum TN_Retval rc;
 
    rc = _check_param_fmem_release(fmp, p_data);
    if (rc != TERR_NO_ERR){
@@ -386,10 +386,10 @@ out:
 }
 
 //----------------------------------------------------------------------------
-int tn_fmem_irelease(struct TN_Fmp *fmp, void *p_data)
+enum TN_Retval tn_fmem_irelease(struct TN_Fmp *fmp, void *p_data)
 {
    TN_INTSAVE_DATA_INT;
-   int rc;
+   enum TN_Retval rc;
    
    rc = _check_param_fmem_release(fmp, p_data);
    if (rc != TERR_NO_ERR){

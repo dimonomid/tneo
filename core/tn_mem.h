@@ -43,16 +43,16 @@ struct TN_Fmp {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_fmem_create(struct TN_Fmp  * fmp,
+enum TN_Retval tn_fmem_create(struct TN_Fmp  * fmp,
       void * start_addr,
       unsigned int block_size,
       int num_blocks);
-int tn_fmem_delete(struct TN_Fmp * fmp);
-int tn_fmem_get(struct TN_Fmp * fmp, void ** p_data, unsigned long timeout);
-int tn_fmem_get_polling(struct TN_Fmp * fmp, void ** p_data);
-int tn_fmem_get_ipolling(struct TN_Fmp * fmp, void ** p_data);
-int tn_fmem_release(struct TN_Fmp * fmp, void * p_data);
-int tn_fmem_irelease(struct TN_Fmp * fmp, void * p_data);
+enum TN_Retval tn_fmem_delete(struct TN_Fmp * fmp);
+enum TN_Retval tn_fmem_get(struct TN_Fmp * fmp, void ** p_data, unsigned long timeout);
+enum TN_Retval tn_fmem_get_polling(struct TN_Fmp * fmp, void ** p_data);
+enum TN_Retval tn_fmem_get_ipolling(struct TN_Fmp * fmp, void ** p_data);
+enum TN_Retval tn_fmem_release(struct TN_Fmp * fmp, void * p_data);
+enum TN_Retval tn_fmem_irelease(struct TN_Fmp * fmp, void * p_data);
 
 
 #endif // _TN_MEM_H

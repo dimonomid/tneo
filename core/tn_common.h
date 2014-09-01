@@ -45,6 +45,20 @@ enum TN_ObjId {
    TN_ID_RENDEZVOUS     = 0x74289EBD,
 };
 
+enum TN_Retval {
+   TERR_NO_ERR               =   0,
+   TERR_OVERFLOW             =  -1, //-- OOV
+   TERR_WCONTEXT             =  -2, //-- Wrong context context error
+   TERR_WSTATE               =  -3, //-- Wrong state   state error
+   TERR_TIMEOUT              =  -4, //-- Polling failure or timeout
+   TERR_WRONG_PARAM          =  -5,
+   TERR_UNDERFLOW            =  -6,
+   TERR_OUT_OF_MEM           =  -7,
+   TERR_ILUSE                =  -8, //-- Illegal using
+   TERR_NOEXS                =  -9, //-- Non-valid or Non-existent object
+   TERR_DLT                  = -10, //-- Waiting object deleted
+   TERR_INTERNAL             = -12, //-- Internal TNKernel error (should never happen)
+};
 
 
 /*******************************************************************************
@@ -70,19 +84,7 @@ enum TN_ObjId {
 #define  TSK_WAIT_REASON_RENDEZVOUS       0x0200          //-- ver 2.x
 #define  TSK_WAIT_REASON_WFIXMEM          0x2000
 
-//-- errors
-#define  TERR_NO_ERR                     0
-#define  TERR_OVERFLOW                 (-1) //-- OOV
-#define  TERR_WCONTEXT                 (-2) //-- Wrong context context error
-#define  TERR_WSTATE                   (-3) //-- Wrong state   state error
-#define  TERR_TIMEOUT                  (-4) //-- Polling failure or timeout
-#define  TERR_WRONG_PARAM              (-5)
-#define  TERR_UNDERFLOW                (-6)
-#define  TERR_OUT_OF_MEM               (-7)
-#define  TERR_ILUSE                    (-8) //-- Illegal using
-#define  TERR_NOEXS                    (-9) //-- Non-valid or Non-existent object
-#define  TERR_DLT                     (-10) //-- Waiting object deleted
-#define  TERR_INTERNAL                (-12) //-- Internal TNKernel error (should never happen)
+
 
 #define  NO_TIME_SLICE                   0
 #define  MAX_TIME_SLICE             0xFFFE

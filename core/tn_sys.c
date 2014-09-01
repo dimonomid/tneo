@@ -444,7 +444,7 @@ void tn_tick_int_processing(void)
  * @param value      time slice value. Set to NO_TIME_SLICE for no round-robin
  *                   scheduling for given priority (it's default value).
  */
-int tn_sys_tslice_ticks(int priority, int value)
+enum TN_Retval tn_sys_tslice_ticks(int priority, int value)
 {
    int ret = TERR_NO_ERR;
 

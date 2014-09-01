@@ -30,7 +30,7 @@ void _tn_wait_queue_notify_deleted(struct TN_QueHead *wait_queue, TN_INTSAVE_DAT
 
 
 //-- tn_tasks.c
-int  _tn_task_create(struct TN_Task *task,                 //-- task TCB
+enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task TCB
       void (*task_func)(void *param),  //-- task function
       int priority,                    //-- task priority
       unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
@@ -38,7 +38,7 @@ int  _tn_task_create(struct TN_Task *task,                 //-- task TCB
       void *param,                     //-- task function parameter
       int option);                     //-- Creation option
 
-int   _tn_task_wait_complete  (struct TN_Task *task);
+enum TN_Retval   _tn_task_wait_complete  (struct TN_Task *task);
 void  _tn_task_to_runnable    (struct TN_Task *task);
 void  _tn_task_to_non_runnable(struct TN_Task *task);
 
@@ -46,7 +46,7 @@ void _tn_task_curr_to_wait_action(
       struct TN_QueHead *wait_que,
       int wait_reason,
       unsigned long timeout);
-int  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
+enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
 #ifdef TN_USE_MUTEXES
 void _tn_set_current_priority(struct TN_Task *task, int priority);
@@ -54,9 +54,9 @@ void _tn_set_current_priority(struct TN_Task *task, int priority);
 
 
 //-- tn_mutex.h
-int find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
-int try_lock_mutex(struct TN_Task *task);
-int do_unlock_mutex(struct TN_Mutex *mutex);
+enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
+enum TN_Retval try_lock_mutex(struct TN_Task *task);
+enum TN_Retval do_unlock_mutex(struct TN_Mutex *mutex);
 
 #endif // _TN_INTERNAL_H
 

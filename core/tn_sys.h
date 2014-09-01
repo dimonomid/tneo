@@ -112,7 +112,7 @@ void tn_start_system(
       void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
       );
 void tn_tick_int_processing(void);
-int tn_sys_tslice_ticks(int priority, int value);
+enum TN_Retval tn_sys_tslice_ticks(int priority, int value);
 unsigned int tn_sys_time_get(void);
 void tn_sys_time_set(unsigned int value);
 

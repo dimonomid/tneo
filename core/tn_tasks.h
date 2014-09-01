@@ -145,7 +145,7 @@ struct TN_Task {
  *                   (TN_TASK_START_ON_CREATION): task is created and activated.
  *                   
  */
-int tn_task_create(struct TN_Task *task,                  //-- task TCB
+enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
@@ -158,7 +158,7 @@ int tn_task_create(struct TN_Task *task,                  //-- task TCB
  * If the task is runnable, it is moved to the SUSPENDED state. If the task
  * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
  */
-int tn_task_suspend(struct TN_Task *task);
+enum TN_Retval tn_task_suspend(struct TN_Task *task);
 
 /**
  * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
@@ -166,7 +166,7 @@ int tn_task_suspend(struct TN_Task *task);
  * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
  * it is moved to WAITING state.
  */
-int tn_task_resume(struct TN_Task *task);
+enum TN_Retval tn_task_resume(struct TN_Task *task);
 
 /**
  * Put current task to sleep for at most timeout ticks. When the timeout
@@ -180,7 +180,7 @@ int tn_task_resume(struct TN_Task *task);
  * currently running task is not switched to the sleeping mode and
  * continues execution.
  */
-int tn_task_sleep(unsigned long timeout);
+enum TN_Retval tn_task_sleep(unsigned long timeout);
 
 /**
  * Wake up task from sleep.
@@ -194,8 +194,8 @@ int tn_task_sleep(unsigned long timeout);
  *       it seems just like dirty hack to prevent race conditions.
  *       It makes the programmer able to not create proper syncronization.
  */
-int tn_task_wakeup(struct TN_Task *task);
-int tn_task_iwakeup(struct TN_Task *task);
+enum TN_Retval tn_task_wakeup(struct TN_Task *task);
+enum TN_Retval tn_task_iwakeup(struct TN_Task *task);
 
 /**
  * Activate task that was created by tn_task_create() without TN_TASK_START_ON_CREATION
@@ -208,8 +208,8 @@ int tn_task_iwakeup(struct TN_Task *task);
  *       it seems just like dirty hack to prevent race conditions.
  *       It makes the programmer able to not create proper syncronization.
  */
-int tn_task_activate(struct TN_Task *task);
-int tn_task_iactivate(struct TN_Task *task);
+enum TN_Retval tn_task_activate(struct TN_Task *task);
+enum TN_Retval tn_task_iactivate(struct TN_Task *task);
 
 /**
  * Release task from WAIT state.
@@ -218,8 +218,8 @@ int tn_task_iactivate(struct TN_Task *task);
  * If task is in WAITING state, it is moved to READY state.
  * If task is in WAITING_SUSPENDED state, it is moved to SUSPENDED state.
  */
-int tn_task_release_wait(struct TN_Task *task);
-int tn_task_irelease_wait(struct TN_Task *task);
+enum TN_Retval tn_task_release_wait(struct TN_Task *task);
+enum TN_Retval tn_task_irelease_wait(struct TN_Task *task);
 
 /**
  * This function terminates the currently running task. The task is moved to the DORMANT state.
@@ -261,7 +261,7 @@ void tn_task_exit(int attr);
  * A task must not terminate itself by this function (use the tn_task_exit() function instead).
  * This function cannot be used in interrupts.
  */
-int tn_task_terminate(struct TN_Task *task);
+enum TN_Retval tn_task_terminate(struct TN_Task *task);
 
 /**
  * This function deletes the task specified by the task. The task must be in the DORMANT state,
@@ -273,13 +273,13 @@ int tn_task_terminate(struct TN_Task *task);
  *
  * This function cannot be invoked from interrupts.
  */
-int tn_task_delete(struct TN_Task *task);
+enum TN_Retval tn_task_delete(struct TN_Task *task);
 
 /**
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
  */
-int tn_task_change_priority(struct TN_Task *task, int new_priority);
+enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority);
 
 #endif // _TN_TASKS_H
 

@@ -125,11 +125,11 @@ static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned lo
  *    without actually locking mutex. If it is 0, and mutex is already locked,
  *    return TERR_TIMEOUT immediately.
  */
-static inline int __mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
+static inline enum TN_Retval __mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
 
-   int ret = TERR_NO_ERR;
+   enum TN_Retval ret = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
    if (mutex == NULL){
@@ -213,7 +213,7 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 //  Structure's Field mutex->id_mutex should be set to 0
 //----------------------------------------------------------------------------
-int tn_mutex_create(struct TN_Mutex * mutex,
+enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
                     int attribute,
                     int ceil_priority)
 {
@@ -244,7 +244,7 @@ int tn_mutex_create(struct TN_Mutex * mutex,
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_delete(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
 {
    TN_INTSAVE_DATA;
 
@@ -279,7 +279,7 @@ int tn_mutex_delete(struct TN_Mutex * mutex)
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout)
+enum TN_Retval tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout)
 {
 #if 0
 #if TN_CHECK_PARAM
@@ -294,15 +294,15 @@ int tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout)
 //----------------------------------------------------------------------------
 //  Try to lock mutex
 //----------------------------------------------------------------------------
-int tn_mutex_lock_polling(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_lock_polling(struct TN_Mutex * mutex)
 {
    return __mutex_lock(mutex, 0);
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_unlock(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_unlock(struct TN_Mutex * mutex)
 {
-   int ret = TERR_NO_ERR;
+   enum TN_Retval ret = TERR_NO_ERR;
 
    TN_INTSAVE_DATA;
 
@@ -355,7 +355,7 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 //   Routines
 //----------------------------------------------------------------------------
-int do_unlock_mutex(struct TN_Mutex * mutex)
+enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 {
    struct TN_QueHead * curr_que;
    struct TN_Mutex * tmp_mutex;
@@ -420,7 +420,7 @@ int do_unlock_mutex(struct TN_Mutex * mutex)
 }
 
 //----------------------------------------------------------------------------
-int find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int         priority;
    struct TN_QueHead *curr_que;

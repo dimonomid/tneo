@@ -42,16 +42,16 @@ struct TN_DQueue {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_queue_create(struct TN_DQueue * dque,
-      void ** data_fifo,
-      int num_entries);
-int tn_queue_delete(struct TN_DQueue * dque);
-int tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout);
-int tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr);
-int tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr);
-int tn_queue_receive(struct TN_DQueue * dque, void ** data_ptr, unsigned long timeout);
-int tn_queue_receive_polling(struct TN_DQueue * dque, void ** data_ptr);
-int tn_queue_ireceive(struct TN_DQueue * dque, void ** data_ptr);
+enum TN_Retval tn_queue_create(struct TN_DQueue * dque,
+                               void ** data_fifo,
+                               int num_entries);
+enum TN_Retval tn_queue_delete(struct TN_DQueue * dque);
+enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout);
+enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr);
+enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr);
+enum TN_Retval tn_queue_receive(struct TN_DQueue * dque, void ** data_ptr, unsigned long timeout);
+enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque, void ** data_ptr);
+enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque, void ** data_ptr);
 
 
 #endif // _TN_DQUEUE_H
