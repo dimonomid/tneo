@@ -3,8 +3,11 @@
 
 == mods that don't change API ==
 
+   * [X] remove `typedef`s, use `struct TNCamelCase` instead.
+   * [ ] clear tn_sys c/h files up
    * [ ] Implement a kind of `list_for_each`
-   * [ ] remove `typedef`s, use `struct TNCamelCase` instead.
+   * [ ] rename queue_... functions to list_.. (because it is actually a list, not a queue)
+   * [ ] rename `tn_utils.h` to `tn_list.h` or something like that
    * [ ] `tn_common.h`: convert macros to enums.
    * [ ] probably add bool/true/false
 
