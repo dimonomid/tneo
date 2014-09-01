@@ -35,7 +35,7 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-enum tn_obj_id {
+enum TN_ObjId {
    TN_ID_TASK           = 0x47ABCF69,
    TN_ID_SEMAPHORE      = 0x6FA173EB,
    TN_ID_EVENT          = 0x5E224F25,

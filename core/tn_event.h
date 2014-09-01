@@ -19,11 +19,11 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct tn_event {
-   struct tn_que_head wait_queue;
+struct TN_Event {
+   struct TN_QueHead wait_queue;
    int attr;               //-- Eventflag attribute
    unsigned int pattern;   //-- Initial value of the eventflag bit pattern
-   enum tn_obj_id id_event;           //-- ID for verification(is it a event or another object?)
+   enum TN_ObjId id_event;           //-- ID for verification(is it a event or another object?)
    // All events have the same id_event magic number (ver 2.x)
 };
 
@@ -50,27 +50,27 @@ struct tn_event {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_event_create(struct tn_event * evf,
+int tn_event_create(struct TN_Event * evf,
                       int attr,
                       unsigned int pattern);
-int tn_event_delete(struct tn_event * evf);
-int tn_event_wait(struct tn_event * evf,
+int tn_event_delete(struct TN_Event * evf);
+int tn_event_wait(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern,
                     unsigned long timeout);
-int tn_event_wait_polling(struct tn_event * evf,
+int tn_event_wait_polling(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern);
-int tn_event_iwait(struct tn_event * evf,
+int tn_event_iwait(struct TN_Event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern);
-int tn_event_set(struct tn_event * evf, unsigned int pattern);
-int tn_event_iset(struct tn_event * evf, unsigned int pattern);
-int tn_event_clear(struct tn_event * evf, unsigned int pattern);
-int tn_event_iclear(struct tn_event * evf, unsigned int pattern);
+int tn_event_set(struct TN_Event * evf, unsigned int pattern);
+int tn_event_iset(struct TN_Event * evf, unsigned int pattern);
+int tn_event_clear(struct TN_Event * evf, unsigned int pattern);
+int tn_event_iclear(struct TN_Event * evf, unsigned int pattern);
 
 
 #endif // _TN_EVENT_H

@@ -48,9 +48,9 @@ extern "C"  {     /*}*/
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct tn_que_head {
-   struct tn_que_head *prev;
-   struct tn_que_head *next;
+struct TN_QueHead {
+   struct TN_QueHead *prev;
+   struct TN_QueHead *next;
 };
 
 /*******************************************************************************
@@ -65,14 +65,14 @@ struct tn_que_head {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-void queue_reset(struct tn_que_head *que);
-int  is_queue_empty(struct tn_que_head *que);
-void queue_add_head(struct tn_que_head * que, struct tn_que_head * entry);
-void queue_add_tail(struct tn_que_head * que, struct tn_que_head * entry);
-struct tn_que_head * queue_remove_head(struct tn_que_head * que);
-struct tn_que_head * queue_remove_tail(struct tn_que_head * que);
-void queue_remove_entry(struct tn_que_head * entry);
-int  queue_contains_entry(struct tn_que_head * que, struct tn_que_head * entry);
+void queue_reset(struct TN_QueHead *que);
+int  is_queue_empty(struct TN_QueHead *que);
+void queue_add_head(struct TN_QueHead * que, struct TN_QueHead * entry);
+void queue_add_tail(struct TN_QueHead * que, struct TN_QueHead * entry);
+struct TN_QueHead * queue_remove_head(struct TN_QueHead * que);
+struct TN_QueHead * queue_remove_tail(struct TN_QueHead * que);
+void queue_remove_entry(struct TN_QueHead * entry);
+int  queue_contains_entry(struct TN_QueHead * que, struct TN_QueHead * entry);
 
 #ifdef __cplusplus
 }

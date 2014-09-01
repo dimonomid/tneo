@@ -50,17 +50,17 @@
  *    PUBLIC DATA
  ******************************************************************************/
 
-struct tn_que_head tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
-struct tn_que_head tn_create_queue;                       //-- all created tasks
+struct TN_QueHead tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
+struct TN_QueHead tn_create_queue;                       //-- all created tasks
 volatile int tn_created_tasks_qty;                //-- num of created tasks
-struct tn_que_head tn_wait_timeout_list;                  //-- all tasks that wait timeout expiration
+struct TN_QueHead tn_wait_timeout_list;                  //-- all tasks that wait timeout expiration
 
 unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];  //-- for round-robin only
 
-volatile enum tn_state tn_system_state;                     //-- System state -(running/not running/etc.)
+volatile enum TN_SysState tn_system_state;                     //-- System state -(running/not running/etc.)
 
-struct tn_task * tn_next_task_to_run;                     //-- Task to be run after switch context
-struct tn_task * tn_curr_run_task;                        //-- Task that is running now
+struct TN_Task * tn_next_task_to_run;                     //-- Task to be run after switch context
+struct TN_Task * tn_curr_run_task;                        //-- Task that is running now
 
 volatile unsigned int tn_ready_to_run_bmp;
 volatile unsigned long tn_idle_count;
@@ -77,12 +77,12 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 
 #if TN_USE_TIMER_TASK
 //-- timer task - priority (0) - highest
-struct tn_task  tn_timer_task;
+struct TN_Task  tn_timer_task;
 #endif
 
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
-struct tn_task  tn_idle_task;
+struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
 
 void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
@@ -153,13 +153,13 @@ static void _idle_task_body(void *par)
  */
 static inline void _wait_timeout_list_manage(void)
 {
-   volatile struct tn_que_head *curr_que;
-   volatile struct tn_task * task;
+   volatile struct TN_QueHead *curr_que;
+   volatile struct TN_Task * task;
 
    curr_que = tn_wait_timeout_list.next;
    while(curr_que != &tn_wait_timeout_list)
    {
-      task = get_task_by_timer_queque((struct tn_que_head*)curr_que);
+      task = get_task_by_timer_queque((struct TN_QueHead*)curr_que);
       if(task->tick_count != TN_WAIT_INFINITE)
       {
          if(task->tick_count > 0)
@@ -167,8 +167,8 @@ static inline void _wait_timeout_list_manage(void)
             task->tick_count--;
             if(task->tick_count == 0) //-- Timeout expired
             {
-               queue_remove_entry(&(((struct tn_task *)task)->task_queue));
-               _tn_task_wait_complete((struct tn_task *)task);
+               queue_remove_entry(&(((struct TN_Task *)task)->task_queue));
+               _tn_task_wait_complete((struct TN_Task *)task);
                task->task_wait_rc = TERR_TIMEOUT;
             }
          }
@@ -183,8 +183,8 @@ static inline void _wait_timeout_list_manage(void)
  */
 static inline void _round_robin_manage(void)
 {
-   volatile struct tn_que_head *curr_que;   //-- Need volatile here only to solve
-   volatile struct tn_que_head *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
+   volatile struct TN_QueHead *curr_que;   //-- Need volatile here only to solve
+   volatile struct TN_QueHead *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
    volatile int priority = tn_curr_run_task->priority;
 
    if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
@@ -195,12 +195,12 @@ static inline void _round_robin_manage(void)
 
          pri_queue = &(tn_ready_list[priority]);
          //-- If ready queue is not empty and qty  of queue's tasks > 1
-         if (!(is_queue_empty((struct tn_que_head *)pri_queue)) && pri_queue->next->next != pri_queue){
+         if (!(is_queue_empty((struct TN_QueHead *)pri_queue)) && pri_queue->next->next != pri_queue){
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
             curr_que = queue_remove_head(&(tn_ready_list[priority]));
-            queue_add_tail(&(tn_ready_list[priority]),(struct tn_que_head *)curr_que);
+            queue_add_tail(&(tn_ready_list[priority]),(struct TN_QueHead *)curr_que);
          }
       }
    }
@@ -214,7 +214,7 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
 {
    _tn_task_create(
-         (struct tn_task*)&tn_idle_task,          //-- task TCB
+         (struct TN_Task*)&tn_idle_task,          //-- task TCB
          _idle_task_body,                 //-- task function
          TN_NUM_PRIORITY - 1,             //-- task priority
          &(idle_task_stack                //-- task stack first addr in memory
@@ -271,7 +271,7 @@ static inline void _timer_task_create(unsigned int  *timer_task_stack,
       unsigned int   timer_task_stack_size)
 {
    _tn_task_create(
-         (struct tn_task*)&tn_timer_task,                     //-- task TCB
+         (struct TN_Task*)&tn_timer_task,                     //-- task TCB
          _timer_task_body,                            //-- task function
          0,                                           //-- task priority
          &(timer_task_stack                           //-- task stack first addr in memory
@@ -510,10 +510,10 @@ void tn_sys_time_set(unsigned int value)
  * Remove all tasks from wait queue, returning the TERR_DLT code.
  * Note: this function sleeps if there is at least one element in wait_queue.
  */
-void _tn_wait_queue_notify_deleted(struct tn_que_head *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
+void _tn_wait_queue_notify_deleted(struct TN_QueHead *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
 {
-   struct tn_que_head *que;
-   struct tn_task *task;
+   struct TN_QueHead *que;
+   struct TN_Task *task;
 
    while (!is_queue_empty(wait_queue)){
       //--- delete from wait queue

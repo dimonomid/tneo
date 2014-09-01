@@ -51,7 +51,7 @@ extern "C"  {  /*}*/
  *    EXTERNAL TYPES
  ******************************************************************************/
 
-struct tn_task;
+struct TN_Task;
 
 
 
@@ -59,7 +59,7 @@ struct tn_task;
  *    PUBLIC TYPES
  ******************************************************************************/
 
-enum tn_state {
+enum TN_SysState {
    TN_ST_STATE_NOT_RUN,
    TN_ST_STATE_RUNNING,
 };
@@ -70,16 +70,16 @@ enum tn_state {
  *    GLOBAL VARIABLES
  ******************************************************************************/
 
-extern struct tn_que_head tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
-extern struct tn_que_head tn_create_queue;                  //-- all created tasks(now - for statictic only)
+extern struct TN_QueHead tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
+extern struct TN_QueHead tn_create_queue;                  //-- all created tasks(now - for statictic only)
 extern volatile int tn_created_tasks_qty;           //-- num of created tasks
-extern struct tn_que_head tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
+extern struct TN_QueHead tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
 
 
-extern volatile enum tn_state tn_system_state;    //-- System state -(running/not running,etc.)
+extern volatile enum TN_SysState tn_system_state;    //-- System state -(running/not running,etc.)
 
-extern struct tn_task * tn_curr_run_task;       //-- Task that  run now
-extern struct tn_task * tn_next_task_to_run;    //-- Task to be run after switch context
+extern struct TN_Task * tn_curr_run_task;       //-- Task that  run now
+extern struct TN_Task * tn_next_task_to_run;    //-- Task to be run after switch context
 
 extern volatile unsigned int tn_ready_to_run_bmp;
 extern volatile unsigned long tn_idle_count;

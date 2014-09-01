@@ -78,7 +78,7 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline void __mutex_do_lock(struct tn_mutex *mutex)
+static inline void __mutex_do_lock(struct TN_Mutex *mutex)
 {
    mutex->holder = tn_curr_run_task;
    __mutex_lock_cnt_change(mutex, 1);
@@ -95,7 +95,7 @@ static inline void __mutex_do_lock(struct tn_mutex *mutex)
    }
 }
 
-static inline void __mutex_add_to_wait_queue(struct tn_mutex *mutex, unsigned long timeout)
+static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
 {
    int wait_reason;
 
@@ -125,7 +125,7 @@ static inline void __mutex_add_to_wait_queue(struct tn_mutex *mutex, unsigned lo
  *    without actually locking mutex. If it is 0, and mutex is already locked,
  *    return TERR_TIMEOUT immediately.
  */
-static inline int __mutex_lock(struct tn_mutex *mutex, unsigned long timeout)
+static inline int __mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
 
@@ -213,7 +213,7 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 //  Structure's Field mutex->id_mutex should be set to 0
 //----------------------------------------------------------------------------
-int tn_mutex_create(struct tn_mutex * mutex,
+int tn_mutex_create(struct TN_Mutex * mutex,
                     int attribute,
                     int ceil_priority)
 {
@@ -244,7 +244,7 @@ int tn_mutex_create(struct tn_mutex * mutex,
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_delete(struct tn_mutex * mutex)
+int tn_mutex_delete(struct TN_Mutex * mutex)
 {
    TN_INTSAVE_DATA;
 
@@ -279,7 +279,7 @@ int tn_mutex_delete(struct tn_mutex * mutex)
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_lock(struct tn_mutex * mutex, unsigned long timeout)
+int tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout)
 {
 #if 0
 #if TN_CHECK_PARAM
@@ -294,13 +294,13 @@ int tn_mutex_lock(struct tn_mutex * mutex, unsigned long timeout)
 //----------------------------------------------------------------------------
 //  Try to lock mutex
 //----------------------------------------------------------------------------
-int tn_mutex_lock_polling(struct tn_mutex * mutex)
+int tn_mutex_lock_polling(struct TN_Mutex * mutex)
 {
    return __mutex_lock(mutex, 0);
 }
 
 //----------------------------------------------------------------------------
-int tn_mutex_unlock(struct tn_mutex * mutex)
+int tn_mutex_unlock(struct TN_Mutex * mutex)
 {
    int ret = TERR_NO_ERR;
 
@@ -355,11 +355,11 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 //   Routines
 //----------------------------------------------------------------------------
-int do_unlock_mutex(struct tn_mutex * mutex)
+int do_unlock_mutex(struct TN_Mutex * mutex)
 {
-   struct tn_que_head * curr_que;
-   struct tn_mutex * tmp_mutex;
-   struct tn_task * task;
+   struct TN_QueHead * curr_que;
+   struct TN_Mutex * tmp_mutex;
+   struct TN_Task * task;
    int pr;
 
    //-- Delete curr mutex from task's locked mutexes queue
@@ -420,11 +420,11 @@ int do_unlock_mutex(struct tn_mutex * mutex)
 }
 
 //----------------------------------------------------------------------------
-int find_max_blocked_priority(struct tn_mutex *mutex, int ref_priority)
+int find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int         priority;
-   struct tn_que_head *curr_que;
-   struct tn_task     *task;
+   struct TN_QueHead *curr_que;
+   struct TN_Task     *task;
 
    priority = ref_priority;
 

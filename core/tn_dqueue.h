@@ -17,15 +17,15 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct tn_dqueue {
-   struct tn_que_head  wait_send_list;
-   struct tn_que_head  wait_receive_list;
+struct TN_DQueue {
+   struct TN_QueHead  wait_send_list;
+   struct TN_QueHead  wait_receive_list;
 
    void ** data_fifo;   //-- Array of void* to store data queue entries
    int  num_entries;    //-- Capacity of data_fifo(num entries)
    int  tail_cnt;       //-- Counter to processing data queue's Array of void*
    int  header_cnt;     //-- Counter to processing data queue's Array of void*
-   enum tn_obj_id  id_dque;        //-- ID for verification(is it a data queue or another object?)
+   enum TN_ObjId  id_dque;        //-- ID for verification(is it a data queue or another object?)
    // All data queues have the same id_dque magic number (ver 2.x)
 };
 
@@ -42,16 +42,16 @@ struct tn_dqueue {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_queue_create(struct tn_dqueue * dque,
+int tn_queue_create(struct TN_DQueue * dque,
       void ** data_fifo,
       int num_entries);
-int tn_queue_delete(struct tn_dqueue * dque);
-int tn_queue_send(struct tn_dqueue * dque, void * data_ptr, unsigned long timeout);
-int tn_queue_send_polling(struct tn_dqueue * dque, void * data_ptr);
-int tn_queue_isend_polling(struct tn_dqueue * dque, void * data_ptr);
-int tn_queue_receive(struct tn_dqueue * dque, void ** data_ptr, unsigned long timeout);
-int tn_queue_receive_polling(struct tn_dqueue * dque, void ** data_ptr);
-int tn_queue_ireceive(struct tn_dqueue * dque, void ** data_ptr);
+int tn_queue_delete(struct TN_DQueue * dque);
+int tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout);
+int tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr);
+int tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr);
+int tn_queue_receive(struct TN_DQueue * dque, void ** data_ptr, unsigned long timeout);
+int tn_queue_receive_polling(struct TN_DQueue * dque, void ** data_ptr);
+int tn_queue_ireceive(struct TN_DQueue * dque, void ** data_ptr);
 
 
 #endif // _TN_DQUEUE_H

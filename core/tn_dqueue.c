@@ -36,14 +36,14 @@
 #include "tn_tasks.h"
 
 
-static int  dque_fifo_write(struct tn_dqueue * dque, void * data_ptr);
-static int  dque_fifo_read(struct tn_dqueue * dque, void ** data_ptr);
+static int  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr);
+static int  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr);
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
 //-------------------------------------------------------------------------
 int tn_queue_create(
-      struct tn_dqueue *dque,      //-- Ptr to already existing struct tn_dqueue
+      struct TN_DQueue *dque,      //-- Ptr to already existing struct TN_DQueue
       void **data_fifo,   //-- Ptr to already existing array of void * to store data queue entries.
                           //   Can be NULL.
       int num_entries     //-- Capacity of data queue(num entries). Can be 0
@@ -74,11 +74,11 @@ int tn_queue_create(
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_delete(struct tn_dqueue * dque)
+int tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -131,12 +131,12 @@ int tn_queue_delete(struct tn_dqueue * dque)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send(struct tn_dqueue * dque, void * data_ptr, unsigned long timeout)
+int tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc;
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0)
@@ -185,12 +185,12 @@ int tn_queue_send(struct tn_dqueue * dque, void * data_ptr, unsigned long timeou
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_send_polling(struct tn_dqueue * dque, void * data_ptr)
+int tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -231,12 +231,12 @@ int tn_queue_send_polling(struct tn_dqueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_isend_polling(struct tn_dqueue * dque, void * data_ptr)
+int tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -279,12 +279,12 @@ int tn_queue_isend_polling(struct tn_dqueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive(struct tn_dqueue * dque,void ** data_ptr,unsigned long timeout)
+int tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long timeout)
 {
    TN_INTSAVE_DATA
    int rc; //-- return code
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0 || data_ptr == NULL)
@@ -353,12 +353,12 @@ int tn_queue_receive(struct tn_dqueue * dque,void ** data_ptr,unsigned long time
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_receive_polling(struct tn_dqueue * dque,void ** data_ptr)
+int tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA
    int rc;
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || data_ptr == NULL)
@@ -416,12 +416,12 @@ int tn_queue_receive_polling(struct tn_dqueue * dque,void ** data_ptr)
 }
 
 //----------------------------------------------------------------------------
-int tn_queue_ireceive(struct tn_dqueue * dque,void ** data_ptr)
+int tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA_INT
    int rc;
-   struct tn_que_head * que;
-   struct tn_task * task;
+   struct TN_QueHead * que;
+   struct TN_Task * task;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || data_ptr == NULL)
@@ -485,7 +485,7 @@ int tn_queue_ireceive(struct tn_dqueue * dque,void ** data_ptr)
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-static int  dque_fifo_write(struct tn_dqueue * dque, void * data_ptr)
+static int  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr)
 {
    register int flag;
 
@@ -514,7 +514,7 @@ static int  dque_fifo_write(struct tn_dqueue * dque, void * data_ptr)
 }
 
 //----------------------------------------------------------------------------
-static int  dque_fifo_read(struct tn_dqueue * dque, void ** data_ptr)
+static int  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr)
 {
 
 #if TN_CHECK_PARAM

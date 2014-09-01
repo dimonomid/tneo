@@ -4,7 +4,7 @@
  *
  *                  Usage of them in new projects is discouraged.
  *                  Typedefs that hide structures are bad practices.
- *                  So, instead of "TN_MUTEX" use "struct tn_mutex", etc.
+ *                  So, instead of "TN_MUTEX" use "struct TN_Mutex", etc.
  *
  ******************************************************************************/
 
@@ -19,13 +19,13 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct tn_que_head    CDLL_QUEUE;
-typedef struct tn_mutex       TN_MUTEX;
-typedef struct tn_dqueue      TN_DQUE;
-typedef struct tn_event       TN_EVENT;
-typedef struct tn_task        TN_TCB;
-typedef struct tn_fmp         TN_FMP;
-typedef struct tn_sem         TN_SEM;
+typedef struct TN_QueHead    CDLL_QUEUE;
+typedef struct TN_Mutex       TN_MUTEX;
+typedef struct TN_DQueue      TN_DQUE;
+typedef struct TN_Event       TN_EVENT;
+typedef struct TN_Task        TN_TCB;
+typedef struct TN_Fmp         TN_FMP;
+typedef struct TN_Sem         TN_SEM;
 
 
 
@@ -42,13 +42,13 @@ typedef struct tn_sem         TN_SEM;
 /*
  * compatibility with old struct names
  */
-#define  _CDLL_QUEUE    tn_que_head
-#define  _TN_MUTEX      tn_mutex
-#define  _TN_DQUE       tn_dqueue
-#define  _TN_EVENT      tn_event
-#define  _TN_TCB        tn_task
-#define  _TN_FMP        tn_fmp
-#define  _TN_SEM        tn_sem
+#define  _CDLL_QUEUE    TN_QueHead
+#define  _TN_MUTEX      TN_Mutex
+#define  _TN_DQUE       TN_DQueue
+#define  _TN_EVENT      TN_Event
+#define  _TN_TCB        TN_Task
+#define  _TN_FMP        TN_Fmp
+#define  _TN_SEM        TN_Sem
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

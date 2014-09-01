@@ -19,15 +19,15 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct tn_fmp {
-   struct tn_que_head wait_queue;
+struct TN_Fmp {
+   struct TN_QueHead wait_queue;
 
    unsigned int block_size; //-- Actual block size (in bytes)
    int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)
    void *start_addr;        //-- Memory pool actual start address
    void *free_list;         //-- Ptr to free block list
    int fblkcnt;             //-- Num of free blocks
-   enum tn_obj_id id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
+   enum TN_ObjId id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
                             // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
 };
 
@@ -43,16 +43,16 @@ struct tn_fmp {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_fmem_create(struct tn_fmp  * fmp,
+int tn_fmem_create(struct TN_Fmp  * fmp,
       void * start_addr,
       unsigned int block_size,
       int num_blocks);
-int tn_fmem_delete(struct tn_fmp * fmp);
-int tn_fmem_get(struct tn_fmp * fmp, void ** p_data, unsigned long timeout);
-int tn_fmem_get_polling(struct tn_fmp * fmp, void ** p_data);
-int tn_fmem_get_ipolling(struct tn_fmp * fmp, void ** p_data);
-int tn_fmem_release(struct tn_fmp * fmp, void * p_data);
-int tn_fmem_irelease(struct tn_fmp * fmp, void * p_data);
+int tn_fmem_delete(struct TN_Fmp * fmp);
+int tn_fmem_get(struct TN_Fmp * fmp, void ** p_data, unsigned long timeout);
+int tn_fmem_get_polling(struct TN_Fmp * fmp, void ** p_data);
+int tn_fmem_get_ipolling(struct TN_Fmp * fmp, void ** p_data);
+int tn_fmem_release(struct TN_Fmp * fmp, void * p_data);
+int tn_fmem_irelease(struct TN_Fmp * fmp, void * p_data);
 
 
 #endif // _TN_MEM_H
