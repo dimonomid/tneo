@@ -868,14 +868,14 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
  *
  * @return non-zero if task became runnable, zero otherwise.
  */
-enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
+BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
    struct TN_ListItem *t_que;
 #endif
 
-   enum TN_Retval rc = FALSE;
+   BOOL rc = FALSE;
 
    if (task == NULL){
       return FALSE;

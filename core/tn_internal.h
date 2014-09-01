@@ -38,7 +38,7 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
       void *param,                     //-- task function parameter
       int option);                     //-- Creation option
 
-enum TN_Retval   _tn_task_wait_complete  (struct TN_Task *task);
+BOOL  _tn_task_wait_complete  (struct TN_Task *task);
 void  _tn_task_to_runnable    (struct TN_Task *task);
 void  _tn_task_to_non_runnable(struct TN_Task *task);
 
@@ -62,6 +62,17 @@ void _tn_set_current_priority(struct TN_Task *task, int priority);
  * Max priority (i.e. lowest value) is returned.
  */
 int  _tn_find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
+
+/**
+ *    * Remove given mutex from task's locked mutexes list,
+ *    * Set new priority of the task
+ *      (depending on its base_priority and other locked mutexes),
+ *    * If no other tasks want to lock this mutex, set holder to NULL,
+ *      otherwise grab first task from the mutex's wait_queue
+ *      and lock mutex by this task.
+ *
+ * Currently it always returns TRUE.
+ */
 BOOL _tn_do_unlock_mutex(struct TN_Mutex *mutex);
 
 #endif // _TN_INTERNAL_H
