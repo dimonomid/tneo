@@ -4,7 +4,7 @@
  *
  *                  Usage of them in new projects is discouraged.
  *                  Typedefs that hide structures are bad practices.
- *                  So, instead of "TN_MUTEX" use "struct tn_mutex".
+ *                  So, instead of "TN_MUTEX" use "struct tn_mutex", etc.
  *
  ******************************************************************************/
 
@@ -25,10 +25,8 @@ typedef struct tn_dqueue      TN_DQUE;
 typedef struct tn_event       TN_EVENT;
 typedef struct tn_task        TN_TCB;
 typedef struct tn_fmp         TN_FMP;
+typedef struct tn_sem         TN_SEM;
 
-#if 0
-typedef struct _TN_SEM TN_SEM;
-#endif
 
 
 
@@ -50,6 +48,7 @@ typedef struct _TN_SEM TN_SEM;
 #define  _TN_EVENT      tn_event
 #define  _TN_TCB        tn_task
 #define  _TN_FMP        tn_fmp
+#define  _TN_SEM        tn_sem
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

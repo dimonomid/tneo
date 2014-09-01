@@ -18,13 +18,13 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct _TN_SEM {
+struct tn_sem {
    struct tn_que_head  wait_queue;
    int count;
    int max_count;
    int id_sem;     //-- ID for verification(is it a semaphore or another object?)
                    // All semaphores have the same id_sem magic number (ver 2.x)
-} TN_SEM;
+};
 
 
 /*******************************************************************************
@@ -39,13 +39,13 @@ typedef struct _TN_SEM {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_sem_create(TN_SEM * sem, int start_value, int max_val);
-int tn_sem_delete(TN_SEM * sem);
-int tn_sem_signal(TN_SEM * sem);
-int tn_sem_isignal(TN_SEM * sem);
-int tn_sem_acquire(TN_SEM * sem, unsigned long timeout);
-int tn_sem_polling(TN_SEM * sem);
-int tn_sem_ipolling(TN_SEM * sem);
+int tn_sem_create(struct tn_sem * sem, int start_value, int max_val);
+int tn_sem_delete(struct tn_sem * sem);
+int tn_sem_signal(struct tn_sem * sem);
+int tn_sem_isignal(struct tn_sem * sem);
+int tn_sem_acquire(struct tn_sem * sem, unsigned long timeout);
+int tn_sem_polling(struct tn_sem * sem);
+int tn_sem_ipolling(struct tn_sem * sem);
 
 
 #endif // _TN_SEM_H
