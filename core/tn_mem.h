@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 typedef struct _TN_FMP {
-   struct TNQueueHead wait_queue;
+   struct tn_que_head wait_queue;
 
    unsigned int block_size; //-- Actual block size (in bytes)
    int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)

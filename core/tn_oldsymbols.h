@@ -4,7 +4,7 @@
  *
  *                  Usage of them in new projects is discouraged.
  *                  Typedefs that hide structures are bad practices.
- *                  So, instead of "TN_MUTEX" use "struct TNMutex".
+ *                  So, instead of "TN_MUTEX" use "struct tn_mutex".
  *
  ******************************************************************************/
 
@@ -19,9 +19,9 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct TNQueueHead    CDLL_QUEUE;
-typedef struct TNMutex        TN_MUTEX;
-typedef struct TNDQueue       TN_DQUE;
+typedef struct tn_que_head    CDLL_QUEUE;
+typedef struct tn_mutex        TN_MUTEX;
+typedef struct tn_dqueue       TN_DQUE;
 
 #if 0
 typedef struct _TN_EVENT TN_EVENT;
@@ -41,9 +41,9 @@ typedef struct _TN_SEM TN_SEM;
  *    DEFINITIONS
  ******************************************************************************/
 
-#define  _CDLL_QUEUE    TNQueueHead
-#define  _TN_MUTEX      TNMutex
-#define  _TN_DQUE       TNDQueue
+#define  _CDLL_QUEUE    tn_que_head
+#define  _TN_MUTEX      tn_mutex
+#define  _TN_DQUE       tn_dqueue
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

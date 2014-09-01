@@ -48,7 +48,7 @@
  *    EXTERNAL DATA
  ******************************************************************************/
 
-extern struct TNQueueHead tn_blocked_tasks_list;
+extern struct tn_que_head tn_blocked_tasks_list;
 
 
 
@@ -540,8 +540,8 @@ void tn_task_exit(int attr)
    struct  // v.2.7
    {	
 #ifdef TN_USE_MUTEXES
-      struct TNQueueHead * que;
-      struct TNMutex * mutex;
+      struct tn_que_head * que;
+      struct tn_mutex * mutex;
 #endif
       TN_TCB * task;
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
@@ -605,8 +605,8 @@ int tn_task_terminate(TN_TCB *task)
 	 struct // v.2.7
 	 {
 #ifdef TN_USE_MUTEXES
-      struct TNQueueHead * que;
-      struct TNMutex * mutex;
+      struct tn_que_head * que;
+      struct tn_mutex * mutex;
 #endif
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
    }data; 
@@ -872,7 +872,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
-   struct TNQueueHead *t_que;
+   struct tn_que_head *t_que;
 #endif
 
    int rc = 0/*false*/;
@@ -921,7 +921,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
    if (fmutex){
       int         curr_priority;
       TN_TCB     *mt_holder_task;
-      struct TNMutex   *mutex;
+      struct tn_mutex   *mutex;
 
       mutex = get_mutex_by_wait_queque(t_que);
 
@@ -989,7 +989,7 @@ void _tn_task_to_runnable(TN_TCB * task)
 void _tn_task_to_non_runnable(TN_TCB *task)
 {
    int priority;
-   struct TNQueueHead *que;
+   struct tn_que_head *que;
 
    priority = task->priority;
    que = &(tn_ready_list[priority]);
@@ -1027,7 +1027,7 @@ void _tn_task_to_non_runnable(TN_TCB *task)
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
-void _tn_task_curr_to_wait_action(struct TNQueueHead *wait_que,
+void _tn_task_curr_to_wait_action(struct tn_que_head *wait_que,
       int wait_reason,
       unsigned long timeout)
 {
@@ -1085,7 +1085,7 @@ int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
 #ifdef TN_USE_MUTEXES
 void _tn_set_current_priority(TN_TCB * task, int priority)
 {
-   struct TNMutex * mutex;
+   struct tn_mutex * mutex;
 
    //-- transitive priority changing
 

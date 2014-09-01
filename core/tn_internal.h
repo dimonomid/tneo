@@ -14,8 +14,8 @@
  ******************************************************************************/
 
 struct _TN_TCB;
-struct TNMutex;
-struct TNQueueHead;
+struct tn_mutex;
+struct tn_que_head;
 
 
 /*******************************************************************************
@@ -26,7 +26,7 @@ struct TNQueueHead;
 /**
  * Note: this function sleeps if there is at least one element in wait_queue.
  */
-void _tn_wait_queue_notify_deleted(struct TNQueueHead *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
+void _tn_wait_queue_notify_deleted(struct tn_que_head *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
 
 
 //-- tn_tasks.c
@@ -43,7 +43,7 @@ void  _tn_task_to_runnable    (struct _TN_TCB *task);
 void  _tn_task_to_non_runnable(struct _TN_TCB *task);
 
 void _tn_task_curr_to_wait_action(
-      struct TNQueueHead *wait_que,
+      struct tn_que_head *wait_que,
       int wait_reason,
       unsigned long timeout);
 int  _tn_change_running_task_priority(struct _TN_TCB *task, int new_priority);
@@ -54,9 +54,9 @@ void _tn_set_current_priority(struct _TN_TCB *task, int priority);
 
 
 //-- tn_mutex.h
-int find_max_blocked_priority(struct TNMutex *mutex, int ref_priority);
+int find_max_blocked_priority(struct tn_mutex *mutex, int ref_priority);
 int try_lock_mutex(struct _TN_TCB *task);
-int do_unlock_mutex(struct TNMutex *mutex);
+int do_unlock_mutex(struct tn_mutex *mutex);
 
 #endif // _TN_INTERNAL_H
 

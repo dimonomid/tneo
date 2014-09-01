@@ -16,9 +16,9 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct TNDQueue {
-   struct TNQueueHead  wait_send_list;
-   struct TNQueueHead  wait_receive_list;
+struct tn_dqueue {
+   struct tn_que_head  wait_send_list;
+   struct tn_que_head  wait_receive_list;
 
    void ** data_fifo;   //-- Array of void* to store data queue entries
    int  num_entries;    //-- Capacity of data_fifo(num entries)
@@ -41,16 +41,16 @@ struct TNDQueue {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_queue_create(struct TNDQueue * dque,
+int tn_queue_create(struct tn_dqueue * dque,
       void ** data_fifo,
       int num_entries);
-int tn_queue_delete(struct TNDQueue * dque);
-int tn_queue_send(struct TNDQueue * dque, void * data_ptr, unsigned long timeout);
-int tn_queue_send_polling(struct TNDQueue * dque, void * data_ptr);
-int tn_queue_isend_polling(struct TNDQueue * dque, void * data_ptr);
-int tn_queue_receive(struct TNDQueue * dque, void ** data_ptr, unsigned long timeout);
-int tn_queue_receive_polling(struct TNDQueue * dque, void ** data_ptr);
-int tn_queue_ireceive(struct TNDQueue * dque, void ** data_ptr);
+int tn_queue_delete(struct tn_dqueue * dque);
+int tn_queue_send(struct tn_dqueue * dque, void * data_ptr, unsigned long timeout);
+int tn_queue_send_polling(struct tn_dqueue * dque, void * data_ptr);
+int tn_queue_isend_polling(struct tn_dqueue * dque, void * data_ptr);
+int tn_queue_receive(struct tn_dqueue * dque, void ** data_ptr, unsigned long timeout);
+int tn_queue_receive_polling(struct tn_dqueue * dque, void ** data_ptr);
+int tn_queue_ireceive(struct tn_dqueue * dque, void ** data_ptr);
 
 
 #endif // _TN_DQUEUE_H

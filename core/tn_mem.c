@@ -79,7 +79,7 @@ static inline int _fmem_get(TN_FMP *fmp, void **p_data)
 
 static inline int _fmem_release(TN_FMP *fmp, void *p_data, int *p_need_switch_context)
 {
-   struct TNQueueHead * que;
+   struct tn_que_head * que;
    TN_TCB * task;
 
    int rc = TERR_NO_ERR;

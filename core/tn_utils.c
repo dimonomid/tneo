@@ -37,13 +37,13 @@
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-void queue_reset(struct TNQueueHead *que)
+void queue_reset(struct tn_que_head *que)
 {
    que->prev = que->next = que;
 }
 
 //----------------------------------------------------------------------------
-int  is_queue_empty(struct TNQueueHead *que)
+int  is_queue_empty(struct tn_que_head *que)
 {
    if(que->next == que && que->prev == que)
       return 1;
@@ -51,7 +51,7 @@ int  is_queue_empty(struct TNQueueHead *que)
 }
 
 //----------------------------------------------------------------------------
-void queue_add_head(struct TNQueueHead * que, struct TNQueueHead * entry)
+void queue_add_head(struct tn_que_head * que, struct tn_que_head * entry)
 {
   //--  Insert an entry at the head of the queue.
 
@@ -62,7 +62,7 @@ void queue_add_head(struct TNQueueHead * que, struct TNQueueHead * entry)
 }
 
 //----------------------------------------------------------------------------
-void queue_add_tail(struct TNQueueHead * que, struct TNQueueHead * entry)
+void queue_add_tail(struct tn_que_head * que, struct tn_que_head * entry)
 {
   //-- Insert an entry at the tail of the queue.
 
@@ -73,14 +73,14 @@ void queue_add_tail(struct TNQueueHead * que, struct TNQueueHead * entry)
 }
 
 //----------------------------------------------------------------------------
-struct TNQueueHead * queue_remove_head(struct TNQueueHead * que)
+struct tn_que_head * queue_remove_head(struct tn_que_head * que)
 {
    //-- Remove and return an entry at the head of the queue.
 
-   struct TNQueueHead * entry;
+   struct tn_que_head * entry;
 
    if(que == NULL || que->next == que)
-      return (struct TNQueueHead *) 0;
+      return (struct tn_que_head *) 0;
 
    entry = que->next;
    entry->next->prev = que;
@@ -89,14 +89,14 @@ struct TNQueueHead * queue_remove_head(struct TNQueueHead * que)
 }
 
 //----------------------------------------------------------------------------
-struct TNQueueHead * queue_remove_tail(struct TNQueueHead * que)
+struct tn_que_head * queue_remove_tail(struct tn_que_head * que)
 {
    //-- Remove and return an entry at the tail of the queue.
 
-   struct TNQueueHead * entry;
+   struct tn_que_head * entry;
 
    if(que->prev == que)
-      return (struct TNQueueHead *) 0;
+      return (struct tn_que_head *) 0;
 
    entry = que->prev;
    entry->prev->next = que;
@@ -105,7 +105,7 @@ struct TNQueueHead * queue_remove_tail(struct TNQueueHead * que)
 }
 
 //----------------------------------------------------------------------------
-void queue_remove_entry(struct TNQueueHead * entry)
+void queue_remove_entry(struct tn_que_head * entry)
 {
    //--  Remove an entry from the queue.
 
@@ -114,11 +114,11 @@ void queue_remove_entry(struct TNQueueHead * entry)
 }
 
 //----------------------------------------------------------------------------
-int  queue_contains_entry(struct TNQueueHead * que, struct TNQueueHead * entry)
+int  queue_contains_entry(struct tn_que_head * que, struct tn_que_head * entry)
 {
   //-- The entry in the queue ???
 
-   struct TNQueueHead * curr_que;
+   struct tn_que_head * curr_que;
 
    curr_que = que->next;
    while(curr_que != que)

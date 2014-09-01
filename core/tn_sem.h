@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 typedef struct _TN_SEM {
-   struct TNQueueHead  wait_queue;
+   struct tn_que_head  wait_queue;
    int count;
    int max_count;
    int id_sem;     //-- ID for verification(is it a semaphore or another object?)

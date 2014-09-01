@@ -20,15 +20,15 @@
 
 typedef struct _TN_TCB {
    unsigned int * task_stk;   //-- Pointer to task's top of stack
-   struct TNQueueHead task_queue;     //-- Queue is used to include task in ready/wait lists
-   struct TNQueueHead timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
-   struct TNQueueHead * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
+   struct tn_que_head task_queue;     //-- Queue is used to include task in ready/wait lists
+   struct tn_que_head timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
+   struct tn_que_head * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
                                       // that task has been included for waiting (ver 2.x)
-   struct TNQueueHead create_queue;   //-- Queue is used to include task in create list only
+   struct tn_que_head create_queue;   //-- Queue is used to include task in create list only
 
 #ifdef TN_USE_MUTEXES
 
-   struct TNQueueHead mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
+   struct tn_que_head mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
 
 #endif
 

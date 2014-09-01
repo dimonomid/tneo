@@ -48,10 +48,10 @@ extern "C"  {
 
  //-- Global vars
 
-extern struct TNQueueHead tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
-extern struct TNQueueHead tn_create_queue;                  //-- all created tasks(now - for statictic only)
+extern struct tn_que_head tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
+extern struct tn_que_head tn_create_queue;                  //-- all created tasks(now - for statictic only)
 extern volatile int tn_created_tasks_qty;           //-- num of created tasks
-extern struct TNQueueHead tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
+extern struct tn_que_head tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
 
 
 extern volatile int tn_system_state;    //-- System state -(running/not running,etc.)

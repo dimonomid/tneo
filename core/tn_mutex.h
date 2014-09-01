@@ -17,10 +17,10 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct TNMutex {
-   struct TNQueueHead wait_queue;        //-- List of tasks that wait a mutex
-   struct TNQueueHead mutex_queue;       //-- To include in task's locked mutexes list (if any)
-   struct TNQueueHead lock_mutex_queue;  //-- To include in system's locked mutexes list
+struct tn_mutex {
+   struct tn_que_head wait_queue;        //-- List of tasks that wait a mutex
+   struct tn_que_head mutex_queue;       //-- To include in task's locked mutexes list (if any)
+   struct tn_que_head lock_mutex_queue;  //-- To include in system's locked mutexes list
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
    struct _TN_TCB *holder;       //-- Current mutex owner(task that locked mutex)
@@ -43,13 +43,13 @@ struct TNMutex {
 
 
 #define get_mutex_by_mutex_queque(que)              \
-   (que ? CONTAINING_RECORD(que, struct TNMutex, mutex_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_mutex, mutex_queue) : 0)
 
 #define get_mutex_by_wait_queque(que)               \
-   (que ? CONTAINING_RECORD(que, struct TNMutex, wait_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_mutex, wait_queue) : 0)
 
 #define get_mutex_by_lock_mutex_queque(que) \
-   (que ? CONTAINING_RECORD(que, struct TNMutex, mutex_queue) : 0)
+   (que ? CONTAINING_RECORD(que, struct tn_mutex, mutex_queue) : 0)
 
 
 
@@ -58,13 +58,13 @@ struct TNMutex {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-int tn_mutex_create(struct TNMutex * mutex,
+int tn_mutex_create(struct tn_mutex * mutex,
                     int attribute,
                     int ceil_priority);
-int tn_mutex_delete(struct TNMutex * mutex);
-int tn_mutex_lock(struct TNMutex * mutex, unsigned long timeout);
-int tn_mutex_lock_polling(struct TNMutex * mutex);
-int tn_mutex_unlock(struct TNMutex * mutex);
+int tn_mutex_delete(struct tn_mutex * mutex);
+int tn_mutex_lock(struct tn_mutex * mutex, unsigned long timeout);
+int tn_mutex_lock_polling(struct tn_mutex * mutex);
+int tn_mutex_unlock(struct tn_mutex * mutex);
 
 
 #endif // _TN_MUTEX_H
