@@ -40,12 +40,12 @@
 
 #ifdef  TN_USE_EVENTS
 
-static int scan_event_waitqueue(TN_EVENT * evf);
+static int scan_event_waitqueue(struct tn_event * evf);
 
 //----------------------------------------------------------------------------
 //  Structure's field evf->id_event have to be set to 0
 //----------------------------------------------------------------------------
-int tn_event_create(TN_EVENT * evf,
+int tn_event_create(struct tn_event * evf,
                     int attr,              //-- Eventflag attribute
                     unsigned int pattern)  //-- Initial value of the eventflag bit pattern
 {
@@ -73,7 +73,7 @@ int tn_event_create(TN_EVENT * evf,
 }
 
 //----------------------------------------------------------------------------
-int tn_event_delete(TN_EVENT * evf)
+int tn_event_delete(struct tn_event * evf)
 {
    TN_INTSAVE_DATA
    struct tn_que_head * que;
@@ -113,7 +113,7 @@ int tn_event_delete(TN_EVENT * evf)
 }
 
 //----------------------------------------------------------------------------
-int tn_event_wait(TN_EVENT * evf,
+int tn_event_wait(struct tn_event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern,
@@ -180,7 +180,7 @@ int tn_event_wait(TN_EVENT * evf,
 }
 
 //----------------------------------------------------------------------------
-int tn_event_wait_polling(TN_EVENT * evf,
+int tn_event_wait_polling(struct tn_event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern)
@@ -233,7 +233,7 @@ int tn_event_wait_polling(TN_EVENT * evf,
 }
 
 //----------------------------------------------------------------------------
-int tn_event_iwait(TN_EVENT * evf,
+int tn_event_iwait(struct tn_event * evf,
                     unsigned int wait_pattern,
                     int wait_mode,
                     unsigned int * p_flags_pattern)
@@ -286,7 +286,7 @@ int tn_event_iwait(TN_EVENT * evf,
 }
 
 //----------------------------------------------------------------------------
-int tn_event_set(TN_EVENT * evf, unsigned int pattern)
+int tn_event_set(struct tn_event * evf, unsigned int pattern)
 {
    TN_INTSAVE_DATA
 
@@ -320,7 +320,7 @@ int tn_event_set(TN_EVENT * evf, unsigned int pattern)
 }
 
 //----------------------------------------------------------------------------
-int tn_event_iset(TN_EVENT * evf, unsigned int pattern)
+int tn_event_iset(struct tn_event * evf, unsigned int pattern)
 {
    TN_INTSAVE_DATA_INT
 
@@ -353,7 +353,7 @@ int tn_event_iset(TN_EVENT * evf, unsigned int pattern)
 }
 
 //----------------------------------------------------------------------------
-int tn_event_clear(TN_EVENT * evf, unsigned int pattern)
+int tn_event_clear(struct tn_event * evf, unsigned int pattern)
 {
    TN_INTSAVE_DATA
 
@@ -373,7 +373,7 @@ int tn_event_clear(TN_EVENT * evf, unsigned int pattern)
 }
 
 //----------------------------------------------------------------------------
-int tn_event_iclear(TN_EVENT * evf, unsigned int pattern)
+int tn_event_iclear(struct tn_event * evf, unsigned int pattern)
 {
    TN_INTSAVE_DATA_INT
 
@@ -396,7 +396,7 @@ int tn_event_iclear(TN_EVENT * evf, unsigned int pattern)
 }
 
 //----------------------------------------------------------------------------
-static int scan_event_waitqueue(TN_EVENT * evf)
+static int scan_event_waitqueue(struct tn_event * evf)
 {
    struct tn_que_head * que;
    TN_TCB * task;

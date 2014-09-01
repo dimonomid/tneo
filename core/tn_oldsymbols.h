@@ -20,11 +20,11 @@
  ******************************************************************************/
 
 typedef struct tn_que_head    CDLL_QUEUE;
-typedef struct tn_mutex        TN_MUTEX;
-typedef struct tn_dqueue       TN_DQUE;
+typedef struct tn_mutex       TN_MUTEX;
+typedef struct tn_dqueue      TN_DQUE;
+typedef struct tn_event       TN_EVENT;
 
 #if 0
-typedef struct _TN_EVENT TN_EVENT;
 typedef struct _TN_TCB TN_TCB;
 typedef struct _TN_FMP TN_FMP;
 typedef struct _TN_SEM TN_SEM;
@@ -44,6 +44,7 @@ typedef struct _TN_SEM TN_SEM;
 #define  _CDLL_QUEUE    tn_que_head
 #define  _TN_MUTEX      tn_mutex
 #define  _TN_DQUE       tn_dqueue
+#define  _TN_EVENT      tn_event
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
