@@ -33,11 +33,11 @@
  ******************************************************************************/
 
 #include "tn_common.h"
-#include "tn_user.h"
-#include "tn_tasks.h"
 #include "tn_sys.h"
 #include "tn_internal.h"
-#include "tn_utils.h"
+
+#include "tn_tasks.h"
+
 
 //  The System uses two levels of priorities for the own purpose:
 //

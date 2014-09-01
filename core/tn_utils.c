@@ -25,10 +25,12 @@
 
 */
 
-  /* ver 2.7  */
+/* ver 2.7  */
 
 #include "tn_common.h"
 #include "tn_utils.h"
+
+
 
 //----------------------------------------------------------------------------
 //      Circular double-linked list queue

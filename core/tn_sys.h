@@ -35,7 +35,7 @@
 
 
 #include "tn_utils.h"
-#include "tn_common.h"
+#include "tn_port.h"
 
 struct _TN_TCB;
 
@@ -90,12 +90,6 @@ void tn_tick_int_processing(void);
 int tn_sys_tslice_ticks(int priority, int value);
 unsigned int tn_sys_time_get(void);
 void tn_sys_time_set(unsigned int value);
-
-//--- tn_port.c ---
-
-unsigned int * tn_stack_init(void * task_func,
-                             void * stack_start,
-                             void * param);
 
 
 #ifdef __cplusplus

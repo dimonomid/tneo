@@ -18,7 +18,6 @@
 #include "core/tn_mutex.h"
 #include "core/tn_sem.h"
 #include "core/tn_tasks.h"
-#include "core/tn_user.h"
 #include "core/tn_utils.h"
 
 /*******************************************************************************

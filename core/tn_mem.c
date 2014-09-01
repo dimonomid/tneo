@@ -31,12 +31,17 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+
+//-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_user.h"
-#include "tn_mem.h"
-#include "tn_tasks.h"
 #include "tn_internal.h"
+
+//-- header of current module
+#include "tn_mem.h"
+
+//-- header of other needed modules
+#include "tn_tasks.h"
 
 
 

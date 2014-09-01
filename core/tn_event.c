@@ -27,13 +27,16 @@
 
   /* ver 2.7  */
 
+//-- common tnkernel headers
 #include "tn_common.h"
-#include "tn_event.h"
-#include "tn_utils.h"
 #include "tn_sys.h"
-#include "tn_user.h"
-#include "tn_tasks.h"
 #include "tn_internal.h"
+
+//-- header of current module
+#include "tn_event.h"
+
+//-- header of other needed modules
+#include "tn_tasks.h"
 
 #ifdef  TN_USE_EVENTS
 

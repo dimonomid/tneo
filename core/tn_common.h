@@ -31,13 +31,6 @@
 
 
 
-//--- Port (NOTE: tn_cfg.h must be included before including tn_port.h,
-//    and all configuration constants should be defined as well)
-#include "tn_port.h"
-
-
-
-
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/

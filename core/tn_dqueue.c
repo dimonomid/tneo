@@ -29,11 +29,11 @@
 
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_user.h"
-#include "tn_dqueue.h"
-#include "tn_tasks.h"
-#include "tn_utils.h"
 #include "tn_internal.h"
+
+#include "tn_dqueue.h"
+
+#include "tn_tasks.h"
 
 
 static int  dque_fifo_write(TN_DQUE * dque, void * data_ptr);
