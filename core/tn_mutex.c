@@ -268,7 +268,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
 
    if(mutex->holder != NULL)  //-- If the mutex is locked
    {
-      do_unlock_mutex(mutex);
+      _tn_do_unlock_mutex(mutex);
       tn_list_reset(&(mutex->mutex_queue));
    }
    mutex->id_mutex = 0; // Mutex not exists now
@@ -335,7 +335,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex * mutex)
       goto out_ei;
    } else {
       //-- lock counter is 0, so, unlock mutex
-      do_unlock_mutex(mutex);
+      _tn_do_unlock_mutex(mutex);
       goto out_ei_switch_context;
    }
 
@@ -352,10 +352,40 @@ out_ei_switch_context:
    return ret;
 }
 
-//----------------------------------------------------------------------------
-//   Routines
-//----------------------------------------------------------------------------
-enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
+
+
+
+
+/*******************************************************************************
+ *    INTERNAL TNKERNEL FUNCTIONS
+ ******************************************************************************/
+
+/**
+ * See comments in tn_internal.h file
+ */
+int _tn_find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+{
+   int               priority;
+   struct TN_Task   *task;
+
+   priority = ref_priority;
+
+   //-- Iterate through all the tasks that wait for lock mutex.
+   //   Highest priority (i.e. lowest number) will be returned eventually.
+   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
+      if(task->priority < priority){
+         //--  task priority is higher, remember it
+         priority = task->priority;
+      }
+   }
+
+   return priority;
+}
+
+/**
+ * See comments in tn_internal.h file
+ */
+BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
 {
    {
       int pr;
@@ -380,7 +410,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
                   break;
 
                case TN_MUTEX_ATTR_INHERIT:
-                  pr = find_max_blocked_priority(tmp_mutex, pr);
+                  pr = _tn_find_max_blocked_priority(tmp_mutex, pr);
                   break;
 
                default:
@@ -425,31 +455,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
    return TRUE;
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
-{
-   int               priority;
-   struct TN_Task   *task;
 
-   priority = ref_priority;
 
-   //-- Iterate through all the tasks that wait for lock mutex.
-   //   Highest priority (i.e. lowest number) will be returned eventually.
-   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
-      if(task->priority < priority){
-         //--  task priority is higher, remember it
-         priority = task->priority;
-      }
-   }
-
-   return priority;
-}
-
-//----------------------------------------------------------------------------
 #endif //-- TN_USE_MUTEXES
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
 

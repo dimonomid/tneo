@@ -54,9 +54,15 @@ void _tn_set_current_priority(struct TN_Task *task, int priority);
 
 
 //-- tn_mutex.h
-enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
-enum TN_Retval try_lock_mutex(struct TN_Task *task);
-enum TN_Retval do_unlock_mutex(struct TN_Mutex *mutex);
+
+/**
+ * Iterate through all the tasks that wait for lock mutex,
+ * checking if task's priority is higher than ref_priority.
+ *
+ * Max priority (i.e. lowest value) is returned.
+ */
+int  _tn_find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
+BOOL _tn_do_unlock_mutex(struct TN_Mutex *mutex);
 
 #endif // _TN_INTERNAL_H
 

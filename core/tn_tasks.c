@@ -563,7 +563,7 @@ void tn_task_exit(int attr)
    while (!tn_is_list_empty(&(tn_curr_run_task->mutex_queue))){
       data.que = tn_list_remove_head(&(tn_curr_run_task->mutex_queue));
       data.mutex = get_mutex_by_mutex_queque(data.que);
-      do_unlock_mutex(data.mutex);
+      _tn_do_unlock_mutex(data.mutex);
    }
 #endif
 
@@ -655,7 +655,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       while (!tn_is_list_empty(&(task->mutex_queue))){
          data.que = tn_list_remove_head(&(task->mutex_queue));
          data.mutex = get_mutex_by_mutex_queque(data.que);
-         do_unlock_mutex(data.mutex);
+         _tn_do_unlock_mutex(data.mutex);
       }
 #endif
 
@@ -934,7 +934,7 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
                && mt_holder_task->priority == task->priority
             )
          {
-            curr_priority = find_max_blocked_priority(mutex,
+            curr_priority = _tn_find_max_blocked_priority(mutex,
                   mt_holder_task->base_priority);
 
             _tn_set_current_priority(mt_holder_task, curr_priority);
