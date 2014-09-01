@@ -108,9 +108,16 @@ struct TN_ListItem *tn_list_remove_tail(struct TN_ListItem *list)
 void tn_list_remove_entry(struct TN_ListItem *entry)
 {
    //--  Remove an entry from the queue.
-
    entry->prev->next = entry->next;
    entry->next->prev = entry->prev;
+
+   //-- NOTE: we shouldn't reset the entry itself, because the pointers in
+   //         the removed item are often needed to get the next item of the 
+   //         list from which it was just removed.
+   //
+   //         Typical usage: iterate over the list, check some condition and
+   //         probably remove the item. After removal, we are still able
+   //         to get the next item.
 }
 
 //----------------------------------------------------------------------------
