@@ -10,6 +10,7 @@ let &shiftwidth = 3
 let g:indexer_ctagsDontSpecifyFilesIfPossible = 1
 "let g:indexer_ctagsJustAppendTagsAtFileSave = 1
 let g:indexer_indexerListFilename = s:sPath.'/.indexer_files'
+let g:indexer_handlePath = 0
 
 
 let g:indexer_ctagsCommandLineOptions = '--c++-kinds=+p+l --c-kinds=+l --fields=+iaS --extra=+q'
