@@ -436,10 +436,13 @@ BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
    } else {
       //-- there are tasks that want to lock the mutex,
       //   so, lock it by the first task in the queue
+
       struct TN_Task *task;
 
+      //-- remove task from mutex's wait_queue
       task = tn_list_first_entry_remove(&(mutex->wait_queue), typeof(*task), task_queue);
 
+      //-- set it as mutex holder
       mutex->holder = task;
 
       if (     mutex->attr == TN_MUTEX_ATTR_CEILING

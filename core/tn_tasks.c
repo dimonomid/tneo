@@ -927,8 +927,8 @@ BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 
       mt_holder_task = mutex->holder;
       if (mt_holder_task != NULL){
-         //-- if task was blocked by another task and its pri was changed
-         //    - recalc current priority
+         //-- if task was blocked by another task (that held mutex)
+         //   and its priority was changed, recalculate current priority
 
          if (     mt_holder_task->priority != mt_holder_task->base_priority
                && mt_holder_task->priority == task->priority
