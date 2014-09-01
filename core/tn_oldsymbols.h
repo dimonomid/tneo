@@ -19,12 +19,12 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct TNQueueHead CDLL_QUEUE;
+typedef struct TNQueueHead    CDLL_QUEUE;
+typedef struct TNMutex        TN_MUTEX;
 
 #if 0
 typedef struct _TN_EVENT TN_EVENT;
 typedef struct _TN_TCB TN_TCB;
-typedef struct _TN_MUTEX TN_MUTEX;
 typedef struct _TN_FMP TN_FMP;
 typedef struct _TN_DQUE TN_DQUE;
 typedef struct _TN_SEM TN_SEM;
@@ -42,6 +42,7 @@ typedef struct _TN_SEM TN_SEM;
  ******************************************************************************/
 
 #define  _CDLL_QUEUE    TNQueueHead
+#define  _TN_MUTEX      TNMutex
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

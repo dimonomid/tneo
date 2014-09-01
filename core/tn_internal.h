@@ -14,7 +14,7 @@
  ******************************************************************************/
 
 struct _TN_TCB;
-struct _TN_MUTEX;
+struct TNMutex;
 struct TNQueueHead;
 
 
@@ -54,9 +54,9 @@ void _tn_set_current_priority(struct _TN_TCB *task, int priority);
 
 
 //-- tn_mutex.h
-int find_max_blocked_priority(struct _TN_MUTEX *mutex, int ref_priority);
+int find_max_blocked_priority(struct TNMutex *mutex, int ref_priority);
 int try_lock_mutex(struct _TN_TCB *task);
-int do_unlock_mutex(struct _TN_MUTEX *mutex);
+int do_unlock_mutex(struct TNMutex *mutex);
 
 #endif // _TN_INTERNAL_H
 

@@ -541,7 +541,7 @@ void tn_task_exit(int attr)
    {	
 #ifdef TN_USE_MUTEXES
       struct TNQueueHead * que;
-      TN_MUTEX * mutex;
+      struct TNMutex * mutex;
 #endif
       TN_TCB * task;
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
@@ -606,7 +606,7 @@ int tn_task_terminate(TN_TCB *task)
 	 {
 #ifdef TN_USE_MUTEXES
       struct TNQueueHead * que;
-      TN_MUTEX * mutex;
+      struct TNMutex * mutex;
 #endif
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
    }data; 
@@ -921,7 +921,7 @@ int _tn_task_wait_complete(TN_TCB *task) //-- v. 2.6
    if (fmutex){
       int         curr_priority;
       TN_TCB     *mt_holder_task;
-      TN_MUTEX   *mutex;
+      struct TNMutex   *mutex;
 
       mutex = get_mutex_by_wait_queque(t_que);
 
@@ -1085,7 +1085,7 @@ int _tn_change_running_task_priority(TN_TCB * task, int new_priority)
 #ifdef TN_USE_MUTEXES
 void _tn_set_current_priority(TN_TCB * task, int priority)
 {
-   TN_MUTEX * mutex;
+   struct TNMutex * mutex;
 
    //-- transitive priority changing
 
