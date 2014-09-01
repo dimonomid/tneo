@@ -56,8 +56,8 @@ enum TN_Retval tn_queue_create(
       return TERR_WRONG_PARAM;
 #endif
 
-   queue_reset(&(dque->wait_send_list));
-   queue_reset(&(dque->wait_receive_list));
+   tn_list_reset(&(dque->wait_send_list));
+   tn_list_reset(&(dque->wait_receive_list));
 
    dque->data_fifo      = data_fifo;
    dque->num_entries    = num_entries;
@@ -77,7 +77,7 @@ enum TN_Retval tn_queue_create(
 enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -91,12 +91,12 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while(!is_queue_empty(&(dque->wait_send_list)))
+   while(!tn_is_list_empty(&(dque->wait_send_list)))
    {
 
      //--- delete from sem wait queue
 
-      que = queue_remove_head(&(dque->wait_send_list));
+      que = tn_list_remove_head(&(dque->wait_send_list));
       task = get_task_by_tsk_queue(que);
       if(_tn_task_wait_complete(task))
       {
@@ -107,11 +107,11 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
       }
    }
 
-   while(!is_queue_empty(&(dque->wait_receive_list)))
+   while(!tn_is_list_empty(&(dque->wait_receive_list)))
    {
      //--- delete from sem wait queue
 
-      que = queue_remove_head(&(dque->wait_receive_list));
+      que = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
       if(_tn_task_wait_complete(task))
       {
@@ -135,7 +135,7 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -151,9 +151,9 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
 
   //-- there are task(s) in the data queue's wait_receive list
 
-   if(!is_queue_empty(&(dque->wait_receive_list)))
+   if(!tn_is_list_empty(&(dque->wait_receive_list)))
    {
-      que  = queue_remove_head(&(dque->wait_receive_list));
+      que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
@@ -189,7 +189,7 @@ enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -205,9 +205,9 @@ enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 
   //-- there are task(s) in the data queue's  wait_receive list
 
-   if(!is_queue_empty(&(dque->wait_receive_list)))
+   if(!tn_is_list_empty(&(dque->wait_receive_list)))
    {
-      que  = queue_remove_head(&(dque->wait_receive_list));
+      que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
@@ -235,7 +235,7 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 {
    TN_INTSAVE_DATA_INT
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -251,9 +251,9 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 
   //-- there are task(s) in the data queue's  wait_receive list
 
-   if(!is_queue_empty(&(dque->wait_receive_list)))
+   if(!tn_is_list_empty(&(dque->wait_receive_list)))
    {
-      que  = queue_remove_head(&(dque->wait_receive_list));
+      que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
@@ -283,7 +283,7 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc; //-- return code
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -300,9 +300,9 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
    rc = dque_fifo_read(dque,data_ptr);
    if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
@@ -317,9 +317,9 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
    }
    else //-- data FIFO is empty
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          *data_ptr = task->data_elem; //-- Return to caller
@@ -357,7 +357,7 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -374,9 +374,9 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
    rc = dque_fifo_read(dque,data_ptr);
    if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
@@ -391,9 +391,9 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
    }
    else //-- data FIFO is empty
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          *data_ptr = task->data_elem; //-- Return to caller
@@ -420,7 +420,7 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 {
    TN_INTSAVE_DATA_INT
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -437,9 +437,9 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
    rc = dque_fifo_read(dque,data_ptr);
    if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
@@ -453,9 +453,9 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
    }
    else //-- data FIFO is empty
    {
-      if(!is_queue_empty(&(dque->wait_send_list)))
+      if(!tn_is_list_empty(&(dque->wait_send_list)))
       {
-         que  = queue_remove_head(&(dque->wait_send_list));
+         que  = tn_list_remove_head(&(dque->wait_send_list));
          task =  get_task_by_tsk_queue(que);
 
         *data_ptr = task->data_elem; //-- Return to caller

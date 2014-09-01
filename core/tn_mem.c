@@ -79,14 +79,14 @@ static inline enum TN_Retval _fmem_get(struct TN_Fmp *fmp, void **p_data)
 
 static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data, int *p_need_switch_context)
 {
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if (!is_queue_empty(&(fmp->wait_queue))){
-      que = queue_remove_head(&(fmp->wait_queue));
+   if (!tn_is_list_empty(&(fmp->wait_queue))){
+      que = tn_list_remove_head(&(fmp->wait_queue));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = p_data;
@@ -200,7 +200,7 @@ enum TN_Retval tn_fmem_create(struct TN_Fmp *fmp,
       goto out;
    }
 
-   queue_reset(&(fmp->wait_queue));
+   tn_list_reset(&(fmp->wait_queue));
 
   //-- Prepare addr/block aligment
 

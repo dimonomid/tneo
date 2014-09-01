@@ -21,15 +21,15 @@
 
 struct TN_Task {
    unsigned int * task_stk;   //-- Pointer to task's top of stack
-   struct TN_QueHead task_queue;     //-- Queue is used to include task in ready/wait lists
-   struct TN_QueHead timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
-   struct TN_QueHead * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
+   struct TN_ListItem task_queue;     //-- Queue is used to include task in ready/wait lists
+   struct TN_ListItem timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
+   struct TN_ListItem * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
                                       // that task has been included for waiting (ver 2.x)
-   struct TN_QueHead create_queue;   //-- Queue is used to include task in create list only
+   struct TN_ListItem create_queue;   //-- Queue is used to include task in create list only
 
 #ifdef TN_USE_MUTEXES
 
-   struct TN_QueHead mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
+   struct TN_ListItem mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
 
 #endif
 

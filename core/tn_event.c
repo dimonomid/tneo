@@ -59,7 +59,7 @@ enum TN_Retval tn_event_create(struct TN_Event * evf,
       return TERR_WRONG_PARAM;
 #endif
 
-   queue_reset(&(evf->wait_queue));
+   tn_list_reset(&(evf->wait_queue));
    evf->pattern = pattern;
    evf->attr = attr;
    if((attr & TN_EVENT_ATTR_CLR) && ((attr & TN_EVENT_ATTR_SINGLE)== 0))
@@ -76,7 +76,7 @@ enum TN_Retval tn_event_create(struct TN_Event * evf,
 enum TN_Retval tn_event_delete(struct TN_Event * evf)
 {
    TN_INTSAVE_DATA
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -90,11 +90,11 @@ enum TN_Retval tn_event_delete(struct TN_Event * evf)
 
    tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   while(!is_queue_empty(&(evf->wait_queue)))
+   while(!tn_is_list_empty(&(evf->wait_queue)))
    {
      //--- delete from sem wait queue
 
-      que = queue_remove_head(&(evf->wait_queue));
+      que = tn_list_remove_head(&(evf->wait_queue));
       task = get_task_by_tsk_queue(que);
       if(_tn_task_wait_complete(task))
       {
@@ -138,7 +138,7 @@ enum TN_Retval tn_event_wait(struct TN_Event * evf,
    //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
    //-- in event wait queue - return ERROR without checking release condition
 
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !is_queue_empty(&(evf->wait_queue)))
+   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
    {
       rc = TERR_ILUSE;
    }
@@ -203,7 +203,7 @@ enum TN_Retval tn_event_wait_polling(struct TN_Event * evf,
    //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
    //-- in event wait queue - return ERROR without checking release condition
 
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !is_queue_empty(&(evf->wait_queue)))
+   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
    {
       rc = TERR_ILUSE;
    }
@@ -256,7 +256,7 @@ enum TN_Retval tn_event_iwait(struct TN_Event * evf,
    //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
    //-- in event wait queue - return ERROR without checking release condition
 
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !is_queue_empty(&(evf->wait_queue)))
+   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
    {
       rc = TERR_ILUSE;
    }
@@ -398,7 +398,7 @@ enum TN_Retval tn_event_iclear(struct TN_Event * evf, unsigned int pattern)
 //----------------------------------------------------------------------------
 static enum TN_Retval scan_event_waitqueue(struct TN_Event * evf)
 {
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
    int fCond;
    enum TN_Retval rc = 0;
@@ -424,7 +424,7 @@ static enum TN_Retval scan_event_waitqueue(struct TN_Event * evf)
 
       if(fCond)   //-- Condition to finish the waiting
       {
-         queue_remove_entry(&task->task_queue);
+         tn_list_remove_entry(&task->task_queue);
          task->ewait_pattern = evf->pattern;
          if(_tn_task_wait_complete(task))   // v.2.7 - thanks to Eugene Scopal
             rc = 1;

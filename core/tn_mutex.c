@@ -84,7 +84,7 @@ static inline void __mutex_do_lock(struct TN_Mutex *mutex)
    __mutex_lock_cnt_change(mutex, 1);
 
    //-- Add mutex to task's locked mutexes queue
-   queue_add_tail(&(tn_curr_run_task->mutex_queue), &(mutex->mutex_queue));
+   tn_list_add_tail(&(tn_curr_run_task->mutex_queue), &(mutex->mutex_queue));
 
    if (mutex->attr == TN_MUTEX_ATTR_CEILING){
       //-- Ceiling protocol
@@ -230,9 +230,9 @@ enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
       return TERR_WRONG_PARAM;
 #endif
 
-   queue_reset(&(mutex->wait_queue));
-   queue_reset(&(mutex->mutex_queue));
-   queue_reset(&(mutex->lock_mutex_queue));
+   tn_list_reset(&(mutex->wait_queue));
+   tn_list_reset(&(mutex->mutex_queue));
+   tn_list_reset(&(mutex->lock_mutex_queue));
 
    mutex->attr          = attribute;
    mutex->holder        = NULL;
@@ -269,7 +269,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
    if(mutex->holder != NULL)  //-- If the mutex is locked
    {
       do_unlock_mutex(mutex);
-      queue_reset(&(mutex->mutex_queue));
+      tn_list_reset(&(mutex->mutex_queue));
    }
    mutex->id_mutex = 0; // Mutex not exists now
 
@@ -357,19 +357,19 @@ out_ei_switch_context:
 //----------------------------------------------------------------------------
 enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 {
-   struct TN_QueHead * curr_que;
+   struct TN_ListItem * curr_que;
    struct TN_Mutex * tmp_mutex;
    struct TN_Task * task;
    int pr;
 
    //-- Delete curr mutex from task's locked mutexes queue
 
-   queue_remove_entry(&(mutex->mutex_queue));
+   tn_list_remove_entry(&(mutex->mutex_queue));
    pr = tn_curr_run_task->base_priority;
 
    //---- No more mutexes, locked by the our task
 
-   if(!is_queue_empty(&(tn_curr_run_task->mutex_queue)))
+   if(!tn_is_list_empty(&(tn_curr_run_task->mutex_queue)))
    {
       curr_que = tn_curr_run_task->mutex_queue.next;
       while(curr_que != &(tn_curr_run_task->mutex_queue))
@@ -397,7 +397,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 
    //-- Check for the task(s) that want to lock the mutex
 
-   if(is_queue_empty(&(mutex->wait_queue)))
+   if(tn_is_list_empty(&(mutex->wait_queue)))
    {
       mutex->holder = NULL;
       return 1/*true*/;
@@ -405,7 +405,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 
    //--- Now lock the mutex by the first task in the mutex queue
 
-   curr_que = queue_remove_head(&(mutex->wait_queue));
+   curr_que = tn_list_remove_head(&(mutex->wait_queue));
    task     = get_task_by_tsk_queue(curr_que);
    mutex->holder = task;
 
@@ -414,7 +414,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
       task->priority = mutex->ceil_priority;
 
    _tn_task_wait_complete(task);
-   queue_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
+   tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
    return 1/*true*/;
 }
@@ -423,7 +423,7 @@ enum TN_Retval do_unlock_mutex(struct TN_Mutex * mutex)
 enum TN_Retval find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int         priority;
-   struct TN_QueHead *curr_que;
+   struct TN_ListItem *curr_que;
    struct TN_Task     *task;
 
    priority = ref_priority;

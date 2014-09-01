@@ -19,7 +19,7 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef struct TN_QueHead    CDLL_QUEUE;
+typedef struct TN_ListItem    CDLL_QUEUE;
 typedef struct TN_Mutex       TN_MUTEX;
 typedef struct TN_DQueue      TN_DQUE;
 typedef struct TN_Event       TN_EVENT;
@@ -42,7 +42,7 @@ typedef struct TN_Sem         TN_SEM;
 /*
  * compatibility with old struct names
  */
-#define  _CDLL_QUEUE    TN_QueHead
+#define  _CDLL_QUEUE    TN_ListItem
 #define  _TN_MUTEX      TN_Mutex
 #define  _TN_DQUE       TN_DQueue
 #define  _TN_EVENT      TN_Event

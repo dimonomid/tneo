@@ -19,9 +19,9 @@
  ******************************************************************************/
 
 struct TN_Mutex {
-   struct TN_QueHead wait_queue;        //-- List of tasks that wait a mutex
-   struct TN_QueHead mutex_queue;       //-- To include in task's locked mutexes list (if any)
-   struct TN_QueHead lock_mutex_queue;  //-- To include in system's locked mutexes list
+   struct TN_ListItem wait_queue;        //-- List of tasks that wait a mutex
+   struct TN_ListItem mutex_queue;       //-- To include in task's locked mutexes list (if any)
+   struct TN_ListItem lock_mutex_queue;  //-- To include in system's locked mutexes list
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
    struct TN_Task *holder;       //-- Current mutex owner(task that locked mutex)

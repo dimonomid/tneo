@@ -61,7 +61,7 @@ enum TN_Retval tn_sem_create(struct TN_Sem * sem,
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   queue_reset(&(sem->wait_queue));
+   tn_list_reset(&(sem->wait_queue));
 
    sem->count     = start_value;
    sem->max_count = max_val;
@@ -74,7 +74,7 @@ enum TN_Retval tn_sem_create(struct TN_Sem * sem,
 enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -88,11 +88,11 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while(!is_queue_empty(&(sem->wait_queue)))
+   while(!tn_is_list_empty(&(sem->wait_queue)))
    {
      //--- delete from the sem wait queue
 
-      que = queue_remove_head(&(sem->wait_queue));
+      que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
       if(_tn_task_wait_complete(task))
       {
@@ -117,7 +117,7 @@ enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc; //-- return code
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -133,11 +133,11 @@ enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
 
    tn_disable_interrupt();
 
-   if(!(is_queue_empty(&(sem->wait_queue))))
+   if(!(tn_is_list_empty(&(sem->wait_queue))))
    {
       //--- delete from the sem wait queue
 
-      que = queue_remove_head(&(sem->wait_queue));
+      que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
       if(_tn_task_wait_complete(task))
@@ -172,7 +172,7 @@ enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA_INT
    enum TN_Retval rc;
-   struct TN_QueHead * que;
+   struct TN_ListItem * que;
    struct TN_Task * task;
 
 #if TN_CHECK_PARAM
@@ -188,11 +188,11 @@ enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
 
    tn_idisable_interrupt();
 
-   if(!(is_queue_empty(&(sem->wait_queue))))
+   if(!(tn_is_list_empty(&(sem->wait_queue))))
    {
       //--- delete from the sem wait queue
 
-      que = queue_remove_head(&(sem->wait_queue));
+      que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
       if(_tn_task_wait_complete(task))

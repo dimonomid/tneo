@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 struct TN_DQueue {
-   struct TN_QueHead  wait_send_list;
-   struct TN_QueHead  wait_receive_list;
+   struct TN_ListItem  wait_send_list;
+   struct TN_ListItem  wait_receive_list;
 
    void ** data_fifo;   //-- Array of void* to store data queue entries
    int  num_entries;    //-- Capacity of data_fifo(num entries)

@@ -48,7 +48,7 @@
  *    EXTERNAL DATA
  ******************************************************************************/
 
-extern struct TN_QueHead tn_blocked_tasks_list;
+extern struct TN_ListItem tn_blocked_tasks_list;
 
 
 
@@ -116,12 +116,12 @@ static void _find_next_task_to_run(void)
 static void _task_set_dormant_state(struct TN_Task* task)
 {
    // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
-   queue_reset(&(task->task_queue));
-   queue_reset(&(task->timer_queue));
+   tn_list_reset(&(task->task_queue));
+   tn_list_reset(&(task->timer_queue));
 
 #ifdef TN_USE_MUTEXES
 
-   queue_reset(&(task->mutex_queue));
+   tn_list_reset(&(task->mutex_queue));
 
 #endif
 
@@ -540,7 +540,7 @@ void tn_task_exit(int attr)
    struct  // v.2.7
    {	
 #ifdef TN_USE_MUTEXES
-      struct TN_QueHead * que;
+      struct TN_ListItem * que;
       struct TN_Mutex * mutex;
 #endif
       struct TN_Task * task;
@@ -560,8 +560,8 @@ void tn_task_exit(int attr)
    //-- Unlock all mutexes locked by the task
 
 #ifdef TN_USE_MUTEXES
-   while (!is_queue_empty(&(tn_curr_run_task->mutex_queue))){
-      data.que = queue_remove_head(&(tn_curr_run_task->mutex_queue));
+   while (!tn_is_list_empty(&(tn_curr_run_task->mutex_queue))){
+      data.que = tn_list_remove_head(&(tn_curr_run_task->mutex_queue));
       data.mutex = get_mutex_by_mutex_queque(data.que);
       do_unlock_mutex(data.mutex);
    }
@@ -584,7 +584,7 @@ void tn_task_exit(int attr)
    } else {
       // V 2.6 Thanks to Alex Borisov
       if (attr == TN_EXIT_AND_DELETE_TASK){
-         queue_remove_entry(&(data.task->create_queue));
+         tn_list_remove_entry(&(data.task->create_queue));
          tn_created_tasks_qty--;
          data.task->id_task = 0;
       }
@@ -605,7 +605,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 	 struct // v.2.7
 	 {
 #ifdef TN_USE_MUTEXES
-      struct TN_QueHead * que;
+      struct TN_ListItem * que;
       struct TN_Mutex * mutex;
 #endif
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
@@ -640,20 +640,20 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       } else if (task->task_state & TSK_STATE_WAIT){
          //-- Free all queues, involved in the 'waiting'
 
-         queue_remove_entry(&(task->task_queue));
+         tn_list_remove_entry(&(task->task_queue));
 
          //-----------------------------------------
 
          if (task->tick_count != TN_WAIT_INFINITE){
-            queue_remove_entry(&(task->timer_queue));
+            tn_list_remove_entry(&(task->timer_queue));
          }
       }
 
 
 #ifdef TN_USE_MUTEXES
       //-- Unlock all mutexes locked by the task
-      while (!is_queue_empty(&(task->mutex_queue))){
-         data.que = queue_remove_head(&(task->mutex_queue));
+      while (!tn_is_list_empty(&(task->mutex_queue))){
+         data.que = tn_list_remove_head(&(task->mutex_queue));
          data.mutex = get_mutex_by_mutex_queque(data.que);
          do_unlock_mutex(data.mutex);
       }
@@ -708,7 +708,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
       //-- Cannot delete not-terminated task
       rc = TERR_WCONTEXT;
    } else {
-      queue_remove_entry(&(task->create_queue));
+      tn_list_remove_entry(&(task->create_queue));
       tn_created_tasks_qty--;
       task->id_task = 0;
    }
@@ -844,7 +844,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 
    //-- Add task to created task queue
 
-   queue_add_tail(&tn_create_queue,&(task->create_queue));
+   tn_list_add_tail(&tn_create_queue,&(task->create_queue));
    tn_created_tasks_qty++;
 
    if ((option & TN_TASK_START_ON_CREATION) != 0){
@@ -872,7 +872,7 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 {
 #ifdef TN_USE_MUTEXES
    int         fmutex;
-   struct TN_QueHead *t_que;
+   struct TN_ListItem *t_que;
 #endif
 
    enum TN_Retval rc = 0/*false*/;
@@ -901,7 +901,7 @@ enum TN_Retval _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 
    //-- remove task from timer queue (if it is there)
    if (task->tick_count != TN_WAIT_INFINITE){
-      queue_remove_entry(&(task->timer_queue));
+      tn_list_remove_entry(&(task->timer_queue));
    }
 
    task->tick_count = TN_WAIT_INFINITE;
@@ -972,7 +972,7 @@ void _tn_task_to_runnable(struct TN_Task * task)
 
    //-- Add the task to the end of 'ready queue' for the current priority
 
-   queue_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
+   tn_list_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
    tn_ready_to_run_bmp |= (1 << priority);
 
    //-- less value - greater priority, so '<' operation is used here
@@ -989,18 +989,18 @@ void _tn_task_to_runnable(struct TN_Task * task)
 void _tn_task_to_non_runnable(struct TN_Task *task)
 {
    int priority;
-   struct TN_QueHead *que;
+   struct TN_ListItem *que;
 
    priority = task->priority;
    que = &(tn_ready_list[priority]);
 
    //-- remove the curr task from any queue (now - from ready queue)
-   queue_remove_entry(&(task->task_queue));
+   tn_list_remove_entry(&(task->task_queue));
 
    //-- and reset task's queue
-   queue_reset(&(task->task_queue));
+   tn_list_reset(&(task->task_queue));
 
-   if (is_queue_empty(que)){
+   if (tn_is_list_empty(que)){
       //-- No ready tasks for the curr priority
       //-- remove 'ready to run' from the curr priority
 
@@ -1027,7 +1027,7 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
-void _tn_task_curr_to_wait_action(struct TN_QueHead *wait_que,
+void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
       unsigned long timeout)
 {
@@ -1040,7 +1040,7 @@ void _tn_task_curr_to_wait_action(struct TN_QueHead *wait_que,
    //--- Add to the wait queue  - FIFO
 
    if (wait_que != NULL){
-      queue_add_tail(wait_que, &(tn_curr_run_task->task_queue));
+      tn_list_add_tail(wait_que, &(tn_curr_run_task->task_queue));
       tn_curr_run_task->pwait_queue = wait_que;
    } else {
       //-- NOTE: we don't need to reset task_queue because
@@ -1050,7 +1050,7 @@ void _tn_task_curr_to_wait_action(struct TN_QueHead *wait_que,
    //--- Add to the timers queue
 
    if (timeout != TN_WAIT_INFINITE){
-      queue_add_tail(&tn_wait_timeout_list, &(tn_curr_run_task->timer_queue));
+      tn_list_add_tail(&tn_wait_timeout_list, &(tn_curr_run_task->timer_queue));
    }
 }
 
@@ -1062,12 +1062,12 @@ enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_p
 
    //-- remove curr task from any (wait/ready) queue
 
-   queue_remove_entry(&(task->task_queue));
+   tn_list_remove_entry(&(task->task_queue));
 
    //-- If there are no ready tasks for the old priority
    //-- clear ready bit for old priority
 
-   if (is_queue_empty(&(tn_ready_list[old_priority]))){
+   if (tn_is_list_empty(&(tn_ready_list[old_priority]))){
       tn_ready_to_run_bmp &= ~(1 << old_priority);
    }
 
@@ -1075,7 +1075,7 @@ enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_p
 
    //-- Add task to the end of ready queue for current priority
 
-   queue_add_tail(&(tn_ready_list[new_priority]), &(task->task_queue));
+   tn_list_add_tail(&(tn_ready_list[new_priority]), &(task->task_queue));
    tn_ready_to_run_bmp |= (1 << new_priority);
    _find_next_task_to_run();
 

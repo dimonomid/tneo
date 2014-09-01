@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 struct TN_Fmp {
-   struct TN_QueHead wait_queue;
+   struct TN_ListItem wait_queue;
 
    unsigned int block_size; //-- Actual block size (in bytes)
    int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)

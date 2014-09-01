@@ -15,7 +15,7 @@
 
 struct TN_Task;
 struct TN_Mutex;
-struct TN_QueHead;
+struct TN_ListItem;
 
 
 /*******************************************************************************
@@ -26,7 +26,7 @@ struct TN_QueHead;
 /**
  * Note: this function sleeps if there is at least one element in wait_queue.
  */
-void _tn_wait_queue_notify_deleted(struct TN_QueHead *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
+void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
 
 
 //-- tn_tasks.c
@@ -43,7 +43,7 @@ void  _tn_task_to_runnable    (struct TN_Task *task);
 void  _tn_task_to_non_runnable(struct TN_Task *task);
 
 void _tn_task_curr_to_wait_action(
-      struct TN_QueHead *wait_que,
+      struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
       unsigned long timeout);
 enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);

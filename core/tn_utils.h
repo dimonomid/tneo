@@ -48,9 +48,9 @@ extern "C"  {     /*}*/
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct TN_QueHead {
-   struct TN_QueHead *prev;
-   struct TN_QueHead *next;
+struct TN_ListItem {
+   struct TN_ListItem *prev;
+   struct TN_ListItem *next;
 };
 
 /*******************************************************************************
@@ -65,14 +65,14 @@ struct TN_QueHead {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-void queue_reset(struct TN_QueHead *que);
-int  is_queue_empty(struct TN_QueHead *que);
-void queue_add_head(struct TN_QueHead * que, struct TN_QueHead * entry);
-void queue_add_tail(struct TN_QueHead * que, struct TN_QueHead * entry);
-struct TN_QueHead * queue_remove_head(struct TN_QueHead * que);
-struct TN_QueHead * queue_remove_tail(struct TN_QueHead * que);
-void queue_remove_entry(struct TN_QueHead * entry);
-int  queue_contains_entry(struct TN_QueHead * que, struct TN_QueHead * entry);
+void tn_list_reset(struct TN_ListItem *list);
+int  tn_is_list_empty(struct TN_ListItem *list);
+void tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry);
+void tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry);
+struct TN_ListItem *tn_list_remove_head(struct TN_ListItem *list);
+struct TN_ListItem *tn_list_remove_tail(struct TN_ListItem *list);
+void tn_list_remove_entry(struct TN_ListItem *entry);
+int  tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
 
 #ifdef __cplusplus
 }

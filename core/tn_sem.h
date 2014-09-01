@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 struct TN_Sem {
-   struct TN_QueHead  wait_queue;
+   struct TN_ListItem  wait_queue;
    int count;
    int max_count;
    enum TN_ObjId id_sem;     //-- ID for verification(is it a semaphore or another object?)

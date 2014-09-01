@@ -70,10 +70,10 @@ enum TN_SysState {
  *    GLOBAL VARIABLES
  ******************************************************************************/
 
-extern struct TN_QueHead tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
-extern struct TN_QueHead tn_create_queue;                  //-- all created tasks(now - for statictic only)
+extern struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
+extern struct TN_ListItem tn_create_queue;                  //-- all created tasks(now - for statictic only)
 extern volatile int tn_created_tasks_qty;           //-- num of created tasks
-extern struct TN_QueHead tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
+extern struct TN_ListItem tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
 
 
 extern volatile enum TN_SysState tn_system_state;    //-- System state -(running/not running,etc.)

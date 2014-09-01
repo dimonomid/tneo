@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 struct TN_Event {
-   struct TN_QueHead wait_queue;
+   struct TN_ListItem wait_queue;
    int attr;               //-- Eventflag attribute
    unsigned int pattern;   //-- Initial value of the eventflag bit pattern
    enum TN_ObjId id_event;           //-- ID for verification(is it a event or another object?)
