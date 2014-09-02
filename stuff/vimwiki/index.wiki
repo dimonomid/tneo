@@ -8,8 +8,9 @@
    * [X] rename queue_... functions to list_.. (because it is actually a list, not a queue)
    * [X] rename `tn_list.h` to `tn_list.h` or something like that
    * [X] probably add bool/true/false
+   * [X] Implement a kind of `list_for_each`
    * [ ] clear tn_sys c/h files up
-   * [ ] Implement a kind of `list_for_each`
+   * [ ] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
 
 
 == mods that DO change API ==
@@ -22,10 +23,18 @@
 == modifications of original TNKernel ==
 
    * timer_task removed (huge performance boost: each timer tick time: ~700 ticks -> ~300 ticks)
+   * tn_mutex_lock() behaves just like tn_mutex_lock_polling() if zero timeout was given (instead of returning TERR_WRONG_PARAM)
+   * TN_USE_MUTEXES, TN_USE_EVENTS were checked by #ifdef, now they are checked by #if (actually there was an inconsistency: TN_CHECK_PARAM was always checked by #if)
+
+== bug fixes of original TNKernel ==
+
    * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
-   * optimization in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
+   * fixed minor bug in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
+   * fixed minor bug: when deleting mutex or semaphore, tn_switch_context was called for each non-suspended task that was waiting for that mutex/sepaphore. It's better to just make them runnable one-by-one without calling tn_switch_context after each one, and switch context just once after all (if needed).
+   * fixed bug: if task that waits for mutex was in WAITING_SUSPENDED state, and mutex is deleted, TERR_NO_ERR is returned instead of TERR_DLT.
 
 
+   
 == bad style of original TNKernel ==
    
    * A lot of #if...#endif in the code. examples:

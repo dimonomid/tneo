@@ -223,7 +223,7 @@ enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 {
    TN_INTSAVE_DATA;
 
@@ -240,18 +240,24 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
       return TERR_ILUSE;
    }
 
-   //-- Remove all tasks(if any) from mutex's wait queue
+   tn_disable_interrupt();
 
-   tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
-
+   //-- Remove all tasks (if any) from mutex's wait queue
+   //   NOTE: we might sleep there
    _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
 
    if (mutex->holder != NULL){
       //-- If the mutex is locked
       _tn_mutex_do_unlock(mutex);
+
+      //-- NOTE: redundant reset, because it will anyway
+      //         be reset in tn_mutex_create()
+      //
+      //         Probably we need to remove it.
       tn_list_reset(&(mutex->mutex_queue));
    }
-   mutex->id_mutex = 0; // Mutex not exists now
+
+   mutex->id_mutex = 0; //-- mutex does not exist now
 
    tn_enable_interrupt();
 

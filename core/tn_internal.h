@@ -25,7 +25,8 @@ struct TN_ListItem;
 
 //-- system
 /**
- * Note: this function sleeps if there is at least one element in wait_queue.
+ * Remove all tasks from wait queue, returning the TERR_DLT code.
+ * Note: this function might sleep.
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
 
@@ -44,20 +45,22 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
  * Remove task from wait queue, 
  * and make it runnable (if only it isn't suspended)
  *
- * If task was waiting for mutex, and mutex holder's priority was changed
- * because of that, then change holder's priority back.
- *
- * @return non-zero if task became runnable, zero otherwise.
+ * @return TRUE if tn_next_task_to_run is set to given task
+ *              (that is, context switch is needed)
  */
 BOOL  _tn_task_wait_complete  (struct TN_Task *task);
 
 /**
  * Change task's state to runnable,
  * put it on the 'ready queue' for its priority,
+ *
  * if priority is higher than tn_next_task_to_run's priority,
- * then set tn_next_task_to_run to this task.
+ * then set tn_next_task_to_run to this task and return TRUE,
+ * otherwise return FALSE.
+ *
+ * @return TRUE if given task should run next
  */
-void  _tn_task_to_runnable    (struct TN_Task *task);
+BOOL _tn_task_to_runnable(struct TN_Task *task);
 
 
 /**

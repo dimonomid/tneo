@@ -494,11 +494,46 @@ void tn_sys_time_set(unsigned int value)
  ******************************************************************************/
 
 /**
- * Remove all tasks from wait queue, returning the TERR_DLT code.
- * Note: this function sleeps if there is at least one element in wait_queue.
+ * See comment in the tn_internal.h file
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
 {
+   struct TN_Task *task;         //-- "cursor" for the loop iteration
+   struct TN_Task *tmp_task;     //-- we need for temporary item because
+                                 //   item is removed from the list
+                                 //   in _tn_mutex_do_unlock().
+
+
+   BOOL need_switch_context = FALSE;
+
+   //-- iterate through all tasks in the wait_queue,
+   //   removing each task from wait_queue,
+   //   calling _tn_task_wait_complete() for it,
+   //   and setting TERR_DLT as a wait return code.
+   tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
+      //-- delete from wait queue
+      tn_list_remove_entry(&task->task_queue);
+
+      //-- call _tn_task_wait_complete and remember
+      //   if at least one task requires switching context
+      need_switch_context = _tn_task_wait_complete(task)
+         || need_switch_context;
+
+      task->task_wait_rc = TERR_DLT;
+
+   }
+
+   //-- Now all tasks from the wait_queue were made runnable,
+   //   so if we need to switch context
+   //   (i.e. if some of newly runnable tasks has higher priority),
+   //   then switch context.
+   if (need_switch_context){
+      tn_enable_interrupt();
+      tn_switch_context();
+      tn_disable_interrupt();
+   }
+
+#if 0
    struct TN_ListItem *que;
    struct TN_Task *task;
 
@@ -515,6 +550,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
          tn_disable_interrupt();
       }
    }
+#endif
 }
 
 

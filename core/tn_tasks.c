@@ -96,7 +96,7 @@ static inline void _init_mutex_queue(struct TN_Task *task)
  */
 static inline void _unlock_all_mutexes(struct TN_Task *task)
 {
-   struct TN_Mutex *mutex;       //-- "cursor" for the iteration
+   struct TN_Mutex *mutex;       //-- "cursor" for the loop iteration
    struct TN_Mutex *tmp_mutex;   //-- we need for temporary item because
                                  //   item is removed from the list
                                  //   in _tn_mutex_do_unlock().
@@ -894,7 +894,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 }
 
 /**
- * Set comment in the tn_internal.h file
+ * See comment in the tn_internal.h file
  */
 BOOL _tn_task_wait_complete(struct TN_Task *task)
 {
@@ -916,8 +916,7 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
 
    //-- if task isn't suspended, make it runnable
    if (!(task->task_state & TSK_STATE_SUSPEND)){
-      _tn_task_to_runnable(task);
-      rc = TRUE;
+      rc = _tn_task_to_runnable(task);
    } else {
       //-- remove WAIT state
       task->task_state = TSK_STATE_SUSPEND;
@@ -930,10 +929,11 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
 }
 
 /**
- * Set comment in the tn_internal.h file
+ * See comment in the tn_internal.h file
  */
-void _tn_task_to_runnable(struct TN_Task * task)
+BOOL _tn_task_to_runnable(struct TN_Task * task)
 {
+   BOOL ret = FALSE;
    int priority;
 
    priority          = task->priority;
@@ -946,11 +946,14 @@ void _tn_task_to_runnable(struct TN_Task * task)
    //-- less value - greater priority, so '<' operation is used here
    if (priority < tn_next_task_to_run->priority){
       tn_next_task_to_run = task;
+      ret = TRUE;
    }
+
+   return ret;
 }
 
 /**
- * Set comment in the tn_internal.h file
+ * See comment in the tn_internal.h file
  */
 void _tn_task_to_non_runnable(struct TN_Task *task)
 {
@@ -980,7 +983,7 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
 
 
 /**
- * Set comment in the tn_internal.h file
+ * See comment in the tn_internal.h file
  */
 void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
@@ -1010,7 +1013,7 @@ void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
 }
 
 /**
- * Set comment in the tn_internal.h file
+ * See comment in the tn_internal.h file
  */
 enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_priority)
 {
