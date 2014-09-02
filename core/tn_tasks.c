@@ -84,7 +84,7 @@ static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, in
 
 //-- Private utilities {{{
 
-#ifdef TN_USE_MUTEXES
+#if TN_USE_MUTEXES
 
 static inline void _init_mutex_queue(struct TN_Task *task)
 {
@@ -158,7 +158,7 @@ static void _task_set_dormant_state(struct TN_Task* task)
    task->task_wait_reason = 0;              //-- Reason for waiting
    task->task_wait_rc = TERR_NO_ERR;
 
-#ifdef TN_USE_EVENTS
+#if TN_USE_EVENTS
 
    task->ewait_pattern = 0;                 //-- Event wait pattern
    task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR

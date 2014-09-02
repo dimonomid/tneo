@@ -39,6 +39,8 @@
       * _add_entry_to_ready_queue() / _remove_entry_from_ready_queue()
       * _unlock_all_mutexes()
       * task/interrupt/polling versions of functions were implemented separately, instead of provide some kind of wrapper functions that eventually call real worker function. (in tn_tasks.c: tn_task_release_wait/tn_task_irelease_wait, etc)
+   * inconsistency in several things
+      * TN_CHECK_PARAM was checked by #if,  but TN_USE_MUTEXES, TN_USE_EVENTS were checked by #ifdef
 
 == bad things in TNKernel ==
 

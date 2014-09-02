@@ -122,7 +122,7 @@ static inline void _call_appl_callback(void)
 static void _idle_task_body(void *par)
 {
 
-#ifdef TN_MEAS_PERFORMANCE
+#if TN_MEAS_PERFORMANCE
    TN_INTSAVE_DATA;
 #endif
 
@@ -132,14 +132,14 @@ static void _idle_task_body(void *par)
 
    for(;;)
    {
-#ifdef TN_MEAS_PERFORMANCE
+#if TN_MEAS_PERFORMANCE
       tn_disable_interrupt();
 #endif
 
       idle_user_func_callback();
       tn_idle_count++;
 
-#ifdef TN_MEAS_PERFORMANCE
+#if TN_MEAS_PERFORMANCE
       tn_enable_interrupt();
 #endif
    }

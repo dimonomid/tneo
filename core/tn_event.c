@@ -38,7 +38,7 @@
 //-- header of other needed modules
 #include "tn_tasks.h"
 
-#ifdef  TN_USE_EVENTS
+#if  TN_USE_EVENTS
 
 static BOOL scan_event_waitqueue(struct TN_Event * evf);
 

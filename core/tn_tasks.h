@@ -27,7 +27,7 @@ struct TN_Task {
                                       // that task has been included for waiting (ver 2.x)
    struct TN_ListItem create_queue;   //-- Queue is used to include task in create list only
 
-#ifdef TN_USE_MUTEXES
+#if TN_USE_MUTEXES
 
    struct TN_ListItem mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
 
@@ -49,7 +49,7 @@ struct TN_Task {
    unsigned long tick_count;  //-- Remaining time until timeout
    int  tslice_count;         //-- Time slice counter
 
-#ifdef  TN_USE_EVENTS
+#if  TN_USE_EVENTS
 
    int  ewait_pattern;        //-- Event wait pattern
    int  ewait_mode;           //-- Event wait mode:  _AND or _OR

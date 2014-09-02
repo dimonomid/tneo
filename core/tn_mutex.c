@@ -43,7 +43,7 @@
 #include "tn_tasks.h"
 
 
-#ifdef TN_USE_MUTEXES
+#if TN_USE_MUTEXES
 
 /*******************************************************************************
  *    DEFINITIONS
