@@ -157,16 +157,83 @@ static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned lo
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
 }
 
-/*
- * This is "worker" function that is called by both
- * tn_mutex_lock and tn_mutex_lock_polling.
- *
- * @param mutex - mutex which should be locked
- * @param timeout - timeout after which TERR_TIMEOUT will be returned
- *    without actually locking mutex. If it is 0, and mutex is already locked,
- *    return TERR_TIMEOUT immediately.
- */
-static inline enum TN_Retval __mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
+
+
+
+/*******************************************************************************
+ *    PUBLIC FUNCTIONS
+ ******************************************************************************/
+
+//----------------------------------------------------------------------------
+//  Structure's Field mutex->id_mutex should be set to 0
+//----------------------------------------------------------------------------
+enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
+                    int attribute,
+                    int ceil_priority)
+{
+
+#if TN_CHECK_PARAM
+   if(mutex == NULL)
+      return TERR_WRONG_PARAM;
+   if(mutex->id_mutex != 0) //-- no recreation
+      return TERR_WRONG_PARAM;
+   if(attribute != TN_MUTEX_ATTR_CEILING && attribute != TN_MUTEX_ATTR_INHERIT)
+      return TERR_WRONG_PARAM;
+   if(attribute == TN_MUTEX_ATTR_CEILING &&
+         (ceil_priority < 1 || ceil_priority > TN_NUM_PRIORITY - 2))
+      return TERR_WRONG_PARAM;
+#endif
+
+   tn_list_reset(&(mutex->wait_queue));
+   tn_list_reset(&(mutex->mutex_queue));
+   tn_list_reset(&(mutex->lock_mutex_queue));
+
+   mutex->attr          = attribute;
+   mutex->holder        = NULL;
+   mutex->ceil_priority = ceil_priority;
+   mutex->cnt           = 0;
+   mutex->id_mutex      = TN_ID_MUTEX;
+
+   return TERR_NO_ERR;
+}
+
+//----------------------------------------------------------------------------
+enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
+{
+   TN_INTSAVE_DATA;
+
+#if TN_CHECK_PARAM
+   if(mutex == NULL)
+      return TERR_WRONG_PARAM;
+   if(mutex->id_mutex != TN_ID_MUTEX)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT
+    
+   if(tn_curr_run_task != mutex->holder)
+      return TERR_ILUSE;
+
+   //-- Remove all tasks(if any) from mutex's wait queue
+
+   tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
+
+   _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
+
+   if(mutex->holder != NULL)  //-- If the mutex is locked
+   {
+      _tn_do_unlock_mutex(mutex);
+      tn_list_reset(&(mutex->mutex_queue));
+   }
+   mutex->id_mutex = 0; // Mutex not exists now
+
+   tn_enable_interrupt();
+
+   return TERR_NO_ERR;
+}
+
+//----------------------------------------------------------------------------
+enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
 
@@ -244,104 +311,16 @@ out_ei_switch_context:
    return ret;
 }
 
-
-
-
-/*******************************************************************************
- *    PUBLIC FUNCTIONS
- ******************************************************************************/
-
-//----------------------------------------------------------------------------
-//  Structure's Field mutex->id_mutex should be set to 0
-//----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
-                    int attribute,
-                    int ceil_priority)
-{
-
-#if TN_CHECK_PARAM
-   if(mutex == NULL)
-      return TERR_WRONG_PARAM;
-   if(mutex->id_mutex != 0) //-- no recreation
-      return TERR_WRONG_PARAM;
-   if(attribute != TN_MUTEX_ATTR_CEILING && attribute != TN_MUTEX_ATTR_INHERIT)
-      return TERR_WRONG_PARAM;
-   if(attribute == TN_MUTEX_ATTR_CEILING &&
-         (ceil_priority < 1 || ceil_priority > TN_NUM_PRIORITY - 2))
-      return TERR_WRONG_PARAM;
-#endif
-
-   tn_list_reset(&(mutex->wait_queue));
-   tn_list_reset(&(mutex->mutex_queue));
-   tn_list_reset(&(mutex->lock_mutex_queue));
-
-   mutex->attr          = attribute;
-   mutex->holder        = NULL;
-   mutex->ceil_priority = ceil_priority;
-   mutex->cnt           = 0;
-   mutex->id_mutex      = TN_ID_MUTEX;
-
-   return TERR_NO_ERR;
-}
-
-//----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
-{
-   TN_INTSAVE_DATA;
-
-#if TN_CHECK_PARAM
-   if(mutex == NULL)
-      return TERR_WRONG_PARAM;
-   if(mutex->id_mutex != TN_ID_MUTEX)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-    
-   if(tn_curr_run_task != mutex->holder)
-      return TERR_ILUSE;
-
-   //-- Remove all tasks(if any) from mutex's wait queue
-
-   tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
-
-   _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
-
-   if(mutex->holder != NULL)  //-- If the mutex is locked
-   {
-      _tn_do_unlock_mutex(mutex);
-      tn_list_reset(&(mutex->mutex_queue));
-   }
-   mutex->id_mutex = 0; // Mutex not exists now
-
-   tn_enable_interrupt();
-
-   return TERR_NO_ERR;
-}
-
-//----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout)
-{
-#if 0
-#if TN_CHECK_PARAM
-   if (timeout == 0){
-      return TERR_WRONG_PARAM;
-   }
-#endif
-#endif
-   return __mutex_lock(mutex, timeout);
-}
-
 //----------------------------------------------------------------------------
 //  Try to lock mutex
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_lock_polling(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_lock_polling(struct TN_Mutex *mutex)
 {
-   return __mutex_lock(mutex, 0);
+   return tn_mutex_lock(mutex, 0);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_unlock(struct TN_Mutex * mutex)
+enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
 {
    enum TN_Retval ret = TERR_NO_ERR;
 
