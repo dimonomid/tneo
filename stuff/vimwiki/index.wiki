@@ -26,6 +26,15 @@
    * optimization in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
 
 
+== bad style of original TNKernel ==
+   
+   * A lot of #if...#endif in the code (say, in tn_tasks.c, TN_USE_MUTEXES is checked. Now, _unlock_all_mutexes() was added instead)
+   * types: all tnkernel structures are hidden by typedef. It is not good idea. 
+   * types: typedef name was in CAPS, so, it looks like a macro.
+   * a lot of 'tn_disable_interrupt(); return;' snippets, instead of "one entry, one exit" rule with goto statements.
+   * a lot of code duplication. Same tasks are accomplished just by copy-paste, instead of creating function for that. Examples of what I've added instead:
+      * _add_entry_to_ready_queue() / _remove_entry_from_ready_queue()
+
 == bad things in TNKernel ==
 
    * [ ] Is it really good idea that task does have wakeup_count, so you can call tn_task_wakeup before tn_task_sleep, and on the next tn_task_sleep call task won't go to sleep? It seems just like dirty hack to prevent race conditions. This dirty hack makes programmer able to not provide proper syncronization, this is really bad idea IMO. The same with activate_count and tn_task_terminate().

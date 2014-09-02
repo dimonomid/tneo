@@ -84,6 +84,34 @@ static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, in
 
 //-- Private utilities {{{
 
+#ifdef TN_USE_MUTEXES
+
+static inline void _init_mutex_queue(struct TN_Task *task)
+{
+   tn_list_reset(&(task->mutex_queue));
+}
+
+/**
+ * Unlock all mutexes locked by the task
+ */
+static inline void _unlock_all_mutexes(struct TN_Task *task)
+{
+   struct TN_ListItem  *que;
+   struct TN_Mutex     *mutex;
+
+   while (!tn_is_list_empty(&(task->mutex_queue))){
+      que = tn_list_remove_head(&(task->mutex_queue));
+      mutex = get_mutex_by_mutex_queque(que);
+      _tn_do_unlock_mutex(mutex);
+   }
+}
+
+#else
+#  define   _init_mutex_queue(task)
+#  define   _unlock_all_mutexes(task)
+#endif
+
+
 static void _find_next_task_to_run(void)
 {
    int tmp;
@@ -119,11 +147,7 @@ static void _task_set_dormant_state(struct TN_Task* task)
    tn_list_reset(&(task->task_queue));
    tn_list_reset(&(task->timer_queue));
 
-#ifdef TN_USE_MUTEXES
-
-   tn_list_reset(&(task->mutex_queue));
-
-#endif
+   _init_mutex_queue(task);
 
    task->pwait_queue = NULL;
 
@@ -567,10 +591,6 @@ void tn_task_exit(int attr)
 	 */
    struct  // v.2.7
    {	
-#ifdef TN_USE_MUTEXES
-      struct TN_ListItem * que;
-      struct TN_Mutex * mutex;
-#endif
       struct TN_Task * task;
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
    } data;
@@ -586,14 +606,7 @@ void tn_task_exit(int attr)
    //--------------------------------------------------
 
    //-- Unlock all mutexes locked by the task
-
-#ifdef TN_USE_MUTEXES
-   while (!tn_is_list_empty(&(tn_curr_run_task->mutex_queue))){
-      data.que = tn_list_remove_head(&(tn_curr_run_task->mutex_queue));
-      data.mutex = get_mutex_by_mutex_queque(data.que);
-      _tn_do_unlock_mutex(data.mutex);
-   }
-#endif
+   _unlock_all_mutexes(tn_curr_run_task);
 
    data.task = tn_curr_run_task;
    _tn_task_to_non_runnable(tn_curr_run_task);
@@ -630,14 +643,12 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
    enum TN_Retval rc;
 /* see the structure purpose in tn_task_exit() */
-	 struct // v.2.7
-	 {
-#ifdef TN_USE_MUTEXES
-      struct TN_ListItem * que;
-      struct TN_Mutex * mutex;
-#endif
+#if 0
+   struct // v.2.7
+   {
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
-   }data; 
+   } data; 
+#endif
 	 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -678,14 +689,8 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       }
 
 
-#ifdef TN_USE_MUTEXES
       //-- Unlock all mutexes locked by the task
-      while (!tn_is_list_empty(&(task->mutex_queue))){
-         data.que = tn_list_remove_head(&(task->mutex_queue));
-         data.mutex = get_mutex_by_mutex_queque(data.que);
-         _tn_do_unlock_mutex(data.mutex);
-      }
-#endif
+      _unlock_all_mutexes(task);
 
       _task_set_dormant_state(task);
 			//-- Pointer to task top of the stack when not running
