@@ -251,7 +251,7 @@ static void _timer_task_body(void * par)
 
       _wait_timeout_list_manage();
 
-      task_curr_to_wait_action(NULL,
+      _tn_task_curr_to_wait_action(NULL,
             TSK_WAIT_REASON_SLEEP,
             TN_WAIT_INFINITE);
       tn_enable_interrupt();
@@ -295,17 +295,7 @@ static inline void _timer_task_to_runnable(void)
 static inline void _timer_task_wakeup(void)
 {
    //-- Enable a task with priority 0 - tn_timer_task
-
-   tn_list_remove_entry(&(tn_timer_task.task_queue));
-   tn_timer_task.task_wait_reason = 0;
-   tn_timer_task.task_state       = TSK_STATE_RUNNABLE;
-   tn_timer_task.pwait_queue      = NULL;
-   tn_timer_task.task_wait_rc     = TERR_NO_ERR;
-
-   tn_list_add_tail(&(tn_ready_list[0]), &(tn_timer_task.task_queue));
-   tn_ready_to_run_bmp |= (1 << 0/*priority 0*/);
-
-   tn_next_task_to_run = &tn_timer_task;
+   _tn_task_wait_complete(&tn_timer_task);
 }
 #else
 //-- don't use timer task: just define a couple of stubs
