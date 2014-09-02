@@ -1009,8 +1009,15 @@ void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
    }
 }
 
+/**
+ * Set comment in the tn_internal.h file
+ */
 enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_priority)
 {
+   if (task->task_state != TSK_STATE_RUNNABLE){
+      TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
+   }
+
    //-- remove curr task from any (wait/ready) queue
    _remove_entry_from_ready_queue(&(task->task_queue), task->priority);
 

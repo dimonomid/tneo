@@ -77,13 +77,24 @@ void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
       unsigned long timeout);
+
+/**
+ * When changing priority of the runnable task, this function 
+ * should be called instead of plain assignment.
+ *
+ * For non-runnable tasks, this function should never be called.
+ *
+ * Remove current task from ready queue for its current priority,
+ * change its priority, add to the end of ready queue of new priority,
+ * find next task to run.
+ */
 enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
 
 //-- tn_mutex.h
 
 /**
- *    * Unconditionally lock count to 0. This is needed because mutex
+ *    * Unconditionally set lock count to 0. This is needed because mutex
  *      might be deleted 'unexpectedly' when its holder task is deleted
  *    * Remove given mutex from task's locked mutexes list,
  *    * Set new priority of the task
