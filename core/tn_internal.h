@@ -53,14 +53,6 @@ enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_p
 //-- tn_mutex.h
 
 /**
- * Iterate through all the tasks that wait for lock mutex,
- * checking if task's priority is higher than ref_priority.
- *
- * Max priority (i.e. lowest value) is returned.
- */
-int  _tn_find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority);
-
-/**
  *    * Remove given mutex from task's locked mutexes list,
  *    * Set new priority of the task
  *      (depending on its base_priority and other locked mutexes),

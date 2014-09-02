@@ -78,6 +78,31 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Iterate through all the tasks that wait for lock mutex,
+ * checking if task's priority is higher than ref_priority.
+ *
+ * Max priority (i.e. lowest value) is returned.
+ */
+static int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+{
+   int               priority;
+   struct TN_Task   *task;
+
+   priority = ref_priority;
+
+   //-- Iterate through all the tasks that wait for lock mutex.
+   //   Highest priority (i.e. lowest number) will be returned eventually.
+   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
+      if(task->priority < priority){
+         //--  task priority is higher, remember it
+         priority = task->priority;
+      }
+   }
+
+   return priority;
+}
+
 static inline void _task_set_priority(struct TN_Task *task, int priority)
 {
    //-- transitive priority changing
@@ -383,28 +408,6 @@ out_ei_switch_context:
 /**
  * See comments in tn_internal.h file
  */
-int _tn_find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
-{
-   int               priority;
-   struct TN_Task   *task;
-
-   priority = ref_priority;
-
-   //-- Iterate through all the tasks that wait for lock mutex.
-   //   Highest priority (i.e. lowest number) will be returned eventually.
-   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
-      if(task->priority < priority){
-         //--  task priority is higher, remember it
-         priority = task->priority;
-      }
-   }
-
-   return priority;
-}
-
-/**
- * See comments in tn_internal.h file
- */
 BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
 {
    {
@@ -430,7 +433,7 @@ BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
                   break;
 
                case TN_MUTEX_ATTR_INHERIT:
-                  pr = _tn_find_max_blocked_priority(tmp_mutex, pr);
+                  pr = _find_max_blocked_priority(tmp_mutex, pr);
                   break;
 
                default:
