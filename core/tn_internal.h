@@ -13,10 +13,11 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "tn_port.h"
+
 struct TN_Task;
 struct TN_Mutex;
 struct TN_ListItem;
-
 
 /*******************************************************************************
  *    INTERNAL TNKERNEL FUNCTIONS
@@ -47,10 +48,6 @@ void _tn_task_curr_to_wait_action(
       enum TN_WaitReason wait_reason,
       unsigned long timeout);
 enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
-
-#ifdef TN_USE_MUTEXES
-void _tn_set_current_priority(struct TN_Task *task, int priority);
-#endif
 
 
 //-- tn_mutex.h

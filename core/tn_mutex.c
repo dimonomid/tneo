@@ -78,6 +78,47 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+static inline void _task_set_priority(struct TN_Task *task, int priority)
+{
+   //-- transitive priority changing
+
+   // if we have a task A that is blocked by the task B and we changed priority
+   // of task A,priority of task B also have to be changed. I.e, if we have
+   // the task A that is waiting for the mutex M1 and we changed priority
+   // of this task, a task B that holds a mutex M1 now, also needs priority's
+   // changing.  Then, if a task B now is waiting for the mutex M2, the same
+   // procedure have to be applied to the task C that hold a mutex M2 now
+   // and so on.
+
+
+   if (task->priority <= priority){
+      //-- Task's priority is alreasy higher than given one, so,
+      //   don't do anything
+   } else if (task->task_state == TSK_STATE_RUNNABLE){
+      //-- Task is runnable, so, set new priority to it
+      //   (for runnable tasks, we should use special function for that)
+      _tn_change_running_task_priority(task, priority);
+   } else {
+      //-- Task is not runnable, so, just set new priority to it
+      task->priority = priority;
+
+      //-- and check if the task is waiting for mutex
+      if (     (task->task_state & TSK_STATE_WAIT)
+            && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+         )
+      {
+         //-- Task is waiting for another mutex. In this case, 
+         //   call this function again, recursively,
+         //   for mutex's holder
+         _task_set_priority(
+               get_mutex_by_wait_queque(task->pwait_queue)->holder,
+               priority
+               );
+      }
+   }
+
+}
+
 static inline void __mutex_do_lock(struct TN_Mutex *mutex)
 {
    mutex->holder = tn_curr_run_task;
@@ -104,7 +145,7 @@ static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned lo
 
       //-- if run_task curr priority higher holder's curr priority
       if (tn_curr_run_task->priority < mutex->holder->priority){
-         _tn_set_current_priority(mutex->holder, tn_curr_run_task->priority);
+         _task_set_priority(mutex->holder, tn_curr_run_task->priority);
       }
 
       wait_reason = TSK_WAIT_REASON_MUTEX_I;
