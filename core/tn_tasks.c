@@ -99,12 +99,12 @@ static inline void _unlock_all_mutexes(struct TN_Task *task)
    struct TN_Mutex *mutex;       //-- "cursor" for the iteration
    struct TN_Mutex *tmp_mutex;   //-- we need for temporary item because
                                  //   item is removed from the list
-                                 //   in _tn_do_unlock_mutex().
+                                 //   in _tn_mutex_do_unlock().
 
    tn_list_for_each_entry_safe(mutex, tmp_mutex, &(task->mutex_queue), mutex_queue){
       //-- NOTE: we don't remove item from the list, because it is removed
-      //   inside _tn_do_unlock_mutex().
-      _tn_do_unlock_mutex(mutex);
+      //   inside _tn_mutex_do_unlock().
+      _tn_mutex_do_unlock(mutex);
    }
 }
 
@@ -894,16 +894,9 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 }
 
 /**
- * Should be called when task finishes waiting for anything.
- * Remove task from wait queue, 
- * and make it runnable (if only it isn't suspended)
- *
- * If task was waiting for mutex, and mutex holder's priority was changed
- * because of that, then change holder's priority back.
- *
- * @return non-zero if task became runnable, zero otherwise.
+ * Set comment in the tn_internal.h file
  */
-BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
+BOOL _tn_task_wait_complete(struct TN_Task *task)
 {
    BOOL rc = FALSE;
 
@@ -937,10 +930,7 @@ BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 }
 
 /**
- * Change task's state to runnable,
- * put it on the 'ready queue' for its priority,
- * if priority is higher than tn_next_task_to_run's priority,
- * then set tn_next_task_to_run to this task.
+ * Set comment in the tn_internal.h file
  */
 void _tn_task_to_runnable(struct TN_Task * task)
 {
@@ -953,17 +943,14 @@ void _tn_task_to_runnable(struct TN_Task * task)
    //-- Add the task to the end of 'ready queue' for the current priority
    _add_entry_to_ready_queue(&(task->task_queue), priority);
 
-
    //-- less value - greater priority, so '<' operation is used here
-
    if (priority < tn_next_task_to_run->priority){
       tn_next_task_to_run = task;
    }
 }
 
 /**
- * Remove task from 'ready queue', determine and set
- * new tn_next_task_to_run.
+ * Set comment in the tn_internal.h file
  */
 void _tn_task_to_non_runnable(struct TN_Task *task)
 {
@@ -993,11 +980,7 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
 
 
 /**
- * calls _tn_task_to_non_runnable() for current task, i.e. tn_curr_run_task
- * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
- *
- * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
- * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
+ * Set comment in the tn_internal.h file
  */
 void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,

@@ -144,7 +144,7 @@ static inline void _task_set_priority(struct TN_Task *task, int priority)
 
 }
 
-static inline void __mutex_do_lock(struct TN_Mutex *mutex)
+static inline void _mutex_do_lock(struct TN_Mutex *mutex)
 {
    mutex->holder = tn_curr_run_task;
    __mutex_lock_cnt_change(mutex, 1);
@@ -161,7 +161,7 @@ static inline void __mutex_do_lock(struct TN_Mutex *mutex)
    }
 }
 
-static inline void __mutex_add_to_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
+static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
 {
    enum TN_WaitReason wait_reason;
 
@@ -234,10 +234,11 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
-    
-   if(tn_curr_run_task != mutex->holder)
+   TN_CHECK_NON_INT_CONTEXT;
+
+   if (tn_curr_run_task != mutex->holder){
       return TERR_ILUSE;
+   }
 
    //-- Remove all tasks(if any) from mutex's wait queue
 
@@ -245,9 +246,9 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex * mutex)
 
    _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
 
-   if(mutex->holder != NULL)  //-- If the mutex is locked
-   {
-      _tn_do_unlock_mutex(mutex);
+   if (mutex->holder != NULL){
+      //-- If the mutex is locked
+      _tn_mutex_do_unlock(mutex);
       tn_list_reset(&(mutex->mutex_queue));
    }
    mutex->id_mutex = 0; // Mutex not exists now
@@ -300,7 +301,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 
    if (mutex->holder == NULL){
       //-- mutex is not locked, let's lock it
-      __mutex_do_lock(mutex);
+      _mutex_do_lock(mutex);
       goto out_ei;
    } else {
       //-- mutex is already locked
@@ -310,7 +311,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
          goto out_ei;
       } else {
          //-- timeout specified, so, wait until mutex is free or timeout expired
-         __mutex_add_to_wait_queue(mutex, timeout);
+         _add_curr_task_to_mutex_wait_queue(mutex, timeout);
 
          //-- ret will be set later to tn_curr_run_task->task_wait_rc;
          goto out_ei_switch_context;
@@ -380,7 +381,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
       goto out_ei;
    } else {
       //-- lock counter is 0, so, unlock mutex
-      _tn_do_unlock_mutex(mutex);
+      _tn_mutex_do_unlock(mutex);
       goto out_ei_switch_context;
    }
 
@@ -408,7 +409,7 @@ out_ei_switch_context:
 /**
  * See comments in tn_internal.h file
  */
-BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
+BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
 {
    //-- explicitly reset lock count to 0, because it might be not zero
    //   if mutex is unlocked because task is being deleted.
