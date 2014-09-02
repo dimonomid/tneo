@@ -236,7 +236,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   if (tn_curr_run_task != mutex->holder){
+   if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
       return TERR_ILUSE;
    }
 
