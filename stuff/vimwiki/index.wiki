@@ -19,6 +19,11 @@
    * [ ] Should we maintain wakeup_count, activate_count?
 
 
+== modifications of original TNKernel ==
+
+   * timer_task removed (huge performance boost: each timer tick time: ~700 ticks -> ~300 ticks)
+   * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
+   * _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
 
 
 == bad things in TNKernel ==

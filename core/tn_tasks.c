@@ -870,31 +870,11 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
  */
 BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
 {
-#ifdef TN_USE_MUTEXES
-   int         fmutex;
-   struct TN_ListItem *t_que;
-#endif
-
    BOOL rc = FALSE;
 
    if (task == NULL){
       return FALSE;
    }
-
-#ifdef TN_USE_MUTEXES
-
-   t_que = NULL;
-   if (     task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I
-         || task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C
-      )
-   {
-      fmutex = TRUE;
-      t_que = task->pwait_queue;
-   } else {
-      fmutex = FALSE;
-   }
-
-#endif
 
    task->pwait_queue  = NULL;
    task->task_wait_rc = TERR_NO_ERR;
@@ -914,41 +894,6 @@ BOOL _tn_task_wait_complete(struct TN_Task *task) //-- v. 2.6
       //-- remove WAIT state
       task->task_state = TSK_STATE_SUSPEND;
    }
-
-
-#ifdef TN_USE_MUTEXES
-
-   if (fmutex){
-      int         curr_priority;
-      struct TN_Task     *mt_holder_task;
-      struct TN_Mutex   *mutex;
-
-      mutex = get_mutex_by_wait_queque(t_que);
-
-      mt_holder_task = mutex->holder;
-      if (mt_holder_task != NULL){
-         //-- if task was blocked by another task (that held mutex)
-         //   and its priority was changed, recalculate current priority
-
-         if (     mt_holder_task->priority != mt_holder_task->base_priority
-               && mt_holder_task->priority == task->priority
-            )
-         {
-            curr_priority = _tn_find_max_blocked_priority(mutex,
-                  mt_holder_task->base_priority);
-
-            _tn_set_current_priority(mt_holder_task, curr_priority);
-
-            //DFRANK_TODO: do we really need "rc = TRUE" here??
-            // It seems, this function should return TRUE if task became runnable,
-            // but mutex stuff seems unrelated here.
-            // So I've commented it out, for now.
-            //rc = TRUE;
-         }
-      }
-   }
-
-#endif
 
    //-- Clear wait reason
    task->task_wait_reason = TSK_WAIT_REASON_NONE;
