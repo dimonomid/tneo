@@ -96,12 +96,14 @@ static inline void _init_mutex_queue(struct TN_Task *task)
  */
 static inline void _unlock_all_mutexes(struct TN_Task *task)
 {
-   struct TN_ListItem  *que;
-   struct TN_Mutex     *mutex;
+   struct TN_Mutex *mutex;       //-- "cursor" for the iteration
+   struct TN_Mutex *tmp_mutex;   //-- we need for temporary item because
+                                 //   item is removed from the list
+                                 //   in _tn_do_unlock_mutex().
 
-   while (!tn_is_list_empty(&(task->mutex_queue))){
-      que = tn_list_remove_head(&(task->mutex_queue));
-      mutex = get_mutex_by_mutex_queque(que);
+   tn_list_for_each_entry_safe(mutex, tmp_mutex, &(task->mutex_queue), mutex_queue){
+      //-- NOTE: we don't remove item from the list, because it is removed
+      //   inside _tn_do_unlock_mutex().
       _tn_do_unlock_mutex(mutex);
    }
 }

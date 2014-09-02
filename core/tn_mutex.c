@@ -410,6 +410,10 @@ out_ei_switch_context:
  */
 BOOL _tn_do_unlock_mutex(struct TN_Mutex * mutex)
 {
+   //-- explicitly reset lock count to 0, because it might be not zero
+   //   if mutex is unlocked because task is being deleted.
+   mutex->cnt = 0;
+
    {
       int pr;
 
