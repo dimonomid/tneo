@@ -29,6 +29,7 @@
 == bug fixes of original TNKernel ==
 
    * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
+   * fixed bug in tn_mutex_delete() : mutex->holder was checked agains tn_curr_run_task without disabling interrupts
    * fixed bug in tn_mutex_delete() : if mutex is not locked, TERR_ILUSE is returned.
    * fixed minor bug in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
    * fixed minor bug: when deleting mutex or semaphore, tn_switch_context was called for each non-suspended task that was waiting for that mutex/sepaphore. It's better to just make them runnable one-by-one without calling tn_switch_context after each one, and switch context just once after all (if needed).

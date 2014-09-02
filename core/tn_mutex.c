@@ -236,11 +236,12 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    TN_CHECK_NON_INT_CONTEXT;
 
+   tn_disable_interrupt();
+
+   //-- mutex can be deleted if only it isn't held 
    if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
       return TERR_ILUSE;
    }
-
-   tn_disable_interrupt();
 
    //-- Remove all tasks (if any) from mutex's wait queue
    //   NOTE: we might sleep there
@@ -374,7 +375,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
    tn_disable_interrupt();
 
    //-- unlocking is enabled only for the owner and already locked mutex
-   if(tn_curr_run_task != mutex->holder){
+   if (tn_curr_run_task != mutex->holder){
       ret = TERR_ILUSE;
       goto out_ei;
    }
