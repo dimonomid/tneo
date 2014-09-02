@@ -284,6 +284,34 @@ static inline enum TN_Retval _task_job_iperform(
    return rc;
 }
 
+/**
+ * Returns TRUE if there are no more items in the runqueue for given priority,
+ *         FALSE otherwise.
+ */
+static inline BOOL _remove_entry_from_ready_queue(struct TN_ListItem *list_node, int priority)
+{
+   BOOL ret;
+
+   //-- remove given list_node from the queue
+   tn_list_remove_entry(list_node);
+
+   //-- check if the queue for given priority is empty now
+   ret = tn_is_list_empty(&(tn_ready_list[priority]));
+
+   if (ret){
+      //-- list is empty, so, modify bitmask tn_ready_to_run_bmp
+      tn_ready_to_run_bmp &= ~(1 << priority);
+   }
+
+   return ret;
+}
+
+static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int priority)
+{
+   tn_list_add_tail(&(tn_ready_list[priority]), list_node);
+   tn_ready_to_run_bmp |= (1 << priority);
+}
+
 // }}}
 
 /*******************************************************************************
@@ -916,9 +944,8 @@ void _tn_task_to_runnable(struct TN_Task * task)
    task->pwait_queue = NULL;
 
    //-- Add the task to the end of 'ready queue' for the current priority
+   _add_entry_to_ready_queue(&(task->task_queue), priority);
 
-   tn_list_add_tail(&(tn_ready_list[priority]), &(task->task_queue));
-   tn_ready_to_run_bmp |= (1 << priority);
 
    //-- less value - greater priority, so '<' operation is used here
 
@@ -934,22 +961,11 @@ void _tn_task_to_runnable(struct TN_Task * task)
 void _tn_task_to_non_runnable(struct TN_Task *task)
 {
    int priority;
-   struct TN_ListItem *que;
-
    priority = task->priority;
-   que = &(tn_ready_list[priority]);
 
    //-- remove the curr task from any queue (now - from ready queue)
-   tn_list_remove_entry(&(task->task_queue));
-
-   //-- and reset task's queue
-   tn_list_reset(&(task->task_queue));
-
-   if (tn_is_list_empty(que)){
+   if (_remove_entry_from_ready_queue(&(task->task_queue), priority)){
       //-- No ready tasks for the curr priority
-      //-- remove 'ready to run' from the curr priority
-
-      tn_ready_to_run_bmp &= ~(1 << priority);
 
       //-- Find highest priority ready to run -
       //-- at least, MSB bit must be set for the idle task
@@ -958,9 +974,13 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
    } else {
       //-- There are 'ready to run' task(s) for the curr priority
       if (tn_next_task_to_run == task){
-         tn_next_task_to_run = get_task_by_tsk_queue(que->next);
+         tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
       }
    }
+
+   //-- and reset task's queue
+   tn_list_reset(&(task->task_queue));
+
 }
 
 
@@ -1001,27 +1021,14 @@ void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
 
 enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_priority)
 {
-   int old_priority;
-
-   old_priority = task->priority;
-
    //-- remove curr task from any (wait/ready) queue
-
-   tn_list_remove_entry(&(task->task_queue));
-
-   //-- If there are no ready tasks for the old priority
-   //-- clear ready bit for old priority
-
-   if (tn_is_list_empty(&(tn_ready_list[old_priority]))){
-      tn_ready_to_run_bmp &= ~(1 << old_priority);
-   }
+   _remove_entry_from_ready_queue(&(task->task_queue), task->priority);
 
    task->priority = new_priority;
 
    //-- Add task to the end of ready queue for current priority
+   _add_entry_to_ready_queue(&(task->task_queue), new_priority);
 
-   tn_list_add_tail(&(tn_ready_list[new_priority]), &(task->task_queue));
-   tn_ready_to_run_bmp |= (1 << new_priority);
    _find_next_task_to_run();
 
    return TRUE;
