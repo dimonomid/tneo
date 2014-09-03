@@ -1034,3 +1034,21 @@ enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_p
    return TRUE;
 }
 
+/**
+ * See comment in the tn_internal.h file
+ */
+BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
+{
+   BOOL ret = FALSE;
+
+   struct TN_Mutex *tmp_mutex;
+   tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
+      if (tmp_mutex == mutex){
+         ret = TRUE;
+         break;
+      }
+   }
+
+   return ret;
+}
+

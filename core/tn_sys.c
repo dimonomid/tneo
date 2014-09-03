@@ -46,6 +46,9 @@
 
 
 
+
+
+
 /*******************************************************************************
  *    PUBLIC DATA
  ******************************************************************************/
@@ -85,10 +88,17 @@ struct TN_Task  tn_timer_task;
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
 
-void (*appl_init_callback)(void);               /* Pointer to user callback app init function */
-void (*idle_user_func_callback)(void);          /* Pointer to user idle loop function         */
+/* Pointer to user callback app init function */
+TNApplInitCallback appl_init_callback = NULL;
 
+/* Pointer to user idle loop function         */
+TNIdleCallback idle_user_func_callback = NULL;
 
+/*
+ * User-provided callback function that is called whenever 
+ * event occurs (say, deadlock becomes active or inactive)
+ */
+TNEventCallback   tn_event_callback = NULL;
 
 
 
@@ -325,8 +335,8 @@ void tn_start_system(
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
       unsigned int   int_stack_size,         //-- size of interrupt stack
-      void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
-      void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
+      TNApplInitCallback app_in_cb,          //-- callback function used for setup user tasks etc.
+      TNIdleCallback idle_user_cb            //-- callback function repeatedly called from idle task
       )
 {
    int i;
@@ -488,6 +498,22 @@ void tn_sys_time_set(unsigned int value)
 
 }
 
+/**
+ * Returns current state flags (tn_sys_state)
+ */
+enum TN_StateFlag tn_sys_state_flags_get(void)
+{
+   return tn_sys_state;
+}
+
+/**
+ * See comment in tn_sys.h file
+ */
+void tn_event_callback_set(TNEventCallback cb)
+{
+   tn_event_callback = cb;
+}
+
 
 /*******************************************************************************
  *    INTERNAL TNKERNEL FUNCTIONS
@@ -551,6 +577,44 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
       }
    }
 #endif
+}
+
+/**
+ * Set flags by bitmask.
+ * Given flags value will be OR-ed with existing flags.
+ *
+ * @return previous tn_sys_state value.
+ */
+enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
+{
+   enum TN_StateFlag ret = tn_sys_state;
+   tn_sys_state |= flags;
+   _tn_event_callback_call(flags, TRUE);
+   return ret;
+}
+
+/**
+ * Clear flags by bitmask
+ * Given flags value will be inverted and AND-ed with existing flags.
+ *
+ * @return previous tn_sys_state value.
+ */
+enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
+{
+   enum TN_StateFlag ret = tn_sys_state;
+   tn_sys_state &= ~flags;
+   _tn_event_callback_call(flags, FALSE);
+   return ret;
+}
+
+/**
+ * See comment in tn_internal.h file
+ */
+void _tn_event_callback_call(enum TN_StateFlag flags, BOOL set)
+{
+   if (tn_event_callback != NULL){
+      tn_event_callback(flags, set);
+   }
 }
 
 

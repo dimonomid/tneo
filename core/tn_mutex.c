@@ -161,6 +161,44 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex)
    }
 }
 
+/**
+ * Should be called whenever task wanted to lock mutex, but it is already 
+ * locked, so, task was just added to mutex's wait_queue.
+ *
+ * Checks for deadlock; if it is detected, flag TN_STATE_FLAG__DEADLOCK is set.
+ */
+static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task)
+{
+   struct TN_Task *holder = mutex->holder;
+   if (     (holder->task_state & TSK_STATE_WAIT)
+         && (
+               (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+            || (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
+            )
+      )
+   {
+      //-- holder is waiting for another mutex (mutex2). In this case, 
+      //   check against task's locked mutexes list; if mutex2 is
+      //   there - deadlock.
+      //
+      //   Otherwise, get holder of mutex2 and call this function
+      //   again, recursively.
+
+      struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
+      if (_tn_is_mutex_locked_by_task(task, mutex2)){
+         //-- deadlock: set flag
+         //   (user will be notified if he has set tn_event_callback)
+         _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
+      } else {
+         //-- call this function again, recursively
+         _check_deadlock(mutex2, task);
+      }
+
+   } else {
+      //-- no deadlock: holder of given mutex isn't waiting for another mutex
+   }
+}
+
 static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
 {
    enum TN_WaitReason wait_reason;
@@ -180,6 +218,9 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
    }
 
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
+
+   //-- check if there is deadlock
+   _check_deadlock(mutex, tn_curr_run_task);
 }
 
 

@@ -61,7 +61,20 @@ struct TN_Task;
 
 enum TN_StateFlag {
    TN_STATE_FLAG__SYS_RUNNING    = (1 << 0), //-- system is running
+   TN_STATE_FLAG__DEADLOCK       = (1 << 1), //-- deadlock is active
 };
+
+typedef void (*TNApplInitCallback)(void);
+typedef void (*TNIdleCallback)(void);
+
+/**
+ * User-provided callback function that is called whenever 
+ * event occurs (say, deadlock becomes active or inactive)
+ *
+ * @param flag    flag(s) that are just set or cleared
+ * @param set     if TRUE, flag are set, otherwise they are cleared
+ */
+typedef void (*TNEventCallback)(enum TN_StateFlag flag, BOOL set);
 
 
 
@@ -115,6 +128,20 @@ void tn_tick_int_processing(void);
 enum TN_Retval tn_sys_tslice_ticks(int priority, int value);
 unsigned int tn_sys_time_get(void);
 void tn_sys_time_set(unsigned int value);
+
+
+/**
+ * Set callback function that should be called whenever
+ * event occurs (say, deadlock becomes active or inactive)
+ *
+ * @see TNEventCallback for callback function prototype
+ */
+void tn_event_callback_set(TNEventCallback cb);
+
+/**
+ * Returns current state flags
+ */
+enum TN_StateFlag tn_sys_state_flags_get(void);
 
 
 #ifdef __cplusplus

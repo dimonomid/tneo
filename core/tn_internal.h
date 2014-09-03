@@ -31,7 +31,33 @@ struct TN_ListItem;
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
 
 
+/**
+ * Set flags by bitmask.
+ * Given flags value will be OR-ed with existing flags.
+ *
+ * @return previous tn_sys_state value.
+ */
+enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
+
+/**
+ * Clear flags by bitmask
+ * Given flags value will be inverted and AND-ed with existing flags.
+ *
+ * @return previous tn_sys_state value.
+ */
+enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
+
+/**
+ * If user-callback function for events is set, call it;
+ * otherwise do nothing
+ */
+void _tn_event_callback_call(enum TN_StateFlag flags, BOOL set);
+
+
+
+
 //-- tn_tasks.c
+
 enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task TCB
       void (*task_func)(void *param),  //-- task function
       int priority,                    //-- task priority
@@ -93,6 +119,12 @@ void _tn_task_curr_to_wait_action(
  */
 enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
+/**
+ * Check if mutex is locked by task.
+ *
+ * @return TRUE if mutex is locked, FALSE otherwise.
+ */
+BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
 
 //-- tn_mutex.h
 
