@@ -21,8 +21,12 @@
 struct TN_Mutex {
    struct TN_ListItem wait_queue;        //-- List of tasks that wait a mutex
    struct TN_ListItem mutex_queue;       //-- To include in task's locked mutexes list (if any)
-   struct TN_ListItem lock_mutex_queue;  //-- To include in system's locked mutexes list
-                                         //   TODO: it's actually unused.
+#if TN_MUTEX_DEADLOCK_DETECT
+   struct TN_ListItem deadlock_list;     //-- List of other mutexes involved in
+                                         //   deadlock  (if no deadlock,
+                                         //   this list is empty)
+#endif
+
    int attr;                     //-- Mutex creation attr - CEILING or INHERIT
 
    struct TN_Task *holder;       //-- Current mutex owner(task that locked mutex)

@@ -613,6 +613,10 @@ void tn_task_exit(int attr)
    data.task = tn_curr_run_task;
    _tn_task_to_non_runnable(tn_curr_run_task);
 
+   //TODO:?
+   //tn_list_remove_entry(&(task->task_queue));
+   //tn_list_remove_entry(&(task->timer_queue));
+
    _task_set_dormant_state(data.task);
 
 	 //-- Pointer to task top of stack, when not running
@@ -1015,7 +1019,24 @@ void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
 /**
  * See comment in the tn_internal.h file
  */
-enum TN_Retval _tn_change_running_task_priority(struct TN_Task * task, int new_priority)
+BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
+{
+   BOOL ret;
+
+   if (task->task_state == TSK_STATE_RUNNABLE){
+      ret = _tn_change_running_task_priority(task, new_priority);
+   } else {
+      task->priority = new_priority;
+      ret = TRUE;
+   }
+
+   return ret;
+}
+
+/**
+ * See comment in the tn_internal.h file
+ */
+BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
    if (task->task_state != TSK_STATE_RUNNABLE){
       TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");

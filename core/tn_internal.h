@@ -108,6 +108,11 @@ void _tn_task_curr_to_wait_action(
       unsigned long timeout);
 
 /**
+ * Change priority of any task (runnable or non-runnable)
+ */
+BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority);
+
+/**
  * When changing priority of the runnable task, this function 
  * should be called instead of plain assignment.
  *
@@ -117,7 +122,7 @@ void _tn_task_curr_to_wait_action(
  * change its priority, add to the end of ready queue of new priority,
  * find next task to run.
  */
-enum TN_Retval  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
+BOOL  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
 /**
  * Check if mutex is locked by task.
@@ -138,7 +143,9 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  *      otherwise grab first task from the mutex's wait_queue
  *      and lock mutex by this task.
  *
- * Currently it always returns TRUE.
+ * @returns TRUE if context switch is needed
+ *          (that is, if there is some other task that waited for mutex,
+ *          and this task has highest priority now)
  */
 BOOL _tn_mutex_do_unlock(struct TN_Mutex *mutex);
 

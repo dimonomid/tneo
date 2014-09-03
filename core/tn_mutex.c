@@ -144,23 +144,24 @@ static inline void _task_set_priority(struct TN_Task *task, int priority)
 
 }
 
-static inline void _mutex_do_lock(struct TN_Mutex *mutex)
+static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
 {
-   mutex->holder = tn_curr_run_task;
+   mutex->holder = task;
    __mutex_lock_cnt_change(mutex, 1);
 
    //-- Add mutex to task's locked mutexes queue
-   tn_list_add_tail(&(tn_curr_run_task->mutex_queue), &(mutex->mutex_queue));
+   tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
    if (mutex->attr == TN_MUTEX_ATTR_CEILING){
       //-- Ceiling protocol
 
-      if(tn_curr_run_task->priority > mutex->ceil_priority){
-         _tn_change_running_task_priority(tn_curr_run_task, mutex->ceil_priority);
+      if(task->priority > mutex->ceil_priority){
+         _tn_change_task_priority(task, mutex->ceil_priority);
       }
    }
 }
 
+#if TN_MUTEX_DEADLOCK_DETECT
 /**
  * Should be called whenever task wanted to lock mutex, but it is already 
  * locked, so, task was just added to mutex's wait_queue.
@@ -198,6 +199,9 @@ static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task)
       //-- no deadlock: holder of given mutex isn't waiting for another mutex
    }
 }
+#else
+static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task) {}
+#endif
 
 static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
 {
@@ -252,7 +256,9 @@ enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
 
    tn_list_reset(&(mutex->wait_queue));
    tn_list_reset(&(mutex->mutex_queue));
-   tn_list_reset(&(mutex->lock_mutex_queue));
+#if TN_MUTEX_DEADLOCK_DETECT
+   tn_list_reset(&(mutex->deadlock_list));
+#endif
 
    mutex->attr          = attribute;
    mutex->holder        = NULL;
@@ -349,7 +355,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 
    if (mutex->holder == NULL){
       //-- mutex is not locked, let's lock it
-      _mutex_do_lock(mutex);
+      _mutex_do_lock(mutex, tn_curr_run_task);
       goto out_ei;
    } else {
       //-- mutex is already locked
@@ -427,10 +433,17 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
       //-- there was recursive lock, so here we just decremented counter, 
       //   but don't unlock the mutex. TERR_NO_ERR will be returned.
       goto out_ei;
+   } else if (mutex->cnt < 0){
+      //-- should never be here: lock count is negative.
+      //   bug in RTOS.
+      TN_FATAL_ERROR();
    } else {
       //-- lock counter is 0, so, unlock mutex
-      _tn_mutex_do_unlock(mutex);
-      goto out_ei_switch_context;
+      if (_tn_mutex_do_unlock(mutex)){
+         goto out_ei_switch_context;
+      } else {
+         goto out_ei;
+      }
    }
 
 out:
@@ -459,6 +472,8 @@ out_ei_switch_context:
  */
 BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
 {
+   BOOL ret = FALSE;
+
    //-- explicitly reset lock count to 0, because it might be not zero
    //   if mutex is unlocked because task is being deleted.
    mutex->cnt = 0;
@@ -515,9 +530,17 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
 
       struct TN_Task *task;
 
+
       //-- remove task from mutex's wait_queue
       task = tn_list_first_entry_remove(&(mutex->wait_queue), typeof(*task), task_queue);
 
+      _mutex_do_lock(mutex, task);
+
+      //-- wakeup task
+      ret = _tn_task_wait_complete(task);
+
+
+#if 0
       //-- set it as mutex holder
       mutex->holder = task;
 
@@ -529,9 +552,10 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
 
       _tn_task_wait_complete(task);
       tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
+#endif
    }
 
-   return TRUE;
+   return ret;
 }
 
 

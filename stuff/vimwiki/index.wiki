@@ -25,6 +25,7 @@
    * timer_task removed (huge performance boost: each timer tick time: ~700 ticks -> ~300 ticks)
    * tn_mutex_lock() behaves just like tn_mutex_lock_polling() if zero timeout was given (instead of returning TERR_WRONG_PARAM)
    * TN_USE_MUTEXES, TN_USE_EVENTS were checked by #ifdef, now they are checked by #if (actually there was an inconsistency: TN_CHECK_PARAM was always checked by #if)
+   * implemented deadlock detection (optionally)
 
 == bug fixes of original TNKernel ==
 

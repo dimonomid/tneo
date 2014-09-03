@@ -66,6 +66,14 @@
 #endif
 
 /*
+ * Whether RTOS should detect deadlocks and notify user about them
+ * via callback (see tn_event_callback_set() function)
+ */
+#ifndef TN_MUTEX_DEADLOCK_DETECT
+#  define TN_MUTEX_DEADLOCK_DETECT  1
+#endif
+
+/*
  * Whether events API should be available
  */
 #ifndef TN_USE_EVENTS

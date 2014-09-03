@@ -30,6 +30,11 @@ struct TN_Task {
 #if TN_USE_MUTEXES
 
    struct TN_ListItem mutex_queue;    //-- List of all mutexes that tack locked  (ver 2.x)
+#if TN_MUTEX_DEADLOCK_DETECT
+   struct TN_ListItem deadlock_list;  //-- List of other tasks involved in
+                                      //   deadlock  (if no deadlock,
+                                      //   this list is empty)
+#endif
 
 #endif
 

@@ -132,7 +132,9 @@ void tn_sys_time_set(unsigned int value);
 
 /**
  * Set callback function that should be called whenever
- * event occurs (say, deadlock becomes active or inactive)
+ * event occurs (say, deadlock becomes active or inactive).
+ *
+ * Should be called before tn_start_system()
  *
  * @see TNEventCallback for callback function prototype
  */
