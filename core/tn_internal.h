@@ -67,6 +67,11 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
       int option);                     //-- Creation option
 
 /**
+ * Remove task from wait queue and call _tn_task_wait_complete() for it
+ */
+BOOL _tn_task_remove_from_wait_queue_and_wake_up(struct TN_Task *task);
+
+/**
  * Should be called when task finishes waiting for anything.
  * Remove task from wait queue, 
  * and make it runnable (if only it isn't suspended)

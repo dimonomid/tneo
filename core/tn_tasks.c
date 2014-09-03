@@ -897,6 +897,17 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    return rc;
 }
 
+BOOL _tn_task_remove_from_wait_queue_and_wake_up(struct TN_Task *task)
+{
+   BOOL ret = FALSE;
+   tn_list_remove_entry(&task->task_queue);
+   ret = _tn_task_wait_complete(task);
+   //TODO: handle previous wait_reason: say, for MUTEX_I, we should
+   //      handle priorities of other involved tasks
+
+   return ret;
+}
+
 /**
  * See comment in the tn_internal.h file
  */

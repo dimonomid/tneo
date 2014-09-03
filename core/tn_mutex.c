@@ -530,15 +530,14 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
 
       struct TN_Task *task;
 
-
-      //-- remove task from mutex's wait_queue
-      task = tn_list_first_entry_remove(&(mutex->wait_queue), typeof(*task), task_queue);
+      //-- get first task from mutex's wait_queue
+      task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
 
       //-- lock mutex by it
       _mutex_do_lock(mutex, task);
 
       //-- wake it up
-      ret = _tn_task_wait_complete(task);
+      ret = _tn_task_remove_from_wait_queue_and_wake_up(task);
    }
 
    return ret;
