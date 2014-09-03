@@ -902,9 +902,6 @@ BOOL _tn_task_remove_from_wait_queue_and_wake_up(struct TN_Task *task)
    BOOL ret = FALSE;
    tn_list_remove_entry(&task->task_queue);
    ret = _tn_task_wait_complete(task);
-   //TODO: handle previous wait_reason: say, for MUTEX_I, we should
-   //      handle priorities of other involved tasks
-
    return ret;
 }
 
@@ -917,6 +914,22 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
 
    if (task == NULL){
       return FALSE;
+   }
+
+   //-- handle current wait_reason: say, for MUTEX_I, we should
+   //   handle priorities of other involved tasks
+   //      
+   //   TODO: probably set function pointer when putting 
+   //         task to sleep, and just call it here if not NULL,
+   //         instead of switch+case?
+   switch (task->task_wait_reason){
+      case TSK_WAIT_REASON_MUTEX_I:
+         //TODO: call some special routine from tn_mutex
+         break;
+
+      default:
+         //-- do nothing
+         break;
    }
 
    task->pwait_queue  = NULL;
