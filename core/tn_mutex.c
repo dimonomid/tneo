@@ -534,25 +534,11 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
       //-- remove task from mutex's wait_queue
       task = tn_list_first_entry_remove(&(mutex->wait_queue), typeof(*task), task_queue);
 
+      //-- lock mutex by it
       _mutex_do_lock(mutex, task);
 
-      //-- wakeup task
+      //-- wake it up
       ret = _tn_task_wait_complete(task);
-
-
-#if 0
-      //-- set it as mutex holder
-      mutex->holder = task;
-
-      if (     mutex->attr == TN_MUTEX_ATTR_CEILING
-            && task->priority > mutex->ceil_priority){
-         //-- we need to ceil priority of that task
-         task->priority = mutex->ceil_priority;
-      }
-
-      _tn_task_wait_complete(task);
-      tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
-#endif
    }
 
    return ret;

@@ -167,19 +167,19 @@ static inline void _wait_timeout_list_manage(void)
 
    tn_list_for_each_entry(task, &tn_wait_timeout_list, timer_queue){
 
-      //TODO: probably remove this redundant check?
-      //      if some task specified TN_WAIT_INFINITE timeout,
-      //      it isn't added to the tn_wait_timeout_list at all.
-      if (task->tick_count != TN_WAIT_INFINITE){
-         if (task->tick_count > 0) {
-            task->tick_count--;
+      if (task->tick_count == TN_WAIT_INFINITE){
+         //-- should never be here
+         TN_FATAL_ERROR();
+      }
 
-            if (task->tick_count == 0){
-               //-- Timeout expired
-               tn_list_remove_entry(&(((struct TN_Task *)task)->task_queue));
-               _tn_task_wait_complete((struct TN_Task *)task);
-               task->task_wait_rc = TERR_TIMEOUT;
-            }
+      if (task->tick_count > 0) {
+         task->tick_count--;
+
+         if (task->tick_count == 0){
+            //-- Timeout expired
+            tn_list_remove_entry(&(((struct TN_Task *)task)->task_queue));
+            _tn_task_wait_complete((struct TN_Task *)task);
+            task->task_wait_rc = TERR_TIMEOUT;
          }
       }
    }
