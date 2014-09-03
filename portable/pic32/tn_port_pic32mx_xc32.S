@@ -38,7 +38,7 @@
 
     .extern  tn_curr_run_task, 4
     .extern  tn_next_task_to_run, 4
-    .extern  tn_system_state, 4
+    .extern  tn_sys_state, 4
 
     /* Public functions declared in this file */
 
@@ -66,8 +66,8 @@
 
 tn_start_exe:
 
-    li      $t0, 1                      /* 1 -> TN_SYS_STATE_RUNNING */
-    la      $t1, tn_system_state
+    li      $t0, 1                      /* 1 -> TN_STATE_FLAG__SYS_RUNNING */
+    la      $t1, tn_sys_state
     sb      $t0, 0($t1)
 
     la      $t1, tn_next_task_to_run

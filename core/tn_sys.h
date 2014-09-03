@@ -59,10 +59,11 @@ struct TN_Task;
  *    PUBLIC TYPES
  ******************************************************************************/
 
-enum TN_SysState {
-   TN_ST_STATE_NOT_RUN,
-   TN_ST_STATE_RUNNING,
+enum TN_StateFlag {
+   TN_STATE_FLAG__SYS_RUNNING    = (1 << 0), //-- system is running
 };
+
+
 
 
 
@@ -76,7 +77,7 @@ extern volatile int tn_created_tasks_qty;           //-- num of created tasks
 extern struct TN_ListItem tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
 
 
-extern volatile enum TN_SysState tn_system_state;    //-- System state -(running/not running,etc.)
+extern volatile enum TN_StateFlag tn_sys_state;
 
 extern struct TN_Task * tn_curr_run_task;       //-- Task that  run now
 extern struct TN_Task * tn_next_task_to_run;    //-- Task to be run after switch context
@@ -91,7 +92,6 @@ extern volatile int tn_int_nest_count;
 
 extern void * tn_user_sp;               //-- Saved task stack pointer
 extern void * tn_int_sp;                //-- Saved ISR stack pointer
-
 
 
 

@@ -846,7 +846,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   if (tn_system_state == TN_ST_STATE_RUNNING){
+   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
       tn_disable_interrupt();
    }
 
@@ -886,7 +886,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
       _tn_task_to_runnable(task);
    }
 
-   if (tn_system_state == TN_ST_STATE_RUNNING){
+   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
       tn_enable_interrupt();
    }
 
