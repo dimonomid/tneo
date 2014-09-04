@@ -388,6 +388,39 @@ static void _on_task_wait_complete(struct TN_Task *task)
 
 }
 
+/**
+ * Teminate task:
+ *    * unlock all mutexes that are held by task
+ *    * set dormant state (reinitialize everything)
+ *    * reitinialize stack
+ *    * handle activate_count TODO do we need this?
+ *
+ * @return TRUE if task can be terminated (activate_count is 0),
+ *         FALSE otherwise
+ */
+static BOOL _task_terminate(struct TN_Task *task)
+{
+   BOOL ret = TRUE;
+
+   //-- Unlock all mutexes locked by the task
+   _tn_mutex_unlock_all_by_task(tn_curr_run_task);
+
+   _task_set_dormant_state(task);
+
+   //-- Pointer to task top of stack, when not running
+   task->task_stk = tn_stack_init(task->task_func_addr,
+         task->stk_start,
+         task->task_func_param);
+
+   if (task->activate_count > 0){
+      //-- Cannot terminate
+      ret = FALSE;
+      task->activate_count--;
+   }
+
+   return ret;
+}
+
 
 /*******************************************************************************
  *    PUBLIC FUNCTIONS
@@ -645,15 +678,18 @@ enum TN_Retval tn_task_irelease_wait(struct TN_Task *task)
  */
 void tn_task_exit(int attr)
 {
+#if 0
 	/*  
 	 * The structure is used to force GCC compiler properly locate and use
     * 'stack_exp' - thanks to Angelo R. Di Filippo
 	 */
    struct  // v.2.7
    {	
-      struct TN_Task * task;
       volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
    } data;
+#endif
+
+   struct TN_Task *task;
 	 
    TN_CHECK_NON_INT_CONTEXT_NORETVAL;
 
@@ -665,33 +701,18 @@ void tn_task_exit(int attr)
 
    //--------------------------------------------------
 
-   //-- Unlock all mutexes locked by the task
-   _tn_mutex_unlock_all_by_task(tn_curr_run_task);
-
-   data.task = tn_curr_run_task;
+   task = tn_curr_run_task;
    _tn_task_to_non_runnable(tn_curr_run_task);
 
-   //TODO:?
-   //tn_list_remove_entry(&(task->task_queue));
-   //tn_list_remove_entry(&(task->timer_queue));
-
-   _task_set_dormant_state(data.task);
-
-	 //-- Pointer to task top of stack, when not running
-   data.task->task_stk = tn_stack_init(data.task->task_func_addr,
-                                  data.task->stk_start,
-                                  data.task->task_func_param);
-
-   if (data.task->activate_count > 0){
+   if (!_task_terminate(task)){
       //-- Cannot exit
-      data.task->activate_count--;
-      _tn_task_to_runnable(data.task);
+      _tn_task_to_runnable(task);
    } else {
       // V 2.6 Thanks to Alex Borisov
       if (attr == TN_EXIT_AND_DELETE_TASK){
-         tn_list_remove_entry(&(data.task->create_queue));
+         tn_list_remove_entry(&(task->create_queue));
          tn_created_tasks_qty--;
-         data.task->id_task = 0;
+         task->id_task = 0;
       }
    }
 
@@ -706,13 +727,6 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
    TN_INTSAVE_DATA;
 
    enum TN_Retval rc;
-/* see the structure purpose in tn_task_exit() */
-#if 0
-   struct // v.2.7
-   {
-      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
-   } data; 
-#endif
 	 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -738,24 +752,6 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       //   (use tn_task_exit() instead)
       rc = TERR_WCONTEXT;
    } else {
-#if 0
-      if (task->task_state == TSK_STATE_RUNNABLE){
-         _tn_task_to_non_runnable(task);
-      } else if (task->task_state & TSK_STATE_WAIT){
-         //-- Free all queues, involved in the 'waiting'
-         _on_task_wait_complete(task);
-
-         tn_list_remove_entry(&(task->task_queue));
-
-         //-----------------------------------------
-
-         if (task->tick_count != TN_WAIT_INFINITE){
-            tn_list_remove_entry(&(task->timer_queue));
-         }
-      }
-#endif
-
-#if 1
       if (task->task_state == TSK_STATE_RUNNABLE){
          _tn_task_to_non_runnable(task);
 
@@ -766,25 +762,10 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
          _tn_task_wait_complete(
                task, (TN_WCOMPL__REMOVE_WQUEUE)
                );
-;
       }
 
-#endif
-
-
-      //-- Unlock all mutexes locked by the task
-      _tn_mutex_unlock_all_by_task(task);
-
-      _task_set_dormant_state(task);
-			//-- Pointer to task top of the stack when not running
-
-      task->task_stk = tn_stack_init(task->task_func_addr,
-                                     task->stk_start,
-                                     task->task_func_param);
-       
-      if (task->activate_count > 0){
+      if (!_task_terminate(task)){
          //-- Cannot terminate
-         task->activate_count--;
 
          _tn_task_to_runnable(task);
          tn_enable_interrupt();

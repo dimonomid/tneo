@@ -87,7 +87,7 @@ tn_start_exe:
     .ent tn_switch_context_exit
 
 tn_switch_context_exit:
-    lw      $k1, tn_curr_run_task       /* = tn_next_task_to_run */
+    lw      $k1, tn_next_task_to_run    /* = tn_next_task_to_run */
     j       tn_restore_context
     lw      $sp, 0($k1)                 /* load new task SP */
 
