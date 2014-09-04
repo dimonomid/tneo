@@ -733,7 +733,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
          //   _tn_task_to_non_runnable() below.
          //
          //   but, all other code will pass TRUE there.
-         _tn_task_remove_fro_wait_queue_and_wait_complete(task);
+         _tn_task_remove_from_wait_queue_and_wait_complete(task);
       }
 
       _tn_task_to_non_runnable(task);
@@ -942,7 +942,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    return rc;
 }
 
-BOOL _tn_task_remove_fro_wait_queue_and_wait_complete(struct TN_Task *task)
+BOOL _tn_task_remove_from_wait_queue_and_wait_complete(struct TN_Task *task)
 {
    BOOL ret = FALSE;
    tn_list_remove_entry(&task->task_queue);
