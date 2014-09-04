@@ -177,7 +177,7 @@ static inline void _wait_timeout_list_manage(void)
 
          if (task->tick_count == 0){
             //-- Timeout expired
-            _tn_task_remove_from_wait_queue_and_wake_up((struct TN_Task *)task);
+            _tn_task_remove_fro_wait_queue_and_wait_complete((struct TN_Task *)task);
             task->task_wait_rc = TERR_TIMEOUT;
          }
       }
@@ -532,12 +532,12 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
    BOOL need_switch_context = FALSE;
 
    //-- iterate through all tasks in the wait_queue,
-   //   calling _tn_task_remove_from_wait_queue_and_wake_up() for each task,
+   //   calling _tn_task_remove_fro_wait_queue_and_wait_complete() for each task,
    //   and setting TERR_DLT as a wait return code.
    tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
-      //-- call _tn_task_remove_from_wait_queue_and_wake_up and remember
+      //-- call _tn_task_remove_fro_wait_queue_and_wait_complete and remember
       //   if at least one task requires switching context
-      need_switch_context = _tn_task_remove_from_wait_queue_and_wake_up(task)
+      need_switch_context = _tn_task_remove_fro_wait_queue_and_wait_complete(task)
          || need_switch_context;
 
       task->task_wait_rc = TERR_DLT;
