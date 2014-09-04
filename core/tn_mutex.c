@@ -227,6 +227,43 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
    _check_deadlock(mutex, tn_curr_run_task);
 }
 
+static void _update_task_priority(struct TN_Task *task)
+{
+   int pr;
+
+   //-- Now, we need to determine new priority of current task.
+   //   We start from its base priority, but if there are other
+   //   mutexes that are locked by the task, we should check
+   //   what priority we should set.
+   pr = task->base_priority;
+
+   {
+      struct TN_Mutex *tmp_mutex;
+      tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
+         switch (tmp_mutex->attr){
+            case TN_MUTEX_ATTR_CEILING:
+               if (tmp_mutex->ceil_priority < pr){
+                  pr = tmp_mutex->ceil_priority;
+               }
+               break;
+
+            case TN_MUTEX_ATTR_INHERIT:
+               pr = _find_max_blocked_priority(tmp_mutex, pr);
+               break;
+
+            default:
+               //-- should never happen
+               TN_FATAL_ERROR("wrong mutex attr=%d", tmp_mutex->attr);
+               break;
+         }
+      }
+   }
+
+   //-- New priority determined, set it
+   if (pr != task->priority){
+      _tn_change_task_priority(task, pr);
+   }
+}
 
 
 
@@ -478,46 +515,8 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
    //   if mutex is unlocked because task is being deleted.
    mutex->cnt = 0;
 
-   {
-      int pr;
-
-      //-- Delete curr mutex from task's locked mutexes queue
-      tn_list_remove_entry(&(mutex->mutex_queue));
-
-      //-- Now, we need to determine new priority of current task.
-      //   We start from its base priority, but if there are other
-      //   mutexes that are locked by the task, we should check
-      //   what priority we should set.
-      pr = tn_curr_run_task->base_priority;
-
-      {
-         struct TN_Mutex *tmp_mutex;
-         tn_list_for_each_entry(tmp_mutex, &(tn_curr_run_task->mutex_queue), mutex_queue){
-            switch (tmp_mutex->attr){
-               case TN_MUTEX_ATTR_CEILING:
-                  if (tmp_mutex->ceil_priority < pr){
-                     pr = tmp_mutex->ceil_priority;
-                  }
-                  break;
-
-               case TN_MUTEX_ATTR_INHERIT:
-                  pr = _find_max_blocked_priority(tmp_mutex, pr);
-                  break;
-
-               default:
-                  //-- should never happen
-                  TN_FATAL_ERROR("wrong mutex attr=%d", tmp_mutex->attr);
-                  break;
-            }
-         }
-      }
-
-      //-- New priority determined, set it
-      if (pr != tn_curr_run_task->priority){
-         _tn_change_running_task_priority(tn_curr_run_task, pr);
-      }
-   }
-
+   //-- Delete curr mutex from task's locked mutexes queue
+   tn_list_remove_entry(&(mutex->mutex_queue));
 
    //-- Check for the task(s) that want to lock the mutex
    if (tn_is_list_empty(&(mutex->wait_queue))){
@@ -533,16 +532,36 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
       //-- get first task from mutex's wait_queue
       task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
 
-      //-- lock mutex by it
-      _mutex_do_lock(mutex, task);
-
       //-- wake it up
       ret = _tn_task_remove_from_wait_queue_and_wake_up(task);
+
+      //-- lock mutex by it
+      _mutex_do_lock(mutex, task);
    }
 
    return ret;
 }
 
+void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
+{
+   //-- NOTE: task->task_wait_reason should be TSK_WAIT_REASON_MUTEX_I here
+
+   task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
+
+   _update_task_priority(task);
+
+   //-- and check if the task is waiting for mutex
+   if (     (task->task_state & TSK_STATE_WAIT)
+         && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+      )
+   {
+      //-- task is waiting for another mutex. In this case, 
+      //   call this function again, recursively,
+      //   for mutex's task
+      _tn_mutex_i_on_task_wait_complete(task);
+   }
+
+}
 
 
 #endif //-- TN_USE_MUTEXES

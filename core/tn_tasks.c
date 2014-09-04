@@ -925,6 +925,7 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
    switch (task->task_wait_reason){
       case TSK_WAIT_REASON_MUTEX_I:
          //TODO: call some special routine from tn_mutex
+         _tn_mutex_i_on_task_wait_complete(task);
          break;
 
       default:

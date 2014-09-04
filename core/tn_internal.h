@@ -154,6 +154,12 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  */
 BOOL _tn_mutex_do_unlock(struct TN_Mutex *mutex);
 
+/**
+ * Should be called when task finishes waiting
+ * for mutex with priority inheritance
+ */
+void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
+
 #endif // _TN_INTERNAL_H
 
 
