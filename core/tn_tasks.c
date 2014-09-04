@@ -340,6 +340,28 @@ static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int 
 
 // }}}
 
+/**
+ * handle current wait_reason: say, for MUTEX_I, we should
+ * handle priorities of other involved tasks
+ *      
+ *   TODO: probably set function pointer when putting 
+ *         task to sleep, and just call it here if not NULL,
+ *         instead of switch+case?
+ */
+static void _on_task_wait_complete(struct TN_Task *task)
+{
+   switch (task->task_wait_reason){
+      case TSK_WAIT_REASON_MUTEX_I:
+         _tn_mutex_i_on_task_wait_complete(task);
+         break;
+
+      default:
+         //-- do nothing
+         break;
+   }
+}
+
+
 /*******************************************************************************
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
@@ -680,10 +702,12 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       //   (use tn_task_exit() instead)
       rc = TERR_WCONTEXT;
    } else {
+#if 0
       if (task->task_state == TSK_STATE_RUNNABLE){
          _tn_task_to_non_runnable(task);
       } else if (task->task_state & TSK_STATE_WAIT){
          //-- Free all queues, involved in the 'waiting'
+         _on_task_wait_complete(task);
 
          tn_list_remove_entry(&(task->task_queue));
 
@@ -693,6 +717,27 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
             tn_list_remove_entry(&(task->timer_queue));
          }
       }
+#endif
+
+#if 1
+      if (task->task_state & TSK_STATE_WAIT){
+         //-- we need to wake task up in order to correctly
+         //   call all handlers, such as MUTEX_I handlers.
+         //
+         //   we probably could do that here by hand,
+         //   but this is something I'd like to avoid.
+         //
+         //   TODO: probably it's better to add a flag to
+         //   _tn_task_wait_complete, like bool_move_to_runnable,
+         //   and set it to FALSE here, and then we don't have to call
+         //   _tn_task_to_non_runnable() below.
+         //
+         //   but, all other code will pass TRUE there.
+         _tn_task_remove_from_wait_queue_and_wake_up(task);
+      }
+
+      _tn_task_to_non_runnable(task);
+#endif
 
 
       //-- Unlock all mutexes locked by the task
@@ -917,21 +962,8 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
    }
 
    //-- handle current wait_reason: say, for MUTEX_I, we should
-   //   handle priorities of other involved tasks
-   //      
-   //   TODO: probably set function pointer when putting 
-   //         task to sleep, and just call it here if not NULL,
-   //         instead of switch+case?
-   switch (task->task_wait_reason){
-      case TSK_WAIT_REASON_MUTEX_I:
-         //TODO: call some special routine from tn_mutex
-         _tn_mutex_i_on_task_wait_complete(task);
-         break;
-
-      default:
-         //-- do nothing
-         break;
-   }
+   //   handle priorities of other involved tasks.
+   _on_task_wait_complete(task);
 
    task->pwait_queue  = NULL;
    task->task_wait_rc = TERR_NO_ERR;

@@ -12,6 +12,15 @@
    * [ ] fix bug: if some task tried to lock mutex with priority inheritance, and some other task's priority was changed because of that, and then tasks stopped waiting by timeout, priority of mutex holder doesn't change back (remains elevated)
    * [ ] clear tn_sys c/h files up
    * [ ] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
+   * [ ] mutex tests
+      * [ ] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
+      * [ ] this one:
+         * A l M1
+         * B l M1 - B blocks, A has priority of B
+         * C l M1 - C blocks, A has priority of C
+         * A u M1 - B unlocks, A has base priority
+         * B u M1 - C unlocks
+         * C u M1
 
 
 == mods that DO change API ==

@@ -542,6 +542,9 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
    return ret;
 }
 
+/**
+ * See comments in tn_internal.h file
+ */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 {
    //-- NOTE: task->task_wait_reason should be TSK_WAIT_REASON_MUTEX_I here
