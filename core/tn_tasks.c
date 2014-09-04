@@ -114,6 +114,15 @@ static inline void _unlock_all_mutexes(struct TN_Task *task)
 #endif
 
 
+#if TN_MUTEX_DEADLOCK_DETECT
+static inline void _init_deadlock_list(struct TN_Task *task)
+{
+   tn_list_reset(&(task->deadlock_list));
+}
+#else
+#  define   _init_deadlock_list(task)
+#endif
+
 static void _find_next_task_to_run(void)
 {
    int tmp;
@@ -148,11 +157,9 @@ static void _task_set_dormant_state(struct TN_Task* task)
    // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
    tn_list_reset(&(task->task_queue));
    tn_list_reset(&(task->timer_queue));
-#if TN_MUTEX_DEADLOCK_DETECT
-   tn_list_reset(&(task->deadlock_list));
-#endif
 
    _init_mutex_queue(task);
+   _init_deadlock_list(task);
 
    task->pwait_queue = NULL;
 
