@@ -98,7 +98,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
       que = tn_list_remove_head(&(dque->wait_send_list));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -113,7 +113,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
       que = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -158,7 +158,7 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
 
       task->data_elem = data_ptr;
 
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -212,7 +212,7 @@ enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 
       task->data_elem = data_ptr;
 
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -258,7 +258,7 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 
       task->data_elem = data_ptr;
 
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          tn_ienable_interrupt();
          return TERR_NO_ERR;
@@ -307,7 +307,7 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -324,7 +324,7 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
 
          *data_ptr = task->data_elem; //-- Return to caller
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -381,7 +381,7 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -398,7 +398,7 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
 
          *data_ptr = task->data_elem; //-- Return to caller
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_enable_interrupt();
             tn_switch_context();
@@ -444,7 +444,7 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_ienable_interrupt();
             return TERR_NO_ERR;
@@ -458,9 +458,9 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task =  get_task_by_tsk_queue(que);
 
-        *data_ptr = task->data_elem; //-- Return to caller
+         *data_ptr = task->data_elem; //-- Return to caller
 
-         if(_tn_task_wait_complete(task))
+         if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
          {
             tn_ienable_interrupt();
             return TERR_NO_ERR;

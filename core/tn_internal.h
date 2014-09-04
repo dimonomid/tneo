@@ -19,6 +19,25 @@ struct TN_Task;
 struct TN_Mutex;
 struct TN_ListItem;
 
+
+
+/*******************************************************************************
+ *    INTERNAL TNKERNEL TYPES
+ ******************************************************************************/
+
+//-- tn_tasks.c
+
+/**
+ * Flags for _tn_task_wait_complete()
+ */
+enum TN_WComplFlags {
+   TN_WCOMPL__REMOVE_WQUEUE   = (1 << 0), //-- if set, task will be removed from wait_queue
+   TN_WCOMPL__TO_RUNNABLE     = (1 << 1), //-- if set, task will become runnable
+                                          //   (if only it is not in WAITING_SUSPENDED state.
+                                          //    if it is, new state will be SUSPENDED)
+};
+
+
 /*******************************************************************************
  *    INTERNAL TNKERNEL FUNCTIONS
  ******************************************************************************/
@@ -64,19 +83,15 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
       int option);                     //-- Creation option
 
 /**
- * Remove task from wait queue and call _tn_task_wait_complete() for it
- */
-BOOL _tn_task_remove_from_wait_queue_and_wait_complete(struct TN_Task *task);
-
-/**
- * Should be called when task finishes waiting for anything.
- * Remove task from wait queue, 
- * and make it runnable (if only it isn't suspended)
+ * Should be called when task finishes waiting for anything, as well as
+ * when task is terminated while waiting.
+ *
+ * @param flags   see enum TN_WComplFlags
  *
  * @return TRUE if tn_next_task_to_run is set to given task
  *              (that is, context switch is needed)
  */
-BOOL  _tn_task_wait_complete  (struct TN_Task *task);
+BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags);
 
 /**
  * Change task's state to runnable,

@@ -94,7 +94,7 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -140,7 +140,7 @@ enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          tn_enable_interrupt();
          tn_switch_context();
@@ -195,7 +195,7 @@ enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
 
-      if(_tn_task_wait_complete(task))
+      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
       {
          tn_ienable_interrupt();
 

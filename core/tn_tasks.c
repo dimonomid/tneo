@@ -189,7 +189,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, int *p_need_swit
       {
          //-- Task is sleeping, so, let's wake it up.
 
-         *p_need_switch_context = _tn_task_wait_complete(task);
+         *p_need_switch_context = _tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE));
       } else {
          //-- Task isn't sleeping. Probably it is in WAIT state,
          //   but not because of call to tn_task_sleep().
@@ -215,7 +215,7 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task, int *p_nee
 
    if ((task->task_state & TSK_STATE_WAIT)){
       //-- task is in WAIT state, so, let's release it from that state.
-      *p_need_switch_context = _tn_task_wait_complete(task);
+      *p_need_switch_context = _tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE));
    } else {
       rc = TERR_WCONTEXT;
    }
@@ -337,9 +337,14 @@ static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int 
  * handle current wait_reason: say, for MUTEX_I, we should
  * handle priorities of other involved tasks.
  *
- * this function is called _before_ task is actually woken up,
+ * This function is called _after_ removing task from wait_queue,
+ * because _find_max_blocked_priority()
+ * in tn_mutex.c checks for all tasks in mutex's wait_queue to
+ * get max blocked priority.
+
+ * This function is called _before_ task is actually woken up,
  * so callback functions may check whatever waiting parameters
- * task had, such as pwait_queue.
+ * task had, such as task_wait_reason and pwait_queue.
  *      
  *   TODO: probably create callback list, so, when task_wait_reason 
  *         is set to TSK_WAIT_REASON_MUTEX_I/.._C
@@ -726,23 +731,19 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 #endif
 
 #if 1
-      if (task->task_state & TSK_STATE_WAIT){
-         //-- we need to wake task up in order to correctly
-         //   call all handlers, such as MUTEX_I handlers.
-         //
-         //   we probably could do that here by hand,
-         //   but this is something I'd like to avoid.
-         //
-         //   TODO: probably it's better to add a flag to
-         //   _tn_task_wait_complete, like bool_move_to_runnable,
-         //   and set it to FALSE here, and then we don't have to call
-         //   _tn_task_to_non_runnable() below.
-         //
-         //   but, all other code will pass TRUE there.
-         _tn_task_remove_from_wait_queue_and_wait_complete(task);
+      if (task->task_state == TSK_STATE_RUNNABLE){
+         _tn_task_to_non_runnable(task);
+
+      } else if (task->task_state & TSK_STATE_WAIT){
+         //-- call _tn_task_wait_complete() for task
+         //   without making it runnable
+         //   (flag TN_WCOMPL__TO_RUNNABLE is not set)
+         _tn_task_wait_complete(
+               task, (TN_WCOMPL__REMOVE_WQUEUE)
+               );
+;
       }
 
-      _tn_task_to_non_runnable(task);
 #endif
 
 
@@ -948,33 +949,23 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    return rc;
 }
 
-BOOL _tn_task_remove_from_wait_queue_and_wait_complete(struct TN_Task *task)
-{
-   BOOL ret = FALSE;
-   tn_list_remove_entry(&task->task_queue);
-   ret = _tn_task_wait_complete(task);
-   return ret;
-}
-
 /**
  * See comment in the tn_internal.h file
- *
- * TODO: probably we should add two flags:
- *
- *          REMOVE_FROM_WQUEUE -> if it is set,
- *             tn_list_remove_entry(&task->task_queue) should be called.
- *             Then, we may remove _tn_task_remove_from_wait_queue_and_wait_complete().
- *
- *          TO_RUNNABLE -> if it is not set, _tn_task_to_runnable should not be called
- *             (will be used in tn_task_terminate)
- *    
  */
-BOOL _tn_task_wait_complete(struct TN_Task *task)
+BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
 {
    BOOL rc = FALSE;
 
    if (task == NULL){
       return FALSE;
+   }
+
+   //-- NOTE: we should remove task from wait_queue before calling
+   //   _on_task_wait_complete(), because _find_max_blocked_priority()
+   //   in tn_mutex.c checks for all tasks in mutex's wait_queue to
+   //   get max blocked priority
+   if (flags & TN_WCOMPL__REMOVE_WQUEUE){
+      tn_list_remove_entry(&task->task_queue);
    }
 
    //-- handle current wait_reason: say, for MUTEX_I, we should
@@ -994,14 +985,16 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
    //-- remove WAIT state
    task->task_state &= ~TSK_STATE_WAIT;
 
-   //-- if task state became NONE when we've removed WAIT state,
-   //   let's make it runnable.
-   //
-   //   NOTE that if task was in WAITING_SUSPENDED state,
-   //   there will be TSK_STATE_SUSPEND now.
-   //   In this case, _tn_task_to_runnable() won't be called.
-   if (task->task_state == TSK_STATE_NONE){
-      rc = _tn_task_to_runnable(task);
+   if (flags & TN_WCOMPL__TO_RUNNABLE){
+      //-- if task state became NONE when we've removed WAIT state,
+      //   let's make it runnable.
+      //
+      //   NOTE that if task was in WAITING_SUSPENDED state,
+      //   there will be TSK_STATE_SUSPEND now.
+      //   In this case, _tn_task_to_runnable() won't be called.
+      if (task->task_state == TSK_STATE_NONE){
+         rc = _tn_task_to_runnable(task);
+      }
    }
 
    //-- Clear wait reason
