@@ -496,9 +496,14 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
 
    if (!(task->task_state & TSK_STATE_WAIT)){
       //-- The task is not in the WAIT-SUSPEND state,
-      //   so we need to make it runnable and switch context
-      _tn_task_to_runnable(task);
-      goto out_ei_switch_context;
+      //   so we need to make it runnable and probably switch context
+      if (_tn_task_to_runnable(task)){
+         //-- context switch is needed
+         goto out_ei_switch_context;
+      } else {
+         //-- context switch is not needed
+         goto out_ei;
+      }
    } else {
       //-- Just remove TSK_STATE_SUSPEND from the task state
       task->task_state &= ~TSK_STATE_SUSPEND;
