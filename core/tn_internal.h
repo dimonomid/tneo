@@ -126,30 +126,24 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority);
  */
 BOOL  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
+#if TN_USE_MUTEXES
 /**
  * Check if mutex is locked by task.
  *
  * @return TRUE if mutex is locked, FALSE otherwise.
  */
 BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
+#endif
+
+
 
 //-- tn_mutex.h
 
+#if TN_USE_MUTEXES
 /**
- *    * Unconditionally set lock count to 0. This is needed because mutex
- *      might be deleted 'unexpectedly' when its holder task is deleted
- *    * Remove given mutex from task's locked mutexes list,
- *    * Set new priority of the task
- *      (depending on its base_priority and other locked mutexes),
- *    * If no other tasks want to lock this mutex, set holder to NULL,
- *      otherwise grab first task from the mutex's wait_queue
- *      and lock mutex by this task.
- *
- * @returns TRUE if context switch is needed
- *          (that is, if there is some other task that waited for mutex,
- *          and this task has highest priority now)
+ * Unlock all mutexes locked by the task
  */
-BOOL _tn_mutex_do_unlock(struct TN_Mutex *mutex);
+void _tn_mutex_unlock_all_by_task(struct TN_Task *task);
 
 /**
  * Should be called when task finishes waiting
@@ -162,6 +156,12 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
  * for any mutex (no matter which algorithm it uses)
  */
 void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
+
+#else
+static inline void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
+static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
+static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
+#endif
 
 #endif // _TN_INTERNAL_H
 

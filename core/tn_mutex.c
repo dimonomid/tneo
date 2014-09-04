@@ -378,6 +378,55 @@ static void _update_task_priority(struct TN_Task *task)
    }
 }
 
+/**
+ *    * Unconditionally set lock count to 0. This is needed because mutex
+ *      might be deleted 'unexpectedly' when its holder task is deleted
+ *    * Remove given mutex from task's locked mutexes list,
+ *    * Set new priority of the task
+ *      (depending on its base_priority and other locked mutexes),
+ *    * If no other tasks want to lock this mutex, set holder to NULL,
+ *      otherwise grab first task from the mutex's wait_queue
+ *      and lock mutex by this task.
+ *
+ * @returns TRUE if context switch is needed
+ *          (that is, if there is some other task that waited for mutex,
+ *          and this task has highest priority now)
+ */
+static BOOL _mutex_do_unlock(struct TN_Mutex * mutex)
+{
+   BOOL ret = FALSE;
+
+   //-- explicitly reset lock count to 0, because it might be not zero
+   //   if mutex is unlocked because task is being deleted.
+   mutex->cnt = 0;
+
+   //-- Delete curr mutex from task's locked mutexes queue
+   tn_list_remove_entry(&(mutex->mutex_queue));
+
+   //-- Check for the task(s) that want to lock the mutex
+   if (tn_is_list_empty(&(mutex->wait_queue))){
+      //-- no more tasks want to lock the mutex,
+      //   so, set holder to NULL and return.
+      mutex->holder = NULL;
+   } else {
+      //-- there are tasks that want to lock the mutex,
+      //   so, lock it by the first task in the queue
+
+      struct TN_Task *task;
+
+      //-- get first task from mutex's wait_queue
+      task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
+
+      //-- wake it up
+      ret = _tn_task_remove_from_wait_queue_and_wait_complete(task);
+
+      //-- lock mutex by it
+      _mutex_do_lock(mutex, task);
+   }
+
+   return ret;
+}
+
 
 
 /*******************************************************************************
@@ -446,7 +495,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    if (mutex->holder != NULL){
       //-- If the mutex is locked
-      _tn_mutex_do_unlock(mutex);
+      _mutex_do_unlock(mutex);
 
       //-- NOTE: redundant reset, because it will anyway
       //         be reset in tn_mutex_create()
@@ -589,7 +638,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
       TN_FATAL_ERROR();
    } else {
       //-- lock counter is 0, so, unlock mutex
-      if (_tn_mutex_do_unlock(mutex)){
+      if (_mutex_do_unlock(mutex)){
          goto out_ei_switch_context;
       } else {
          goto out_ei;
@@ -618,42 +667,22 @@ out_ei_switch_context:
  ******************************************************************************/
 
 /**
- * See comments in tn_internal.h file
+ * See comment in tn_internal.h file
  */
-BOOL _tn_mutex_do_unlock(struct TN_Mutex * mutex)
+void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
 {
-   BOOL ret = FALSE;
+   struct TN_Mutex *mutex;       //-- "cursor" for the loop iteration
+   struct TN_Mutex *tmp_mutex;   //-- we need for temporary item because
+                                 //   item is removed from the list
+                                 //   in _mutex_do_unlock().
 
-   //-- explicitly reset lock count to 0, because it might be not zero
-   //   if mutex is unlocked because task is being deleted.
-   mutex->cnt = 0;
-
-   //-- Delete curr mutex from task's locked mutexes queue
-   tn_list_remove_entry(&(mutex->mutex_queue));
-
-   //-- Check for the task(s) that want to lock the mutex
-   if (tn_is_list_empty(&(mutex->wait_queue))){
-      //-- no more tasks want to lock the mutex,
-      //   so, set holder to NULL and return.
-      mutex->holder = NULL;
-   } else {
-      //-- there are tasks that want to lock the mutex,
-      //   so, lock it by the first task in the queue
-
-      struct TN_Task *task;
-
-      //-- get first task from mutex's wait_queue
-      task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
-
-      //-- wake it up
-      ret = _tn_task_remove_from_wait_queue_and_wait_complete(task);
-
-      //-- lock mutex by it
-      _mutex_do_lock(mutex, task);
+   tn_list_for_each_entry_safe(mutex, tmp_mutex, &(task->mutex_queue), mutex_queue){
+      //-- NOTE: we don't remove item from the list, because it is removed
+      //   inside _mutex_do_unlock().
+      _mutex_do_unlock(mutex);
    }
-
-   return ret;
 }
+
 
 /**
  * See comments in tn_internal.h file

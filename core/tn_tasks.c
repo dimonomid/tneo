@@ -91,29 +91,6 @@ static inline void _init_mutex_queue(struct TN_Task *task)
    tn_list_reset(&(task->mutex_queue));
 }
 
-/**
- * Unlock all mutexes locked by the task
- */
-static inline void _unlock_all_mutexes(struct TN_Task *task)
-{
-   struct TN_Mutex *mutex;       //-- "cursor" for the loop iteration
-   struct TN_Mutex *tmp_mutex;   //-- we need for temporary item because
-                                 //   item is removed from the list
-                                 //   in _tn_mutex_do_unlock().
-
-   tn_list_for_each_entry_safe(mutex, tmp_mutex, &(task->mutex_queue), mutex_queue){
-      //-- NOTE: we don't remove item from the list, because it is removed
-      //   inside _tn_mutex_do_unlock().
-      _tn_mutex_do_unlock(mutex);
-   }
-}
-
-#else
-#  define   _init_mutex_queue(task)
-#  define   _unlock_all_mutexes(task)
-#endif
-
-
 #if TN_MUTEX_DEADLOCK_DETECT
 static inline void _init_deadlock_list(struct TN_Task *task)
 {
@@ -122,6 +99,12 @@ static inline void _init_deadlock_list(struct TN_Task *task)
 #else
 #  define   _init_deadlock_list(task)
 #endif
+
+#else
+#  define   _init_mutex_queue(task)
+#  define   _init_deadlock_list(task)
+#endif
+
 
 static void _find_next_task_to_run(void)
 {
@@ -653,7 +636,7 @@ void tn_task_exit(int attr)
    //--------------------------------------------------
 
    //-- Unlock all mutexes locked by the task
-   _unlock_all_mutexes(tn_curr_run_task);
+   _tn_mutex_unlock_all_by_task(tn_curr_run_task);
 
    data.task = tn_curr_run_task;
    _tn_task_to_non_runnable(tn_curr_run_task);
@@ -764,7 +747,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
 
       //-- Unlock all mutexes locked by the task
-      _unlock_all_mutexes(task);
+      _tn_mutex_unlock_all_by_task(task);
 
       _task_set_dormant_state(task);
 			//-- Pointer to task top of the stack when not running
@@ -1150,6 +1133,7 @@ BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
    return TRUE;
 }
 
+#if TN_USE_MUTEXES
 /**
  * See comment in the tn_internal.h file
  */
@@ -1167,4 +1151,6 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
 
    return ret;
 }
+
+#endif
 
