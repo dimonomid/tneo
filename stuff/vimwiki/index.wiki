@@ -12,10 +12,11 @@
    * [X] workaround for crappy compilers: instead of recursive function call, use `goto in`;
    * [X] fix bug: if some task tried to lock mutex with priority inheritance, and some other task's priority was changed because of that, and then tasks stopped waiting by timeout, priority of mutex holder doesn't change back (remains elevated)
    * [X] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
+   * [X] move _unlock_all_mutexes to tn_mutex.c, make _tn_mutex_do_unlock private
    * [ ] clear tn_sys c/h files up
-   * [ ] move _unlock_all_mutexes to tn_mutex.c, make _tn_mutex_do_unlock private
    * [ ] mutex tests
       * [ ] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
+      * [ ] ceiling mutexes
       * [ ] this one, regarding to order:
          * A l M1
          * B l M1 - B blocks, A has priority of B
