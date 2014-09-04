@@ -138,6 +138,9 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority);
  * Remove current task from ready queue for its current priority,
  * change its priority, add to the end of ready queue of new priority,
  * find next task to run.
+ *
+ * @return TRUE if tn_next_task_to_run is changed
+ *              (that is, context switch is needed)
  */
 BOOL  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 

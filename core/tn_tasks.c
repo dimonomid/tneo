@@ -106,33 +106,49 @@ static inline void _init_deadlock_list(struct TN_Task *task)
 #endif
 
 
-static void _find_next_task_to_run(void)
+/**
+ * Looks for first runnable task with highest priority,
+ * set tn_next_task_to_run to it.
+ *
+ * @return TRUE if tn_next_task_to_run was changed, FALSE otherwise.
+ */
+static BOOL _find_next_task_to_run(void)
 {
-   int tmp;
+   BOOL ret = FALSE;
 
-#ifndef USE_ASM_FFS
-   int i;
-   unsigned int mask;
-#endif
+   int priority;
 
 #ifdef USE_ASM_FFS
-   tmp = ffs_asm(tn_ready_to_run_bmp);
-   tmp--;
+   priority = ffs_asm(tn_ready_to_run_bmp);
+   priority--;
 #else
+   int i;
+   unsigned int mask;
+
    mask = 1;
-   tmp = 0;
+   priority = 0;
 
    for (i = 0; i < TN_BITS_IN_INT; i++){
       //-- for each bit in bmp
       if (tn_ready_to_run_bmp & mask){
-         tmp = i;
+         priority = i;
          break;
       }
       mask = (mask << 1);
    }
 #endif
 
-   tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[tmp].next);
+   {
+      struct TN_Task *task_to_run;
+      task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
+
+      if (task_to_run != tn_next_task_to_run){
+         tn_next_task_to_run = task_to_run;
+         ret = TRUE;
+      }
+   }
+
+   return ret;
 }
 
 static void _task_set_dormant_state(struct TN_Task* task)
@@ -1121,9 +1137,7 @@ BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
    //-- Add task to the end of ready queue for current priority
    _add_entry_to_ready_queue(&(task->task_queue), new_priority);
 
-   _find_next_task_to_run();
-
-   return TRUE;
+   return _find_next_task_to_run();
 }
 
 #if TN_USE_MUTEXES
