@@ -98,6 +98,7 @@ static int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 
 static inline void _task_set_priority(struct TN_Task *task, int priority)
 {
+in:
    //-- transitive priority changing
 
    // if we have a task A that is blocked by the task B and we changed priority
@@ -128,10 +129,18 @@ static inline void _task_set_priority(struct TN_Task *task, int priority)
          //-- Task is waiting for another mutex. In this case, 
          //   call this function again, recursively,
          //   for mutex's holder
-         _task_set_priority(
-               get_mutex_by_wait_queque(task->pwait_queue)->holder,
-               priority
-               );
+         //
+         //   NOTE: as a workaround for crappy compilers that don't
+         //   convert function call to simple goto here,
+         //   we have to use goto explicitly.
+         //
+         //_task_set_priority(
+         //      get_mutex_by_wait_queque(task->pwait_queue)->holder,
+         //      priority
+         //      );
+
+         task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
+         goto in;
       }
    }
 
@@ -162,7 +171,10 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
  */
 static void _link_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
 {
-   struct TN_Task *holder = mutex->holder;
+   struct TN_Task *holder;
+
+in:
+   holder = mutex->holder;
 
    if (     (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_I)
          && (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_C)
@@ -184,7 +196,15 @@ static void _link_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
       //   will return now.
    } else {
       //-- call this function again, recursively
-      _link_deadlock_lists(mutex2, task);
+      //
+      //   NOTE: as a workaround for crappy compilers that don't
+      //   convert function call to simple goto here,
+      //   we have to use goto explicitly.
+      //
+      //_link_deadlock_lists(mutex2, task);
+
+      mutex = mutex2;
+      goto in;
    }
 }
 
@@ -216,7 +236,10 @@ static void _unlink_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
  */
 static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
 {
-   struct TN_Task *holder = mutex->holder;
+   struct TN_Task *holder;
+
+in:
+   holder = mutex->holder;
    if (     (holder->task_state & TSK_STATE_WAIT)
          && (
                (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
@@ -246,7 +269,15 @@ static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
          _tn_cry_deadlock(TRUE, mutex, task);
       } else {
          //-- call this function again, recursively
-         _check_deadlock_active(mutex2, task);
+         //
+         //   NOTE: as a workaround for crappy compilers that don't
+         //   convert function call to simple goto here,
+         //   we have to use goto explicitly.
+         //
+         //_check_deadlock_active(mutex2, task);
+
+         mutex = mutex2;
+         goto in;
       }
 
    } else {
@@ -631,6 +662,7 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 {
    //-- NOTE: task->task_wait_reason should be TSK_WAIT_REASON_MUTEX_I here
 
+in:
    task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
 
    _update_task_priority(task);
@@ -643,7 +675,14 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
       //-- task is waiting for another mutex. In this case, 
       //   call this function again, recursively,
       //   for mutex's task
-      _tn_mutex_i_on_task_wait_complete(task);
+      //
+      //   NOTE: as a workaround for crappy compilers that don't
+      //   convert function call to simple goto here,
+      //   we have to use goto explicitly.
+      //
+      //_tn_mutex_i_on_task_wait_complete(task);
+
+      goto in;
    }
 
 }
