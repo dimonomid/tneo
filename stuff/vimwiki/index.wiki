@@ -13,6 +13,7 @@
    * [X] fix bug: if some task tried to lock mutex with priority inheritance, and some other task's priority was changed because of that, and then tasks stopped waiting by timeout, priority of mutex holder doesn't change back (remains elevated)
    * [X] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
    * [X] move _unlock_all_mutexes to tn_mutex.c, make _tn_mutex_do_unlock private
+   * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
    * [ ] mutex tests
       * [ ] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
@@ -42,7 +43,7 @@
 
 == bug fixes of original TNKernel ==
 
-   * TODO: fixed bug: low-priority task_low locks mutex M1 with priority inheritance, high-priority task_high tries to lock mutex M1 and gets blocked -> task_low's priority elevates to task_high's priority; then task_high stops waiting for mutex by timeout -> priority of task_low remains elevated, but it should be set back. The same happens if task_high is terminated by tn_task_terminate() while it was waiting for mutex. The same happens if mutex is deleted while task_high is waiting for it. The same happens if task was waken up by tn_task_wakeup().
+   * fixed bug: low-priority task_low locks mutex M1 with priority inheritance, high-priority task_high tries to lock mutex M1 and gets blocked -> task_low's priority elevates to task_high's priority; then task_high stops waiting for mutex by timeout -> priority of task_low remains elevated, but it should be set back. The same happens if task_high is terminated by tn_task_terminate() while it was waiting for mutex. The same happens if mutex is deleted while task_high is waiting for it. The same happens if task was waken up by tn_task_wakeup().
    * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
    * fixed bug in tn_mutex_delete() : mutex->holder was checked against tn_curr_run_task without disabling interrupts
    * fixed bug in tn_mutex_delete() : if mutex is not locked, TERR_ILUSE is returned.
