@@ -148,6 +148,9 @@ static void _task_set_dormant_state(struct TN_Task* task)
    // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
    tn_list_reset(&(task->task_queue));
    tn_list_reset(&(task->timer_queue));
+#if TN_MUTEX_DEADLOCK_DETECT
+   tn_list_reset(&(task->deadlock_list));
+#endif
 
    _init_mutex_queue(task);
 
@@ -342,23 +345,36 @@ static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int 
 
 /**
  * handle current wait_reason: say, for MUTEX_I, we should
- * handle priorities of other involved tasks
+ * handle priorities of other involved tasks.
+ *
+ * this function is called _before_ task is actually woken up,
+ * so callback functions may check whatever waiting parameters
+ * task had, such as pwait_queue.
  *      
- *   TODO: probably set function pointer when putting 
- *         task to sleep, and just call it here if not NULL,
- *         instead of switch+case?
+ *   TODO: probably create callback list, so, when task_wait_reason 
+ *         is set to TSK_WAIT_REASON_MUTEX_I/.._C
+ *         (this is done in tn_mutex.c, _add_curr_task_to_mutex_wait_queue())
+ *         it should add its callback that will be called 
+ *         when task stops waiting.
+ *
+ *         But it seems too much overhead: we need to allocate a memory for that
+ *         every time callback is registered.
  */
 static void _on_task_wait_complete(struct TN_Task *task)
 {
-   switch (task->task_wait_reason){
-      case TSK_WAIT_REASON_MUTEX_I:
-         _tn_mutex_i_on_task_wait_complete(task);
-         break;
-
-      default:
-         //-- do nothing
-         break;
+   //-- for mutex with priority inheritance, call special handler
+   if (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I){
+      _tn_mutex_i_on_task_wait_complete(task);
    }
+
+   //-- for any mutex, call special handler
+   if (     (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+         || (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
+      )
+   {
+      _tn_mutex_on_task_wait_complete(task);
+   }
+
 }
 
 
@@ -952,6 +968,16 @@ BOOL _tn_task_remove_from_wait_queue_and_wait_complete(struct TN_Task *task)
 
 /**
  * See comment in the tn_internal.h file
+ *
+ * TODO: probably we should add two flags:
+ *
+ *          REMOVE_FROM_WQUEUE -> if it is set,
+ *             tn_list_remove_entry(&task->task_queue) should be called.
+ *             Then, we may remove _tn_task_remove_from_wait_queue_and_wait_complete().
+ *
+ *          TO_RUNNABLE -> if it is not set, _tn_task_to_runnable should not be called
+ *             (will be used in tn_task_terminate)
+ *    
  */
 BOOL _tn_task_wait_complete(struct TN_Task *task)
 {
@@ -975,12 +1001,17 @@ BOOL _tn_task_wait_complete(struct TN_Task *task)
 
    task->tick_count = TN_WAIT_INFINITE;
 
-   //-- if task isn't suspended, make it runnable
-   if (!(task->task_state & TSK_STATE_SUSPEND)){
+   //-- remove WAIT state
+   task->task_state &= ~TSK_STATE_WAIT;
+
+   //-- if task state became NONE when we've removed WAIT state,
+   //   let's make it runnable.
+   //
+   //   NOTE that if task was in WAITING_SUSPENDED state,
+   //   there will be TSK_STATE_SUSPEND now.
+   //   In this case, _tn_task_to_runnable() won't be called.
+   if (task->task_state == TSK_STATE_NONE){
       rc = _tn_task_to_runnable(task);
-   } else {
-      //-- remove WAIT state
-      task->task_state = TSK_STATE_SUSPEND;
    }
 
    //-- Clear wait reason

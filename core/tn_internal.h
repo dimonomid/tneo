@@ -47,12 +47,9 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
 
-/**
- * If user-callback function for events is set, call it;
- * otherwise do nothing
- */
-void _tn_event_callback_call(enum TN_StateFlag flags, BOOL set);
-
+#if TN_MUTEX_DEADLOCK_DETECT
+void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
+#endif
 
 
 
@@ -159,6 +156,12 @@ BOOL _tn_mutex_do_unlock(struct TN_Mutex *mutex);
  * for mutex with priority inheritance
  */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
+
+/**
+ * Should be called when task winishes waiting
+ * for any mutex (no matter which algorithm it uses)
+ */
+void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
 
 #endif // _TN_INTERNAL_H
 

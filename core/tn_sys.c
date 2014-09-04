@@ -73,6 +73,10 @@ volatile unsigned int  tn_sys_time_count;
 
 volatile int tn_int_nest_count;
 
+#if TN_MUTEX_DEADLOCK_DETECT
+volatile int tn_deadlocks_cnt;   //-- Count of active deadlocks
+#endif
+
 void * tn_user_sp;               //-- Saved task stack pointer
 void * tn_int_sp;                //-- Saved ISR stack pointer
 
@@ -98,7 +102,7 @@ TNIdleCallback idle_user_func_callback = NULL;
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
  */
-TNEventCallback   tn_event_callback = NULL;
+TNCallbackDeadlock   tn_callback_deadlock = NULL;
 
 
 
@@ -508,9 +512,9 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
 /**
  * See comment in tn_sys.h file
  */
-void tn_event_callback_set(TNEventCallback cb)
+void tn_callback_deadlock_set(TNCallbackDeadlock cb)
 {
-   tn_event_callback = cb;
+   tn_callback_deadlock = cb;
 }
 
 
@@ -565,7 +569,6 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 {
    enum TN_StateFlag ret = tn_sys_state;
    tn_sys_state |= flags;
-   _tn_event_callback_call(flags, TRUE);
    return ret;
 }
 
@@ -579,18 +582,31 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 {
    enum TN_StateFlag ret = tn_sys_state;
    tn_sys_state &= ~flags;
-   _tn_event_callback_call(flags, FALSE);
    return ret;
 }
 
-/**
- * See comment in tn_internal.h file
- */
-void _tn_event_callback_call(enum TN_StateFlag flags, BOOL set)
-{
-   if (tn_event_callback != NULL){
-      tn_event_callback(flags, set);
-   }
-}
 
+#if TN_MUTEX_DEADLOCK_DETECT
+void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
+{
+   if (active){
+      if (tn_deadlocks_cnt == 0){
+         _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
+      }
+
+      tn_deadlocks_cnt++;
+   } else {
+      tn_deadlocks_cnt--;
+
+      if (tn_deadlocks_cnt == 0){
+         _tn_sys_state_flags_clear(TN_STATE_FLAG__DEADLOCK);
+      }
+   }
+
+   if (tn_callback_deadlock != NULL){
+      tn_callback_deadlock(active, mutex, task);
+   }
+
+}
+#endif
 

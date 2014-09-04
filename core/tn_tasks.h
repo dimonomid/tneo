@@ -86,6 +86,8 @@ struct TN_Task {
 
 
 //-- task states
+#define  TSK_STATE_NONE                0     //-- may be stored in task_state only temporarily,
+                                             //   while some system service is in progress.
 #define  TSK_STATE_RUNNABLE            0x01
 #define  TSK_STATE_WAIT                0x04
 #define  TSK_STATE_SUSPEND             0x08

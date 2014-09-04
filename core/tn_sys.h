@@ -46,12 +46,12 @@ extern "C"  {  /*}*/
 #endif
 
 
-
 /*******************************************************************************
  *    EXTERNAL TYPES
  ******************************************************************************/
 
 struct TN_Task;
+struct TN_Mutex;
 
 
 
@@ -69,12 +69,16 @@ typedef void (*TNIdleCallback)(void);
 
 /**
  * User-provided callback function that is called whenever 
- * event occurs (say, deadlock becomes active or inactive)
+ * deadlock becomes active or inactive.
  *
- * @param flag    flag(s) that are just set or cleared
- * @param set     if TRUE, flag are set, otherwise they are cleared
+ * @param active  if TRUE, deadlock becomes active, otherwise it becomes inactive
+ *                (say, if task stopped waiting for mutex because of timeout)
+ * @param mutex   mutex that is involved in deadlock. You may find out other mutexes
+ *                involved by means of mutex->deadlock_list.
+ * @param task    task that is involved in deadlock. You may find out other tasks
+ *                involved by means of task->deadlock_list.
  */
-typedef void (*TNEventCallback)(enum TN_StateFlag flag, BOOL set);
+typedef void (*TNCallbackDeadlock)(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
 
 
 
@@ -132,13 +136,14 @@ void tn_sys_time_set(unsigned int value);
 
 /**
  * Set callback function that should be called whenever
- * event occurs (say, deadlock becomes active or inactive).
+ * deadlock occurs or becomes inactive
+ * (say, if one of tasks stopped waiting because of timeout)
  *
  * Should be called before tn_start_system()
  *
- * @see TNEventCallback for callback function prototype
+ * @see TNCallbackDeadlock for callback function prototype
  */
-void tn_event_callback_set(TNEventCallback cb);
+void tn_callback_deadlock_set(TNCallbackDeadlock cb);
 
 /**
  * Returns current state flags

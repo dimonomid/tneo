@@ -45,11 +45,11 @@
 
 #if TN_USE_MUTEXES
 
+
+
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
-
-
 
 #if TN_MUTEX_REC
 //-- recursive locking enabled
@@ -60,13 +60,6 @@
 #  define __mutex_lock_cnt_change(mutex, value)
 #  define __MUTEX_REC_LOCK_RETVAL   TERR_ILUSE
 #endif
-
-/*
-     The ceiling protocol in ver 2.6 and latest is more "lightweight" in comparison
-   to previous versions.
-     The code of ceiling protocol is derived from Vyacheslav Ovsiyenko version
-*/
-
 
 // L. Sha, R. Rajkumar, J. Lehoczky, Priority Inheritance Protocols: An Approach
 // to Real-Time Synchronization, IEEE Transactions on Computers, Vol.39, No.9, 1990
@@ -162,13 +155,66 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
 }
 
 #if TN_MUTEX_DEADLOCK_DETECT
+
+/**
+ * Link all mutexes and all tasks involved in deadlock together.
+ * Should be called when deadlock is detected.
+ */
+static void _link_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
+{
+   struct TN_Task *holder = mutex->holder;
+
+   if (     (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_I)
+         && (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_C)
+      )
+   {
+      TN_FATAL_ERROR();
+   }
+
+   struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
+
+   //-- link two tasks together
+   tn_list_add_tail(&task->deadlock_list, &holder->deadlock_list); 
+
+   //-- link two mutexes together
+   tn_list_add_head(&mutex->deadlock_list, &mutex2->deadlock_list); 
+
+   if (_tn_is_mutex_locked_by_task(task, mutex2)){
+      //-- done; all mutexes and tasks involved in deadlock were linked together.
+      //   will return now.
+   } else {
+      //-- call this function again, recursively
+      _link_deadlock_lists(mutex2, task);
+   }
+}
+
+/**
+ * Unlink deadlock lists (for mutexes and tasks involved)
+ */
+static void _unlink_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
+{
+   struct TN_ListItem *item;
+   struct TN_ListItem *tmp_item;
+
+   tn_list_for_each_safe(item, tmp_item, &mutex->deadlock_list){
+      tn_list_remove_entry(item);
+      tn_list_reset(item);
+   }
+
+   tn_list_for_each_safe(item, tmp_item, &task->deadlock_list){
+      tn_list_remove_entry(item);
+      tn_list_reset(item);
+   }
+
+}
+
 /**
  * Should be called whenever task wanted to lock mutex, but it is already 
  * locked, so, task was just added to mutex's wait_queue.
  *
  * Checks for deadlock; if it is detected, flag TN_STATE_FLAG__DEADLOCK is set.
  */
-static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task)
+static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
 {
    struct TN_Task *holder = mutex->holder;
    if (     (holder->task_state & TSK_STATE_WAIT)
@@ -187,20 +233,56 @@ static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task)
 
       struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
       if (_tn_is_mutex_locked_by_task(task, mutex2)){
-         //-- deadlock: set flag
-         //   (user will be notified if he has set tn_event_callback)
-         _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
+         //-- link all mutexes and all tasks involved in the deadlock
+         _link_deadlock_lists(
+               get_mutex_by_wait_queque(task->pwait_queue),
+               task
+               );
+
+         //-- cry deadlock active
+         //   (user will be notified if he has set callback with tn_callback_deadlock_set())
+         //   NOTE: we should call this function _after_ calling _link_deadlock_lists(),
+         //   so that user may examine mutexes and tasks involved in deadlock.
+         _tn_cry_deadlock(TRUE, mutex, task);
       } else {
          //-- call this function again, recursively
-         _check_deadlock(mutex2, task);
+         _check_deadlock_active(mutex2, task);
       }
 
    } else {
       //-- no deadlock: holder of given mutex isn't waiting for another mutex
    }
 }
+
+/**
+ * If deadlock was active with given task and mutex involved,
+ * cry that deadlock becomes inactive,
+ * and unlink deadlock lists (for mutexes and tasks involved)
+ */
+static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
+{
+   if (!tn_is_list_empty(&mutex->deadlock_list)){
+
+      if (tn_is_list_empty(&task->deadlock_list)){
+         //-- should never be here: deadlock lists for tasks and mutexes
+         //   should either be both non-empty or both empty
+         TN_FATAL_ERROR();
+      }
+
+      //-- cry that deadlock becomes inactive
+      //   (user will be notified if he has set callback with tn_callback_deadlock_set())
+      //   NOTE: we should call this function _before_ calling _unlink_deadlock_lists(),
+      //   so that user may examine mutexes and tasks involved in deadlock.
+      _tn_cry_deadlock(FALSE, mutex, task);
+
+      //-- unlink deadlock lists (for mutexes and tasks involved)
+      _unlink_deadlock_lists(mutex, task);
+   }
+
+}
 #else
-static void _check_deadlock(struct TN_Mutex *mutex, struct TN_Task *task) {}
+static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task) {}
+static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task) {}
 #endif
 
 static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
@@ -224,7 +306,7 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
 
    //-- check if there is deadlock
-   _check_deadlock(mutex, tn_curr_run_task);
+   _check_deadlock_active(mutex, tn_curr_run_task);
 }
 
 static void _update_task_priority(struct TN_Task *task)
@@ -564,6 +646,20 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
       _tn_mutex_i_on_task_wait_complete(task);
    }
 
+}
+
+/**
+ * See comments in tn_internal.h file
+ */
+void _tn_mutex_on_task_wait_complete(struct TN_Task *task)
+{
+   //-- if deadlock was active with given task involved,
+   //   it means that deadlock becomes inactive. So, notify user about it
+   //   and unlink deadlock lists (for mutexes and tasks involved)
+   _cry_deadlock_inactive(
+         get_mutex_by_wait_queque(task->pwait_queue),
+         task
+         );
 }
 
 
