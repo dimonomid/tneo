@@ -444,9 +444,13 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
 
    if (task->task_state == TSK_STATE_RUNNABLE){
       task->task_state = TSK_STATE_SUSPEND;
-      _tn_task_to_non_runnable(task);
-
-      goto out_ei_switch_context;
+      if (_tn_task_to_non_runnable(task)){
+         //-- context switch is needed
+         goto out_ei_switch_context;
+      } else {
+         //-- context switch is not needed
+         goto out_ei;
+      }
    } else {
       task->task_state |= TSK_STATE_SUSPEND;
       goto out_ei;
@@ -1046,8 +1050,10 @@ BOOL _tn_task_to_runnable(struct TN_Task * task)
 /**
  * See comment in the tn_internal.h file
  */
-void _tn_task_to_non_runnable(struct TN_Task *task)
+BOOL _tn_task_to_non_runnable(struct TN_Task *task)
 {
+   BOOL ret = FALSE;
+
    int priority;
    priority = task->priority;
 
@@ -1058,17 +1064,21 @@ void _tn_task_to_non_runnable(struct TN_Task *task)
       //-- Find highest priority ready to run -
       //-- at least, MSB bit must be set for the idle task
 
-      _find_next_task_to_run();   //-- v.2.6
+      ret = _find_next_task_to_run();   //-- v.2.6
    } else {
       //-- There are 'ready to run' task(s) for the curr priority
       if (tn_next_task_to_run == task){
          tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
       }
+
+      //-- tn_next_task_to_run was just altered, so, we should return TRUE
+      ret = TRUE;
    }
 
    //-- and reset task's queue
    tn_list_reset(&(task->task_queue));
 
+   return ret;
 }
 
 

@@ -109,8 +109,11 @@ BOOL _tn_task_to_runnable(struct TN_Task *task);
 /**
  * Remove task from 'ready queue', determine and set
  * new tn_next_task_to_run.
+ *
+ * @return TRUE if tn_next_task_to_run was altered
+ *              (that is, context switch is needed)
  */
-void  _tn_task_to_non_runnable(struct TN_Task *task);
+BOOL _tn_task_to_non_runnable(struct TN_Task *task);
 
 /**
  * calls _tn_task_to_non_runnable() for current task, i.e. tn_curr_run_task
