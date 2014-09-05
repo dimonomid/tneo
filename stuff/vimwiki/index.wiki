@@ -19,7 +19,7 @@
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
    * [ ] mutex tests
-      * [ ] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
+      * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
       * [ ] ceiling mutexes
       * [ ] this one, regarding to order:
          * A l M1
