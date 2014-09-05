@@ -159,10 +159,10 @@ static BOOL _find_next_task_to_run(void)
 /**
  * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
  */
-static inline enum TN_Retval _task_wakeup(struct TN_Task *task, int *p_need_switch_context)
+static inline enum TN_Retval _task_wakeup(struct TN_Task *task, BOOL *p_need_switch_context)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = 0;
+   *p_need_switch_context = FALSE;
 
    if (_tn_task_is_dormant(task)){
       rc = TERR_WCONTEXT;
@@ -192,10 +192,10 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, int *p_need_swit
    return rc;
 }
 
-static inline enum TN_Retval _task_release_wait(struct TN_Task *task, int *p_need_switch_context)
+static inline enum TN_Retval _task_release_wait(struct TN_Task *task, BOOL *p_need_switch_context)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = 0;
+   *p_need_switch_context = FALSE;
 
    if ((_tn_task_is_waiting(task))){
       //-- task is in WAIT state, so, let's release it from that state.
@@ -210,15 +210,15 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task, int *p_nee
 /**
  * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
  */
-static inline enum TN_Retval _task_activate(struct TN_Task *task, int *p_need_switch_context)
+static inline enum TN_Retval _task_activate(struct TN_Task *task, BOOL *p_need_switch_context)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = 0;
+   *p_need_switch_context = FALSE;
 
    if (_tn_task_is_dormant(task)){
       _tn_task_clear_dormant(task);
       _tn_task_set_runnable(task);
-      *p_need_switch_context = 1;
+      *p_need_switch_context = TRUE;
    } else {
       if (task->activate_count == 0){
          task->activate_count++;
@@ -232,7 +232,7 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task, int *p_need_sw
 
 static inline enum TN_Retval _task_job_perform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task, int *p_need_switch_context)
+      int (p_worker)(struct TN_Task *task, BOOL *p_need_switch_context)
       )
 {
    TN_INTSAVE_DATA;
@@ -262,7 +262,7 @@ static inline enum TN_Retval _task_job_perform(
 
 static inline enum TN_Retval _task_job_iperform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task, int *p_need_switch_context)
+      int (p_worker)(struct TN_Task *task, BOOL *p_need_switch_context)
       )
 {
    TN_INTSAVE_DATA_INT;
