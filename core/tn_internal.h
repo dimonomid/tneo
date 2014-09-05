@@ -80,7 +80,8 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
       unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
       int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
       void *param,                     //-- task function parameter
-      int option);                     //-- Creation option
+      int option                       //-- Creation option
+);
 
 /**
  * Should be called when task finishes waiting for anything, as well as

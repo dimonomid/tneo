@@ -67,6 +67,10 @@ struct TN_Task {
    int  wakeup_count;         //-- Wakeup request count - for statistic
    int  suspend_count;        //-- Suspension count - for statistic
 
+#if TN_DEBUG
+   const char *name;          
+#endif
+
 // Other implementation specific fields may be added below
 
 };
@@ -160,7 +164,8 @@ enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task T
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option);                     //-- creation option
+                 int option                       //-- creation option
+                 );
 
 
 /**

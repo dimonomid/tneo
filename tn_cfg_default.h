@@ -22,6 +22,13 @@
 #endif
 
 /*
+ * TODO: explain
+ */
+#ifndef TN_DEBUG
+#  define TN_DEBUG               0
+#endif
+
+/*
  * Whether timer task should be used.
  * If it isn't used:
  *    - its job (managing tn_wait_timeout_list) is performed

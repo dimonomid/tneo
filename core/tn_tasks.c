@@ -435,7 +435,8 @@ enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task T
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option)                      //-- creation option
+                 int option                       //-- creation option
+                 )                      
 {
    return _tn_task_create(task, task_func, priority,
                           _stk_bottom_get(task_stack_start, task_stack_size),
@@ -874,7 +875,8 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
                  unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option)                      //-- Creation option
+                 int option                       //-- Creation option
+      )
 {
    TN_INTSAVE_DATA;
    enum TN_Retval rc;
