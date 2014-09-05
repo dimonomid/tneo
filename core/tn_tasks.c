@@ -403,7 +403,7 @@ static BOOL _task_terminate(struct TN_Task *task)
    BOOL ret = TRUE;
 
    //-- Unlock all mutexes locked by the task
-   _tn_mutex_unlock_all_by_task(tn_curr_run_task);
+   _tn_mutex_unlock_all_by_task(task);
 
    _task_set_dormant_state(task);
 
