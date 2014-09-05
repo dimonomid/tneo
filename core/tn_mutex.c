@@ -113,7 +113,7 @@ in:
    if (task->priority <= priority){
       //-- Task's priority is alreasy higher than given one, so,
       //   don't do anything
-   } else if (task->task_state == TSK_STATE_RUNNABLE){
+   } else if (task->task_state & TSK_STATE_RUNNABLE){
       //-- Task is runnable, so, set new priority to it
       //   (for runnable tasks, we should use special function for that)
       _tn_change_running_task_priority(task, priority);

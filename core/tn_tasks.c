@@ -196,7 +196,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, int *p_need_swit
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if (task->task_state == TSK_STATE_DORMANT){
+   if (task->task_state & TSK_STATE_DORMANT){
       rc = TERR_WCONTEXT;
    } else {
 
@@ -247,7 +247,7 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task, int *p_need_sw
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if (task->task_state == TSK_STATE_DORMANT){
+   if (task->task_state & TSK_STATE_DORMANT){
       _tn_task_to_runnable(task);
       *p_need_switch_context = 1;
    } else {
@@ -471,13 +471,14 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
       goto out_ei;
    }
 
-   if (task->task_state == TSK_STATE_DORMANT){
+   if (task->task_state & TSK_STATE_DORMANT){
       rc = TERR_WSTATE;
       goto out_ei;
    }
 
-   if (task->task_state == TSK_STATE_RUNNABLE){
-      task->task_state = TSK_STATE_SUSPEND;
+   task->task_state |= TSK_STATE_SUSPEND;
+
+   if (task->task_state & TSK_STATE_RUNNABLE){
       if (_tn_task_to_non_runnable(task)){
          //-- context switch is needed
          goto out_ei_switch_context;
@@ -486,7 +487,6 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
          goto out_ei;
       }
    } else {
-      task->task_state |= TSK_STATE_SUSPEND;
       goto out_ei;
    }
 
@@ -745,7 +745,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
    rc = TERR_NO_ERR;
 
-   if (task->task_state == TSK_STATE_DORMANT){
+   if (task->task_state & TSK_STATE_DORMANT){
       //-- The task is already terminated
       rc = TERR_WCONTEXT;
    } else if (tn_curr_run_task == task){
@@ -753,7 +753,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       //   (use tn_task_exit() instead)
       rc = TERR_WCONTEXT;
    } else {
-      if (task->task_state == TSK_STATE_RUNNABLE){
+      if (task->task_state & TSK_STATE_RUNNABLE){
          _tn_task_to_non_runnable(task);
 
       } else if (task->task_state & TSK_STATE_WAIT){
@@ -802,7 +802,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
 
    rc = TERR_NO_ERR;
 
-   if (task->task_state != TSK_STATE_DORMANT){
+   if (!(task->task_state & TSK_STATE_DORMANT)){
       //-- Cannot delete not-terminated task
       rc = TERR_WCONTEXT;
    } else {
@@ -844,9 +844,9 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
 
    rc = TERR_NO_ERR;
 
-   if (task->task_state == TSK_STATE_DORMANT){
+   if (task->task_state & TSK_STATE_DORMANT){
       rc = TERR_WCONTEXT;
-   } else if (task->task_state == TSK_STATE_RUNNABLE){
+   } else if (task->task_state & TSK_STATE_RUNNABLE){
       if (_tn_change_running_task_priority(task,new_priority)){
          tn_enable_interrupt();
          tn_switch_context();
@@ -1045,6 +1045,9 @@ BOOL _tn_task_to_non_runnable(struct TN_Task *task)
    int priority;
    priority = task->priority;
 
+   //-- remove runnable state
+   task->task_state &= ~TSK_STATE_RUNNABLE;
+
    //-- remove the curr task from any queue (now - from ready queue)
    if (_remove_entry_from_ready_queue(&(task->task_queue), priority)){
       //-- No ready tasks for the curr priority
@@ -1111,7 +1114,7 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
 {
    BOOL ret;
 
-   if (task->task_state == TSK_STATE_RUNNABLE){
+   if (task->task_state & TSK_STATE_RUNNABLE){
       ret = _tn_change_running_task_priority(task, new_priority);
    } else {
       task->priority = new_priority;
@@ -1126,7 +1129,7 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
  */
 BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
-   if (task->task_state != TSK_STATE_RUNNABLE){
+   if (!(task->task_state & TSK_STATE_RUNNABLE)){
       TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
    }
 
