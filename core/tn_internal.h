@@ -107,6 +107,8 @@ BOOL _tn_task_to_runnable(struct TN_Task *task);
 
 
 /**
+ * Should be called only for tasks in state TSK_STATE_RUNNABLE.
+ *
  * Remove task from 'ready queue', determine and set
  * new tn_next_task_to_run.
  *

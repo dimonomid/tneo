@@ -1050,15 +1050,18 @@ BOOL _tn_task_to_non_runnable(struct TN_Task *task)
       //-- Find highest priority ready to run -
       //-- at least, MSB bit must be set for the idle task
 
-      ret = _find_next_task_to_run();   //-- v.2.6
+      ret = _find_next_task_to_run();
    } else {
       //-- There are 'ready to run' task(s) for the curr priority
-      if (tn_next_task_to_run == task){
-         tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
-      }
 
-      //-- tn_next_task_to_run was just altered, so, we should return TRUE
-      ret = TRUE;
+      if (tn_next_task_to_run == task){
+         //-- the task that just became non-runnable was the "next task to run",
+         //   so we should select new next task to run
+         tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
+
+         //-- tn_next_task_to_run was just altered, so, we should return TRUE
+         ret = TRUE;
+      }
    }
 
    //-- and reset task's queue
