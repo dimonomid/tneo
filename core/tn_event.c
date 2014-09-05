@@ -96,7 +96,7 @@ enum TN_Retval tn_event_delete(struct TN_Event * evf)
 
       que = tn_list_remove_head(&(evf->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE)))
+      if(_tn_task_wait_complete(task, (0)))
       {
          task->task_wait_rc = TERR_DLT;
          tn_enable_interrupt();
@@ -426,7 +426,7 @@ static BOOL scan_event_waitqueue(struct TN_Event * evf)
       {
          tn_list_remove_entry(&task->task_queue);
          task->ewait_pattern = evf->pattern;
-         if (_tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE))){
+         if (_tn_task_wait_complete(task, (0))){
             // v.2.7 - thanks to Eugene Scopal
             rc = TRUE;
          }

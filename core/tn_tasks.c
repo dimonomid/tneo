@@ -151,38 +151,6 @@ static BOOL _find_next_task_to_run(void)
    return ret;
 }
 
-static void _task_set_dormant_state(struct TN_Task* task)
-{
-   // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
-   tn_list_reset(&(task->task_queue));
-   tn_list_reset(&(task->timer_queue));
-
-   _init_mutex_queue(task);
-   _init_deadlock_list(task);
-
-   task->pwait_queue = NULL;
-
-   task->priority    = task->base_priority; //-- Task curr priority
-   task->task_state  = TSK_STATE_DORMANT;   //-- Task state
-   task->task_wait_reason = 0;              //-- Reason for waiting
-   task->task_wait_rc = TERR_NO_ERR;
-
-#if TN_USE_EVENTS
-
-   task->ewait_pattern = 0;                 //-- Event wait pattern
-   task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR
-
-#endif
-
-   task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
-
-   task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
-   task->wakeup_count  = 0;                 //-- Wakeup request count
-   task->suspend_count = 0;                 //-- Suspension count
-
-   task->tslice_count  = 0;
-}
-
 // }}}
 
 //-- Inline functions {{{
@@ -196,16 +164,16 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, int *p_need_swit
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if (task->task_state & TSK_STATE_DORMANT){
+   if (_tn_task_is_dormant(task)){
       rc = TERR_WCONTEXT;
    } else {
 
-      if (     (task->task_state & TSK_STATE_WAIT)
+      if (     (_tn_task_is_waiting(task))
             && (task->task_wait_reason == TSK_WAIT_REASON_SLEEP))
       {
          //-- Task is sleeping, so, let's wake it up.
 
-         *p_need_switch_context = _tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE));
+         *p_need_switch_context = _tn_task_wait_complete(task, (0));
       } else {
          //-- Task isn't sleeping. Probably it is in WAIT state,
          //   but not because of call to tn_task_sleep().
@@ -229,9 +197,9 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task, int *p_nee
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if ((task->task_state & TSK_STATE_WAIT)){
+   if ((_tn_task_is_waiting(task))){
       //-- task is in WAIT state, so, let's release it from that state.
-      *p_need_switch_context = _tn_task_wait_complete(task, (TN_WCOMPL__TO_RUNNABLE));
+      *p_need_switch_context = _tn_task_wait_complete(task, (0));
    } else {
       rc = TERR_WCONTEXT;
    }
@@ -247,8 +215,9 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task, int *p_need_sw
    enum TN_Retval rc = TERR_NO_ERR;
    *p_need_switch_context = 0;
 
-   if (task->task_state & TSK_STATE_DORMANT){
-      _tn_task_to_runnable(task);
+   if (_tn_task_is_dormant(task)){
+      _tn_task_clear_dormant(task);
+      _tn_task_set_runnable(task);
       *p_need_switch_context = 1;
    } else {
       if (task->activate_count == 0){
@@ -389,6 +358,8 @@ static void _on_task_wait_complete(struct TN_Task *task)
 }
 
 /**
+ * NOTE: task_state should be set to TSK_STATE_NONE before calling.
+ *
  * Teminate task:
  *    * unlock all mutexes that are held by task
  *    * set dormant state (reinitialize everything)
@@ -400,12 +371,17 @@ static void _on_task_wait_complete(struct TN_Task *task)
  */
 static BOOL _task_terminate(struct TN_Task *task)
 {
+#if TN_DEBUG
+   if (task->task_state != TSK_STATE_NONE){
+      TN_FATAL_ERROR("");
+   }
+#endif
    BOOL ret = TRUE;
 
    //-- Unlock all mutexes locked by the task
    _tn_mutex_unlock_all_by_task(task);
 
-   _task_set_dormant_state(task);
+   _tn_task_set_dormant(task);
 
    //-- Pointer to task top of stack, when not running
    task->task_stk = tn_stack_init(task->task_func_addr,
@@ -454,6 +430,7 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
+   BOOL need_switch_context = FALSE;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -466,37 +443,29 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
 
    tn_disable_interrupt();
 
-   if (task->task_state & TSK_STATE_SUSPEND){
+   if (_tn_task_is_suspended(task)){
       rc = TERR_OVERFLOW;
-      goto out_ei;
+      goto out;
    }
 
-   if (task->task_state & TSK_STATE_DORMANT){
+   if (_tn_task_is_dormant(task)){
       rc = TERR_WSTATE;
-      goto out_ei;
+      goto out;
    }
 
-   task->task_state |= TSK_STATE_SUSPEND;
-
-   if (task->task_state & TSK_STATE_RUNNABLE){
-      if (_tn_task_to_non_runnable(task)){
-         //-- context switch is needed
-         goto out_ei_switch_context;
-      } else {
-         //-- context switch is not needed
-         goto out_ei;
+   if (_tn_task_is_runnable(task)){
+      if (_tn_task_clear_runnable(task)){
+         need_switch_context = TRUE;
       }
-   } else {
-      goto out_ei;
    }
 
-out_ei:
-   tn_enable_interrupt();
-   return rc;
+   _tn_task_set_suspended(task);
 
-out_ei_switch_context:
+out:
    tn_enable_interrupt();
-   tn_switch_context();
+   if (need_switch_context){
+      tn_switch_context();
+   }
 
    return rc;
 }
@@ -523,15 +492,17 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
 
    tn_disable_interrupt();
 
-   if (!(task->task_state & TSK_STATE_SUSPEND)){
+   if (!_tn_task_is_suspended(task)){
       rc = TERR_WSTATE;
       goto out_ei;
    }
 
-   if (!(task->task_state & TSK_STATE_WAIT)){
+   _tn_task_clear_suspended(task);
+
+   if (!_tn_task_is_waiting(task)){
       //-- The task is not in the WAIT-SUSPEND state,
       //   so we need to make it runnable and probably switch context
-      if (_tn_task_to_runnable(task)){
+      if (_tn_task_set_runnable(task)){
          //-- context switch is needed
          goto out_ei_switch_context;
       } else {
@@ -539,8 +510,7 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
          goto out_ei;
       }
    } else {
-      //-- Just remove TSK_STATE_SUSPEND from the task state
-      task->task_state &= ~TSK_STATE_SUSPEND;
+      //-- Task is waiting for something, so, nothing special needed
       goto out_ei;
    }
 
@@ -679,18 +649,18 @@ enum TN_Retval tn_task_irelease_wait(struct TN_Task *task)
  */
 void tn_task_exit(int attr)
 {
-#if 0
+#if 1
 	/*  
 	 * The structure is used to force GCC compiler properly locate and use
     * 'stack_exp' - thanks to Angelo R. Di Filippo
 	 */
-   struct  // v.2.7
+   volatile struct  // v.2.7
    {	
-      volatile int stack_exp[TN_PORT_STACK_EXPAND_AT_EXIT];
+      struct TN_Task *task;
+      volatile int stack_exp2[TN_PORT_STACK_EXPAND_AT_EXIT];
    } data;
 #endif
 
-   struct TN_Task *task;
 	 
    TN_CHECK_NON_INT_CONTEXT_NORETVAL;
 
@@ -702,18 +672,18 @@ void tn_task_exit(int attr)
 
    //--------------------------------------------------
 
-   task = tn_curr_run_task;
-   _tn_task_to_non_runnable(task);
+   data.task = tn_curr_run_task;
+   _tn_task_clear_runnable(data.task);
 
-   if (!_task_terminate(task)){
+   if (!_task_terminate(data.task)){
       //-- Cannot exit
-      _tn_task_to_runnable(task);
+      _tn_task_set_runnable(data.task);
    } else {
       // V 2.6 Thanks to Alex Borisov
       if (attr == TN_EXIT_AND_DELETE_TASK){
-         tn_list_remove_entry(&(task->create_queue));
+         tn_list_remove_entry(&(data.task->create_queue));
          tn_created_tasks_qty--;
-         task->id_task = 0;
+         data.task->id_task = 0;
       }
    }
 
@@ -745,7 +715,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
    rc = TERR_NO_ERR;
 
-   if (task->task_state & TSK_STATE_DORMANT){
+   if (_tn_task_is_dormant(task)){
       //-- The task is already terminated
       rc = TERR_WCONTEXT;
    } else if (tn_curr_run_task == task){
@@ -753,22 +723,22 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       //   (use tn_task_exit() instead)
       rc = TERR_WCONTEXT;
    } else {
-      if (task->task_state & TSK_STATE_RUNNABLE){
-         _tn_task_to_non_runnable(task);
+      if (_tn_task_is_runnable(task)){
 
-      } else if (task->task_state & TSK_STATE_WAIT){
-         //-- call _tn_task_wait_complete() for task
-         //   without making it runnable
-         //   (flag TN_WCOMPL__TO_RUNNABLE is not set)
-         _tn_task_wait_complete(
-               task, (TN_WCOMPL__REMOVE_WQUEUE)
-               );
+         _tn_task_clear_runnable(task);
+
+      } else if (_tn_task_is_waiting(task)){
+         _tn_task_clear_waiting(task, (TN_WCOMPL__REMOVE_WQUEUE));
+      }
+
+      if (_tn_task_is_suspended(task)){
+         _tn_task_clear_suspended(task);
       }
 
       if (!_task_terminate(task)){
          //-- Cannot terminate
 
-         _tn_task_to_runnable(task);
+         _tn_task_set_runnable(task);
          tn_enable_interrupt();
          tn_switch_context();
 
@@ -802,7 +772,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
 
    rc = TERR_NO_ERR;
 
-   if (!(task->task_state & TSK_STATE_DORMANT)){
+   if (!_tn_task_is_dormant(task)){
       //-- Cannot delete not-terminated task
       rc = TERR_WCONTEXT;
    } else {
@@ -844,9 +814,9 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
 
    rc = TERR_NO_ERR;
 
-   if (task->task_state & TSK_STATE_DORMANT){
+   if (_tn_task_is_dormant(task)){
       rc = TERR_WCONTEXT;
-   } else if (task->task_state & TSK_STATE_RUNNABLE){
+   } else if (_tn_task_is_runnable(task)){
       if (_tn_change_running_task_priority(task,new_priority)){
          tn_enable_interrupt();
          tn_switch_context();
@@ -922,6 +892,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
    task->base_priority   = priority;                         //-- Task base priority
    task->activate_count  = 0;                                //-- Activation request count
+   task->task_state      = TSK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
 
    //-- Fill all task stack space by TN_FILL_STACK_VAL - only inside create_task
@@ -930,7 +901,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
       *ptr_stack-- = TN_FILL_STACK_VAL;
    }
 
-   _task_set_dormant_state(task);
+   _tn_task_set_dormant(task);
 
    //--- Init task stack
    ptr_stack = tn_stack_init(task->task_func_addr,
@@ -947,7 +918,8 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    tn_created_tasks_qty++;
 
    if ((option & TN_TASK_START_ON_CREATION) != 0){
-      _tn_task_to_runnable(task);
+      _tn_task_clear_dormant(task);
+      _tn_task_set_runnable(task);
    }
 
    if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
@@ -960,67 +932,20 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
+BOOL _tn_task_set_runnable(struct TN_Task * task)
 {
-   BOOL rc = FALSE;
-
-   if (task == NULL){
-      return FALSE;
+#if TN_DEBUG
+   //-- task_state should be NONE here
+   if (task->task_state != TSK_STATE_NONE){
+      TN_FATAL_ERROR("");
    }
+#endif
 
-   //-- NOTE: we should remove task from wait_queue before calling
-   //   _on_task_wait_complete(), because _find_max_blocked_priority()
-   //   in tn_mutex.c checks for all tasks in mutex's wait_queue to
-   //   get max blocked priority
-   if (flags & TN_WCOMPL__REMOVE_WQUEUE){
-      tn_list_remove_entry(&task->task_queue);
-   }
-
-   //-- handle current wait_reason: say, for MUTEX_I, we should
-   //   handle priorities of other involved tasks.
-   _on_task_wait_complete(task);
-
-   task->pwait_queue  = NULL;
-   task->task_wait_rc = TERR_NO_ERR;
-
-   //-- remove task from timer queue (if it is there)
-   if (task->tick_count != TN_WAIT_INFINITE){
-      tn_list_remove_entry(&(task->timer_queue));
-   }
-
-   task->tick_count = TN_WAIT_INFINITE;
-
-   //-- remove WAIT state
-   task->task_state &= ~TSK_STATE_WAIT;
-
-   if (flags & TN_WCOMPL__TO_RUNNABLE){
-      //-- if task state became NONE when we've removed WAIT state,
-      //   let's make it runnable.
-      //
-      //   NOTE that if task was in WAITING_SUSPENDED state,
-      //   there will be TSK_STATE_SUSPEND now.
-      //   In this case, _tn_task_to_runnable() won't be called.
-      if (task->task_state == TSK_STATE_NONE){
-         rc = _tn_task_to_runnable(task);
-      }
-   }
-
-   //-- Clear wait reason
-   task->task_wait_reason = TSK_WAIT_REASON_NONE;
-
-   return rc;
-}
-
-/**
- * See comment in the tn_internal.h file
- */
-BOOL _tn_task_to_runnable(struct TN_Task * task)
-{
    BOOL ret = FALSE;
    int priority;
 
    priority          = task->priority;
-   task->task_state  = TSK_STATE_RUNNABLE;
+   task->task_state  |= TSK_STATE_RUNNABLE;
    task->pwait_queue = NULL;
 
    //-- Add the task to the end of 'ready queue' for the current priority
@@ -1038,8 +963,15 @@ BOOL _tn_task_to_runnable(struct TN_Task * task)
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_task_to_non_runnable(struct TN_Task *task)
+BOOL _tn_task_clear_runnable(struct TN_Task *task)
 {
+#if TN_DEBUG
+   //-- task_state should be exactly TSK_STATE_RUNNABLE here
+   if (task->task_state != TSK_STATE_RUNNABLE){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
    BOOL ret = FALSE;
 
    int priority;
@@ -1075,37 +1007,170 @@ BOOL _tn_task_to_non_runnable(struct TN_Task *task)
    return ret;
 }
 
-
-
-/**
- * See comment in the tn_internal.h file
- */
-void _tn_task_curr_to_wait_action(struct TN_ListItem *wait_que,
+void _tn_task_set_waiting(
+      struct TN_Task *task,
+      struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout)
+      unsigned long timeout
+      )
 {
-   _tn_task_to_non_runnable(tn_curr_run_task);
+#if TN_DEBUG
+   //-- only SUSPEND bit is allowed here
+   if (task->task_state & ~(TSK_STATE_SUSPEND)){
+      TN_FATAL_ERROR("");
+   }
+#endif
 
-   tn_curr_run_task->task_state       = TSK_STATE_WAIT;
-   tn_curr_run_task->task_wait_reason = wait_reason;
-   tn_curr_run_task->tick_count       = timeout;
+   task->task_state       |= TSK_STATE_WAIT;
+   task->task_wait_reason = wait_reason;
+   task->tick_count       = timeout;
 
    //--- Add to the wait queue  - FIFO
 
    if (wait_que != NULL){
-      tn_list_add_tail(wait_que, &(tn_curr_run_task->task_queue));
-      tn_curr_run_task->pwait_queue = wait_que;
+      tn_list_add_tail(wait_que, &(task->task_queue));
+      task->pwait_queue = wait_que;
    } else {
       //-- NOTE: we don't need to reset task_queue because
-      //   it is already reset in _tn_task_to_non_runnable().
+      //   it is already reset in _tn_task_clear_runnable().
    }
 
    //--- Add to the timers queue
 
    if (timeout != TN_WAIT_INFINITE){
-      tn_list_add_tail(&tn_wait_timeout_list, &(tn_curr_run_task->timer_queue));
+      tn_list_add_tail(&tn_wait_timeout_list, &(task->timer_queue));
    }
 }
+
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_WComplFlags flags)
+{
+#if 0
+   if (task == NULL){
+      return;
+   }
+#endif
+
+#if TN_DEBUG
+   //-- only WAIT and SUSPEND bits are allowed here,
+   //   and WAIT bit must be set
+   if (
+              (task->task_state & ~(TSK_STATE_WAIT | TSK_STATE_SUSPEND))
+         || (!(task->task_state &  (TSK_STATE_WAIT)                    ))
+      )
+   {
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   //-- NOTE: we should remove task from wait_queue before calling
+   //   _on_task_wait_complete(), because _find_max_blocked_priority()
+   //   in tn_mutex.c checks for all tasks in mutex's wait_queue to
+   //   get max blocked priority
+   if (flags & TN_WCOMPL__REMOVE_WQUEUE){
+      tn_list_remove_entry(&task->task_queue);
+   }
+
+   //-- handle current wait_reason: say, for MUTEX_I, we should
+   //   handle priorities of other involved tasks.
+   _on_task_wait_complete(task);
+
+   task->pwait_queue  = NULL;
+   task->task_wait_rc = TERR_NO_ERR;
+
+   //-- remove task from timer queue (if it is there)
+   if (task->tick_count != TN_WAIT_INFINITE){
+      tn_list_remove_entry(&(task->timer_queue));
+   }
+
+   task->tick_count = TN_WAIT_INFINITE;
+
+   //-- remove WAIT state
+   task->task_state &= ~TSK_STATE_WAIT;
+
+   //-- Clear wait reason
+   task->task_wait_reason = TSK_WAIT_REASON_NONE;
+}
+
+void _tn_task_set_suspended(struct TN_Task *task)
+{
+#if TN_DEBUG
+   //-- only WAIT bit is allowed here
+   if (task->task_state & ~(TSK_STATE_WAIT)){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   task->task_state |= TSK_STATE_SUSPEND;
+}
+
+void _tn_task_clear_suspended(struct TN_Task *task)
+{
+#if TN_DEBUG
+   //-- only WAIT and SUSPEND bits are allowed here,
+   //   and SUSPEND bit must be set
+   if (
+         (task->task_state & ~(TSK_STATE_WAIT | TSK_STATE_SUSPEND))
+         || (!(task->task_state &                   (TSK_STATE_SUSPEND)))
+      )
+   {
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   task->task_state &= ~TSK_STATE_SUSPEND;
+}
+
+void _tn_task_set_dormant(struct TN_Task* task)
+{
+
+#if TN_DEBUG
+   if (task->task_state != TSK_STATE_NONE){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
+   tn_list_reset(&(task->task_queue));
+   tn_list_reset(&(task->timer_queue));
+
+   _init_mutex_queue(task);
+   _init_deadlock_list(task);
+
+   task->pwait_queue = NULL;
+
+   task->priority    = task->base_priority; //-- Task curr priority
+   task->task_state  |= TSK_STATE_DORMANT;   //-- Task state
+   task->task_wait_reason = 0;              //-- Reason for waiting
+   task->task_wait_rc = TERR_NO_ERR;
+
+#if TN_USE_EVENTS
+
+   task->ewait_pattern = 0;                 //-- Event wait pattern
+   task->ewait_mode    = 0;                 //-- Event wait mode:  _AND or _OR
+
+#endif
+
+   task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
+
+   task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
+   task->wakeup_count  = 0;                 //-- Wakeup request count
+   task->suspend_count = 0;                 //-- Suspension count
+
+   task->tslice_count  = 0;
+}
+
+void _tn_task_clear_dormant(struct TN_Task *task)
+{
+#if TN_DEBUG
+   //-- task_state should be exactly TSK_STATE_DORMANT here
+   if (task->task_state != TSK_STATE_DORMANT){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   task->task_state &= ~TSK_STATE_DORMANT;
+}
+
 
 /**
  * See comment in the tn_internal.h file
@@ -1114,7 +1179,7 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
 {
    BOOL ret;
 
-   if (task->task_state & TSK_STATE_RUNNABLE){
+   if (_tn_task_is_runnable(task)){
       ret = _tn_change_running_task_priority(task, new_priority);
    } else {
       task->priority = new_priority;
@@ -1129,7 +1194,7 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
  */
 BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
-   if (!(task->task_state & TSK_STATE_RUNNABLE)){
+   if (!_tn_task_is_runnable(task)){
       TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
    }
 

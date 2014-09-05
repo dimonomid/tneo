@@ -15,7 +15,10 @@
 
 #include "tn_port.h"
 
-struct TN_Task;
+#include "tn_tasks.h"   //-- for inline functions
+#include "tn_sys.h"     //-- for inline functions
+//struct TN_Task;
+
 struct TN_Mutex;
 struct TN_ListItem;
 
@@ -29,12 +32,12 @@ struct TN_ListItem;
 
 /**
  * Flags for _tn_task_wait_complete()
+ * TODO: when events, dqueue, sem will be refactored, get rid of
+ * these flags completely
+ * (like, flag is always set)
  */
 enum TN_WComplFlags {
    TN_WCOMPL__REMOVE_WQUEUE   = (1 << 0), //-- if set, task will be removed from wait_queue
-   TN_WCOMPL__TO_RUNNABLE     = (1 << 1), //-- if set, task will become runnable
-                                          //   (if only it is not in WAITING_SUSPENDED state.
-                                          //    if it is, new state will be SUSPENDED)
 };
 
 
@@ -83,16 +86,25 @@ enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task 
       int option                       //-- Creation option
 );
 
-/**
- * Should be called when task finishes waiting for anything, as well as
- * when task is terminated while waiting.
- *
- * @param flags   see enum TN_WComplFlags
- *
- * @return TRUE if tn_next_task_to_run is set to given task
- *              (that is, context switch is needed)
- */
-BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags);
+static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
+{
+   return !!(task->task_state & TSK_STATE_RUNNABLE);
+}
+
+static inline BOOL _tn_task_is_waiting(struct TN_Task *task)
+{
+   return !!(task->task_state & TSK_STATE_WAIT);
+}
+
+static inline BOOL _tn_task_is_suspended(struct TN_Task *task)
+{
+   return !!(task->task_state & TSK_STATE_SUSPEND);
+}
+
+static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
+{
+   return !!(task->task_state & TSK_STATE_DORMANT);
+}
 
 /**
  * Change task's state to runnable,
@@ -104,7 +116,7 @@ BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags);
  *
  * @return TRUE if given task should run next
  */
-BOOL _tn_task_to_runnable(struct TN_Task *task);
+BOOL _tn_task_set_runnable(struct TN_Task *task);
 
 
 /**
@@ -116,19 +128,69 @@ BOOL _tn_task_to_runnable(struct TN_Task *task);
  * @return TRUE if tn_next_task_to_run was altered
  *              (that is, context switch is needed)
  */
-BOOL _tn_task_to_non_runnable(struct TN_Task *task);
+BOOL _tn_task_clear_runnable(struct TN_Task *task);
+
+void _tn_task_set_waiting(
+      struct TN_Task *task,
+      struct TN_ListItem *wait_que,
+      enum TN_WaitReason wait_reason,
+      unsigned long timeout
+      );
+
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_WComplFlags flags);
+
+void _tn_task_set_suspended(struct TN_Task *task);
+void _tn_task_clear_suspended(struct TN_Task *task);
+
+void _tn_task_set_dormant(struct TN_Task* task);
+
+void _tn_task_clear_dormant(struct TN_Task *task);
 
 /**
- * calls _tn_task_to_non_runnable() for current task, i.e. tn_curr_run_task
+ * Should be called when task finishes waiting for anything, as well as
+ * when task is terminated while waiting.
+ *
+ * @param flags   see enum TN_WComplFlags
+ *
+ * @return TRUE if tn_next_task_to_run is set to given task
+ *              (that is, context switch is needed)
+ */
+static inline BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
+{
+   BOOL rc = FALSE;
+   _tn_task_clear_waiting(task, flags);
+
+   //-- if task state became NONE when we've removed WAIT state,
+   //   let's make it runnable.
+   //
+   //   NOTE that if task was in WAITING_SUSPENDED state,
+   //   there will be TSK_STATE_SUSPEND now.
+   //   In this case, _tn_task_set_runnable() won't be called.
+   if (task->task_state == TSK_STATE_NONE){
+      rc = _tn_task_set_runnable(task);
+   }
+
+   return rc;
+}
+
+
+/**
+ * calls _tn_task_clear_runnable() for current task, i.e. tn_curr_run_task
  * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
  *
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
  */
-void _tn_task_curr_to_wait_action(
+static inline void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout);
+      unsigned long timeout
+      )
+{
+   _tn_task_clear_runnable(tn_curr_run_task);
+   _tn_task_set_waiting(tn_curr_run_task, wait_que, wait_reason, timeout);
+}
+
 
 /**
  * Change priority of any task (runnable or non-runnable)

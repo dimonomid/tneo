@@ -182,8 +182,7 @@ static inline void _wait_timeout_list_manage(void)
          if (task->tick_count == 0){
             //-- Timeout expired
             _tn_task_wait_complete(
-                  (struct TN_Task *)task,
-                  (TN_WCOMPL__REMOVE_WQUEUE | TN_WCOMPL__TO_RUNNABLE)
+                  (struct TN_Task *)task, (TN_WCOMPL__REMOVE_WQUEUE)
                   );
             task->task_wait_rc = TERR_TIMEOUT;
          }
@@ -243,7 +242,8 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
  */
 static inline void _idle_task_to_runnable(void)
 {
-   _tn_task_to_runnable(&tn_idle_task);
+   _tn_task_clear_dormant(&tn_idle_task);
+   _tn_task_set_runnable(&tn_idle_task);
 }
 
 //-- obsolete timer task stuff {{{
@@ -301,7 +301,8 @@ static inline void _timer_task_create(unsigned int  *timer_task_stack,
  */
 static inline void _timer_task_to_runnable(void)
 {
-   _tn_task_to_runnable(&tn_timer_task);
+   _tn_task_clear_dormant(&tn_timer_task);
+   _tn_task_set_runnable(&tn_timer_task);
 }
 
 /**
@@ -311,7 +312,7 @@ static inline void _timer_task_to_runnable(void)
 static inline void _timer_task_wakeup(void)
 {
    //-- Enable a task with priority 0 - tn_timer_task
-   _tn_task_wait_complete(&tn_timer_task, (TN_WCOMPL__TO_RUNNABLE));
+   _tn_task_wait_complete(&tn_timer_task, (0));
 }
 #else
 //-- don't use timer task: just define a couple of stubs
@@ -392,10 +393,10 @@ void tn_start_system(
    _timer_task_create(timer_task_stack, timer_task_stack_size);
    _idle_task_create(idle_task_stack, idle_task_stack_size);
 
-   //-- Just for the _tn_task_to_runnable() proper operation
+   //-- Just for the _tn_task_set_runnable() proper operation
    tn_next_task_to_run = &tn_idle_task; 
 
-   //-- call _tn_task_to_runnable() for system tasks
+   //-- call _tn_task_set_runnable() for system tasks
    _timer_task_to_runnable();
    _idle_task_to_runnable();
 
@@ -545,7 +546,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
       //-- call _tn_task_wait_complete and remember
       //   if at least one task requires switching context
       need_switch_context = _tn_task_wait_complete(
-            task, (TN_WCOMPL__REMOVE_WQUEUE | TN_WCOMPL__TO_RUNNABLE)
+            task, (TN_WCOMPL__REMOVE_WQUEUE)
             )
          || need_switch_context;
 

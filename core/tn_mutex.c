@@ -113,7 +113,7 @@ in:
    if (task->priority <= priority){
       //-- Task's priority is alreasy higher than given one, so,
       //   don't do anything
-   } else if (task->task_state & TSK_STATE_RUNNABLE){
+   } else if (_tn_task_is_runnable(task)){
       //-- Task is runnable, so, set new priority to it
       //   (for runnable tasks, we should use special function for that)
       _tn_change_running_task_priority(task, priority);
@@ -122,7 +122,7 @@ in:
       task->priority = priority;
 
       //-- and check if the task is waiting for mutex
-      if (     (task->task_state & TSK_STATE_WAIT)
+      if (     (_tn_task_is_waiting(task))
             && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
          )
       {
@@ -240,7 +240,7 @@ static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
 
 in:
    holder = mutex->holder;
-   if (     (holder->task_state & TSK_STATE_WAIT)
+   if (     (_tn_task_is_waiting(task))
          && (
                (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
             || (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
@@ -419,7 +419,7 @@ static BOOL _mutex_do_unlock(struct TN_Mutex * mutex)
 
       //-- wake it up
       ret = _tn_task_wait_complete(
-            task, (TN_WCOMPL__REMOVE_WQUEUE | TN_WCOMPL__TO_RUNNABLE)
+            task, (TN_WCOMPL__REMOVE_WQUEUE)
             );
 
       //-- lock mutex by it
@@ -699,7 +699,7 @@ in:
    _update_task_priority(task);
 
    //-- and check if the task is waiting for mutex
-   if (     (task->task_state & TSK_STATE_WAIT)
+   if (     (_tn_task_is_waiting(task))
          && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
       )
    {
