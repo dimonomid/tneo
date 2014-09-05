@@ -702,7 +702,7 @@ void tn_task_exit(int attr)
    //--------------------------------------------------
 
    task = tn_curr_run_task;
-   _tn_task_to_non_runnable(tn_curr_run_task);
+   _tn_task_to_non_runnable(task);
 
    if (!_task_terminate(task)){
       //-- Cannot exit
