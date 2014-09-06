@@ -172,13 +172,8 @@ static inline BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFl
    BOOL rc = FALSE;
    _tn_task_clear_waiting(task, flags);
 
-   //-- if task state became NONE when we've removed WAIT state,
-   //   let's make it runnable.
-   //
-   //   NOTE that if task was in WAITING_SUSPENDED state,
-   //   there will be TSK_STATE_SUSPEND now.
-   //   In this case, _tn_task_set_runnable() won't be called.
-   if (task->task_state == TSK_STATE_NONE){
+   //-- if task isn't suspended, make it runnable
+   if (!_tn_task_is_suspended(task)){
       rc = _tn_task_set_runnable(task);
    }
 
