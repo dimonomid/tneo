@@ -160,7 +160,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
       {
          //-- Task is sleeping, so, let's wake it up.
 
-         _tn_task_wait_complete(task, (0));
+         _tn_task_wait_complete(task, TERR_NO_ERR, (0));
       } else {
          //-- Task isn't sleeping. Probably it is in WAIT state,
          //   but not because of call to tn_task_sleep().
@@ -189,7 +189,7 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
       //   and return it here?
       //   If some task is waiting for some event, and someone releases it from
       //   wait by calling this function, TERR_NO_ERR is returned, which is wrong.
-      _tn_task_wait_complete(task, (0));
+      _tn_task_wait_complete(task, TERR_NO_ERR, (0));
    } else {
       rc = TERR_WCONTEXT;
    }
@@ -676,7 +676,11 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       if (_tn_task_is_runnable(task)){
          _tn_task_clear_runnable(task);
       } else if (_tn_task_is_waiting(task)){
-         _tn_task_clear_waiting(task, (TN_WCOMPL__REMOVE_WQUEUE));
+         _tn_task_clear_waiting(
+               task,
+               TERR_NO_ERR,   //-- doesn't matter: nobody will read it
+               (TN_WCOMPL__REMOVE_WQUEUE)
+               );
       }
 
       if (_tn_task_is_suspended(task)){
@@ -970,14 +974,11 @@ void _tn_task_set_waiting(
    }
 }
 
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_WComplFlags flags)
+/**
+ * See comment in the tn_internal.h file
+ */
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags)
 {
-#if 0
-   if (task == NULL){
-      return;
-   }
-#endif
-
 #if TN_DEBUG
    //-- only WAIT and SUSPEND bits are allowed here,
    //   and WAIT bit must be set
@@ -1003,7 +1004,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_WComplFlags flags)
    _on_task_wait_complete(task);
 
    task->pwait_queue  = NULL;
-   task->task_wait_rc = TERR_NO_ERR;
+   task->task_wait_rc = wait_rc;
 
    //-- remove task from timer queue (if it is there)
    if (task->tick_count != TN_WAIT_INFINITE){

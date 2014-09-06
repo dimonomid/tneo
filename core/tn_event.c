@@ -112,7 +112,7 @@ static BOOL _scan_event_waitqueue(struct TN_Event *evf)
       if (_cond_check(evf, task->ewait_mode, task->ewait_pattern)){
          //-- Condition to finish the waiting
          task->ewait_pattern = evf->pattern;
-         _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
+         _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
 
          //-- NOTE: here we don't check _tn_need_context_switch(), because, say,
          //         TN_EVENT_ATTR_CLR should anyway be handled,

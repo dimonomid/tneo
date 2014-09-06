@@ -182,9 +182,8 @@ static inline void _wait_timeout_list_manage(void)
          if (task->tick_count == 0){
             //-- Timeout expired
             _tn_task_wait_complete(
-                  (struct TN_Task *)task, (TN_WCOMPL__REMOVE_WQUEUE)
+                  (struct TN_Task *)task, TERR_TIMEOUT, (TN_WCOMPL__REMOVE_WQUEUE)
                   );
-            task->task_wait_rc = TERR_TIMEOUT;
          }
       }
    }
@@ -318,7 +317,7 @@ static inline void _timer_task_to_runnable(void)
 static inline void _timer_task_wakeup(void)
 {
    //-- Enable a task with priority 0 - tn_timer_task
-   _tn_task_wait_complete(&tn_timer_task, (0));
+   _tn_task_wait_complete(&tn_timer_task, TERR_NO_ERR, (0));
 }
 #else
 //-- don't use timer task: just define a couple of stubs
@@ -548,9 +547,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
    //   and setting TERR_DLT as a wait return code.
    tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
       //-- call _tn_task_wait_complete for every task
-      _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
-
-      task->task_wait_rc = TERR_DLT;
+      _tn_task_wait_complete(task, TERR_DLT, (TN_WCOMPL__REMOVE_WQUEUE));
    }
 
 #if TN_DEBUG

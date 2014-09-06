@@ -417,7 +417,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
 
       //-- wake it up
       _tn_task_wait_complete(
-            task, (TN_WCOMPL__REMOVE_WQUEUE)
+            task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE)
             );
 
       //-- lock mutex by it

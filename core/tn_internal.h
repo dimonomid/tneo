@@ -146,7 +146,11 @@ void _tn_task_set_waiting(
       unsigned long timeout
       );
 
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_WComplFlags flags);
+/**
+ * @param wait_rc return code that will be returned to waiting task
+ * @param flags   see enum TN_WComplFlags
+ */
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags);
 
 void _tn_task_set_suspended(struct TN_Task *task);
 void _tn_task_clear_suspended(struct TN_Task *task);
@@ -158,11 +162,12 @@ void _tn_task_clear_dormant(struct TN_Task *task);
 /**
  * Should be called when task finishes waiting for anything.
  *
+ * @param wait_rc return code that will be returned to waiting task
  * @param flags   see enum TN_WComplFlags
  */
-static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
+static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags)
 {
-   _tn_task_clear_waiting(task, flags);
+   _tn_task_clear_waiting(task, wait_rc, flags);
 
    //-- if task isn't suspended, make it runnable
    if (!_tn_task_is_suspended(task)){

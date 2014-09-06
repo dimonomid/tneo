@@ -88,9 +88,7 @@ static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data)
 
       task->data_elem = p_data;
 
-      _tn_task_wait_complete(
-               task, (TN_WCOMPL__REMOVE_WQUEUE)
-               );
+      _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
    } else {
       if (fmp->fblkcnt < fmp->num_blocks){
          *(void **)p_data = fmp->free_list;   //-- insert block into free block list
