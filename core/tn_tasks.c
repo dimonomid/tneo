@@ -383,13 +383,12 @@ static BOOL _task_terminate(struct TN_Task *task)
 
    _tn_task_set_dormant(task);
 
-   //-- Pointer to task top of stack, when not running
-   task->task_stk = tn_stack_init(task->task_func_addr,
-         task->stk_start,
-         task->task_func_param);
-
    if (task->activate_count > 0){
       //-- Cannot terminate
+
+      _tn_task_clear_dormant(task);
+      _tn_task_set_runnable(task);
+
       ret = FALSE;
       task->activate_count--;
    }
@@ -649,18 +648,7 @@ enum TN_Retval tn_task_irelease_wait(struct TN_Task *task)
  */
 void tn_task_exit(int attr)
 {
-#if 1
-	/*  
-	 * The structure is used to force GCC compiler properly locate and use
-    * 'stack_exp' - thanks to Angelo R. Di Filippo
-	 */
-   volatile struct  // v.2.7
-   {	
-      struct TN_Task *task;
-      volatile int stack_exp2[TN_PORT_STACK_EXPAND_AT_EXIT];
-   } data;
-#endif
-
+   struct TN_Task *task;
 	 
    TN_CHECK_NON_INT_CONTEXT_NORETVAL;
 
@@ -672,19 +660,20 @@ void tn_task_exit(int attr)
 
    //--------------------------------------------------
 
-   data.task = tn_curr_run_task;
-   _tn_task_clear_runnable(data.task);
+   task = tn_curr_run_task;
+   _tn_task_clear_runnable(task);
 
-   if (!_task_terminate(data.task)){
-      //-- Cannot exit
-      _tn_task_set_runnable(data.task);
+   if (!_task_terminate(task)){
+      //-- Cannot exit, do nothing special here
    } else {
+
       // V 2.6 Thanks to Alex Borisov
       if (attr == TN_EXIT_AND_DELETE_TASK){
-         tn_list_remove_entry(&(data.task->create_queue));
+         tn_list_remove_entry(&(task->create_queue));
          tn_created_tasks_qty--;
-         data.task->id_task = 0;
+         task->id_task = 0;
       }
+
    }
 
    tn_switch_context_exit();  // interrupts will be enabled inside tn_switch_context_exit()
@@ -723,10 +712,9 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       //   (use tn_task_exit() instead)
       rc = TERR_WCONTEXT;
    } else {
+
       if (_tn_task_is_runnable(task)){
-
          _tn_task_clear_runnable(task);
-
       } else if (_tn_task_is_waiting(task)){
          _tn_task_clear_waiting(task, (TN_WCOMPL__REMOVE_WQUEUE));
       }
@@ -738,7 +726,6 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       if (!_task_terminate(task)){
          //-- Cannot terminate
 
-         _tn_task_set_runnable(task);
          tn_enable_interrupt();
          tn_switch_context();
 
@@ -902,15 +889,6 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    }
 
    _tn_task_set_dormant(task);
-
-   //--- Init task stack
-   ptr_stack = tn_stack_init(task->task_func_addr,
-                             task->stk_start,
-                             task->task_func_param);
-
-   task->task_stk = ptr_stack;    //-- Pointer to task top of stack,
-                                  //-- when not running
-
 
    //-- Add task to created task queue
 
@@ -1167,6 +1145,14 @@ void _tn_task_clear_dormant(struct TN_Task *task)
       TN_FATAL_ERROR("");
    }
 #endif
+
+   //--- Init task stack, save pointer to task top of stack,
+   //    when not running
+   task->task_stk = tn_stack_init(
+         task->task_func_addr,
+         task->stk_start,
+         task->task_func_param
+         );
 
    task->task_state &= ~TSK_STATE_DORMANT;
 }

@@ -13,8 +13,8 @@
    * [X] fix bug: if some task tried to lock mutex with priority inheritance, and some other task's priority was changed because of that, and then tasks stopped waiting by timeout, priority of mutex holder doesn't change back (remains elevated)
    * [X] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
    * [X] move _unlock_all_mutexes to tn_mutex.c, make _tn_mutex_do_unlock private
+   * [X] probably don't initialize stack in the `tn_task_exit()`, because it is tricky. Do it in `_task_activate` probably
    * [ ] make `_tn_task_set_runnable` and `_tn_task_clear_runnable` to return `void`, and add special function `_tn_need_context_switch` for check that.
-   * [ ] probably don't initialize stack in the `tn_task_exit()`, because it is tricky. Do it in `_task_activate` probably
    * [ ] get rid of `enum TN_WComplFlags`, _tn_task_clear_waiting should always behave like `TN_WCOMPL__REMOVE_WQUEUE` is set. While we refactor events, dqueue, sem, mem, we should always specify this flag when calling _tn_task_wait_complete, so eventually there will be no calls to _tn_task_wait_complete without setting this flag. At this moment, we should get rid of it.
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
