@@ -27,6 +27,10 @@
 
   /* ver 2.7  */
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
@@ -40,136 +44,183 @@
 
 #if  TN_USE_EVENTS
 
-static BOOL scan_event_waitqueue(struct TN_Event * evf);
 
-//----------------------------------------------------------------------------
-//  Structure's field evf->id_event have to be set to 0
-//----------------------------------------------------------------------------
-enum TN_Retval tn_event_create(struct TN_Event * evf,
-                    int attr,              //-- Eventflag attribute
-                    unsigned int pattern)  //-- Initial value of the eventflag bit pattern
+
+/*******************************************************************************
+ *    PRIVATE TYPES
+ ******************************************************************************/
+
+typedef enum TN_Retval (_worker_t)(
+      struct TN_Event *evf,
+      unsigned int wait_pattern,
+      int wait_mode,
+      unsigned int *p_flags_pattern
+      );
+
+
+/*******************************************************************************
+ *    PRIVATE FUNCTIONS
+ ******************************************************************************/
+
+static BOOL _cond_check(struct TN_Event *evf, int wait_mode, int wait_pattern)
 {
+   BOOL cond = FALSE;
 
-#if TN_CHECK_PARAM
-   if(evf == NULL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event == TN_ID_EVENT ||
-        (((attr & TN_EVENT_ATTR_SINGLE) == 0)  &&
-            ((attr & TN_EVENT_ATTR_MULTI) == 0)))
-      return TERR_WRONG_PARAM;
+   switch (wait_mode){
+      case TN_EVENT_WCOND_OR:
+         //-- any bit set is enough for release condition
+         cond = ((evf->pattern & wait_pattern) != 0);
+         break;
+      case TN_EVENT_WCOND_AND:
+         //-- all bits should be set for release condition
+         cond = ((evf->pattern & wait_pattern) == wait_pattern);
+         break;
+#if TN_DEBUG
+      default:
+         TN_FATAL_ERROR("");
+         break;
 #endif
-
-   tn_list_reset(&(evf->wait_queue));
-   evf->pattern = pattern;
-   evf->attr = attr;
-   if((attr & TN_EVENT_ATTR_CLR) && ((attr & TN_EVENT_ATTR_SINGLE)== 0))
-   {
-      evf->attr = TN_INVALID_VAL;
-      return TERR_WRONG_PARAM;
    }
-   evf->id_event = TN_ID_EVENT;
 
-   return TERR_NO_ERR;
+   return cond;
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval tn_event_delete(struct TN_Event * evf)
+static void _clear_pattern_if_needed(struct TN_Event *evf)
 {
-   TN_INTSAVE_DATA
-   struct TN_ListItem * que;
-   struct TN_Task * task;
+   if (evf->attr & TN_EVENT_ATTR_CLR){
+      evf->pattern = 0;
+   }
+}
 
-#if TN_CHECK_PARAM
-   if(evf == NULL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
+static BOOL _scan_event_waitqueue(struct TN_Event *evf)
+{
+   struct TN_ListItem *que;
+   struct TN_Task *task;
+   BOOL rc = FALSE;
 
-   TN_CHECK_NON_INT_CONTEXT
+   que = evf->wait_queue.next;
 
-   tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
+   // checking ALL of the tasks waiting on the event.
 
-   while (!tn_is_list_empty(&(evf->wait_queue))){
-     //--- delete from sem wait queue
+   // for the event with attr TN_EVENT_ATTR_SINGLE the only one task
+   // may be in the queue
 
-      que = tn_list_remove_head(&(evf->wait_queue));
+   while (que != &(evf->wait_queue)){
       task = get_task_by_tsk_queue(que);
+      que  = que->next;
 
-      _tn_task_wait_complete(task, (0));
-      task->task_wait_rc = TERR_DLT;
+      if (_cond_check(evf, task->ewait_mode, task->ewait_pattern)){
+         //-- Condition to finish the waiting
+         task->ewait_pattern = evf->pattern;
+         _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
 
-      if (_tn_need_context_switch()){
-         tn_enable_interrupt();
-         tn_switch_context();
-         tn_disable_interrupt();
+         //-- NOTE: here we don't check _tn_need_context_switch(), because, say,
+         //         TN_EVENT_ATTR_CLR should anyway be handled,
+         //         even if no context switch is needed
+         rc = TRUE;
       }
    }
 
-   evf->id_event = 0; // Event not exists now
-
-   tn_enable_interrupt();
-
-   return TERR_NO_ERR;
+   return rc;
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval tn_event_wait(struct TN_Event * evf,
-                    unsigned int wait_pattern,
-                    int wait_mode,
-                    unsigned int * p_flags_pattern,
-                    unsigned long timeout)
+
+static inline enum TN_Retval _event_wait(
+      struct TN_Event *evf,
+      unsigned int wait_pattern,
+      int wait_mode,
+      unsigned int *p_flags_pattern
+      )
 {
-   TN_INTSAVE_DATA
    enum TN_Retval rc = TERR_NO_ERR;
-   int fCond;
-   BOOL waited_for_event = FALSE;
-
-#if TN_CHECK_PARAM
-   if(evf == NULL || wait_pattern == 0 ||
-          p_flags_pattern == NULL || timeout == 0)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
 
    //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
    //-- in event wait queue - return ERROR without checking release condition
 
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
-   {
+   if ((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue))){
       rc = TERR_ILUSE;
-   }
-   else
-   {
-       //-- Check release condition
+   } else {
+      //-- Check release condition
 
-      if(wait_mode & TN_EVENT_WCOND_OR) //-- any setted bit is enough for release condition
-         fCond = ((evf->pattern & wait_pattern) != 0);
-      else                              //-- TN_EVENT_WCOND_AND is default mode
-         fCond = ((evf->pattern & wait_pattern) == wait_pattern);
-
-      if(fCond)
-      {
+      if (_cond_check(evf, wait_mode, wait_pattern)){
          *p_flags_pattern = evf->pattern;
-         if(evf->attr & TN_EVENT_ATTR_CLR)
-            evf->pattern = 0;
-          rc = TERR_NO_ERR;
+         _clear_pattern_if_needed(evf);
+         rc = TERR_NO_ERR;
+      } else {
+         rc = TERR_TIMEOUT;
       }
-      else
-      {
-         tn_curr_run_task->ewait_mode = wait_mode;
-         tn_curr_run_task->ewait_pattern = wait_pattern;
-         _tn_task_curr_to_wait_action(&(evf->wait_queue),
-                                        TSK_WAIT_REASON_EVENT,
-                                        timeout);
-         waited_for_event = TRUE;
+   }
 
-      }
+   return rc;
+}
+
+static inline enum TN_Retval _event_set(
+      struct TN_Event *evf,
+      unsigned int pattern,
+      int _unused1,
+      unsigned int *_unused2
+      )
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   evf->pattern |= pattern;
+
+   if (_scan_event_waitqueue(evf)){
+      //-- There are tasks whose waiting state is complete
+      _clear_pattern_if_needed(evf);
+   }
+
+   return rc;
+}
+
+static inline enum TN_Retval _event_clear(
+      struct TN_Event *evf,
+      unsigned int pattern,
+      int _unused1,
+      unsigned int *_unused2
+      )
+{
+   evf->pattern &= pattern;
+
+   return TERR_NO_ERR;
+}
+
+
+static inline enum TN_Retval _event_job_perform(
+      struct TN_Event  *evf,
+      _worker_t         p_worker,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern,
+      unsigned long     timeout
+      )
+{
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
+   BOOL waited_for_event = FALSE;
+
+#if TN_CHECK_PARAM
+   if(evf == NULL || wait_pattern == 0 || p_flags_pattern == NULL)
+      return TERR_WRONG_PARAM;
+   if(evf->id_event != TN_ID_EVENT)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   rc = p_worker(evf, wait_pattern, wait_mode, p_flags_pattern);
+
+   if (rc == TERR_TIMEOUT && timeout != 0){
+      tn_curr_run_task->ewait_mode = wait_mode;
+      tn_curr_run_task->ewait_pattern = wait_pattern;
+      _tn_task_curr_to_wait_action(
+            &(evf->wait_queue),
+            TSK_WAIT_REASON_EVENT,
+            timeout
+            );
+      waited_for_event = TRUE;
    }
 
 #if TN_DEBUG
@@ -190,15 +241,16 @@ enum TN_Retval tn_event_wait(struct TN_Event * evf,
    return rc;
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval tn_event_wait_polling(struct TN_Event * evf,
-                    unsigned int wait_pattern,
-                    int wait_mode,
-                    unsigned int * p_flags_pattern)
+static inline enum TN_Retval _event_job_iperform(
+      struct TN_Event  *evf,
+      _worker_t         p_worker,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern
+      )
 {
-   TN_INTSAVE_DATA
+   TN_INTSAVE_DATA_INT;
    enum TN_Retval rc;
-   int fCond;
 
 #if TN_CHECK_PARAM
    if(evf == NULL || wait_pattern == 0 || p_flags_pattern == NULL)
@@ -207,245 +259,140 @@ enum TN_Retval tn_event_wait_polling(struct TN_Event * evf,
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
-   //-- in event wait queue - return ERROR without checking release condition
-
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
-   {
-      rc = TERR_ILUSE;
-   }
-   else
-   {
-       //-- Check release condition
-
-      if(wait_mode & TN_EVENT_WCOND_OR) //-- any setted bit is enough for release condition
-         fCond = ((evf->pattern & wait_pattern) != 0);
-      else                              //-- TN_EVENT_WCOND_AND is default mode
-         fCond = ((evf->pattern & wait_pattern) == wait_pattern);
-
-      if(fCond)
-      {
-         *p_flags_pattern = evf->pattern;
-         if(evf->attr & TN_EVENT_ATTR_CLR)
-            evf->pattern = 0;
-          rc = TERR_NO_ERR;
-      }
-      else
-         rc = TERR_TIMEOUT;
-   }
-
-   tn_enable_interrupt();
-
-   return rc;
-}
-
-//----------------------------------------------------------------------------
-enum TN_Retval tn_event_iwait(struct TN_Event * evf,
-                    unsigned int wait_pattern,
-                    int wait_mode,
-                    unsigned int * p_flags_pattern)
-{
-   TN_INTSAVE_DATA_INT
-   enum TN_Retval rc;
-   int fCond;
-
-#if TN_CHECK_PARAM
-   if(evf == NULL || wait_pattern == 0 || p_flags_pattern == NULL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 
-   //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
-   //-- in event wait queue - return ERROR without checking release condition
-
-   if((evf->attr & TN_EVENT_ATTR_SINGLE) && !tn_is_list_empty(&(evf->wait_queue)))
-   {
-      rc = TERR_ILUSE;
-   }
-   else
-   {
-       //-- Check release condition
-
-      if(wait_mode & TN_EVENT_WCOND_OR) //-- any setted bit is enough for release condition
-         fCond = ((evf->pattern & wait_pattern) != 0);
-      else                              //-- TN_EVENT_WCOND_AND is default mode
-         fCond = ((evf->pattern & wait_pattern) == wait_pattern);
-
-      if(fCond)
-      {
-         *p_flags_pattern = evf->pattern;
-         if(evf->attr & TN_EVENT_ATTR_CLR)
-            evf->pattern = 0;
-          rc = TERR_NO_ERR;
-      }
-      else
-         rc = TERR_TIMEOUT;
-   }
+   rc = p_worker(evf, wait_pattern, wait_mode, p_flags_pattern);
 
    tn_ienable_interrupt();
 
    return rc;
 }
 
+
+
+
+/*******************************************************************************
+ *    PUBLIC FUNCTIONS
+ ******************************************************************************/
+
+
 //----------------------------------------------------------------------------
-enum TN_Retval tn_event_set(struct TN_Event * evf, unsigned int pattern)
+//  Structure's field evf->id_event have to be set to 0
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_create(struct TN_Event * evf,
+                    int attr,              //-- Eventflag attribute
+                    unsigned int pattern)  //-- Initial value of the eventflag bit pattern
 {
-   TN_INTSAVE_DATA
 
 #if TN_CHECK_PARAM
-   if(evf == NULL || pattern == 0)
+   if(evf == NULL)
       return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
+   if(evf->id_event == TN_ID_EVENT ||
+        (((attr & TN_EVENT_ATTR_SINGLE) == 0)  &&
+            ((attr & TN_EVENT_ATTR_MULTI) == 0)))
+      return TERR_WRONG_PARAM;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   tn_list_reset(&(evf->wait_queue));
 
-   tn_disable_interrupt();
-
-   evf->pattern |= pattern;
-
-   if(scan_event_waitqueue(evf)) //-- There are task(s) that waiting state is complete
-   {
-      if (evf->attr & TN_EVENT_ATTR_CLR){
-         evf->pattern = 0;
-      }
+   evf->pattern = pattern;
+   evf->attr = attr;
+   if ((attr & TN_EVENT_ATTR_CLR) && ((attr & TN_EVENT_ATTR_SINGLE)== 0)){
+      evf->attr = TN_INVALID_VAL;
+      return TERR_WRONG_PARAM;
    }
 
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
+   evf->id_event = TN_ID_EVENT;
 
    return TERR_NO_ERR;
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_event_iset(struct TN_Event * evf, unsigned int pattern)
+enum TN_Retval tn_event_delete(struct TN_Event * evf)
 {
-   TN_INTSAVE_DATA_INT
+   TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
-   if(evf == NULL || pattern == 0)
+   if(evf == NULL)
       return TERR_WRONG_PARAM;
    if(evf->id_event != TN_ID_EVENT)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   evf->pattern |= pattern;
+   _tn_wait_queue_notify_deleted(&(evf->wait_queue),  TN_INTSAVE_DATA_ARG_GIVE);
 
-   if(scan_event_waitqueue(evf)) //-- There are task(s) that waiting  state is complete
-   {
-      if(evf->attr & TN_EVENT_ATTR_CLR)
-         evf->pattern = 0;
+   evf->id_event = 0; //-- event does not exist now
 
-      tn_ienable_interrupt();
-
-      return TERR_NO_ERR;
-   }
-
-   tn_ienable_interrupt();
+   tn_enable_interrupt();
 
    return TERR_NO_ERR;
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_event_clear(struct TN_Event * evf, unsigned int pattern)
+enum TN_Retval tn_event_wait(
+      struct TN_Event  *evf,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern,
+      unsigned long     timeout
+      )
 {
-   TN_INTSAVE_DATA
+   return _event_job_perform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern, timeout);
+}
 
-   if(evf == NULL || pattern == TN_INVALID_VAL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_wait_polling(
+      struct TN_Event  *evf,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern
+      )
+{
+   return _event_job_perform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern, 0);
+}
 
-   TN_CHECK_NON_INT_CONTEXT
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_iwait(
+      struct TN_Event  *evf,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern
+      )
+{
+   return _event_job_iperform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern);
+}
 
-   tn_disable_interrupt();
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_set(struct TN_Event *evf, unsigned int pattern)
+{
+   return _event_job_perform(evf, _event_set, pattern, 0, 0, 0);
+}
 
-   evf->pattern &= pattern;
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_iset(struct TN_Event *evf, unsigned int pattern)
+{
+   return _event_job_iperform(evf, _event_set, pattern, 0, 0);
+}
 
-   tn_enable_interrupt();
-   return TERR_NO_ERR;
+//----------------------------------------------------------------------------
+enum TN_Retval tn_event_clear(struct TN_Event *evf, unsigned int pattern)
+{
+   return _event_job_perform(evf, _event_clear, pattern, 0, 0, 0);
 }
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_event_iclear(struct TN_Event * evf, unsigned int pattern)
 {
-   TN_INTSAVE_DATA_INT
-
-#if TN_CHECK_PARAM
-   if(evf == NULL || pattern == TN_INVALID_VAL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
-
-   tn_idisable_interrupt();
-
-   evf->pattern &= pattern;
-
-   tn_ienable_interrupt();
-
-   return TERR_NO_ERR;
+   return _event_job_iperform(evf, _event_clear, pattern, 0, 0);
 }
 
 //----------------------------------------------------------------------------
-static BOOL scan_event_waitqueue(struct TN_Event * evf)
-{
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-   int fCond;
-   BOOL rc = FALSE;
-
-   que = evf->wait_queue.next;
-
-   // checking ALL of the tasks waiting on the event.
-
-   // for the event with attr TN_EVENT_ATTR_SINGLE the only one task
-   // may be in the queue
-
-   while(que != &(evf->wait_queue))
-   {
-      task = get_task_by_tsk_queue(que);
-      que  = que->next;
-
-      //-- cond ---
-
-      if(task->ewait_mode & TN_EVENT_WCOND_OR)
-         fCond = ((evf->pattern & task->ewait_pattern) != 0);
-      else                         //-- TN_EVENT_WCOND_AND is default mode
-         fCond = ((evf->pattern & task->ewait_pattern) == task->ewait_pattern);
-
-      if(fCond)   //-- Condition to finish the waiting
-      {
-         tn_list_remove_entry(&task->task_queue);
-         task->ewait_pattern = evf->pattern;
-         _tn_task_wait_complete(task, (0));
-
-         //-- NOTE: here we don't check _tn_need_context_switch(), because, say,
-         //         TN_EVENT_ATTR_CLR should anyway be handled,
-         //         even if no context switch is needed
-         rc = TRUE;
-      }
-   }
-
-   return rc;
-}
-
 //----------------------------------------------------------------------------
 
 #endif   //#ifdef  TN_USE_EVENTS

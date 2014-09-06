@@ -37,12 +37,12 @@ struct TN_Event {
  *    DEFINITIONS
  ******************************************************************************/
 
-#define  TN_EVENT_ATTR_SINGLE            1
-#define  TN_EVENT_ATTR_MULTI             2
-#define  TN_EVENT_ATTR_CLR               4
+#define  TN_EVENT_ATTR_SINGLE          (1 << 0)
+#define  TN_EVENT_ATTR_MULTI           (1 << 1)
+#define  TN_EVENT_ATTR_CLR             (1 << 2)
 
-#define  TN_EVENT_WCOND_OR               8
-#define  TN_EVENT_WCOND_AND           0x10
+#define  TN_EVENT_WCOND_OR             (1 << 3)
+#define  TN_EVENT_WCOND_AND            (1 << 4)
 
 
 
