@@ -130,7 +130,7 @@ static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
  *
  * @return TRUE if given task should run next
  */
-BOOL _tn_task_set_runnable(struct TN_Task *task);
+void _tn_task_set_runnable(struct TN_Task *task);
 
 
 /**
@@ -142,7 +142,7 @@ BOOL _tn_task_set_runnable(struct TN_Task *task);
  * @return TRUE if tn_next_task_to_run was altered
  *              (that is, context switch is needed)
  */
-BOOL _tn_task_clear_runnable(struct TN_Task *task);
+void _tn_task_clear_runnable(struct TN_Task *task);
 
 void _tn_task_set_waiting(
       struct TN_Task *task,
@@ -168,17 +168,15 @@ void _tn_task_clear_dormant(struct TN_Task *task);
  * @return TRUE if tn_next_task_to_run is set to given task
  *              (that is, context switch is needed)
  */
-static inline BOOL _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
+static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
 {
-   BOOL rc = FALSE;
    _tn_task_clear_waiting(task, flags);
 
    //-- if task isn't suspended, make it runnable
    if (!_tn_task_is_suspended(task)){
-      rc = _tn_task_set_runnable(task);
+      _tn_task_set_runnable(task);
    }
 
-   return rc;
 }
 
 

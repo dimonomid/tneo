@@ -159,10 +159,9 @@ static BOOL _find_next_task_to_run(void)
 /**
  * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
  */
-static inline enum TN_Retval _task_wakeup(struct TN_Task *task, BOOL *p_need_switch_context)
+static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = FALSE;
 
    if (_tn_task_is_dormant(task)){
       rc = TERR_WCONTEXT;
@@ -173,7 +172,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, BOOL *p_need_swi
       {
          //-- Task is sleeping, so, let's wake it up.
 
-         *p_need_switch_context = _tn_task_wait_complete(task, (0));
+         _tn_task_wait_complete(task, (0));
       } else {
          //-- Task isn't sleeping. Probably it is in WAIT state,
          //   but not because of call to tn_task_sleep().
@@ -192,14 +191,13 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task, BOOL *p_need_swi
    return rc;
 }
 
-static inline enum TN_Retval _task_release_wait(struct TN_Task *task, BOOL *p_need_switch_context)
+static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = FALSE;
 
    if ((_tn_task_is_waiting(task))){
       //-- task is in WAIT state, so, let's release it from that state.
-      *p_need_switch_context = _tn_task_wait_complete(task, (0));
+      _tn_task_wait_complete(task, (0));
    } else {
       rc = TERR_WCONTEXT;
    }
@@ -210,15 +208,13 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task, BOOL *p_ne
 /**
  * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
  */
-static inline enum TN_Retval _task_activate(struct TN_Task *task, BOOL *p_need_switch_context)
+static inline enum TN_Retval _task_activate(struct TN_Task *task)
 {
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = FALSE;
 
    if (_tn_task_is_dormant(task)){
       _tn_task_clear_dormant(task);
       _tn_task_set_runnable(task);
-      *p_need_switch_context = TRUE;
    } else {
       if (task->activate_count == 0){
          task->activate_count++;
@@ -232,12 +228,11 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task, BOOL *p_need_s
 
 static inline enum TN_Retval _task_job_perform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task, BOOL *p_need_switch_context)
+      int (p_worker)(struct TN_Task *task)
       )
 {
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
-   int need_switch_context = 0;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -250,24 +245,21 @@ static inline enum TN_Retval _task_job_perform(
 
    tn_disable_interrupt();
 
-   rc = p_worker(task, &need_switch_context);
+   rc = p_worker(task);
 
    tn_enable_interrupt();
-   if (need_switch_context){
-      tn_switch_context();
-   }
+   _tn_switch_context_if_needed();
 
    return rc;
 }
 
 static inline enum TN_Retval _task_job_iperform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task, BOOL *p_need_switch_context)
+      int (p_worker)(struct TN_Task *task)
       )
 {
    TN_INTSAVE_DATA_INT;
    enum TN_Retval rc = TERR_NO_ERR;
-   int need_switch_context = 0;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -280,10 +272,9 @@ static inline enum TN_Retval _task_job_iperform(
 
    tn_idisable_interrupt();
 
-   rc = p_worker(task, &need_switch_context);
+   rc = p_worker(task);
 
    tn_ienable_interrupt();
-   //-- inside interrupt, we ignore need_switch_context
 
    return rc;
 }
@@ -429,7 +420,6 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
-   BOOL need_switch_context = FALSE;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
@@ -453,18 +443,14 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
    }
 
    if (_tn_task_is_runnable(task)){
-      if (_tn_task_clear_runnable(task)){
-         need_switch_context = TRUE;
-      }
+      _tn_task_clear_runnable(task);
    }
 
    _tn_task_set_suspended(task);
 
 out:
    tn_enable_interrupt();
-   if (need_switch_context){
-      tn_switch_context();
-   }
+   _tn_switch_context_if_needed();
 
    return rc;
 }
@@ -493,7 +479,7 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
 
    if (!_tn_task_is_suspended(task)){
       rc = TERR_WSTATE;
-      goto out_ei;
+      goto out;
    }
 
    _tn_task_clear_suspended(task);
@@ -501,27 +487,14 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
    if (!_tn_task_is_waiting(task)){
       //-- The task is not in the WAIT-SUSPEND state,
       //   so we need to make it runnable and probably switch context
-      if (_tn_task_set_runnable(task)){
-         //-- context switch is needed
-         goto out_ei_switch_context;
-      } else {
-         //-- context switch is not needed
-         goto out_ei;
-      }
-   } else {
-      //-- Task is waiting for something, so, nothing special needed
-      goto out_ei;
+      _tn_task_set_runnable(task);
    }
 
-out_ei:
+out:
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
    return rc;
 
-out_ei_switch_context:
-   tn_enable_interrupt();
-   tn_switch_context();
-
-   return rc;
 }
 
 /**
@@ -905,7 +878,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_task_set_runnable(struct TN_Task * task)
+void _tn_task_set_runnable(struct TN_Task * task)
 {
 #if TN_DEBUG
    //-- task_state should be NONE here
@@ -914,7 +887,7 @@ BOOL _tn_task_set_runnable(struct TN_Task * task)
    }
 #endif
 
-   BOOL ret = FALSE;
+   //BOOL ret = FALSE;
    int priority;
 
    priority          = task->priority;
@@ -927,16 +900,16 @@ BOOL _tn_task_set_runnable(struct TN_Task * task)
    //-- less value - greater priority, so '<' operation is used here
    if (priority < tn_next_task_to_run->priority){
       tn_next_task_to_run = task;
-      ret = TRUE;
+      //ret = TRUE;
    }
 
-   return ret;
+   //return ret;
 }
 
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_task_clear_runnable(struct TN_Task *task)
+void _tn_task_clear_runnable(struct TN_Task *task)
 {
 #if TN_DEBUG
    //-- task_state should be exactly TSK_STATE_RUNNABLE here
@@ -945,7 +918,7 @@ BOOL _tn_task_clear_runnable(struct TN_Task *task)
    }
 #endif
 
-   BOOL ret = FALSE;
+   //BOOL ret = FALSE;
 
    int priority;
    priority = task->priority;
@@ -960,7 +933,7 @@ BOOL _tn_task_clear_runnable(struct TN_Task *task)
       //-- Find highest priority ready to run -
       //-- at least, MSB bit must be set for the idle task
 
-      ret = _find_next_task_to_run();
+      _find_next_task_to_run();
    } else {
       //-- There are 'ready to run' task(s) for the curr priority
 
@@ -970,14 +943,12 @@ BOOL _tn_task_clear_runnable(struct TN_Task *task)
          tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
 
          //-- tn_next_task_to_run was just altered, so, we should return TRUE
-         ret = TRUE;
       }
    }
 
    //-- and reset task's queue
    tn_list_reset(&(task->task_queue));
 
-   return ret;
 }
 
 void _tn_task_set_waiting(

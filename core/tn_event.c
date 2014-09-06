@@ -90,18 +90,19 @@ enum TN_Retval tn_event_delete(struct TN_Event * evf)
 
    tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   while(!tn_is_list_empty(&(evf->wait_queue)))
-   {
+   while (!tn_is_list_empty(&(evf->wait_queue))){
      //--- delete from sem wait queue
 
       que = tn_list_remove_head(&(evf->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         task->task_wait_rc = TERR_DLT;
+
+      _tn_task_wait_complete(task, (0));
+      task->task_wait_rc = TERR_DLT;
+
+      if (_tn_need_context_switch()){
          tn_enable_interrupt();
          tn_switch_context();
-         tn_disable_interrupt();    // v.2.7
+         tn_disable_interrupt();
       }
    }
 
@@ -426,10 +427,12 @@ static BOOL scan_event_waitqueue(struct TN_Event * evf)
       {
          tn_list_remove_entry(&task->task_queue);
          task->ewait_pattern = evf->pattern;
-         if (_tn_task_wait_complete(task, (0))){
-            // v.2.7 - thanks to Eugene Scopal
-            rc = TRUE;
-         }
+         _tn_task_wait_complete(task, (0));
+
+         //-- NOTE: here we don't check _tn_need_context_switch(), because, say,
+         //         TN_EVENT_ATTR_CLR should anyway be handled,
+         //         even if no context switch is needed
+         rc = TRUE;
       }
    }
 

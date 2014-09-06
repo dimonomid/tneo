@@ -537,18 +537,12 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
                                  //   in _tn_mutex_do_unlock().
 
 
-   BOOL need_switch_context = FALSE;
-
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
    //   and setting TERR_DLT as a wait return code.
    tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
-      //-- call _tn_task_wait_complete and remember
-      //   if at least one task requires switching context
-      need_switch_context = _tn_task_wait_complete(
-            task, (TN_WCOMPL__REMOVE_WQUEUE)
-            )
-         || need_switch_context;
+      //-- call _tn_task_wait_complete for every task
+      _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
 
       task->task_wait_rc = TERR_DLT;
 
@@ -558,7 +552,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
    //   so if we need to switch context
    //   (i.e. if some of newly runnable tasks has higher priority),
    //   then switch context.
-   if (need_switch_context){
+   if (_tn_need_context_switch()){
       tn_enable_interrupt();
       tn_switch_context();
       tn_disable_interrupt();

@@ -91,34 +91,36 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while(!tn_is_list_empty(&(dque->wait_send_list)))
-   {
+   while (!tn_is_list_empty(&(dque->wait_send_list))){
 
      //--- delete from sem wait queue
 
       que = tn_list_remove_head(&(dque->wait_send_list));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         task->task_wait_rc = TERR_DLT;
+
+      _tn_task_wait_complete(task, (0));
+      task->task_wait_rc = TERR_DLT;
+
+      if (_tn_need_context_switch()){
          tn_enable_interrupt();
          tn_switch_context();
-         tn_disable_interrupt(); // v.2.7
+         tn_disable_interrupt();
       }
    }
 
-   while(!tn_is_list_empty(&(dque->wait_receive_list)))
-   {
+   while (!tn_is_list_empty(&(dque->wait_receive_list))){
      //--- delete from sem wait queue
 
       que = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         task->task_wait_rc = TERR_DLT;
+
+      _tn_task_wait_complete(task, (0));
+      task->task_wait_rc = TERR_DLT;
+
+      if (_tn_need_context_switch()){
          tn_enable_interrupt();
          tn_switch_context();
-         tn_disable_interrupt(); // v.2.7
+         tn_disable_interrupt();
       }
    }
       
@@ -133,10 +135,11 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
+   BOOL bool_wait = FALSE;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0)
@@ -145,50 +148,53 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
   //-- there are task(s) in the data queue's wait_receive list
 
-   if(!tn_is_list_empty(&(dque->wait_receive_list)))
-   {
+   if (!tn_is_list_empty(&(dque->wait_receive_list))){
       que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
+      _tn_task_wait_complete(task, (0));
 
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         tn_enable_interrupt();
-         tn_switch_context();
-         return  TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-   else  //-- the data queue's  wait_receive list is empty
-   {
+   } else  {
+      //-- the data queue's  wait_receive list is empty
       rc = dque_fifo_write(dque,data_ptr);
-      if(rc != TERR_NO_ERR)  //-- No free entries in the data queue
-      {
+      if (rc != TERR_NO_ERR){
+         //-- no free entries in the data queue
          tn_curr_run_task->data_elem = data_ptr;  //-- Store data_ptr
-         _tn_task_curr_to_wait_action(&(dque->wait_send_list),
-                                         TSK_WAIT_REASON_DQUE_WSEND, timeout);
-         tn_enable_interrupt();
-         tn_switch_context();
-         return tn_curr_run_task->task_wait_rc;
+         _tn_task_curr_to_wait_action(
+               &(dque->wait_send_list),
+               TSK_WAIT_REASON_DQUE_WSEND,
+               timeout
+               );
+         bool_wait = TRUE;
       }
    }
+
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && bool_wait){
+      TN_FATAL_ERROR("");
+   }
+#endif
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (bool_wait){
+      rc = tn_curr_run_task->task_wait_rc;
+   }
    return rc;
 }
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -199,42 +205,38 @@ enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
   //-- there are task(s) in the data queue's  wait_receive list
 
-   if(!tn_is_list_empty(&(dque->wait_receive_list)))
-   {
+   if (!tn_is_list_empty(&(dque->wait_receive_list))){
       que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
 
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         tn_enable_interrupt();
-         tn_switch_context();
-         return  TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-   else //-- the data queue's  wait_receive list is empty
-   {
+      _tn_task_wait_complete(task, (0));
+   } else {
+      //-- the data queue's  wait_receive list is empty
       rc = dque_fifo_write(dque,data_ptr);
-      if(rc != TERR_NO_ERR)  //-- No free entries in data queue
+      if (rc != TERR_NO_ERR){
+         //-- No free entries in data queue
          rc = TERR_TIMEOUT;  //-- Just convert errorcode
+      }
    }
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+
    return rc;
 }
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 {
-   TN_INTSAVE_DATA_INT
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA_INT;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -245,32 +247,27 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 
   //-- there are task(s) in the data queue's  wait_receive list
 
-   if(!tn_is_list_empty(&(dque->wait_receive_list)))
-   {
+   if (!tn_is_list_empty(&(dque->wait_receive_list))){
       que  = tn_list_remove_head(&(dque->wait_receive_list));
       task = get_task_by_tsk_queue(que);
 
       task->data_elem = data_ptr;
 
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         tn_ienable_interrupt();
-         return TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-   else  //-- the data queue's wait_receive list is empty
-   {
+      _tn_task_wait_complete(task, (0));
+   } else {
+      //-- the data queue's wait_receive list is empty
       rc = dque_fifo_write(dque,data_ptr);
 
-      if(rc != TERR_NO_ERR)  //-- No free entries in data queue
+      if (rc != TERR_NO_ERR){
+         //-- No free entries in data queue
          rc = TERR_TIMEOUT;  //-- Just convert errorcode
+      }
    }
 
    tn_ienable_interrupt();
@@ -281,10 +278,11 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long timeout)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc; //-- return code
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR; //-- return code
    struct TN_ListItem * que;
    struct TN_Task * task;
+   BOOL waited_for_data = FALSE;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0 || data_ptr == NULL)
@@ -293,61 +291,55 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
    rc = dque_fifo_read(dque,data_ptr);
-   if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   if (rc == TERR_NO_ERR){
+      //-- There was entry(s) in data queue
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_enable_interrupt();
-            tn_switch_context();
-            return TERR_NO_ERR;
-         }
+         _tn_task_wait_complete(task, (0));
       }
-   }
-   else //-- data FIFO is empty
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   } else {
+      //-- data FIFO is empty
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          *data_ptr = task->data_elem; //-- Return to caller
+         _tn_task_wait_complete(task, (0));
 
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_enable_interrupt();
-            tn_switch_context();
-            return TERR_NO_ERR;
-         }
-         rc = TERR_NO_ERR;
-      }
-      else //-- wait_send_list is empty
-      {
+      } else {
+         //-- wait_send_list is empty
          _tn_task_curr_to_wait_action(&(dque->wait_receive_list),
                                      TSK_WAIT_REASON_DQUE_WRECEIVE,timeout);
-         tn_enable_interrupt();
-         tn_switch_context();
 
-         //-- When returns to this point, in the data_elem have to be valid value
+         waited_for_data = TRUE;
 
-         *data_ptr = tn_curr_run_task->data_elem; //-- Return to caller
-
-         return tn_curr_run_task->task_wait_rc;
       }
    }
 
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited_for_data){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_data){
+      //-- When returns to this point, in the data_elem have to be valid value
+
+      *data_ptr = tn_curr_run_task->data_elem; //-- Return to caller
+      rc = tn_curr_run_task->task_wait_rc;
+   }
 
    return rc;
 }
@@ -355,8 +347,8 @@ enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigne
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -367,50 +359,37 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
    rc = dque_fifo_read(dque,data_ptr);
-   if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   if (rc == TERR_NO_ERR){
+      //-- There was entry(s) in data queue
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
-
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_enable_interrupt();
-            tn_switch_context();
-            return TERR_NO_ERR;
-         }
+         _tn_task_wait_complete(task, (0));
       }
-   }
-   else //-- data FIFO is empty
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   } else {
+      //-- data FIFO is empty
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          *data_ptr = task->data_elem; //-- Return to caller
-
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_enable_interrupt();
-            tn_switch_context();
-            return TERR_NO_ERR;
-         }
-         rc = TERR_NO_ERR;
-      }
-      else //--   wait_send_list is empty
+         _tn_task_wait_complete(task, (0));
+      } else {
+         //-- wait_send_list is empty
          rc = TERR_TIMEOUT;
+      }
+
    }
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
 
    return rc;
 }
@@ -418,8 +397,8 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
 {
-   TN_INTSAVE_DATA_INT
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA_INT;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -430,45 +409,33 @@ enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 
    rc = dque_fifo_read(dque,data_ptr);
-   if(rc == TERR_NO_ERR)  //-- There was entry(s) in data queue
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   if (rc == TERR_NO_ERR){
+      //-- There was entry(s) in data queue
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task = get_task_by_tsk_queue(que);
 
          dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
 
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_ienable_interrupt();
-            return TERR_NO_ERR;
-         }
+         _tn_task_wait_complete(task, (0));
       }
-   }
-   else //-- data FIFO is empty
-   {
-      if(!tn_is_list_empty(&(dque->wait_send_list)))
-      {
+   } else {
+      //-- data FIFO is empty
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
          que  = tn_list_remove_head(&(dque->wait_send_list));
          task =  get_task_by_tsk_queue(que);
 
          *data_ptr = task->data_elem; //-- Return to caller
 
-         if(_tn_task_wait_complete(task, (0)))
-         {
-            tn_ienable_interrupt();
-            return TERR_NO_ERR;
-         }
+         _tn_task_wait_complete(task, (0));
+
          rc = TERR_NO_ERR;
-      }
-      else
-      {
+      } else {
          rc = TERR_TIMEOUT;
       }
    }

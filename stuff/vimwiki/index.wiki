@@ -16,12 +16,14 @@
    * [X] probably don't initialize stack in the `tn_task_exit()`, because it is tricky. Do it in `_task_activate` probably
    * [ ] make `_tn_task_set_runnable` and `_tn_task_clear_runnable` to return `void`, and use special function `_tn_switch_context_if_needed`.
    * [ ] get rid of `enum TN_WComplFlags`, _tn_task_clear_waiting should always behave like `TN_WCOMPL__REMOVE_WQUEUE` is set. While we refactor events, dqueue, sem, mem, we should always specify this flag when calling _tn_task_wait_complete, so eventually there will be no calls to _tn_task_wait_complete without setting this flag. At this moment, we should get rid of it.
+   * [ ] probably _tn_task_wait_complete should take task_wait_rc as a parameter? Say, sometimes, TERR_DLT needs to be returned
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
    * [ ] task tests
       * [ ] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
    * [ ] mutex tests
       * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
+      * [ ] test deletion of mutex (event, sem, queue) while waiting task is suspended; when it is resumed, TERR_DLT should be returned
       * [ ] ceiling mutexes
       * [ ] this one, regarding to order:
          * A l M1
@@ -31,6 +33,8 @@
          * B u M1 - C unlocks
          * C u M1
 
+_tn_task_wait_complete
+_mutex_do_unlock
 
 == mods that DO change API ==
 
@@ -54,7 +58,7 @@
    * fixed bug in tn_mutex_delete() : if mutex is not locked, TERR_ILUSE is returned.
    * fixed minor bug in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
    * fixed minor bug: when deleting mutex or semaphore, tn_switch_context was called for each non-suspended task that was waiting for that mutex/sepaphore. It's better to just make them runnable one-by-one without calling tn_switch_context after each one, and switch context just once after all (if needed).
-   * fixed bug: if task that waits for mutex was in WAITING_SUSPENDED state, and mutex is deleted, TERR_NO_ERR is returned instead of TERR_DLT.
+   * fixed bug: if task that waits for mutex was in WAITING_SUSPENDED state, and mutex is deleted, TERR_NO_ERR is returned instead of TERR_DLT. The same for queue deletion, semaphore deletion, event deletion.
 
 
    

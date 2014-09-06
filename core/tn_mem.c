@@ -77,19 +77,18 @@ static inline enum TN_Retval _fmem_get(struct TN_Fmp *fmp, void **p_data)
    return rc;
 }
 
-static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data, int *p_need_switch_context)
+static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data)
 {
    struct TN_Task *task;
 
    enum TN_Retval rc = TERR_NO_ERR;
-   *p_need_switch_context = 0;
 
    if (!tn_is_list_empty(&(fmp->wait_queue))){
       task = tn_list_first_entry(&(fmp->wait_queue), typeof(*task), task_queue);
 
       task->data_elem = p_data;
 
-      *p_need_switch_context = _tn_task_wait_complete(
+      _tn_task_wait_complete(
                task, (TN_WCOMPL__REMOVE_WQUEUE)
                );
 ;
@@ -369,18 +368,14 @@ enum TN_Retval tn_fmem_release(struct TN_Fmp *fmp, void *p_data)
       goto out;
    }
 
-   int need_switch_context = 0;
-
    TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
-   rc = _fmem_release(fmp, p_data, &need_switch_context);
+   rc = _fmem_release(fmp, p_data);
 
    tn_enable_interrupt();
-   if (need_switch_context){
-      tn_switch_context();
-   }
+   _tn_switch_context_if_needed();
 
 out:
    return rc;
@@ -397,16 +392,13 @@ enum TN_Retval tn_fmem_irelease(struct TN_Fmp *fmp, void *p_data)
       goto out;
    }
 
-   int need_switch_context = 0;
-
    TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 
-   rc = _fmem_release(fmp, p_data, &need_switch_context);
+   rc = _fmem_release(fmp, p_data);
 
    tn_ienable_interrupt();
-   //-- in interrupt, ignore need_switch_context
 
 out:
    return rc;

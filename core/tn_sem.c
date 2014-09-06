@@ -94,9 +94,11 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         task->task_wait_rc = TERR_DLT;
+
+      _tn_task_wait_complete(task, (0));
+      task->task_wait_rc = TERR_DLT;
+
+      if (_tn_need_context_switch()){
          tn_enable_interrupt();
          tn_switch_context();
          tn_disable_interrupt(); // v.2.7
@@ -115,8 +117,8 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc; //-- return code
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR; //-- return code
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -129,38 +131,27 @@ enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
 
-   if(!(tn_is_list_empty(&(sem->wait_queue))))
-   {
+   if (!(tn_is_list_empty(&(sem->wait_queue)))){
       //--- delete from the sem wait queue
 
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
-
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         tn_enable_interrupt();
-         tn_switch_context();
-
-         return TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-   else
-   {
-      if(sem->count < sem->max_count)
-      {
+      _tn_task_wait_complete(task, (0));
+   } else {
+      if (sem->count < sem->max_count){
          sem->count++;
          rc = TERR_NO_ERR;
-      }
-      else
+      } else {
          rc = TERR_OVERFLOW;
+      }
    }
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
 
    return rc;
 }
@@ -170,8 +161,8 @@ enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
 {
-   TN_INTSAVE_DATA_INT
-   enum TN_Retval rc;
+   TN_INTSAVE_DATA_INT;
+   enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
 
@@ -184,34 +175,23 @@ enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 
-   if(!(tn_is_list_empty(&(sem->wait_queue))))
-   {
+   if (!(tn_is_list_empty(&(sem->wait_queue)))){
       //--- delete from the sem wait queue
 
       que = tn_list_remove_head(&(sem->wait_queue));
       task = get_task_by_tsk_queue(que);
+      _tn_task_wait_complete(task, (0));
 
-      if(_tn_task_wait_complete(task, (0)))
-      {
-         tn_ienable_interrupt();
-
-         return TERR_NO_ERR;
-      }
-      rc = TERR_NO_ERR;
-   }
-   else
-   {
-      if(sem->count < sem->max_count)
-      {
+   } else {
+      if (sem->count < sem->max_count){
          sem->count++;
-         rc = TERR_NO_ERR;
-      }
-      else
+      } else {
          rc = TERR_OVERFLOW;
+      }
    }
 
    tn_ienable_interrupt();

@@ -392,10 +392,8 @@ static void _update_task_priority(struct TN_Task *task)
  *          (that is, if there is some other task that waited for mutex,
  *          and this task has highest priority now)
  */
-static BOOL _mutex_do_unlock(struct TN_Mutex * mutex)
+static void _mutex_do_unlock(struct TN_Mutex * mutex)
 {
-   BOOL ret = FALSE;
-
    //-- explicitly reset lock count to 0, because it might be not zero
    //   if mutex is unlocked because task is being deleted.
    mutex->cnt = 0;
@@ -418,15 +416,13 @@ static BOOL _mutex_do_unlock(struct TN_Mutex * mutex)
       task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
 
       //-- wake it up
-      ret = _tn_task_wait_complete(
+      _tn_task_wait_complete(
             task, (TN_WCOMPL__REMOVE_WQUEUE)
             );
 
       //-- lock mutex by it
       _mutex_do_lock(mutex, task);
    }
-
-   return ret;
 }
 
 
@@ -640,11 +636,8 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
       TN_FATAL_ERROR();
    } else {
       //-- lock counter is 0, so, unlock mutex
-      if (_mutex_do_unlock(mutex)){
-         goto out_ei_switch_context;
-      } else {
-         goto out_ei;
-      }
+      _mutex_do_unlock(mutex);
+      goto out_ei;
    }
 
 out:
@@ -652,12 +645,9 @@ out:
 
 out_ei:
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
    return ret;
 
-out_ei_switch_context:
-   tn_enable_interrupt();
-   tn_switch_context();
-   return ret;
 }
 
 
