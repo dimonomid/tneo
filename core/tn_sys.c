@@ -551,8 +551,13 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
       _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
 
       task->task_wait_rc = TERR_DLT;
-
    }
+
+#if TN_DEBUG
+   if (!tn_is_list_empty(wait_queue)){
+      TN_FATAL_ERROR("");
+   }
+#endif
 
    //-- Now all tasks from the wait_queue were made runnable,
    //   so if we need to switch context

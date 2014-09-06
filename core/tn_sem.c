@@ -28,6 +28,10 @@
   /* ver 2.7  */
 
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
@@ -38,6 +42,129 @@
 
 //-- header of other needed modules
 #include "tn_tasks.h"
+
+
+
+
+/*******************************************************************************
+ *    PRIVATE FUNCTIONS
+ ******************************************************************************/
+
+static inline enum TN_Retval _sem_job_perform(
+      struct TN_Sem *sem,
+      int (p_worker)(struct TN_Sem *sem),
+      unsigned long timeout
+      )
+{
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
+   BOOL waited_for_sem = FALSE;
+
+#if TN_CHECK_PARAM
+   if(sem == NULL)
+      return  TERR_WRONG_PARAM;
+   if(sem->max_count == 0)
+      return  TERR_WRONG_PARAM;
+   if(sem->id_sem != TN_ID_SEMAPHORE)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   rc = p_worker(sem);
+
+   if (rc == TERR_TIMEOUT && timeout != 0){
+      _tn_task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
+
+      //-- rc will be set later thanks to waited_for_sem
+      waited_for_sem = TRUE;
+   }
+
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited_for_sem){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_sem){
+      rc = tn_curr_run_task->task_wait_rc;
+   }
+
+   return rc;
+}
+
+static inline enum TN_Retval _sem_job_iperform(
+      struct TN_Sem *sem,
+      int (p_worker)(struct TN_Sem *sem)
+      )
+{
+   TN_INTSAVE_DATA_INT;
+   enum TN_Retval rc = TERR_NO_ERR;
+
+#if TN_CHECK_PARAM
+   if(sem == NULL)
+      return  TERR_WRONG_PARAM;
+   if(sem->max_count == 0)
+      return  TERR_WRONG_PARAM;
+   if(sem->id_sem != TN_ID_SEMAPHORE)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_INT_CONTEXT;
+
+   tn_idisable_interrupt();
+
+   rc = p_worker(sem);
+
+   tn_ienable_interrupt();
+
+   return rc;
+}
+
+static inline enum TN_Retval _sem_signal(struct TN_Sem *sem)
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   if (!(tn_is_list_empty(&(sem->wait_queue)))){
+      struct TN_Task *task;
+      //-- there are tasks waiting for that semaphore,
+      //   so, wake up first one
+
+      //-- get first task from semaphore's wait_queue
+      task = tn_list_first_entry(&(sem->wait_queue), typeof(*task), task_queue);
+
+      //-- wake it up
+      _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
+   } else {
+      //-- no tasks are waiting for that semaphore,
+      //   so, just increase its count if possible.
+      if (sem->count < sem->max_count){
+         sem->count++;
+      } else {
+         rc = TERR_OVERFLOW;
+      }
+   }
+
+   return rc;
+}
+
+static inline enum TN_Retval _sem_acquire(struct TN_Sem *sem)
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   if (sem->count >= 1){
+      sem->count--;
+   } else {
+      rc = TERR_TIMEOUT;
+   }
+
+   return rc;
+}
+
 
 
 //----------------------------------------------------------------------------
@@ -73,9 +200,7 @@ enum TN_Retval tn_sem_create(struct TN_Sem * sem,
 //----------------------------------------------------------------------------
 enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 {
-   TN_INTSAVE_DATA
-   struct TN_ListItem * que;
-   struct TN_Task * task;
+   TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -84,28 +209,13 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while(!tn_is_list_empty(&(sem->wait_queue)))
-   {
-     //--- delete from the sem wait queue
+   _tn_wait_queue_notify_deleted(&(sem->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
 
-      que = tn_list_remove_head(&(sem->wait_queue));
-      task = get_task_by_tsk_queue(que);
-
-      _tn_task_wait_complete(task, (0));
-      task->task_wait_rc = TERR_DLT;
-
-      if (_tn_need_context_switch()){
-         tn_enable_interrupt();
-         tn_switch_context();
-         tn_disable_interrupt(); // v.2.7
-      }
-   }
-
-   sem->id_sem = 0; // Semaphore not exists now
+   sem->id_sem = 0; //-- Semaphore does not exist now
 
    tn_enable_interrupt();
 
@@ -115,201 +225,41 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 //----------------------------------------------------------------------------
 //  Release Semaphore Resource
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_signal(struct TN_Sem * sem)
+enum TN_Retval tn_sem_signal(struct TN_Sem *sem)
 {
-   TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR; //-- return code
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TERR_WRONG_PARAM;
-   if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-   if (!(tn_is_list_empty(&(sem->wait_queue)))){
-      //--- delete from the sem wait queue
-
-      que = tn_list_remove_head(&(sem->wait_queue));
-      task = get_task_by_tsk_queue(que);
-      _tn_task_wait_complete(task, (0));
-   } else {
-      if (sem->count < sem->max_count){
-         sem->count++;
-         rc = TERR_NO_ERR;
-      } else {
-         rc = TERR_OVERFLOW;
-      }
-   }
-
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-
-   return rc;
+   return _sem_job_perform(sem, _sem_signal, 0);
 }
 
 //----------------------------------------------------------------------------
 // Release Semaphore Resource inside Interrupt
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_isignal(struct TN_Sem * sem)
+enum TN_Retval tn_sem_isignal(struct TN_Sem *sem)
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TERR_WRONG_PARAM;
-   if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT;
-
-   tn_idisable_interrupt();
-
-   if (!(tn_is_list_empty(&(sem->wait_queue)))){
-      //--- delete from the sem wait queue
-
-      que = tn_list_remove_head(&(sem->wait_queue));
-      task = get_task_by_tsk_queue(que);
-      _tn_task_wait_complete(task, (0));
-
-   } else {
-      if (sem->count < sem->max_count){
-         sem->count++;
-      } else {
-         rc = TERR_OVERFLOW;
-      }
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
+   return _sem_job_iperform(sem, _sem_signal);
 }
 
 //----------------------------------------------------------------------------
 //   Acquire Semaphore Resource
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
+enum TN_Retval tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc; //-- return code
-   BOOL waited_for_sem = FALSE;
-
-#if TN_CHECK_PARAM
-   if(sem == NULL || timeout == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if (sem->count >= 1){
-      sem->count--;
-      rc = TERR_NO_ERR;
-   } else {
-      _tn_task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
-      waited_for_sem = TRUE;
-   }
-
-#if TN_DEBUG
-   if (!_tn_need_context_switch() && waited_for_sem){
-      TN_FATAL_ERROR("");
-   }
-#endif
-
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-   if (waited_for_sem){
-      rc = tn_curr_run_task->task_wait_rc;
-   }
-
-   return rc;
+   return _sem_job_perform(sem, _sem_acquire, timeout);
 }
 
 //----------------------------------------------------------------------------
 //  Acquire(Polling) Semaphore Resource (do not call  in the interrupt)
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_polling(struct TN_Sem * sem)
+enum TN_Retval tn_sem_polling(struct TN_Sem *sem)
 {
-   TN_INTSAVE_DATA
-   enum TN_Retval rc;
-
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TERR_WRONG_PARAM;
-   if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT
-
-   tn_disable_interrupt();
-
-   if(sem->count >= 1)
-   {
-      sem->count--;
-      rc = TERR_NO_ERR;
-   }
-   else
-      rc = TERR_TIMEOUT;
-
-   tn_enable_interrupt();
-
-   return rc;
+   return _sem_job_perform(sem, _sem_acquire, 0);
 }
 
 //----------------------------------------------------------------------------
 // Acquire(Polling) Semaphore Resource inside interrupt
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_ipolling(struct TN_Sem * sem)
+enum TN_Retval tn_sem_ipolling(struct TN_Sem *sem)
 {
-   TN_INTSAVE_DATA_INT
-   enum TN_Retval rc;
-
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TERR_WRONG_PARAM;
-   if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT
-
-   tn_idisable_interrupt();
-
-   if(sem->count >= 1)
-   {
-      sem->count--;
-      rc = TERR_NO_ERR;
-   }
-   else
-      rc = TERR_TIMEOUT;
-
-   tn_ienable_interrupt();
-
-   return rc;
+   return _sem_job_iperform(sem, _sem_acquire);
 }
 
 //----------------------------------------------------------------------------
