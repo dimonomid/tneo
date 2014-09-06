@@ -76,9 +76,7 @@ enum TN_Retval tn_queue_create(
 //----------------------------------------------------------------------------
 enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 {
-   TN_INTSAVE_DATA
-   struct TN_ListItem * que;
-   struct TN_Task * task;
+   TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
@@ -87,44 +85,14 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
       return TERR_NOEXS;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT
+   TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   while (!tn_is_list_empty(&(dque->wait_send_list))){
+   _tn_wait_queue_notify_deleted(&(dque->wait_send_list),    TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(dque->wait_receive_list), TN_INTSAVE_DATA_ARG_GIVE);
 
-     //--- delete from sem wait queue
-
-      que = tn_list_remove_head(&(dque->wait_send_list));
-      task = get_task_by_tsk_queue(que);
-
-      _tn_task_wait_complete(task, (0));
-      task->task_wait_rc = TERR_DLT;
-
-      if (_tn_need_context_switch()){
-         tn_enable_interrupt();
-         tn_switch_context();
-         tn_disable_interrupt();
-      }
-   }
-
-   while (!tn_is_list_empty(&(dque->wait_receive_list))){
-     //--- delete from sem wait queue
-
-      que = tn_list_remove_head(&(dque->wait_receive_list));
-      task = get_task_by_tsk_queue(que);
-
-      _tn_task_wait_complete(task, (0));
-      task->task_wait_rc = TERR_DLT;
-
-      if (_tn_need_context_switch()){
-         tn_enable_interrupt();
-         tn_switch_context();
-         tn_disable_interrupt();
-      }
-   }
-      
-   dque->id_dque = 0; // Data queue not exists now
+   dque->id_dque = 0; //-- data queue does not exist now
 
    tn_enable_interrupt();
 
