@@ -139,7 +139,7 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
    enum TN_Retval rc = TERR_NO_ERR;
    struct TN_ListItem * que;
    struct TN_Task * task;
-   BOOL bool_wait = FALSE;
+   BOOL waited_for_room = FALSE;
 
 #if TN_CHECK_PARAM
    if(dque == NULL || timeout == 0)
@@ -172,19 +172,19 @@ enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned 
                TSK_WAIT_REASON_DQUE_WSEND,
                timeout
                );
-         bool_wait = TRUE;
+         waited_for_room = TRUE;
       }
    }
 
 #if TN_DEBUG
-   if (!_tn_need_context_switch() && bool_wait){
+   if (!_tn_need_context_switch() && waited_for_room){
       TN_FATAL_ERROR("");
    }
 #endif
 
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
-   if (bool_wait){
+   if (waited_for_room){
       rc = tn_curr_run_task->task_wait_rc;
    }
    return rc;

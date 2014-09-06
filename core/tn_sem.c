@@ -206,6 +206,7 @@ enum TN_Retval tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
 {
    TN_INTSAVE_DATA
    enum TN_Retval rc; //-- return code
+   BOOL waited_for_sem = FALSE;
 
 #if TN_CHECK_PARAM
    if(sem == NULL || timeout == 0)
@@ -220,21 +221,25 @@ enum TN_Retval tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout)
 
    tn_disable_interrupt();
 
-   if(sem->count >= 1)
-   {
+   if (sem->count >= 1){
       sem->count--;
       rc = TERR_NO_ERR;
-   }
-   else
-   {
+   } else {
       _tn_task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
-      tn_enable_interrupt();
-      tn_switch_context();
-
-      return tn_curr_run_task->task_wait_rc;
+      waited_for_sem = TRUE;
    }
+
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited_for_sem){
+      TN_FATAL_ERROR("");
+   }
+#endif
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_sem){
+      rc = tn_curr_run_task->task_wait_rc;
+   }
 
    return rc;
 }

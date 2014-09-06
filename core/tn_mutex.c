@@ -515,6 +515,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
    TN_INTSAVE_DATA;
 
    enum TN_Retval ret = TERR_NO_ERR;
+   BOOL waited_for_mutex = FALSE;
 
 #if TN_CHECK_PARAM
    if (mutex == NULL){
@@ -564,8 +565,10 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
          //-- timeout specified, so, wait until mutex is free or timeout expired
          _add_curr_task_to_mutex_wait_queue(mutex, timeout);
 
+         waited_for_mutex = TRUE;
+
          //-- ret will be set later to tn_curr_run_task->task_wait_rc;
-         goto out_ei_switch_context;
+         goto out_ei;
       }
    }
 
@@ -577,15 +580,20 @@ out:
    return ret;
 
 out_ei:
+
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited_for_mutex){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_mutex){
+      ret = tn_curr_run_task->task_wait_rc;
+   }
    return ret;
 
-out_ei_switch_context:
-   tn_enable_interrupt();
-   tn_switch_context();
-
-   ret = tn_curr_run_task->task_wait_rc;
-   return ret;
 }
 
 //----------------------------------------------------------------------------

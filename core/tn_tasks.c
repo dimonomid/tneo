@@ -112,10 +112,8 @@ static inline void _init_deadlock_list(struct TN_Task *task)
  *
  * @return TRUE if tn_next_task_to_run was changed, FALSE otherwise.
  */
-static BOOL _find_next_task_to_run(void)
+static void _find_next_task_to_run(void)
 {
-   BOOL ret = FALSE;
-
    int priority;
 
 #ifdef USE_ASM_FFS
@@ -138,17 +136,7 @@ static BOOL _find_next_task_to_run(void)
    }
 #endif
 
-   {
-      struct TN_Task *task_to_run;
-      task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
-
-      if (task_to_run != tn_next_task_to_run){
-         tn_next_task_to_run = task_to_run;
-         ret = TRUE;
-      }
-   }
-
-   return ret;
+   tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
 }
 
 // }}}
@@ -529,19 +517,14 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
    } else {
       _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
       rc = TERR_NO_ERR;
-      //-- task was just put to sleep, so we need to switch context
-      goto out_ei_switch_context;
+      goto out_ei;
    }
 
 out_ei:
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
    return rc;
 
-out_ei_switch_context:
-   tn_enable_interrupt();
-   tn_switch_context();
-
-   return rc;
 }
 
 /**
@@ -748,7 +731,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
 enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc;
+   enum TN_Retval rc = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
    if (task == NULL)
@@ -772,16 +755,13 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
    if (_tn_task_is_dormant(task)){
       rc = TERR_WCONTEXT;
    } else if (_tn_task_is_runnable(task)){
-      if (_tn_change_running_task_priority(task,new_priority)){
-         tn_enable_interrupt();
-         tn_switch_context();
-         return TERR_NO_ERR;
-      }
+      _tn_change_running_task_priority(task,new_priority);
    } else {
       task->priority = new_priority;
    }
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
 
    return rc;
 }
@@ -1127,24 +1107,19 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority)
+void _tn_change_task_priority(struct TN_Task *task, int new_priority)
 {
-   BOOL ret;
-
    if (_tn_task_is_runnable(task)){
-      ret = _tn_change_running_task_priority(task, new_priority);
+      _tn_change_running_task_priority(task, new_priority);
    } else {
       task->priority = new_priority;
-      ret = TRUE;
    }
-
-   return ret;
 }
 
 /**
  * See comment in the tn_internal.h file
  */
-BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
+void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
    if (!_tn_task_is_runnable(task)){
       TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
@@ -1158,7 +1133,7 @@ BOOL _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
    //-- Add task to the end of ready queue for current priority
    _add_entry_to_ready_queue(&(task->task_queue), new_priority);
 
-   return _find_next_task_to_run();
+   _find_next_task_to_run();
 }
 
 #if TN_USE_MUTEXES

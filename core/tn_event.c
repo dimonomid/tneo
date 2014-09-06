@@ -121,8 +121,9 @@ enum TN_Retval tn_event_wait(struct TN_Event * evf,
                     unsigned long timeout)
 {
    TN_INTSAVE_DATA
-   enum TN_Retval rc;
+   enum TN_Retval rc = TERR_NO_ERR;
    int fCond;
+   BOOL waited_for_event = FALSE;
 
 #if TN_CHECK_PARAM
    if(evf == NULL || wait_pattern == 0 ||
@@ -166,16 +167,25 @@ enum TN_Retval tn_event_wait(struct TN_Event * evf,
          _tn_task_curr_to_wait_action(&(evf->wait_queue),
                                         TSK_WAIT_REASON_EVENT,
                                         timeout);
-         tn_enable_interrupt();
-         tn_switch_context();
+         waited_for_event = TRUE;
 
-         if(tn_curr_run_task->task_wait_rc == TERR_NO_ERR)
-            *p_flags_pattern = tn_curr_run_task->ewait_pattern;
-         return tn_curr_run_task->task_wait_rc;
       }
    }
 
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited_for_event){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_event){
+      if (tn_curr_run_task->task_wait_rc == TERR_NO_ERR){
+         *p_flags_pattern = tn_curr_run_task->ewait_pattern;
+      }
+      rc = tn_curr_run_task->task_wait_rc;
+   }
 
    return rc;
 }
@@ -306,16 +316,13 @@ enum TN_Retval tn_event_set(struct TN_Event * evf, unsigned int pattern)
 
    if(scan_event_waitqueue(evf)) //-- There are task(s) that waiting state is complete
    {
-      if(evf->attr & TN_EVENT_ATTR_CLR)
+      if (evf->attr & TN_EVENT_ATTR_CLR){
          evf->pattern = 0;
-
-      tn_enable_interrupt();
-      tn_switch_context();
-
-      return TERR_NO_ERR;
+      }
    }
 
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
 
    return TERR_NO_ERR;
 }

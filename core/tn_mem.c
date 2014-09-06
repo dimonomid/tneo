@@ -279,6 +279,7 @@ enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long time
 {
    TN_INTSAVE_DATA;
    enum TN_Retval rc;
+   BOOL waited_for_data = FALSE;
    
    rc = _check_param_fmem_get(fmp, p_data);
    if (rc != TERR_NO_ERR){
@@ -295,17 +296,17 @@ enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long time
       _tn_task_curr_to_wait_action( &(fmp->wait_queue),
             TSK_WAIT_REASON_WFIXMEM,
             timeout );
-      tn_enable_interrupt();
-      tn_switch_context();
+      waited_for_data = TRUE;
+   }
 
+   tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited_for_data){
       //-- When returns to this point, in the 'data_elem' have to be valid value
       *p_data = tn_curr_run_task->data_elem; //-- Return to caller
 
       rc = tn_curr_run_task->task_wait_rc;
-      goto out;
    }
-
-   tn_enable_interrupt();
 
 out:
    return rc;

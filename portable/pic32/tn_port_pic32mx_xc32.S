@@ -104,19 +104,25 @@ tn_switch_context_exit:
 tn_switch_context:
 
     /* check if task switch needed */
+
+    /*
     la      $t0, tn_curr_run_task
     la      $t1, tn_next_task_to_run
     lw      $t0, 0($t0)
     lw      $t1, 0($t1)
-    beq     $t0, $t1, 1f
+    bne     $t0, $t1, 1f
+    nop
 
+    sdbbp   0
+
+1:
+    */
     /* pend CS0 interrupt */
     lui     $t0, %hi(IFS0SET)
     ori     $t1, $zero, 2
     sw      $t1, %lo(IFS0SET)($t0)
     nop
 
-1:
     jr      $ra
     nop
 

@@ -201,7 +201,7 @@ static inline void _tn_task_curr_to_wait_action(
 /**
  * Change priority of any task (runnable or non-runnable)
  */
-BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority);
+void _tn_change_task_priority(struct TN_Task *task, int new_priority);
 
 /**
  * When changing priority of the runnable task, this function 
@@ -216,7 +216,7 @@ BOOL _tn_change_task_priority(struct TN_Task *task, int new_priority);
  * @return TRUE if tn_next_task_to_run is changed
  *              (that is, context switch is needed)
  */
-BOOL  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
+void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
 #if TN_USE_MUTEXES
 /**

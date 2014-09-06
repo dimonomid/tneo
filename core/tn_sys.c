@@ -272,6 +272,12 @@ static void _timer_task_body(void * par)
             TN_WAIT_INFINITE);
       tn_enable_interrupt();
 
+#if TN_DEBUG
+      if (!_tn_need_context_switch()){
+         TN_FATAL_ERROR("");
+      }
+#endif
+
       tn_switch_context();
    }
 }
