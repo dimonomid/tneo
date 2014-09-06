@@ -17,6 +17,7 @@
    * [X] make `_tn_task_set_runnable` and `_tn_task_clear_runnable` to return `void`, and use special function `_tn_switch_context_if_needed`.
    * [ ] get rid of `enum TN_WComplFlags`, _tn_task_clear_waiting should always behave like `TN_WCOMPL__REMOVE_WQUEUE` is set. While we refactor events, dqueue, sem, mem, we should always specify this flag when calling _tn_task_wait_complete, so eventually there will be no calls to _tn_task_wait_complete without setting this flag. At this moment, we should get rid of it.
    * [ ] probably _tn_task_wait_complete should take task_wait_rc as a parameter? Say, sometimes, TERR_DLT needs to be returned
+   * [ ] probably add new return value, such as TERR_FORCE or TERR_RELEASED, and return it when task was released from waiting by tn_task_release_wait. Currently TERR_NO_ERR returned which is not correct
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
    * [ ] task tests

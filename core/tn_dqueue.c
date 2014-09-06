@@ -27,6 +27,10 @@
 
   /* ver 2.7  */
 
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 #include "tn_common.h"
 #include "tn_sys.h"
 #include "tn_internal.h"
@@ -36,8 +40,269 @@
 #include "tn_tasks.h"
 
 
-static enum TN_Retval  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr);
-static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr);
+
+
+/*******************************************************************************
+ *    PRIVATE TYPES
+ ******************************************************************************/
+
+enum _JobType {
+   _JOB_TYPE__SEND,
+   _JOB_TYPE__RECEIVE,
+};
+
+/*******************************************************************************
+ *    PRIVATE FUNCTIONS
+ ******************************************************************************/
+
+//-- Data queue storage FIFO processing {{{
+
+//---------------------------------------------------------------------------
+static enum TN_Retval  dque_fifo_write(struct TN_DQueue *dque, void *p_data)
+{
+   register int flag;
+
+#if TN_CHECK_PARAM
+   if(dque == NULL)
+      return TERR_WRONG_PARAM;
+#endif
+
+   //-- v.2.7
+
+   if(dque->num_entries <= 0)
+      return TERR_OUT_OF_MEM;
+
+   flag = ((dque->tail_cnt == 0 && dque->header_cnt == dque->num_entries - 1)
+         || dque->header_cnt == dque->tail_cnt-1);
+   if(flag)
+      return  TERR_OVERFLOW;  //--  full
+
+   //-- wr  data
+
+   dque->data_fifo[dque->header_cnt] = p_data;
+   dque->header_cnt++;
+   if(dque->header_cnt >= dque->num_entries)
+      dque->header_cnt = 0;
+   return TERR_NO_ERR;
+}
+
+//----------------------------------------------------------------------------
+static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void **pp_data)
+{
+
+#if TN_CHECK_PARAM
+   if(dque == NULL || pp_data == NULL)
+      return TERR_WRONG_PARAM;
+#endif
+
+   //-- v.2.7  Thanks to kosyak© from electronix.ru
+
+   if(dque->num_entries <= 0)
+      return TERR_OUT_OF_MEM;
+
+   if(dque->tail_cnt == dque->header_cnt)
+      return TERR_UNDERFLOW; //-- empty
+
+   //-- rd data
+
+   *pp_data = dque->data_fifo[dque->tail_cnt];
+   dque->tail_cnt++;
+   if(dque->tail_cnt >= dque->num_entries)
+      dque->tail_cnt = 0;
+
+   return TERR_NO_ERR;
+}
+// }}}
+
+
+static inline enum TN_Retval _queue_send(struct TN_DQueue *dque, void *p_data)
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   if (!tn_is_list_empty(&(dque->wait_receive_list))){
+      struct TN_Task *task;
+      //-- there are tasks waiting for message,
+      //   so, wake up first one
+
+      //-- get first task from wait_receive_list
+      task = tn_list_first_entry(&(dque->wait_receive_list), typeof(*task), task_queue);
+
+      task->data_elem = p_data;
+
+      _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
+   } else {
+      //-- the data queue's  wait_receive list is empty
+      rc = dque_fifo_write(dque, p_data);
+      if (rc != TERR_NO_ERR){
+         //-- no free entries in data queue
+         rc = TERR_TIMEOUT;  //-- just convert errorcode
+      }
+   }
+
+   return rc;
+}
+
+static inline enum TN_Retval _queue_receive(struct TN_DQueue *dque, void **pp_data)
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   rc = dque_fifo_read(dque, pp_data);
+   if (rc == TERR_NO_ERR){
+      //-- data is successfully read from the queue.
+      //   Let's check whether there is some task that
+      //   wants to write more data, and waits for room
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
+         struct TN_Task *task;
+         //-- there are tasks that want to write data
+
+         task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
+
+         dque_fifo_write(dque, task->data_elem); //-- Put to data FIFO
+
+         _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
+      }
+   } else {
+      //-- data FIFO is empty, there's nothing to read.
+      //   let's check if some task waits to write
+      //   (that might happen if dque->num_entries is 0)
+      if (!tn_is_list_empty(&(dque->wait_send_list))){
+         struct TN_Task *task;
+         //-- there are tasks that want to write data
+
+         task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
+
+         *pp_data = task->data_elem; //-- Return to caller
+         _tn_task_wait_complete(task, (TN_WCOMPL__REMOVE_WQUEUE));
+      } else {
+         //-- wait_send_list is empty. return TERR_TIMEOUT
+         rc = TERR_TIMEOUT;
+      }
+   }
+
+   return rc;
+}
+
+
+static inline enum TN_Retval _dqueue_job_perform(
+      struct TN_DQueue *dque,
+      enum _JobType job_type,
+      void *p_data,
+      unsigned long timeout
+      )
+{
+   TN_INTSAVE_DATA;
+   enum TN_Retval rc = TERR_NO_ERR;
+   BOOL waited = FALSE;
+   void **pp_data = (void **)p_data;
+
+#if TN_CHECK_PARAM
+   if(dque == NULL)
+      return  TERR_WRONG_PARAM;
+   if(dque->id_dque != TN_ID_DATAQUEUE)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   tn_disable_interrupt();
+
+   switch (job_type){
+      case _JOB_TYPE__SEND:
+         rc = _queue_send(dque, p_data);
+
+         if (rc == TERR_TIMEOUT && timeout != 0){
+            //-- put current task to wait until there's room in the queue.
+            tn_curr_run_task->data_elem = p_data;  //-- Store p_data
+            _tn_task_curr_to_wait_action(
+                  &(dque->wait_send_list),
+                  TSK_WAIT_REASON_DQUE_WSEND,
+                  timeout
+                  );
+
+            waited = TRUE;
+         }
+
+         break;
+      case _JOB_TYPE__RECEIVE:
+         rc = _queue_receive(dque, pp_data);
+
+         if (rc == TERR_TIMEOUT && timeout != 0){
+            //-- put current task to wait until new data comes.
+            _tn_task_curr_to_wait_action(
+                  &(dque->wait_receive_list),
+                  TSK_WAIT_REASON_DQUE_WRECEIVE,
+                  timeout
+                  );
+
+            waited = TRUE;
+         }
+         break;
+   }
+
+#if TN_DEBUG
+   if (!_tn_need_context_switch() && waited){
+      TN_FATAL_ERROR("");
+   }
+#endif
+
+   tn_enable_interrupt();
+   _tn_switch_context_if_needed();
+   if (waited){
+      switch (job_type){
+         case _JOB_TYPE__SEND:
+            rc = tn_curr_run_task->task_wait_rc;
+            break;
+         case _JOB_TYPE__RECEIVE:
+            //-- When returns to this point, in the data_elem have to be valid value
+
+            *pp_data = tn_curr_run_task->data_elem; //-- Return to caller
+            rc = tn_curr_run_task->task_wait_rc;
+            break;
+      }
+   }
+
+   return rc;
+}
+
+static inline enum TN_Retval _dqueue_job_iperform(
+      struct TN_DQueue *dque,
+      enum _JobType job_type,
+      void *p_data      //-- used for _JOB_TYPE__SEND
+      )
+{
+   TN_INTSAVE_DATA_INT;
+   enum TN_Retval rc = TERR_NO_ERR;
+   void **pp_data = (void **)p_data;
+
+#if TN_CHECK_PARAM
+   if(dque == NULL)
+      return  TERR_WRONG_PARAM;
+   if(dque->id_dque != TN_ID_DATAQUEUE)
+      return TERR_NOEXS;
+#endif
+
+   TN_CHECK_INT_CONTEXT;
+
+   tn_idisable_interrupt();
+
+   switch (job_type){
+      case _JOB_TYPE__SEND:
+         rc = _queue_send(dque, p_data);
+         break;
+      case _JOB_TYPE__RECEIVE:
+         rc = _queue_receive(dque, pp_data);
+         break;
+   }
+
+   tn_ienable_interrupt();
+
+   return rc;
+}
+
+
+
+
+
 
 //-------------------------------------------------------------------------
 // Structure's field dque->id_dque have to be set to 0
@@ -101,379 +366,41 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_send(struct TN_DQueue * dque, void * data_ptr, unsigned long timeout)
+enum TN_Retval tn_queue_send(struct TN_DQueue *dque, void *p_data, unsigned long timeout)
 {
-   TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-   BOOL waited_for_room = FALSE;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL || timeout == 0)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-  //-- there are task(s) in the data queue's wait_receive list
-
-   if (!tn_is_list_empty(&(dque->wait_receive_list))){
-      que  = tn_list_remove_head(&(dque->wait_receive_list));
-      task = get_task_by_tsk_queue(que);
-
-      task->data_elem = data_ptr;
-      _tn_task_wait_complete(task, (0));
-
-   } else  {
-      //-- the data queue's  wait_receive list is empty
-      rc = dque_fifo_write(dque,data_ptr);
-      if (rc != TERR_NO_ERR){
-         //-- no free entries in the data queue
-         tn_curr_run_task->data_elem = data_ptr;  //-- Store data_ptr
-         _tn_task_curr_to_wait_action(
-               &(dque->wait_send_list),
-               TSK_WAIT_REASON_DQUE_WSEND,
-               timeout
-               );
-         waited_for_room = TRUE;
-      }
-   }
-
-#if TN_DEBUG
-   if (!_tn_need_context_switch() && waited_for_room){
-      TN_FATAL_ERROR("");
-   }
-#endif
-
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-   if (waited_for_room){
-      rc = tn_curr_run_task->task_wait_rc;
-   }
-   return rc;
+   return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, timeout);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_send_polling(struct TN_DQueue * dque, void * data_ptr)
+enum TN_Retval tn_queue_send_polling(struct TN_DQueue *dque, void *p_data)
 {
-   TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-  //-- there are task(s) in the data queue's  wait_receive list
-
-   if (!tn_is_list_empty(&(dque->wait_receive_list))){
-      que  = tn_list_remove_head(&(dque->wait_receive_list));
-      task = get_task_by_tsk_queue(que);
-
-      task->data_elem = data_ptr;
-
-      _tn_task_wait_complete(task, (0));
-   } else {
-      //-- the data queue's  wait_receive list is empty
-      rc = dque_fifo_write(dque,data_ptr);
-      if (rc != TERR_NO_ERR){
-         //-- No free entries in data queue
-         rc = TERR_TIMEOUT;  //-- Just convert errorcode
-      }
-   }
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-
-   return rc;
+   return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, 0);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_isend_polling(struct TN_DQueue * dque, void * data_ptr)
+enum TN_Retval tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT;
-
-   tn_idisable_interrupt();
-
-  //-- there are task(s) in the data queue's  wait_receive list
-
-   if (!tn_is_list_empty(&(dque->wait_receive_list))){
-      que  = tn_list_remove_head(&(dque->wait_receive_list));
-      task = get_task_by_tsk_queue(que);
-
-      task->data_elem = data_ptr;
-
-      _tn_task_wait_complete(task, (0));
-   } else {
-      //-- the data queue's wait_receive list is empty
-      rc = dque_fifo_write(dque,data_ptr);
-
-      if (rc != TERR_NO_ERR){
-         //-- No free entries in data queue
-         rc = TERR_TIMEOUT;  //-- Just convert errorcode
-      }
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
+   return _dqueue_job_iperform(dque, _JOB_TYPE__SEND, p_data);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_receive(struct TN_DQueue * dque,void ** data_ptr,unsigned long timeout)
+enum TN_Retval tn_queue_receive(struct TN_DQueue *dque, void **pp_data, unsigned long timeout)
 {
-   TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR; //-- return code
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-   BOOL waited_for_data = FALSE;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL || timeout == 0 || data_ptr == NULL)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-   rc = dque_fifo_read(dque,data_ptr);
-   if (rc == TERR_NO_ERR){
-      //-- There was entry(s) in data queue
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task = get_task_by_tsk_queue(que);
-
-         dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
-
-         _tn_task_wait_complete(task, (0));
-      }
-   } else {
-      //-- data FIFO is empty
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task = get_task_by_tsk_queue(que);
-
-         *data_ptr = task->data_elem; //-- Return to caller
-         _tn_task_wait_complete(task, (0));
-
-      } else {
-         //-- wait_send_list is empty
-         _tn_task_curr_to_wait_action(&(dque->wait_receive_list),
-                                     TSK_WAIT_REASON_DQUE_WRECEIVE,timeout);
-
-         waited_for_data = TRUE;
-
-      }
-   }
-
-#if TN_DEBUG
-   if (!_tn_need_context_switch() && waited_for_data){
-      TN_FATAL_ERROR("");
-   }
-#endif
-
-
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-   if (waited_for_data){
-      //-- When returns to this point, in the data_elem have to be valid value
-
-      *data_ptr = tn_curr_run_task->data_elem; //-- Return to caller
-      rc = tn_curr_run_task->task_wait_rc;
-   }
-
-   return rc;
+   return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, timeout);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_receive_polling(struct TN_DQueue * dque,void ** data_ptr)
+enum TN_Retval tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 {
-   TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL || data_ptr == NULL)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   tn_disable_interrupt();
-
-   rc = dque_fifo_read(dque,data_ptr);
-   if (rc == TERR_NO_ERR){
-      //-- There was entry(s) in data queue
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task = get_task_by_tsk_queue(que);
-
-         dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
-         _tn_task_wait_complete(task, (0));
-      }
-   } else {
-      //-- data FIFO is empty
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task = get_task_by_tsk_queue(que);
-
-         *data_ptr = task->data_elem; //-- Return to caller
-         _tn_task_wait_complete(task, (0));
-      } else {
-         //-- wait_send_list is empty
-         rc = TERR_TIMEOUT;
-      }
-
-   }
-
-   tn_enable_interrupt();
-   _tn_switch_context_if_needed();
-
-   return rc;
+   return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, 0);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_queue_ireceive(struct TN_DQueue * dque,void ** data_ptr)
+enum TN_Retval tn_queue_ireceive(struct TN_DQueue *dque, void **pp_data)
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
-   struct TN_ListItem * que;
-   struct TN_Task * task;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL || data_ptr == NULL)
-      return  TERR_WRONG_PARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
-#endif
-
-   TN_CHECK_INT_CONTEXT;
-
-   tn_idisable_interrupt();
-
-   rc = dque_fifo_read(dque,data_ptr);
-   if (rc == TERR_NO_ERR){
-      //-- There was entry(s) in data queue
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task = get_task_by_tsk_queue(que);
-
-         dque_fifo_write(dque,task->data_elem); //-- Put to data FIFO
-
-         _tn_task_wait_complete(task, (0));
-      }
-   } else {
-      //-- data FIFO is empty
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         que  = tn_list_remove_head(&(dque->wait_send_list));
-         task =  get_task_by_tsk_queue(que);
-
-         *data_ptr = task->data_elem; //-- Return to caller
-
-         _tn_task_wait_complete(task, (0));
-
-         rc = TERR_NO_ERR;
-      } else {
-         rc = TERR_TIMEOUT;
-      }
-   }
-
-   tn_ienable_interrupt();
-
-   return rc;
+   return _dqueue_job_iperform(dque, _JOB_TYPE__RECEIVE, pp_data);
 }
 
-
-
-//---------------------------------------------------------------------------
-//    Data queue storage FIFO processing
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-static enum TN_Retval  dque_fifo_write(struct TN_DQueue * dque, void * data_ptr)
-{
-   register int flag;
-
-#if TN_CHECK_PARAM
-   if(dque == NULL)
-      return TERR_WRONG_PARAM;
-#endif
-
-   //-- v.2.7
-
-   if(dque->num_entries <= 0)
-      return TERR_OUT_OF_MEM;
-
-   flag = ((dque->tail_cnt == 0 && dque->header_cnt == dque->num_entries - 1)
-         || dque->header_cnt == dque->tail_cnt-1);
-   if(flag)
-      return  TERR_OVERFLOW;  //--  full
-
-   //-- wr  data
-
-   dque->data_fifo[dque->header_cnt] = data_ptr;
-   dque->header_cnt++;
-   if(dque->header_cnt >= dque->num_entries)
-      dque->header_cnt = 0;
-   return TERR_NO_ERR;
-}
-
-//----------------------------------------------------------------------------
-static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void ** data_ptr)
-{
-
-#if TN_CHECK_PARAM
-   if(dque == NULL || data_ptr == NULL)
-      return TERR_WRONG_PARAM;
-#endif
-
-   //-- v.2.7  Thanks to kosyak© from electronix.ru
-
-   if(dque->num_entries <= 0)
-      return TERR_OUT_OF_MEM;
-
-   if(dque->tail_cnt == dque->header_cnt)
-      return TERR_UNDERFLOW; //-- empty
-
-   //-- rd data
-
-   *data_ptr  =  dque->data_fifo[dque->tail_cnt];
-   dque->tail_cnt++;
-   if(dque->tail_cnt >= dque->num_entries)
-      dque->tail_cnt = 0;
-
-   return TERR_NO_ERR;
-}
 
 
 
