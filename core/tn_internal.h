@@ -119,8 +119,10 @@ static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
 }
 
 /**
- * Change task's state to runnable,
- * put it on the 'ready queue' for its priority,
+ * Should be called when task_state is NONE.
+ *
+ * Set RUNNABLE bit in task_state,
+ * put task on the 'ready queue' for its priority,
  *
  * if priority is higher than tn_next_task_to_run's priority,
  * then set tn_next_task_to_run to this task and return TRUE,
@@ -132,9 +134,9 @@ BOOL _tn_task_set_runnable(struct TN_Task *task);
 
 
 /**
- * Should be called only for tasks in state TSK_STATE_RUNNABLE.
+ * Should be called when task_state has just single RUNNABLE bit set.
  *
- * Remove task from 'ready queue', determine and set
+ * Clear RUNNABLE bit, remove task from 'ready queue', determine and set
  * new tn_next_task_to_run.
  *
  * @return TRUE if tn_next_task_to_run was altered
@@ -159,8 +161,7 @@ void _tn_task_set_dormant(struct TN_Task* task);
 void _tn_task_clear_dormant(struct TN_Task *task);
 
 /**
- * Should be called when task finishes waiting for anything, as well as
- * when task is terminated while waiting.
+ * Should be called when task finishes waiting for anything.
  *
  * @param flags   see enum TN_WComplFlags
  *
