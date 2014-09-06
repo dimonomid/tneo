@@ -51,10 +51,10 @@
  ******************************************************************************/
 
 typedef enum TN_Retval (_worker_t)(
-      struct TN_Event *evf,
-      unsigned int wait_pattern,
-      int wait_mode,
-      unsigned int *p_flags_pattern
+      struct TN_Event     *evf,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern
       );
 
 
@@ -62,7 +62,7 @@ typedef enum TN_Retval (_worker_t)(
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static BOOL _cond_check(struct TN_Event *evf, int wait_mode, int wait_pattern)
+static BOOL _cond_check(struct TN_Event *evf, enum TN_EventWCond wait_mode, int wait_pattern)
 {
    BOOL cond = FALSE;
 
@@ -126,10 +126,10 @@ static BOOL _scan_event_waitqueue(struct TN_Event *evf)
 
 
 static inline enum TN_Retval _event_wait(
-      struct TN_Event  *evf,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern
+      struct TN_Event     *evf,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern
       )
 {
    enum TN_Retval rc = TERR_NO_ERR;
@@ -155,10 +155,10 @@ static inline enum TN_Retval _event_wait(
 }
 
 static inline enum TN_Retval _event_set(
-      struct TN_Event  *evf,
-      unsigned int      pattern,
-      int               _unused1,
-      unsigned int     *_unused2
+      struct TN_Event     *evf,
+      unsigned int         pattern,
+      enum TN_EventWCond   _unused1,
+      unsigned int        *_unused2
       )
 {
    enum TN_Retval rc = TERR_NO_ERR;
@@ -174,10 +174,10 @@ static inline enum TN_Retval _event_set(
 }
 
 static inline enum TN_Retval _event_clear(
-      struct TN_Event *evf,
-      unsigned int pattern,
-      int _unused1,
-      unsigned int *_unused2
+      struct TN_Event     *evf,
+      unsigned int         pattern,
+      enum TN_EventWCond   _unused1,
+      unsigned int        *_unused2
       )
 {
    evf->pattern &= pattern;
@@ -187,12 +187,12 @@ static inline enum TN_Retval _event_clear(
 
 
 static inline enum TN_Retval _event_job_perform(
-      struct TN_Event  *evf,
-      _worker_t         p_worker,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern,
-      unsigned long     timeout
+      struct TN_Event     *evf,
+      _worker_t            p_worker,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern,
+      unsigned long        timeout
       )
 {
    TN_INTSAVE_DATA;
@@ -247,11 +247,11 @@ static inline enum TN_Retval _event_job_perform(
 }
 
 static inline enum TN_Retval _event_job_iperform(
-      struct TN_Event  *evf,
-      _worker_t         p_worker,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern
+      struct TN_Event     *evf,
+      _worker_t            p_worker,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern
       )
 {
    TN_INTSAVE_DATA_INT;
@@ -287,7 +287,7 @@ static inline enum TN_Retval _event_job_iperform(
 //  Structure's field evf->id_event have to be set to 0
 //----------------------------------------------------------------------------
 enum TN_Retval tn_event_create(struct TN_Event * evf,
-                    int attr,              //-- Eventflag attribute
+                    enum TN_EventAttr attr,              //-- Eventflag attribute
                     unsigned int pattern)  //-- Initial value of the eventflag bit pattern
 {
 
@@ -341,11 +341,11 @@ enum TN_Retval tn_event_delete(struct TN_Event * evf)
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_event_wait(
-      struct TN_Event  *evf,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern,
-      unsigned long     timeout
+      struct TN_Event     *evf,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern,
+      unsigned long        timeout
       )
 {
    return _event_job_perform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern, timeout);
@@ -353,10 +353,10 @@ enum TN_Retval tn_event_wait(
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_event_wait_polling(
-      struct TN_Event  *evf,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern
+      struct TN_Event     *evf,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern
       )
 {
    return _event_job_perform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern, 0);
@@ -364,10 +364,10 @@ enum TN_Retval tn_event_wait_polling(
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_event_iwait(
-      struct TN_Event  *evf,
-      unsigned int      wait_pattern,
-      int               wait_mode,
-      unsigned int     *p_flags_pattern
+      struct TN_Event     *evf,
+      unsigned int         wait_pattern,
+      enum TN_EventWCond   wait_mode,
+      unsigned int        *p_flags_pattern
       )
 {
    return _event_job_iperform(evf, _event_wait, wait_pattern, wait_mode, p_flags_pattern);
