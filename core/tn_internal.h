@@ -73,6 +73,18 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
 void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
 #endif
 
+static inline BOOL _tn_need_context_switch(void)
+{
+   return (tn_curr_run_task != tn_next_task_to_run);
+}
+
+static inline void _tn_switch_context_if_needed(void)
+{
+   if (_tn_need_context_switch()){
+      tn_switch_context();
+   }
+}
+
 
 
 //-- tn_tasks.c

@@ -723,17 +723,12 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
          _tn_task_clear_suspended(task);
       }
 
-      if (!_task_terminate(task)){
-         //-- Cannot terminate
-
-         tn_enable_interrupt();
-         tn_switch_context();
-
-         return TERR_NO_ERR;
-      }
+      _task_terminate(task);
    }
 
+
    tn_enable_interrupt();
+   _tn_switch_context_if_needed();
 
    return rc;
 }
