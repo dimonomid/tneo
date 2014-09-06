@@ -126,10 +126,10 @@ static BOOL _scan_event_waitqueue(struct TN_Event *evf)
 
 
 static inline enum TN_Retval _event_wait(
-      struct TN_Event *evf,
-      unsigned int wait_pattern,
-      int wait_mode,
-      unsigned int *p_flags_pattern
+      struct TN_Event  *evf,
+      unsigned int      wait_pattern,
+      int               wait_mode,
+      unsigned int     *p_flags_pattern
       )
 {
    enum TN_Retval rc = TERR_NO_ERR;
@@ -155,10 +155,10 @@ static inline enum TN_Retval _event_wait(
 }
 
 static inline enum TN_Retval _event_set(
-      struct TN_Event *evf,
-      unsigned int pattern,
-      int _unused1,
-      unsigned int *_unused2
+      struct TN_Event  *evf,
+      unsigned int      pattern,
+      int               _unused1,
+      unsigned int     *_unused2
       )
 {
    enum TN_Retval rc = TERR_NO_ERR;
@@ -200,7 +200,12 @@ static inline enum TN_Retval _event_job_perform(
    BOOL waited_for_event = FALSE;
 
 #if TN_CHECK_PARAM
-   if(evf == NULL || wait_pattern == 0 || p_flags_pattern == NULL)
+   if(evf == NULL 
+         || (
+            p_worker == _event_wait
+            && (wait_pattern == 0 || p_flags_pattern == NULL)
+            )
+         )
       return TERR_WRONG_PARAM;
    if(evf->id_event != TN_ID_EVENT)
       return TERR_NOEXS;
