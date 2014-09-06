@@ -18,6 +18,8 @@
    * [ ] get rid of `enum TN_WComplFlags`, _tn_task_clear_waiting should always behave like `TN_WCOMPL__REMOVE_WQUEUE` is set. While we refactor events, dqueue, sem, mem, we should always specify this flag when calling _tn_task_wait_complete, so eventually there will be no calls to _tn_task_wait_complete without setting this flag. At this moment, we should get rid of it.
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
+   * [ ] task tests
+      * [ ] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
    * [ ] mutex tests
       * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
       * [ ] ceiling mutexes
