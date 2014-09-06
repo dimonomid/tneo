@@ -127,8 +127,6 @@ static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
  * if priority is higher than tn_next_task_to_run's priority,
  * then set tn_next_task_to_run to this task and return TRUE,
  * otherwise return FALSE.
- *
- * @return TRUE if given task should run next
  */
 void _tn_task_set_runnable(struct TN_Task *task);
 
@@ -138,9 +136,6 @@ void _tn_task_set_runnable(struct TN_Task *task);
  *
  * Clear RUNNABLE bit, remove task from 'ready queue', determine and set
  * new tn_next_task_to_run.
- *
- * @return TRUE if tn_next_task_to_run was altered
- *              (that is, context switch is needed)
  */
 void _tn_task_clear_runnable(struct TN_Task *task);
 
@@ -164,9 +159,6 @@ void _tn_task_clear_dormant(struct TN_Task *task);
  * Should be called when task finishes waiting for anything.
  *
  * @param flags   see enum TN_WComplFlags
- *
- * @return TRUE if tn_next_task_to_run is set to given task
- *              (that is, context switch is needed)
  */
 static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_WComplFlags flags)
 {
@@ -212,9 +204,6 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority);
  * Remove current task from ready queue for its current priority,
  * change its priority, add to the end of ready queue of new priority,
  * find next task to run.
- *
- * @return TRUE if tn_next_task_to_run is changed
- *              (that is, context switch is needed)
  */
 void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
