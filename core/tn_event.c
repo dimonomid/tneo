@@ -95,6 +95,7 @@ static void _clear_pattern_if_needed(struct TN_Event *evf)
 static BOOL _scan_event_waitqueue(struct TN_Event *evf)
 {
    struct TN_Task *task;
+   struct TN_Task *tmp_task;
    BOOL rc = FALSE;
 
    // checking ALL of the tasks waiting on the event.
@@ -102,7 +103,7 @@ static BOOL _scan_event_waitqueue(struct TN_Event *evf)
    // for the event with attr TN_EVENT_ATTR_SINGLE the only one task
    // may be in the queue
 
-   tn_list_for_each_entry(task, &(evf->wait_queue), task_queue){
+   tn_list_for_each_entry_safe(task, tmp_task, &(evf->wait_queue), task_queue){
       if (_cond_check(evf, task->ewait_mode, task->ewait_pattern)){
          //-- Condition to finish the waiting
          task->ewait_pattern = evf->pattern;
