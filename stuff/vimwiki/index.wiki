@@ -21,7 +21,7 @@
    * [ ] implement timer object that would run user-provided function at some time in the future
    * [ ] clear tn_sys c/h files up
    * [ ] task tests
-      * [ ] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
+      * [X] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
    * [ ] mutex tests
       * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
       * [ ] test deletion of mutex (event, sem, queue) while waiting task is suspended; when it is resumed, TERR_DLT should be returned

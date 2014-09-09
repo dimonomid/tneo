@@ -41,11 +41,12 @@ enum TN_WComplFlags {
 };
 
 
+
+
 /*******************************************************************************
- *    INTERNAL TNKERNEL FUNCTIONS
+ *    tn_sys.c
  ******************************************************************************/
 
-//-- system
 /**
  * Remove all tasks from wait queue, returning the TERR_DLT code.
  * Note: this function might sleep.
@@ -87,9 +88,14 @@ static inline void _tn_switch_context_if_needed(void)
 
 
 
-//-- tn_tasks.c
 
-enum TN_Retval  _tn_task_create(struct TN_Task *task,                 //-- task TCB
+
+/*******************************************************************************
+ *    tn_tasks.c
+ ******************************************************************************/
+
+enum TN_Retval  _tn_task_create(
+      struct TN_Task *task,            //-- task TCB
       void (*task_func)(void *param),  //-- task function
       int priority,                    //-- task priority
       unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
@@ -223,7 +229,9 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
 
 
 
-//-- tn_mutex.h
+/*******************************************************************************
+ *    tn_mutex.c
+ ******************************************************************************/
 
 #if TN_USE_MUTEXES
 /**

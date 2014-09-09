@@ -690,6 +690,11 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 {
    //-- NOTE: task->task_wait_reason should be TSK_WAIT_REASON_MUTEX_I here
+#if TN_DEBUG
+   if (task->task_wait_reason != TSK_WAIT_REASON_MUTEX_I){
+      TN_FATAL_ERROR();
+   }
+#endif
 
 in:
    task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
