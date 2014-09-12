@@ -304,8 +304,9 @@ tn_cpu_restore_sr:
 tn_inside_int:
 
     mfc0    $v0, $12                    /* c0_status */
-    ext     $v0, $v0, 10, 6             /* extract IPL */
-    sltiu   $v0, $v0, 1                 /* IPL < 1 ? */
+    ins     $v0, $zero, 2, 8            /* zero everything between EXL and IPL */
+    ext     $v0, $v0, 1, 15             /* extract EXL...IPL */
+    sltiu   $v0, $v0, 1                 /* resulting value < 1 ? */
     jr      $ra
     xori    $v0, $v0, 1                 /* flip result */
 
