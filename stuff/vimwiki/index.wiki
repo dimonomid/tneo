@@ -54,6 +54,7 @@ _mutex_do_unlock
 == bug fixes of original TNKernel ==
 
    * fixed bug: low-priority task_low locks mutex M1 with priority inheritance, high-priority task_high tries to lock mutex M1 and gets blocked -> task_low's priority elevates to task_high's priority; then task_high stops waiting for mutex by timeout -> priority of task_low remains elevated, but it should be set back. The same happens if task_high is terminated by tn_task_terminate() while it was waiting for mutex. The same happens if mutex is deleted while task_high is waiting for it. The same happens if task was waken up by tn_task_wakeup().
+   * fixed bug: low-priority task A locks mutex M1 with priority inheritance, another task B with the same priority tries to lock M1 and gets blocked (priority of A = priority of B), then high-priority task C tries to lock M1 and gets blocked (priority of A = priority of C). Now, A unlocks M1 -> priority of A returns to base value, B locks M1 (because it is the next task in the mutex's queue), and its priority should be elevated to priority of C, but it doesn't happen.
    * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
    * fixed bug in tn_mutex_delete() : mutex->holder was checked against tn_curr_run_task without disabling interrupts
    * fixed bug in tn_mutex_delete() : if mutex is not locked, TERR_ILUSE is returned.

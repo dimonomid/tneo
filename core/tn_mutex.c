@@ -164,7 +164,12 @@ static void _update_task_priority(struct TN_Task *task)
 }
 
 
-static inline void _task_set_priority(struct TN_Task *task, int priority)
+/**
+ * Elevate task's priority to given value (if task's priority is now lower).
+ * If task is waiting for some mutex too, go on to holder of that mutex
+ * and elevate its priority too, recursively. And so on.
+ */
+static inline void _task_priority_elevate(struct TN_Task *task, int priority)
 {
 in:
    //-- transitive priority changing
@@ -202,7 +207,7 @@ in:
          //   convert function call to simple goto here,
          //   we have to use goto explicitly.
          //
-         //_task_set_priority(
+         //_task_priority_elevate(
          //      get_mutex_by_wait_queque(task->pwait_queue)->holder,
          //      priority
          //      );
@@ -394,7 +399,7 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
 
       //-- if run_task curr priority higher holder's curr priority
       if (tn_curr_run_task->priority < mutex->holder->priority){
-         _task_set_priority(mutex->holder, tn_curr_run_task->priority);
+         _task_priority_elevate(mutex->holder, tn_curr_run_task->priority);
       }
 
       wait_reason = TSK_WAIT_REASON_MUTEX_I;
