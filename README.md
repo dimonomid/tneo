@@ -7,6 +7,8 @@ A port of [TNKernel real-time system](http://www.tnkernel.com/ "TNKernel"). Test
 
 #Overview
 
+  * Fixed a lot of bugs, see below (especially with mutexes and associated priority algorithms)
+  * Tested by detailed unit tests (I'm still working on it, not all tests are done yet, it's matter of time)
   * Separate stack for interrupts
   * Nested interrupts are supported
   * Shadow register set interrupts are supported
@@ -20,6 +22,7 @@ The more I get into how TNKernel works, the less I like its code. There is a lot
 Together with almost totally re-writting TNKernel, I'm implementing detailed unit tests for it, to make sure I didn't break anything, and of course I've found several bugs in original TNKernel. Several of them:
 
   * If low-priority `task_low` locks mutex M1 with priority inheritance, high-priority `task_high` tries to lock mutex M1 and gets blocked -> `task_low`'s priority elevates to `task_high`'s priority; then `task_high` stops waiting for mutex by timeout -> priority of `task_low` remains elevated. The same happens if `task_high` is terminated by `tn_task_terminate()`;
+  * If low-priority task `task_low1` locks mutex M1 with priority inheritance, another task `task_low2` with the same priority tries to lock M1 and gets blocked, then high-priority task `task_high` tries to lock M1 and gets blocked (priority of `task_low1` becomes equal to priority of `task_high`). Now, `task_low1` unlocks M1 -> priority of `task_low1` returns to base value, `task_low2` locks M1 (because it is the next task in the mutex's queue), and its priority should be elevated to priority of `task_high`, but it doesn't happen.
   * `tn_mutex_delete()` : `mutex->holder` is checked against `tn_curr_run_task` without disabling interrupts;
   * `tn_mutex_delete()` : if mutex is not locked, `TERR_ILUSE` is returned. I believe task should be able to delete non-locked mutex;
   * if task that waits for mutex is in `WAITING_SUSPENDED` state, and mutex is deleted, `TERR_NO_ERR` is returned after returning from `SUSPENDED` state, instead of `TERR_DLT`
