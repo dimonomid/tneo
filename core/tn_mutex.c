@@ -77,7 +77,7 @@
  *
  * Max priority (i.e. lowest value) is returned.
  */
-static int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+static inline int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int               priority;
    struct TN_Task   *task;
@@ -100,7 +100,7 @@ static int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
  * Returns max priority that could be set to some task because
  * it locked given mutex, but not less than given ref_priority.
  */
-static inline int _find_max_priority(
+static inline int _find_max_priority_by_mutex(
       struct TN_Mutex *mutex, int ref_priority
       )
 {
@@ -153,7 +153,7 @@ static void _update_task_priority(struct TN_Task *task)
 
       //-- Iterate through all the mutexes locked by given task
       tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
-         priority = _find_max_priority(mutex, priority);
+         priority = _find_max_priority_by_mutex(mutex, priority);
       }
    }
 
@@ -229,7 +229,7 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
 
    //-- Determine new priority for the task
    {
-      int new_priority = _find_max_priority(mutex, task->priority);
+      int new_priority = _find_max_priority_by_mutex(mutex, task->priority);
       if (task->priority != new_priority){
          _tn_change_task_priority(task, new_priority);
       }
