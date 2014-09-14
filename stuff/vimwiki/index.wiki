@@ -24,9 +24,9 @@
       * [X] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
    * [ ] mutex tests
       * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
-      * [ ] test deletion of mutex (event, sem, queue) while waiting task is suspended; when it is resumed, TERR_DLT should be returned
+      * [X] test deletion of mutex (event, sem, queue) while waiting task is suspended; when it is resumed, TERR_DLT should be returned
       * [ ] ceiling mutexes
-      * [ ] this one, regarding to order:
+      * [X] this one, regarding to order:
          * A l M1
          * B l M1 - B blocks, A has priority of B
          * C l M1 - C blocks, A has priority of C
