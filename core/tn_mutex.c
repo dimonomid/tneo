@@ -72,7 +72,7 @@
  ******************************************************************************/
 
 /**
- * Iterate through all the tasks that wait for lock mutex,
+ * Iterate through all the tasks that wait for locked mutex,
  * checking if task's priority is higher than ref_priority.
  *
  * Max priority (i.e. lowest value) is returned.
@@ -95,6 +95,74 @@ static int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 
    return priority;
 }
+
+/**
+ * Returns max priority that could be set to some task because
+ * it locked given mutex, but not less than given ref_priority.
+ */
+static inline int _find_max_priority(
+      struct TN_Mutex *mutex, int ref_priority
+      )
+{
+   int priority = ref_priority;
+
+   switch (mutex->attr){
+      case TN_MUTEX_ATTR_CEILING:
+         if (mutex->ceil_priority < priority){
+            priority = mutex->ceil_priority;
+         }
+         break;
+
+      case TN_MUTEX_ATTR_INHERIT:
+         priority = _find_max_blocked_priority(mutex, priority);
+         break;
+
+      default:
+         //-- should never happen
+         TN_FATAL_ERROR("wrong mutex attr=%d", mutex->attr);
+         break;
+   }
+
+   return priority;
+}
+
+/**
+ * Iterate through all the mutexes that are held by task,
+ * for each mutex:
+ *    * if attr is TN_MUTEX_ATTR_CEILING:
+ *       check if ceil priority higher than task's base priority
+ *    * if attr is TN_MUTEX_ATTR_INHERIT:
+ *       iterate through all the tasks that wait for this mutex,
+ *       and check if priority of each task is higher than
+ *       our task's base priority
+ *
+ * Eventually, find out highest priority and set it.
+ */
+static void _update_task_priority(struct TN_Task *task)
+{
+   int priority;
+
+   //-- Now, we need to determine new priority of current task.
+   //   We start from its base priority, but if there are other
+   //   mutexes that are locked by the task, we should check
+   //   what priority we should set.
+   priority = task->base_priority;
+
+   {
+      struct TN_Mutex *mutex;
+
+      //-- Iterate through all the mutexes locked by given task
+      tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
+         priority = _find_max_priority(mutex, priority);
+      }
+   }
+
+   //-- New priority determined, set it
+   if (priority != task->priority){
+      _tn_change_task_priority(task, priority);
+   }
+}
+
 
 static inline void _task_set_priority(struct TN_Task *task, int priority)
 {
@@ -154,13 +222,14 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
    //-- Add mutex to task's locked mutexes queue
    tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
-   if (mutex->attr == TN_MUTEX_ATTR_CEILING){
-      //-- Ceiling protocol
-
-      if(task->priority > mutex->ceil_priority){
-         _tn_change_task_priority(task, mutex->ceil_priority);
+   //-- Determine new priority for the task
+   {
+      int new_priority = _find_max_priority(mutex, task->priority);
+      if (task->priority != new_priority){
+         _tn_change_task_priority(task, new_priority);
       }
    }
+
 }
 
 #if TN_MUTEX_DEADLOCK_DETECT
@@ -338,44 +407,6 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
 
    //-- check if there is deadlock
    _check_deadlock_active(mutex, tn_curr_run_task);
-}
-
-static void _update_task_priority(struct TN_Task *task)
-{
-   int pr;
-
-   //-- Now, we need to determine new priority of current task.
-   //   We start from its base priority, but if there are other
-   //   mutexes that are locked by the task, we should check
-   //   what priority we should set.
-   pr = task->base_priority;
-
-   {
-      struct TN_Mutex *tmp_mutex;
-      tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
-         switch (tmp_mutex->attr){
-            case TN_MUTEX_ATTR_CEILING:
-               if (tmp_mutex->ceil_priority < pr){
-                  pr = tmp_mutex->ceil_priority;
-               }
-               break;
-
-            case TN_MUTEX_ATTR_INHERIT:
-               pr = _find_max_blocked_priority(tmp_mutex, pr);
-               break;
-
-            default:
-               //-- should never happen
-               TN_FATAL_ERROR("wrong mutex attr=%d", tmp_mutex->attr);
-               break;
-         }
-      }
-   }
-
-   //-- New priority determined, set it
-   if (pr != task->priority){
-      _tn_change_task_priority(task, pr);
-   }
 }
 
 /**
