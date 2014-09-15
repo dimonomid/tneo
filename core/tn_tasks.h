@@ -71,6 +71,10 @@ struct TN_Task {
    const char *name;          
 #endif
 
+   //-- for the comments on the flag priority_already_updated,
+   //   see file tn_mutex.c , function _mutex_do_unlock().
+   unsigned          priority_already_updated : 1;
+
 // Other implementation specific fields may be added below
 
 };

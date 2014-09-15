@@ -437,6 +437,9 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
    //-- Delete curr mutex from task's locked mutexes queue
    tn_list_remove_entry(&(mutex->mutex_queue));
 
+   //-- update priority for current holder
+   _update_task_priority(mutex->holder);
+
    //-- Check for the task(s) that want to lock the mutex
    if (tn_is_list_empty(&(mutex->wait_queue))){
       //-- no more tasks want to lock the mutex,
@@ -451,7 +454,20 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       //-- get first task from mutex's wait_queue
       task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
 
-      //-- wake it up
+      //-- wake it up.
+      //   Note: _update_task_priority() for current holder
+      //   of mutex will be eventually called from:
+      //    _tn_task_wait_complete ->
+      //       _tn_task_clear_waiting ->
+      //          _on_task_wait_complete ->
+      //             _tn_mutex_i_on_task_wait_complete().
+      //
+      //   But, we have already called it above. It would be
+      //   not so efficient to perform the same job twice,
+      //   so, special flag invented: priority_already_updated.
+      //   It's probably not so elegant, but I believe it is
+      //   acceptable tradeoff in the name of efficiency.
+      mutex->holder->priority_already_updated = TRUE;
       _tn_task_wait_complete(
             task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE)
             );
@@ -589,6 +605,15 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 
    if (mutex->holder == NULL){
       //-- mutex is not locked, let's lock it
+
+      //-- TODO: probably, we should add special flat to _mutex_do_lock,
+      //   something like "other_tasks_can_wait", and set it to false here.
+      //   When _mutex_do_lock() is called from _mutex_do_unlock(), this flag
+      //   should be set to true there.
+      //   _mutex_do_lock() should forward this flag to _find_max_priority_by_mutex(),
+      //   and if that flag is false, _find_max_priority_by_mutex() should not
+      //   call _find_max_blocked_priority().
+      //   We could save about 30 cycles then. =)
       _mutex_do_lock(mutex, tn_curr_run_task);
       goto out_ei;
    } else {
@@ -732,27 +757,35 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
    }
 #endif
 
+   if (task->priority_already_updated){
+      //-- priority is already updated (in _mutex_do_unlock)
+      //   so, just reset that flag and don't do anything here.
+      task->priority_already_updated = FALSE;
+   } else {
+
 in:
-   task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
+      task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
 
-   _update_task_priority(task);
+      _update_task_priority(task);
 
-   //-- and check if the task is waiting for mutex
-   if (     (_tn_task_is_waiting(task))
-         && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
-      )
-   {
-      //-- task is waiting for another mutex. In this case, 
-      //   call this function again, recursively,
-      //   for mutex's task
-      //
-      //   NOTE: as a workaround for crappy compilers that don't
-      //   convert function call to simple goto here,
-      //   we have to use goto explicitly.
-      //
-      //_tn_mutex_i_on_task_wait_complete(task);
+      //-- and check if the task is waiting for mutex
+      if (     (_tn_task_is_waiting(task))
+            && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+         )
+      {
+         //-- task is waiting for another mutex. In this case, 
+         //   call this function again, recursively,
+         //   for mutex's task
+         //
+         //   NOTE: as a workaround for crappy compilers that don't
+         //   convert function call to simple goto here,
+         //   we have to use goto explicitly.
+         //
+         //_tn_mutex_i_on_task_wait_complete(task);
 
-      goto in;
+         goto in;
+      }
+
    }
 
 }
