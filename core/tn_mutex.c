@@ -523,6 +523,8 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 {
    TN_INTSAVE_DATA;
 
+   enum TN_Retval ret = TERR_NO_ERR;
+
 #if TN_CHECK_PARAM
    if(mutex == NULL)
       return TERR_WRONG_PARAM;
@@ -536,7 +538,8 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    //-- mutex can be deleted if only it isn't held 
    if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
-      return TERR_ILUSE;
+      ret = TERR_ILUSE;
+      goto out;
    }
 
    //-- Remove all tasks (if any) from mutex's wait queue
@@ -556,9 +559,9 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    mutex->id_mutex = 0; //-- mutex does not exist now
 
+out:
    tn_enable_interrupt();
-
-   return TERR_NO_ERR;
+   return ret;
 }
 
 //----------------------------------------------------------------------------
