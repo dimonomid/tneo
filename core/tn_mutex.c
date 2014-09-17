@@ -471,6 +471,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       _tn_task_wait_complete(
             task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE)
             );
+      mutex->holder->priority_already_updated = FALSE;
 
       //-- lock mutex by it
       _mutex_do_lock(mutex, task);
@@ -762,8 +763,9 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 
    if (task->priority_already_updated){
       //-- priority is already updated (in _mutex_do_unlock)
-      //   so, just reset that flag and don't do anything here.
-      task->priority_already_updated = FALSE;
+      //   so, just do nothing here
+      //   (flag will be cleared in _mutex_do_unlock 
+      //   when we exit from _tn_task_wait_complete)
    } else {
 
 in:
