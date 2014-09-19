@@ -63,8 +63,6 @@ struct TN_Task {
 
    void * data_elem;          //-- Store data queue entry,if data queue is full
 
-   int  suspend_count;        //-- Suspension count - for statistic
-
 #if TN_DEBUG
    const char *name;          
 #endif

@@ -399,12 +399,7 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
 
    tn_disable_interrupt();
 
-   if (_tn_task_is_suspended(task)){
-      rc = TERR_OVERFLOW;
-      goto out;
-   }
-
-   if (_tn_task_is_dormant(task)){
+   if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
       rc = TERR_WSTATE;
       goto out;
    }
@@ -1048,7 +1043,6 @@ void _tn_task_set_dormant(struct TN_Task* task)
    task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
 
    task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
-   task->suspend_count = 0;                 //-- Suspension count
 
    task->tslice_count  = 0;
 }
