@@ -175,12 +175,9 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
    enum TN_Retval rc = TERR_NO_ERR;
 
    if ((_tn_task_is_waiting(task))){
-      //-- task is in WAIT state, so, let's release it from that state.
-      //   TODO: probably add new return value, such as TERR_FORCE or TERR_RELEASED,
-      //   and return it here?
-      //   If some task is waiting for some event, and someone releases it from
-      //   wait by calling this function, TERR_NO_ERR is returned, which is wrong.
-      _tn_task_wait_complete(task, TERR_NO_ERR, (0));
+      //-- task is in WAIT state, so, let's release it from that state,
+      //   returning TERR_FORCED.
+      _tn_task_wait_complete(task, TERR_FORCED, (0));
    } else {
       rc = TERR_WSTATE;
    }

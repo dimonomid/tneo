@@ -57,6 +57,8 @@ enum TN_Retval {
    TERR_ILUSE                =  -8, //-- Illegal using
    TERR_NOEXS                =  -9, //-- Non-valid or Non-existent object
    TERR_DLT                  = -10, //-- Waiting object deleted
+   TERR_FORCED               = -11, //-- Currently, only returned for waiting task 
+                                    //   if tn_task_release_wait() is called
    TERR_INTERNAL             = -12, //-- Internal TNKernel error (should never happen)
 };
 
