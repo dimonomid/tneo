@@ -133,9 +133,12 @@ static inline enum TN_Retval _queue_send(struct TN_DQueue *dque, void *p_data)
    } else {
       //-- the data queue's  wait_receive list is empty
       rc = dque_fifo_write(dque, p_data);
-      if (rc != TERR_NO_ERR){
-         //-- no free entries in data queue
-         rc = TERR_TIMEOUT;  //-- just convert errorcode
+      if (rc == TERR_OUT_OF_MEM || rc == TERR_OVERFLOW){
+         //-- No free entries in data queue: just convert errorcode
+         rc = TERR_TIMEOUT;
+      } else {
+         //-- data is either successfully written or failed with some
+         //   unexpected error. In either case, leave return code as is.
       }
    }
 
@@ -147,37 +150,51 @@ static inline enum TN_Retval _queue_receive(struct TN_DQueue *dque, void **pp_da
    enum TN_Retval rc = TERR_NO_ERR;
 
    rc = dque_fifo_read(dque, pp_data);
-   if (rc == TERR_NO_ERR){
-      //-- data is successfully read from the queue.
-      //   Let's check whether there is some task that
-      //   wants to write more data, and waits for room
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         struct TN_Task *task;
-         //-- there are tasks that want to write data
 
-         task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
+   switch (rc){
+      case TERR_NO_ERR:
+         //-- data is successfully read from the queue.
+         //   Let's check whether there is some task that
+         //   wants to write more data, and waits for room
+         if (!tn_is_list_empty(&(dque->wait_send_list))){
+            struct TN_Task *task;
+            //-- there are tasks that want to write data
 
-         dque_fifo_write(dque, task->data_elem); //-- Put to data FIFO
+            task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
 
-         _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
-      }
-   } else {
-      //-- data FIFO is empty, there's nothing to read.
-      //   let's check if some task waits to write
-      //   (that might happen if only dque->num_entries is 0)
-      if (!tn_is_list_empty(&(dque->wait_send_list))){
-         struct TN_Task *task;
-         //-- there are tasks that want to write data
+            rc = dque_fifo_write(dque, task->data_elem); //-- Put to data FIFO
+            if (rc != TERR_NO_ERR){
+               TN_FATAL_ERROR("rc should always be TERR_NO_ERR here");
+            }
+
+            _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+         }
+         break;
+      case TERR_OUT_OF_MEM:
+      case TERR_UNDERFLOW:
+         //-- data FIFO is empty, there's nothing to read.
+         //   let's check if some task waits to write
          //   (that might happen if only dque->num_entries is 0)
+         if (!tn_is_list_empty(&(dque->wait_send_list))){
+            struct TN_Task *task;
+            //-- there are tasks that want to write data
+            //   (that might happen if only dque->num_entries is 0)
 
-         task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
+            task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
 
-         *pp_data = task->data_elem; //-- Return to caller
-         _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
-      } else {
-         //-- wait_send_list is empty. return TERR_TIMEOUT
-         rc = TERR_TIMEOUT;
-      }
+            *pp_data = task->data_elem; //-- Return to caller
+            _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+
+            rc = TERR_NO_ERR;
+         } else {
+            //-- wait_send_list is empty. return TERR_TIMEOUT
+            rc = TERR_TIMEOUT;
+         }
+         break;
+      default:
+         //-- there's some abnormal error, we should leave return code as is
+         break;
+
    }
 
    return rc;
