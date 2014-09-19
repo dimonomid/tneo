@@ -50,6 +50,9 @@ typedef struct TN_Sem         TN_SEM;
 #define  _TN_FMP        TN_Fmp
 #define  _TN_SEM        TN_Sem
 
+
+#define  MAKE_ALIG      TN_MAKE_ALIG
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

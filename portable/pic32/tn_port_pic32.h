@@ -60,25 +60,6 @@
 
 #define  TN_ALIG                   sizeof(void*)
 
-//-- self-checking
-#if (!defined TN_API_MAKE_ALIG_ARG)
-#  error TN_API_MAKE_ALIG_ARG is not defined
-#elif (!defined TN_API_MAKE_ALIG_ARG__TYPE)
-#  error TN_API_MAKE_ALIG_ARG__TYPE is not defined
-#elif (!defined TN_API_MAKE_ALIG_ARG__SIZE)
-#  error TN_API_MAKE_ALIG_ARG__SIZE is not defined
-#endif
-
-//-- define MAKE_ALIG accordingly to config
-#if (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__TYPE)
-#  define  MAKE_ALIG(a)  ((sizeof(a) + (TN_ALIG-1)) & (~(TN_ALIG-1)))
-#elif (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__SIZE)
-#  define  MAKE_ALIG(a)  ((      (a) + (TN_ALIG-1)) & (~(TN_ALIG-1)))
-#else
-#  error wrong TN_API_MAKE_ALIG_ARG
-#endif
-
-
 #define  TN_PORT_STACK_EXPAND_AT_EXIT  32
 
   //----------------------------------------------------
