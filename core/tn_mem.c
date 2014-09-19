@@ -61,10 +61,10 @@ static inline enum TN_Retval _fmem_get(struct TN_Fmp *fmp, void **p_data)
    enum TN_Retval rc;
    void *ptr = NULL;
 
-   if (fmp->fblkcnt > 0){
+   if (fmp->free_blocks_cnt > 0){
       ptr = fmp->free_list;
       fmp->free_list = *(void **)fmp->free_list;   //-- ptr - to new free list
-      fmp->fblkcnt--;
+      fmp->free_blocks_cnt--;
    }
 
    if (ptr != NULL){
@@ -90,10 +90,10 @@ static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data)
 
       _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
-      if (fmp->fblkcnt < fmp->num_blocks){
+      if (fmp->free_blocks_cnt < fmp->blocks_cnt){
          *(void **)p_data = fmp->free_list;   //-- insert block into free block list
          fmp->free_list = p_data;
-         fmp->fblkcnt++;
+         fmp->free_blocks_cnt++;
       } else {
          rc = TERR_OVERFLOW;
       }
@@ -172,12 +172,14 @@ static inline enum TN_Retval _check_param_fmem_release(struct TN_Fmp *fmp, void 
 /**
  * Structure's field fmp->id_id_fmp have to be set to 0
  */
-enum TN_Retval tn_fmem_create(struct TN_Fmp *fmp,
-                     void *start_addr,
-                     unsigned int block_size,
-                     int num_blocks)
+enum TN_Retval tn_fmem_create(
+      struct TN_Fmp *fmp,
+      void *start_addr,
+      unsigned int block_size,
+      int blocks_cnt
+      )
 {
-   void ** p_tmp;
+   void **p_tmp;
    unsigned char *p_block;
    unsigned long i, j;
    enum TN_Retval rc;
@@ -187,11 +189,11 @@ enum TN_Retval tn_fmem_create(struct TN_Fmp *fmp,
       goto out;
    }
 
-   if (start_addr == NULL || num_blocks < 2 || block_size < sizeof(int)){
-      fmp->fblkcnt      = 0;
-      fmp->num_blocks   = 0;
-      fmp->id_fmp       = 0;
-      fmp->free_list    = NULL;
+   if (start_addr == NULL || blocks_cnt < 2 || block_size < sizeof(int)){
+      fmp->free_blocks_cnt    = 0;
+      fmp->blocks_cnt         = 0;
+      fmp->id_fmp             = 0;
+      fmp->free_list          = NULL;
 
       rc = TERR_WRONG_PARAM;
       goto out;
@@ -201,42 +203,47 @@ enum TN_Retval tn_fmem_create(struct TN_Fmp *fmp,
 
   //-- Prepare addr/block aligment
 
-   i = ((unsigned long)start_addr + (TN_ALIG - 1)) & (~(TN_ALIG - 1));
+   i = TN_MAKE_ALIG_SIZE((unsigned long)start_addr);
    fmp->start_addr  = (void*)i;
-   fmp->block_size = (block_size + (TN_ALIG - 1)) & (~(TN_ALIG - 1));
+   fmp->block_size = TN_MAKE_ALIG_SIZE(block_size);
 
-   i = (unsigned long)start_addr + block_size * num_blocks;
-   j = (unsigned long)fmp->start_addr + fmp->block_size * num_blocks;
+   //-- end address, desired by user
+   i = (unsigned long)start_addr + block_size * blocks_cnt;
 
-   fmp->num_blocks = num_blocks;
+   //-- actual end address, with alignment applied
+   j = (unsigned long)fmp->start_addr + fmp->block_size * blocks_cnt;
 
-   while (j > i){ //-- Get actual num_blocks
+   fmp->blocks_cnt = blocks_cnt;
+
+   //-- get actual blocks_cnt: while actual end address
+   //   is larger than desired one, decrement block count
+   while (j > i){ 
       j -= fmp->block_size;
-      fmp->num_blocks--;
+      fmp->blocks_cnt--;
    }
 
-   if (fmp->num_blocks < 2){
-      fmp->fblkcnt    = 0;
-      fmp->num_blocks = 0;
-      fmp->free_list  = NULL;
+   if (fmp->blocks_cnt < 2){
+      fmp->free_blocks_cnt    = 0;
+      fmp->blocks_cnt         = 0;
+      fmp->free_list          = NULL;
 
       rc = TERR_WRONG_PARAM;
       goto out;
    }
 
-  //-- Set blocks ptrs for allocation -------
+  //-- init block pointers
 
    p_tmp    = (void **)fmp->start_addr;
    p_block  = (unsigned char *)fmp->start_addr + fmp->block_size;
-   for (i = 0; i < (fmp->num_blocks - 1); i++){
+   for (i = 0; i < (fmp->blocks_cnt - 1); i++){
       *p_tmp  = (void *)p_block;  //-- contents of cell = addr of next block
       p_tmp   = (void **)p_block;
       p_block += fmp->block_size;
    }
    *p_tmp = NULL;          //-- Last memory block first cell contents -  NULL
 
-   fmp->free_list = fmp->start_addr;
-   fmp->fblkcnt   = fmp->num_blocks;
+   fmp->free_list       = fmp->start_addr;
+   fmp->free_blocks_cnt = fmp->blocks_cnt;
 
    fmp->id_fmp = TN_ID_FSMEMORYPOOL;
 
@@ -290,17 +297,20 @@ enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long time
    rc = _fmem_get(fmp, p_data);
 
    if (rc == TERR_TIMEOUT && timeout > 0){
-      _tn_task_curr_to_wait_action( &(fmp->wait_queue),
+      _tn_task_curr_to_wait_action(
+            &(fmp->wait_queue),
             TSK_WAIT_REASON_WFIXMEM,
-            timeout );
+            timeout
+            );
       waited_for_data = TRUE;
    }
 
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
    if (waited_for_data){
-      //-- When returns to this point, in the 'data_elem' have to be valid value
-      *p_data = tn_curr_run_task->data_elem; //-- Return to caller
+      //-- now, data_elem field should contain valid value, so,
+      //   return it to caller.
+      *p_data = tn_curr_run_task->data_elem;
 
       rc = tn_curr_run_task->task_wait_rc;
    }
@@ -343,7 +353,7 @@ enum TN_Retval tn_fmem_get_ipolling(struct TN_Fmp *fmp, void **p_data)
       goto out;
    }
 
-   TN_CHECK_INT_CONTEXT
+   TN_CHECK_INT_CONTEXT;
 
    tn_idisable_interrupt();
 

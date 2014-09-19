@@ -22,13 +22,14 @@
 struct TN_Fmp {
    struct TN_ListItem wait_queue;
 
-   unsigned int block_size; //-- Actual block size (in bytes)
-   int num_blocks;          //-- Capacity (Fixed-sized blocks actual max qty)
-   void *start_addr;        //-- Memory pool actual start address
-   void *free_list;         //-- Ptr to free block list
-   int fblkcnt;             //-- Num of free blocks
-   enum TN_ObjId id_fmp;              //-- ID for verification(is it a fixed-sized blocks memory pool or another object?)
-                            // All Fixed-sized blocks memory pool have the same id_fmp magic number (ver 2.x)
+   unsigned int   block_size;       //-- block size (in bytes)
+   int            blocks_cnt;       //-- capacity (total blocks count)
+   int            free_blocks_cnt;  //-- free blocks count
+   void          *start_addr;       //-- memory pool start address
+   void          *free_list;        //-- ptr to free block list
+   enum TN_ObjId  id_fmp;           //-- id for verification
+                                    //   (is it a fixed-sized blocks memory pool
+                                    //   or another object?)
 };
 
 /*******************************************************************************
@@ -43,10 +44,12 @@ struct TN_Fmp {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-enum TN_Retval tn_fmem_create(struct TN_Fmp  * fmp,
+enum TN_Retval tn_fmem_create(
+      struct TN_Fmp  * fmp,
       void * start_addr,
       unsigned int block_size,
-      int num_blocks);
+      int blocks_cnt
+      );
 enum TN_Retval tn_fmem_delete(struct TN_Fmp * fmp);
 enum TN_Retval tn_fmem_get(struct TN_Fmp * fmp, void ** p_data, unsigned long timeout);
 enum TN_Retval tn_fmem_get_polling(struct TN_Fmp * fmp, void ** p_data);

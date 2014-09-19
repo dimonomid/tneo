@@ -122,6 +122,7 @@ enum TN_WaitReason {
 
 
 //-- TN_MAKE_ALIG() macro
+#define  TN_MAKE_ALIG_SIZE(a)  (((a) + (TN_ALIG - 1)) & (~(TN_ALIG - 1)))
 
 //-- self-checking
 #if (!defined TN_API_MAKE_ALIG_ARG)
@@ -134,9 +135,9 @@ enum TN_WaitReason {
 
 //-- define MAKE_ALIG accordingly to config
 #if (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__TYPE)
-#  define  TN_MAKE_ALIG(a)  ((sizeof(a) + (TN_ALIG-1)) & (~(TN_ALIG-1)))
+#  define  TN_MAKE_ALIG(a)  TN_MAKE_ALIG_SIZE(sizeof(a))
 #elif (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__SIZE)
-#  define  TN_MAKE_ALIG(a)  ((      (a) + (TN_ALIG-1)) & (~(TN_ALIG-1)))
+#  define  TN_MAKE_ALIG(a)  TN_MAKE_ALIG_SIZE(a)
 #else
 #  error wrong TN_API_MAKE_ALIG_ARG
 #endif
