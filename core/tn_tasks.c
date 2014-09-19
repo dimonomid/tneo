@@ -163,14 +163,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
          //-- Task isn't sleeping. Probably it is in WAIT state,
          //   but not because of call to tn_task_sleep().
 
-         //-- Check for 0 - case max wakeup_count value is 1  
-         if (task->wakeup_count == 0){                           
-            //-- there isn't wakeup request yet, so, increment counter
-            task->wakeup_count++;
-         } else {
-            //-- too many wakeup requests; return error.
-            rc = TERR_OVERFLOW;
-         }
+         rc = TERR_WSTATE;
       }
    }
 
@@ -206,7 +199,7 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task)
       _tn_task_clear_dormant(task);
       _tn_task_set_runnable(task);
    } else {
-      rc = TERR_ILUSE;
+      rc = TERR_WSTATE;
    }
 
    return rc;
@@ -496,17 +489,9 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
 
    tn_disable_interrupt();
 
-   if (tn_curr_run_task->wakeup_count > 0){
-      tn_curr_run_task->wakeup_count--;
-      rc = TERR_NO_ERR;
-      goto out_ei;
-   } else {
-      _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
-      rc = TERR_NO_ERR;
-      goto out_ei;
-   }
+   _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
+   rc = TERR_NO_ERR;
 
-out_ei:
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
    return rc;
@@ -1063,7 +1048,6 @@ void _tn_task_set_dormant(struct TN_Task* task)
    task->data_elem     = NULL;              //-- Store data queue entry,if data queue is full
 
    task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
-   task->wakeup_count  = 0;                 //-- Wakeup request count
    task->suspend_count = 0;                 //-- Suspension count
 
    task->tslice_count  = 0;

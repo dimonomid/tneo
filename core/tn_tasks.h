@@ -63,7 +63,6 @@ struct TN_Task {
 
    void * data_elem;          //-- Store data queue entry,if data queue is full
 
-   int  wakeup_count;         //-- Wakeup request count - for statistic
    int  suspend_count;        //-- Suspension count - for statistic
 
 #if TN_DEBUG
@@ -204,12 +203,7 @@ enum TN_Retval tn_task_sleep(unsigned long timeout);
  *
  * These functions wakes up the task specified by the task from sleep mode.
  * The function placing the task into the sleep mode will return to the task
- * without errors. If the task is not in the sleep mode, the wakeup request
- * for the task is queued and the wakeup_count is incremented by 1.
- *
- * TODO: is it actually good idea about wakeup_count?
- *       it seems just like dirty hack to prevent race conditions.
- *       It makes the programmer able to not create proper syncronization.
+ * without errors.
  */
 enum TN_Retval tn_task_wakeup(struct TN_Task *task);
 enum TN_Retval tn_task_iwakeup(struct TN_Task *task);
