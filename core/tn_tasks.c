@@ -482,10 +482,10 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
    tn_disable_interrupt();
 
    _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
-   rc = TERR_NO_ERR;
 
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
+   rc = tn_curr_run_task->task_wait_rc;
    return rc;
 
 }
