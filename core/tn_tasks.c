@@ -150,7 +150,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
    enum TN_Retval rc = TERR_NO_ERR;
 
    if (_tn_task_is_dormant(task)){
-      rc = TERR_WCONTEXT;
+      rc = TERR_WSTATE;
    } else {
 
       if (     (_tn_task_is_waiting(task))
@@ -182,7 +182,7 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
       //   wait by calling this function, TERR_NO_ERR is returned, which is wrong.
       _tn_task_wait_complete(task, TERR_NO_ERR, (0));
    } else {
-      rc = TERR_WCONTEXT;
+      rc = TERR_WSTATE;
    }
 
    return rc;
@@ -628,7 +628,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
    if (_tn_task_is_dormant(task)){
       //-- The task is already terminated
-      rc = TERR_WCONTEXT;
+      rc = TERR_WSTATE;
    } else if (tn_curr_run_task == task){
       //-- Cannot terminate currently running task
       //   (use tn_task_exit() instead)
@@ -682,7 +682,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
 
    if (!_tn_task_is_dormant(task)){
       //-- Cannot delete not-terminated task
-      rc = TERR_WCONTEXT;
+      rc = TERR_WSTATE;
    } else {
       tn_list_remove_entry(&(task->create_queue));
       tn_created_tasks_qty--;
@@ -723,7 +723,7 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
    rc = TERR_NO_ERR;
 
    if (_tn_task_is_dormant(task)){
-      rc = TERR_WCONTEXT;
+      rc = TERR_WSTATE;
    } else if (_tn_task_is_runnable(task)){
       _tn_change_running_task_priority(task,new_priority);
    } else {
