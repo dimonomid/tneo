@@ -149,22 +149,17 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
 {
    enum TN_Retval rc = TERR_NO_ERR;
 
-   if (_tn_task_is_dormant(task)){
-      rc = TERR_WSTATE;
+   if (     (_tn_task_is_waiting(task))
+         && (task->task_wait_reason == TSK_WAIT_REASON_SLEEP))
+   {
+      //-- Task is sleeping, so, let's wake it up.
+
+      _tn_task_wait_complete(task, TERR_NO_ERR, (0));
    } else {
+      //-- Task isn't sleeping. Probably it is in WAIT state,
+      //   but not because of call to tn_task_sleep().
 
-      if (     (_tn_task_is_waiting(task))
-            && (task->task_wait_reason == TSK_WAIT_REASON_SLEEP))
-      {
-         //-- Task is sleeping, so, let's wake it up.
-
-         _tn_task_wait_complete(task, TERR_NO_ERR, (0));
-      } else {
-         //-- Task isn't sleeping. Probably it is in WAIT state,
-         //   but not because of call to tn_task_sleep().
-
-         rc = TERR_WSTATE;
-      }
+      rc = TERR_WSTATE;
    }
 
    return rc;
