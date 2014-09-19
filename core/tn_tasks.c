@@ -206,11 +206,7 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task)
       _tn_task_clear_dormant(task);
       _tn_task_set_runnable(task);
    } else {
-      if (task->activate_count == 0){
-         task->activate_count++;
-      } else {
-         rc = TERR_OVERFLOW;
-      }
+      rc = TERR_ILUSE;
    }
 
    return rc;
@@ -345,10 +341,8 @@ static void _on_task_wait_complete(struct TN_Task *task)
  *    * unlock all mutexes that are held by task
  *    * set dormant state (reinitialize everything)
  *    * reitinialize stack
- *    * handle activate_count TODO do we need this?
  *
- * @return TRUE if task can be terminated (activate_count is 0),
- *         FALSE otherwise
+ * @return TRUE
  */
 static BOOL _task_terminate(struct TN_Task *task)
 {
@@ -363,16 +357,6 @@ static BOOL _task_terminate(struct TN_Task *task)
    _tn_mutex_unlock_all_by_task(task);
 
    _tn_task_set_dormant(task);
-
-   if (task->activate_count > 0){
-      //-- Cannot terminate
-
-      _tn_task_clear_dormant(task);
-      _tn_task_set_runnable(task);
-
-      ret = FALSE;
-      task->activate_count--;
-   }
 
    return ret;
 }
@@ -832,7 +816,6 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    task->stk_start       = task_stack_bottom;                //-- Base address of task stack space
    task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
    task->base_priority   = priority;                         //-- Task base priority
-   task->activate_count  = 0;                                //-- Activation request count
    task->task_state      = TSK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
 

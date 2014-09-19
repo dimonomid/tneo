@@ -63,7 +63,6 @@ struct TN_Task {
 
    void * data_elem;          //-- Store data queue entry,if data queue is full
 
-   int  activate_count;       //-- Activation request count - for statistic
    int  wakeup_count;         //-- Wakeup request count - for statistic
    int  suspend_count;        //-- Suspension count - for statistic
 
@@ -220,11 +219,6 @@ enum TN_Retval tn_task_iwakeup(struct TN_Task *task);
  * option.
  *
  * Task is moved from DORMANT state to the READY state.
- * If task isn't in DORMANT state, activate_count is incremented.
- * If activate_count is already non-zero, TERR_OVERFLOW is returned.
- * TODO: is it actually good idea about activate_count?
- *       it seems just like dirty hack to prevent race conditions.
- *       It makes the programmer able to not create proper syncronization.
  */
 enum TN_Retval tn_task_activate(struct TN_Task *task);
 enum TN_Retval tn_task_iactivate(struct TN_Task *task);
