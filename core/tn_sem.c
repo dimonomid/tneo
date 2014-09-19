@@ -138,7 +138,7 @@ static inline enum TN_Retval _sem_signal(struct TN_Sem *sem)
       task = tn_list_first_entry(&(sem->wait_queue), typeof(*task), task_queue);
 
       //-- wake it up
-      _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+      _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
       //-- no tasks are waiting for that semaphore,
       //   so, just increase its count if possible.

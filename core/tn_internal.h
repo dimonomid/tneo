@@ -28,18 +28,7 @@ struct TN_ListItem;
  *    INTERNAL TNKERNEL TYPES
  ******************************************************************************/
 
-//-- tn_tasks.c
-
-/**
- * Flags for _tn_task_wait_complete()
- * TODO: when events, dqueue, sem will be refactored, get rid of
- * these flags completely
- * (like, flag is always set)
- */
-enum TN_WComplFlags {
-   TN_WCOMPL__REMOVE_WQUEUE   = (1 << 0), //-- if set, task will be removed from wait_queue
-};
-
+/* none yet */
 
 
 
@@ -154,9 +143,8 @@ void _tn_task_set_waiting(
 
 /**
  * @param wait_rc return code that will be returned to waiting task
- * @param flags   see enum TN_WComplFlags
  */
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags);
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc);
 
 void _tn_task_set_suspended(struct TN_Task *task);
 void _tn_task_clear_suspended(struct TN_Task *task);
@@ -169,11 +157,10 @@ void _tn_task_clear_dormant(struct TN_Task *task);
  * Should be called when task finishes waiting for anything.
  *
  * @param wait_rc return code that will be returned to waiting task
- * @param flags   see enum TN_WComplFlags
  */
-static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags)
+static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_Retval wait_rc)
 {
-   _tn_task_clear_waiting(task, wait_rc, flags);
+   _tn_task_clear_waiting(task, wait_rc);
 
    //-- if task isn't suspended, make it runnable
    if (!_tn_task_is_suspended(task)){

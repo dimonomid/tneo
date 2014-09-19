@@ -468,9 +468,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       //   It's probably not so elegant, but I believe it is
       //   acceptable tradeoff in the name of efficiency.
       mutex->holder->priority_already_updated = TRUE;
-      _tn_task_wait_complete(
-            task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE)
-            );
+      _tn_task_wait_complete(task, TERR_NO_ERR);
       mutex->holder->priority_already_updated = FALSE;
 
       //-- lock mutex by it

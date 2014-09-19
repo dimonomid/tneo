@@ -154,7 +154,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
    {
       //-- Task is sleeping, so, let's wake it up.
 
-      _tn_task_wait_complete(task, TERR_NO_ERR, (0));
+      _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
       //-- Task isn't sleeping. Probably it is in WAIT state,
       //   but not because of call to tn_task_sleep().
@@ -172,7 +172,7 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
    if ((_tn_task_is_waiting(task))){
       //-- task is in WAIT state, so, let's release it from that state,
       //   returning TERR_FORCED.
-      _tn_task_wait_complete(task, TERR_FORCED, (0));
+      _tn_task_wait_complete(task, TERR_FORCED);
    } else {
       rc = TERR_WSTATE;
    }
@@ -632,8 +632,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       } else if (_tn_task_is_waiting(task)){
          _tn_task_clear_waiting(
                task,
-               TERR_NO_ERR,   //-- doesn't matter: nobody will read it
-               (TN_WCOMPL__REMOVE_WQUEUE)
+               TERR_NO_ERR    //-- doesn't matter: nobody will read it
                );
       }
 
@@ -930,7 +929,7 @@ void _tn_task_set_waiting(
 /**
  * See comment in the tn_internal.h file
  */
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc, enum TN_WComplFlags flags)
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc)
 {
 #if TN_DEBUG
    //-- only WAIT and SUSPEND bits are allowed here,
@@ -942,15 +941,24 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc, enum T
    {
       TN_FATAL_ERROR("");
    }
+
+   if (tn_is_list_empty(&task->task_queue) != (task->pwait_queue == NULL)){
+      TN_FATAL_ERROR("task_queue and pwait_queue are out of sync");
+   }
+
 #endif
 
    //-- NOTE: we should remove task from wait_queue before calling
    //   _on_task_wait_complete(), because _find_max_blocked_priority()
    //   in tn_mutex.c checks for all tasks in mutex's wait_queue to
    //   get max blocked priority
-   if (flags & TN_WCOMPL__REMOVE_WQUEUE){
-      tn_list_remove_entry(&task->task_queue);
-   }
+
+   //-- NOTE: we don't care here whether task is contained in any wait_queue,
+   //   because even if it isn't, tn_list_remove_entry() on empty list
+   //   does just nothing.
+   tn_list_remove_entry(&task->task_queue);
+   //-- and reset task's queue
+   tn_list_reset(&(task->task_queue));
 
    //-- handle current wait_reason: say, for MUTEX_I, we should
    //   handle priorities of other involved tasks.

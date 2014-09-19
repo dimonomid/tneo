@@ -129,7 +129,7 @@ static inline enum TN_Retval _queue_send(struct TN_DQueue *dque, void *p_data)
 
       task->data_elem = p_data;
 
-      _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+      _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
       //-- the data queue's  wait_receive list is empty
       rc = dque_fifo_write(dque, p_data);
@@ -167,7 +167,7 @@ static inline enum TN_Retval _queue_receive(struct TN_DQueue *dque, void **pp_da
                TN_FATAL_ERROR("rc should always be TERR_NO_ERR here");
             }
 
-            _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+            _tn_task_wait_complete(task, TERR_NO_ERR);
          }
          break;
       case TERR_OUT_OF_MEM:
@@ -183,7 +183,7 @@ static inline enum TN_Retval _queue_receive(struct TN_DQueue *dque, void **pp_da
             task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
 
             *pp_data = task->data_elem; //-- Return to caller
-            _tn_task_wait_complete(task, TERR_NO_ERR, (TN_WCOMPL__REMOVE_WQUEUE));
+            _tn_task_wait_complete(task, TERR_NO_ERR);
 
             rc = TERR_NO_ERR;
          } else {
