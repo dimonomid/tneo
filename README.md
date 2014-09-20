@@ -19,7 +19,7 @@ This project was initially a fork of PIC32 TNKernel port by Anders Montonen: [TN
 
 The more I get into how TNKernel works, the less I like its code. There is a lot of code duplication and a lot of inconsistency, all of this leads to bugs. So I decided to rewrite it almost completely, and that's what I'm doing now.
 
-I decided not to care much about compatibility with original TNKernel API because I really don't like several API decisions, so, I actually had to choose new name for this project, in order to avoid confusion, hence "TNeoKernel". You can read about differences from original TNKernel at the wiki page: [Differences from original TNKernel](/dfrank/tnkernel/wiki/diff_orig_tnkernel)
+I decided not to care much about compatibility with original TNKernel API because I really don't like several API decisions, so, I actually had to choose new name for this project, in order to avoid confusion, hence "TNeoKernel". You can read about differences from original TNKernel at the wiki page: [Differences from original TNKernel](/dfrank/tneokernel/wiki/diff_orig_tnkernel)
 
 Together with almost totally re-writting TNKernel, I'm implementing detailed unit tests for it, to make sure I didn't break anything, and of course I've found several bugs in original TNKernel. Several of them:
 
@@ -40,10 +40,10 @@ For a full description of the kernel API, please see the [TNKernel project docum
 
 #Wiki contents
 
-  * [Building the project](/dfrank/tnkernel/wiki/building)
-  * [PIC32 port implementation details](/dfrank/tnkernel/wiki/pic32_details)
-  * [Differences from original TNKernel](/dfrank/tnkernel/wiki/diff_orig_tnkernel)
-  * [Differences from the port by Alex Borisov](/dfrank/tnkernel/wiki/diff_alexb_tnkernel)
-  * [Why refactor?](/dfrank/tnkernel/wiki/why_refactor)
-  * [License](/dfrank/tnkernel/wiki/license)
+  * [Building the project](/dfrank/tneokernel/wiki/building)
+  * [PIC32 port implementation details](/dfrank/tneokernel/wiki/pic32_details)
+  * [Differences from original TNKernel](/dfrank/tneokernel/wiki/diff_orig_tnkernel)
+  * [Differences from the port by Alex Borisov](/dfrank/tneokernel/wiki/diff_alexb_tnkernel)
+  * [Why refactor?](/dfrank/tneokernel/wiki/why_refactor)
+  * [License](/dfrank/tneokernel/wiki/license)
 
