@@ -169,19 +169,13 @@ static inline enum TN_Retval _check_param_fmem_release(struct TN_Fmp *fmp, void 
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-/**
- * Structure's field fmp->id_id_fmp have to be set to 0
- */
 enum TN_Retval tn_fmem_create(
-      struct TN_Fmp *fmp,
-      void *start_addr,
-      unsigned int block_size,
-      int blocks_cnt
+      struct TN_Fmp    *fmp,
+      void             *start_addr,
+      unsigned int      block_size,
+      int               blocks_cnt
       )
 {
-   void **p_tmp;
-   unsigned char *p_block;
-   unsigned long i, j;
    enum TN_Retval rc;
 
    rc = _check_param_fmem_create(fmp);
@@ -189,64 +183,61 @@ enum TN_Retval tn_fmem_create(
       goto out;
    }
 
-   if (start_addr == NULL || blocks_cnt < 2 || block_size < sizeof(int)){
-      fmp->free_blocks_cnt    = 0;
-      fmp->blocks_cnt         = 0;
-      fmp->id_fmp             = 0;
-      fmp->free_list          = NULL;
-
+   //-- basic check: start_addr should not be NULL,
+   //   and blocks_cnt should be at least 2
+   if (start_addr == NULL || blocks_cnt < 2){
       rc = TERR_WRONG_PARAM;
       goto out;
    }
 
-   tn_list_reset(&(fmp->wait_queue));
+   //-- check that start_addr is aligned properly
+   {
+      unsigned long start_addr_aligned = TN_MAKE_ALIG_SIZE((unsigned long)start_addr);
+      if (start_addr_aligned != (unsigned int)start_addr){
+         rc = TERR_WRONG_PARAM;
+         goto out;
+      }
+   }
 
-  //-- Prepare addr/block aligment
+   //-- check that block_size is aligned properly
+   {
+      unsigned int block_size_aligned = TN_MAKE_ALIG_SIZE(block_size);
+      if (block_size_aligned != block_size){
+         rc = TERR_WRONG_PARAM;
+         goto out;
+      }
+   }
 
-   i = TN_MAKE_ALIG_SIZE((unsigned long)start_addr);
-   fmp->start_addr  = (void*)i;
-   fmp->block_size = TN_MAKE_ALIG_SIZE(block_size);
+   //-- checks are done; proceed to actual creation
 
-   //-- end address, desired by user
-   i = (unsigned long)start_addr + block_size * blocks_cnt;
-
-   //-- actual end address, with alignment applied
-   j = (unsigned long)fmp->start_addr + fmp->block_size * blocks_cnt;
-
+   fmp->start_addr = start_addr;
+   fmp->block_size = block_size;
    fmp->blocks_cnt = blocks_cnt;
 
-   //-- get actual blocks_cnt: while actual end address
-   //   is larger than desired one, decrement block count
-   while (j > i){ 
-      j -= fmp->block_size;
-      fmp->blocks_cnt--;
+   //-- reset wait_queue
+   tn_list_reset(&(fmp->wait_queue));
+
+   //-- init block pointers
+   {
+      void **p_tmp;
+      unsigned char *p_block;
+      int i;
+
+      p_tmp    = (void **)fmp->start_addr;
+      p_block  = (unsigned char *)fmp->start_addr + fmp->block_size;
+      for (i = 0; i < (fmp->blocks_cnt - 1); i++){
+         *p_tmp  = (void *)p_block;  //-- contents of cell = addr of next block
+         p_tmp   = (void **)p_block;
+         p_block += fmp->block_size;
+      }
+      *p_tmp = NULL;          //-- Last memory block first cell contents -  NULL
+
+      fmp->free_list       = fmp->start_addr;
+      fmp->free_blocks_cnt = fmp->blocks_cnt;
    }
 
-   if (fmp->blocks_cnt < 2){
-      fmp->free_blocks_cnt    = 0;
-      fmp->blocks_cnt         = 0;
-      fmp->free_list          = NULL;
-
-      rc = TERR_WRONG_PARAM;
-      goto out;
-   }
-
-  //-- init block pointers
-
-   p_tmp    = (void **)fmp->start_addr;
-   p_block  = (unsigned char *)fmp->start_addr + fmp->block_size;
-   for (i = 0; i < (fmp->blocks_cnt - 1); i++){
-      *p_tmp  = (void *)p_block;  //-- contents of cell = addr of next block
-      p_tmp   = (void **)p_block;
-      p_block += fmp->block_size;
-   }
-   *p_tmp = NULL;          //-- Last memory block first cell contents -  NULL
-
-   fmp->free_list       = fmp->start_addr;
-   fmp->free_blocks_cnt = fmp->blocks_cnt;
-
+   //-- set id
    fmp->id_fmp = TN_ID_FSMEMORYPOOL;
-
 
 out:
    return rc;
