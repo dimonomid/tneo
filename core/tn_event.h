@@ -30,11 +30,11 @@ enum TN_EventAttr {
 
 enum TN_EventWCond {
    TN_EVENT_WCOND_OR       = (1 << 3),    //-- any set bit is enough for event
-   TN_EVENT_WCOND_AND      = (1 << 4),    //-- all bits should be send for event
+   TN_EVENT_WCOND_AND      = (1 << 4),    //-- all bits should be set for event
 };
 
 struct TN_Event {
-   struct TN_ListItem   wait_queue;
+   struct TN_ListItem   wait_queue; //-- task wait queue
    enum TN_EventAttr    attr;       //-- see enum TN_EventAttr
    unsigned int         pattern;    //-- current flags pattern
    enum TN_ObjId        id_event;   //-- id for verification
