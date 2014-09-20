@@ -69,20 +69,20 @@ static enum TN_Retval  dque_fifo_write(struct TN_DQueue *dque, void *p_data)
 
    //-- v.2.7
 
-   if(dque->num_entries <= 0)
+   if(dque->items_cnt <= 0)
       return TERR_OUT_OF_MEM;
 
-   flag = ((dque->tail_cnt == 0 && dque->header_cnt == dque->num_entries - 1)
-         || dque->header_cnt == dque->tail_cnt-1);
+   flag = ((dque->tail_idx == 0 && dque->head_idx == dque->items_cnt - 1)
+         || dque->head_idx == dque->tail_idx-1);
    if(flag)
       return  TERR_OVERFLOW;  //--  full
 
    //-- wr  data
 
-   dque->data_fifo[dque->header_cnt] = p_data;
-   dque->header_cnt++;
-   if(dque->header_cnt >= dque->num_entries)
-      dque->header_cnt = 0;
+   dque->data_fifo[dque->head_idx] = p_data;
+   dque->head_idx++;
+   if(dque->head_idx >= dque->items_cnt)
+      dque->head_idx = 0;
    return TERR_NO_ERR;
 }
 
@@ -97,18 +97,18 @@ static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void **pp_data)
 
    //-- v.2.7  Thanks to kosyak© from electronix.ru
 
-   if(dque->num_entries <= 0)
+   if(dque->items_cnt <= 0)
       return TERR_OUT_OF_MEM;
 
-   if(dque->tail_cnt == dque->header_cnt)
+   if(dque->tail_idx == dque->head_idx)
       return TERR_UNDERFLOW; //-- empty
 
    //-- rd data
 
-   *pp_data = dque->data_fifo[dque->tail_cnt];
-   dque->tail_cnt++;
-   if(dque->tail_cnt >= dque->num_entries)
-      dque->tail_cnt = 0;
+   *pp_data = dque->data_fifo[dque->tail_idx];
+   dque->tail_idx++;
+   if(dque->tail_idx >= dque->items_cnt)
+      dque->tail_idx = 0;
 
    return TERR_NO_ERR;
 }
@@ -134,7 +134,7 @@ static inline enum TN_Retval _queue_send(struct TN_DQueue *dque, void *p_data)
       //-- the data queue's  wait_receive list is empty
       rc = dque_fifo_write(dque, p_data);
       if (rc == TERR_OUT_OF_MEM || rc == TERR_OVERFLOW){
-         //-- No free entries in data queue: just convert errorcode
+         //-- No free items in data queue: just convert errorcode
          rc = TERR_TIMEOUT;
       } else {
          //-- data is either successfully written or failed with some
@@ -174,11 +174,11 @@ static inline enum TN_Retval _queue_receive(struct TN_DQueue *dque, void **pp_da
       case TERR_UNDERFLOW:
          //-- data FIFO is empty, there's nothing to read.
          //   let's check if some task waits to write
-         //   (that might happen if only dque->num_entries is 0)
+         //   (that might happen if only dque->items_cnt is 0)
          if (!tn_is_list_empty(&(dque->wait_send_list))){
             struct TN_Task *task;
             //-- there are tasks that want to write data
-            //   (that might happen if only dque->num_entries is 0)
+            //   (that might happen if only dque->items_cnt is 0)
 
             task = tn_list_first_entry(&(dque->wait_send_list), typeof(*task), task_queue);
 
@@ -330,15 +330,15 @@ static inline enum TN_Retval _dqueue_job_iperform(
 //-------------------------------------------------------------------------
 enum TN_Retval tn_queue_create(
       struct TN_DQueue *dque,      //-- Ptr to already existing struct TN_DQueue
-      void **data_fifo,   //-- Ptr to already existing array of void * to store data queue entries.
+      void **data_fifo,   //-- Ptr to already existing array of void * to store items data queue.
                           //   Can be NULL.
-      int num_entries     //-- Capacity of data queue(num entries). Can be 0
+      int items_cnt     //-- capacity (total items count). Can be 0.
       )
 {
 #if TN_CHECK_PARAM
    if(dque == NULL)
       return TERR_WRONG_PARAM;
-   if(num_entries < 0 || dque->id_dque == TN_ID_DATAQUEUE)
+   if(items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE)
       return TERR_WRONG_PARAM;
 #endif
 
@@ -346,13 +346,13 @@ enum TN_Retval tn_queue_create(
    tn_list_reset(&(dque->wait_receive_list));
 
    dque->data_fifo      = data_fifo;
-   dque->num_entries    = num_entries;
+   dque->items_cnt    = items_cnt;
    if (dque->data_fifo == NULL){
-      dque->num_entries = 0;
+      dque->items_cnt = 0;
    }
 
-   dque->tail_cnt   = 0;
-   dque->header_cnt = 0;
+   dque->tail_idx   = 0;
+   dque->head_idx = 0;
 
    dque->id_dque = TN_ID_DATAQUEUE;
 

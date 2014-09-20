@@ -287,19 +287,23 @@ enum TN_Retval tn_event_create(struct TN_Event * evf,
 {
 
 #if TN_CHECK_PARAM
-   if(evf == NULL)
+   if (evf == NULL){
       return TERR_WRONG_PARAM;
-   if(evf->id_event == TN_ID_EVENT ||
-        (((attr & TN_EVENT_ATTR_SINGLE) == 0)  &&
-            ((attr & TN_EVENT_ATTR_MULTI) == 0)))
+   }
+
+   if (     evf->id_event == TN_ID_EVENT
+         || (!(attr & TN_EVENT_ATTR_SINGLE) && !(attr & TN_EVENT_ATTR_MULTI))
+      )
+   {
       return TERR_WRONG_PARAM;
+   }
 #endif
 
    tn_list_reset(&(evf->wait_queue));
 
    evf->pattern = pattern;
    evf->attr = attr;
-   if ((attr & TN_EVENT_ATTR_CLR) && ((attr & TN_EVENT_ATTR_SINGLE)== 0)){
+   if ((attr & TN_EVENT_ATTR_CLR) && !(attr & TN_EVENT_ATTR_SINGLE)){
       evf->attr = TN_INVALID_VAL;
       return TERR_WRONG_PARAM;
    }
