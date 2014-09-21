@@ -129,6 +129,13 @@ static inline enum TN_Retval _event_wait(
 {
    enum TN_Retval rc = TERR_NO_ERR;
 
+#if TN_CHECK_PARAM
+   if (wait_pattern == 0){
+      rc = TERR_WRONG_PARAM;
+      goto out;
+   }
+#endif
+
    //-- If event attr is TN_EVENT_ATTR_SINGLE and another task already
    //-- in event wait queue - return ERROR without checking release condition
 
@@ -138,7 +145,9 @@ static inline enum TN_Retval _event_wait(
       //-- Check release condition
 
       if (_cond_check(evf, wait_mode, wait_pattern)){
-         *p_flags_pattern = evf->pattern;
+         if (p_flags_pattern != NULL){
+            *p_flags_pattern = evf->pattern;
+         }
          _clear_pattern_if_needed(evf);
          rc = TERR_NO_ERR;
       } else {
@@ -146,6 +155,7 @@ static inline enum TN_Retval _event_wait(
       }
    }
 
+out:
    return rc;
 }
 
@@ -158,6 +168,13 @@ static inline enum TN_Retval _event_set(
 {
    enum TN_Retval rc = TERR_NO_ERR;
 
+#if TN_CHECK_PARAM
+   if (pattern == 0){
+      rc = TERR_WRONG_PARAM;
+      goto out;
+   }
+#endif
+
    evf->pattern |= pattern;
 
    if (_scan_event_waitqueue(evf)){
@@ -165,6 +182,7 @@ static inline enum TN_Retval _event_set(
       _clear_pattern_if_needed(evf);
    }
 
+out:
    return rc;
 }
 
@@ -195,14 +213,7 @@ static inline enum TN_Retval _event_job_perform(
    BOOL waited_for_event = FALSE;
 
 #if TN_CHECK_PARAM
-   if(evf == NULL 
-         || (
-            p_worker == _event_wait
-            && (wait_pattern == 0 || p_flags_pattern == NULL)
-            )
-         )
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
+   if (evf->id_event != TN_ID_EVENT)
       return TERR_NOEXS;
 #endif
 
@@ -232,7 +243,9 @@ static inline enum TN_Retval _event_job_perform(
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
    if (waited_for_event){
-      if (tn_curr_run_task->task_wait_rc == TERR_NO_ERR){
+      if (     tn_curr_run_task->task_wait_rc == TERR_NO_ERR
+            && p_flags_pattern != NULL )
+      {
          *p_flags_pattern = tn_curr_run_task->ewait_pattern;
       }
       rc = tn_curr_run_task->task_wait_rc;
@@ -253,9 +266,7 @@ static inline enum TN_Retval _event_job_iperform(
    enum TN_Retval rc;
 
 #if TN_CHECK_PARAM
-   if(evf == NULL || wait_pattern == 0 || p_flags_pattern == NULL)
-      return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
+   if (evf->id_event != TN_ID_EVENT)
       return TERR_NOEXS;
 #endif
 
