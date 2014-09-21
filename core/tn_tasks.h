@@ -13,6 +13,7 @@
 #include "tn_list.h"
 #include "tn_common.h"
 
+#include "tn_event.h"
 
 
 /*******************************************************************************
@@ -57,7 +58,8 @@ struct TN_Task {
 #if  TN_USE_EVENTS
 
    int  ewait_pattern;        //-- Event wait pattern
-   int  ewait_mode;           //-- Event wait mode:  _AND or _OR
+   int  eactual_pattern;      //-- pattern that caused task to finish waiting
+   enum TN_EGrpWaitMode ewait_mode; //-- Event wait mode:  _AND or _OR
 
 #endif
 
