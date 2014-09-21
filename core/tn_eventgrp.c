@@ -37,7 +37,7 @@
 #include "tn_internal.h"
 
 //-- header of current module
-#include "tn_event.h"
+#include "tn_eventgrp.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"

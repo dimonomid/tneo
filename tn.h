@@ -13,7 +13,7 @@
 #include "core/tn_sys.h"
 #include "core/tn_common.h"
 #include "core/tn_dqueue.h"
-#include "core/tn_event.h"
+#include "core/tn_eventgrp.h"
 #include "core/tn_mem.h"
 #include "core/tn_mutex.h"
 #include "core/tn_sem.h"

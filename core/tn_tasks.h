@@ -13,7 +13,7 @@
 #include "tn_list.h"
 #include "tn_common.h"
 
-#include "tn_event.h"
+#include "tn_eventgrp.h"
 
 
 /*******************************************************************************

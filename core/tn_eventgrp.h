@@ -3,8 +3,8 @@
  *
  ******************************************************************************/
 
-#ifndef _TN_EVENT_H
-#define _TN_EVENT_H
+#ifndef _TN_EVENTGRP_H
+#define _TN_EVENTGRP_H
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -93,7 +93,7 @@ enum TN_Retval tn_eventgrp_imodify(
       unsigned int         pattern
       );
 
-#endif // _TN_EVENT_H
+#endif // _TN_EVENTGRP_H
 
 /*******************************************************************************
  *    end of file
