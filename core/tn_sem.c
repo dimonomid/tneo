@@ -177,15 +177,15 @@ static inline enum TN_Retval _sem_acquire(struct TN_Sem *sem)
 //   Structure's field sem->id_sem have to be set to 0
 //----------------------------------------------------------------------------
 enum TN_Retval tn_sem_create(struct TN_Sem * sem,
-                  int start_value,
-                  int max_val)
+                  int start_count,
+                  int max_count)
 {
 
 #if TN_CHECK_PARAM
    if(sem == NULL) //-- Thanks to Michael Fisher
       return  TERR_WRONG_PARAM;
-   if(max_val <= 0 || start_value < 0 ||
-         start_value > max_val || sem->id_sem != 0) //-- no recreation
+   if(max_count <= 0 || start_count < 0 ||
+         start_count > max_count || sem->id_sem != 0) //-- no recreation
    {
       sem->max_count = 0;
       return  TERR_WRONG_PARAM;
@@ -196,8 +196,8 @@ enum TN_Retval tn_sem_create(struct TN_Sem * sem,
 
    tn_list_reset(&(sem->wait_queue));
 
-   sem->count     = start_value;
-   sem->max_count = max_val;
+   sem->count     = start_count;
+   sem->max_count = max_count;
    sem->id_sem    = TN_ID_SEMAPHORE;
 
    return TERR_NO_ERR;
