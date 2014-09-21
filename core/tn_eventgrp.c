@@ -59,11 +59,11 @@ static BOOL _cond_check(struct TN_Event *evf, enum TN_EGrpWaitMode wait_mode, in
    BOOL cond = FALSE;
 
    switch (wait_mode){
-      case TN_EGRP_WMODE_OR:
+      case TN_EVENTGRP_WMODE_OR:
          //-- any bit set is enough for release condition
          cond = ((evf->pattern & wait_pattern) != 0);
          break;
-      case TN_EGRP_WMODE_AND:
+      case TN_EVENTGRP_WMODE_AND:
          //-- all bits should be set for release condition
          cond = ((evf->pattern & wait_pattern) == wait_pattern);
          break;
@@ -84,7 +84,7 @@ static void _clear_pattern_if_needed(
       )
 {
    //-- probably, we should add one more wait mode flag, like 
-   //   TN_EGRP_WMODE_CLR, and if it is set, then clear pattern here
+   //   TN_EVENTGRP_WMODE_CLR, and if it is set, then clear pattern here
 }
 
 static void _scan_event_waitqueue(struct TN_Event *evf)
@@ -154,16 +154,16 @@ static enum TN_Retval _eventgrp_modify(
 #endif
 
    switch (operation){
-      case TN_EGRP_OP_CLEAR:
+      case TN_EVENTGRP_OP_CLEAR:
          evf->pattern &= ~pattern;
          break;
 
-      case TN_EGRP_OP_SET:
+      case TN_EVENTGRP_OP_SET:
          evf->pattern |= pattern;
          _scan_event_waitqueue(evf);
          break;
 
-      case TN_EGRP_OP_TOGGLE:
+      case TN_EVENTGRP_OP_TOGGLE:
          evf->pattern ^= pattern;
          _scan_event_waitqueue(evf);
          break;

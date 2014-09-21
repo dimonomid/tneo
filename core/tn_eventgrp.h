@@ -20,14 +20,14 @@
  ******************************************************************************/
 
 enum TN_EGrpWaitMode {
-   TN_EGRP_WMODE_OR        = (1 << 0),    //-- any set bit is enough for event
-   TN_EGRP_WMODE_AND       = (1 << 1),    //-- all bits should be set for event
+   TN_EVENTGRP_WMODE_OR        = (1 << 0),    //-- any set bit is enough for event
+   TN_EVENTGRP_WMODE_AND       = (1 << 1),    //-- all bits should be set for event
 };
 
 enum TN_EGrpOp {
-   TN_EGRP_OP_SET,      //-- set flags that are set in pattern argument
-   TN_EGRP_OP_CLEAR,    //-- clear flags that are set in pattern argument
-   TN_EGRP_OP_TOGGLE,   //-- toggle flags that are set in pattern argument
+   TN_EVENTGRP_OP_SET,      //-- set flags that are set in pattern argument
+   TN_EVENTGRP_OP_CLEAR,    //-- clear flags that are set in pattern argument
+   TN_EVENTGRP_OP_TOGGLE,   //-- toggle flags that are set in pattern argument
 };
 
 struct TN_Event {
