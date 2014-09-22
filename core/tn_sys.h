@@ -117,10 +117,6 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
  ******************************************************************************/
 
 void tn_start_system(
-#if TN_USE_TIMER_TASK
-      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
-      unsigned int   timer_task_stack_size,  //-- size of timer task stack
-#endif
       unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack

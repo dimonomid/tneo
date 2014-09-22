@@ -82,11 +82,6 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 
 //-- System tasks
 
-#if TN_USE_TIMER_TASK
-//-- timer task - priority (0) - highest
-struct TN_Task  tn_timer_task;
-#endif
-
 //-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
 
 struct TN_Task  tn_idle_task;
@@ -140,9 +135,7 @@ static void _idle_task_body(void *par)
    TN_INTSAVE_DATA;
 #endif
 
-#if !TN_USE_TIMER_TASK
    _call_appl_callback();
-#endif
 
    for(;;)
    {
@@ -243,88 +236,6 @@ static inline void _idle_task_to_runnable(void)
    _tn_task_set_runnable(&tn_idle_task);
 }
 
-//-- obsolete timer task stuff {{{
-#if TN_USE_TIMER_TASK
-/**
- * Timer task body. Now it is obsolete
- * (it's better not to use timer task at all)
- */
-static void _timer_task_body(void * par)
-{
-   TN_INTSAVE_DATA;
-
-   _call_appl_callback();
-
-   //-------------------------------------------------------------------------
-
-   for(;;){
-
-      //------------ OS timer tick -------------------------------------
-      tn_disable_interrupt();
-
-      _wait_timeout_list_manage();
-
-      _tn_task_curr_to_wait_action(NULL,
-            TSK_WAIT_REASON_SLEEP,
-            TN_WAIT_INFINITE);
-      tn_enable_interrupt();
-
-#if TN_DEBUG
-      if (!_tn_need_context_switch()){
-         TN_FATAL_ERROR("");
-      }
-#endif
-
-      tn_switch_context();
-   }
-}
-
-/**
- * Create timer task, the task is NOT started after creation.
- * Now it is obsolete (it's better not to use timer task at all)
- */
-static inline void _timer_task_create(unsigned int  *timer_task_stack,
-      unsigned int   timer_task_stack_size)
-{
-   _tn_task_create(
-         (struct TN_Task*)&tn_timer_task,                     //-- task TCB
-         _timer_task_body,                            //-- task function
-         0,                                           //-- task priority
-         &(timer_task_stack                           //-- task stack first addr in memory
-            [timer_task_stack_size-1]),
-         timer_task_stack_size,                       //-- task stack size (in int,not bytes)
-         NULL,                                        //-- task function parameter
-         (TN_TASK_TIMER)                              //-- Creation option
-         );
-}
-
-/**
- * Put timer task on run. Now it is obsolete
- * (it's better not to use timer task at all)
- */
-static inline void _timer_task_to_runnable(void)
-{
-   _tn_task_clear_dormant(&tn_timer_task);
-   _tn_task_set_runnable(&tn_timer_task);
-}
-
-/**
- * Wake up timer task. This function was called each system tick,
- * but now it is obsolete (it's better not to use timer task at all)
- */
-static inline void _timer_task_wakeup(void)
-{
-   //-- Enable a task with priority 0 - tn_timer_task
-   _tn_task_wait_complete(&tn_timer_task, TERR_NO_ERR);
-}
-#else
-//-- don't use timer task: just define a couple of stubs
-#  define _timer_task_create(timer_task_stack, timer_task_stack_size)
-#  define _timer_task_to_runnable()
-#  define _timer_task_wakeup()
-#endif
-// }}}
-
 
 
 
@@ -337,10 +248,6 @@ static inline void _timer_task_wakeup(void)
  * Typically called from main().
  */
 void tn_start_system(
-#if TN_USE_TIMER_TASK
-      unsigned int  *timer_task_stack,       //-- pointer to array for timer task stack
-      unsigned int   timer_task_stack_size,  //-- size of timer task stack
-#endif
       unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
       unsigned int   idle_task_stack_size,   //-- size of idle task stack
       unsigned int  *int_stack,              //-- pointer to array for interrupt stack
@@ -393,14 +300,12 @@ void tn_start_system(
     */
 
    //-- create system tasks
-   _timer_task_create(timer_task_stack, timer_task_stack_size);
    _idle_task_create(idle_task_stack, idle_task_stack_size);
 
    //-- Just for the _tn_task_set_runnable() proper operation
    tn_next_task_to_run = &tn_idle_task; 
 
    //-- call _tn_task_set_runnable() for system tasks
-   _timer_task_to_runnable();
    _idle_task_to_runnable();
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
@@ -430,13 +335,8 @@ void tn_tick_int_processing(void)
    //-- manage round-robin (if used)
    _round_robin_manage();
 
-   //-- wake up timer task (NOTE: it actually depends on TN_USE_TIMER_TASK option)
-   _timer_task_wakeup();
-
-#if !TN_USE_TIMER_TASK
    //-- manage tn_wait_timeout_list
    _wait_timeout_list_manage();
-#endif
 
    //-- increment system timer
    tn_sys_time_count++;
