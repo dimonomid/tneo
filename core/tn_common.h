@@ -52,14 +52,12 @@ enum TN_Retval {
    TERR_WSTATE               =  -3, //-- Wrong state   state error
    TERR_TIMEOUT              =  -4, //-- Polling failure or timeout
    TERR_WRONG_PARAM          =  -5,
-   TERR_UNDERFLOW            =  -6,
-   TERR_OUT_OF_MEM           =  -7,
-   TERR_ILUSE                =  -8, //-- Illegal using
-   TERR_NOEXS                =  -9, //-- Non-valid or Non-existent object
-   TERR_DLT                  = -10, //-- Waiting object deleted
-   TERR_FORCED               = -11, //-- Currently, only returned for waiting task 
+   TERR_ILUSE                =  -6, //-- Illegal using
+   TERR_NOEXS                =  -7, //-- Non-valid or Non-existent object
+   TERR_DLT                  =  -8, //-- Waiting object deleted
+   TERR_FORCED               =  -9, //-- Currently, only returned for waiting task 
                                     //   if tn_task_release_wait() is called
-   TERR_INTERNAL             = -12, //-- Internal TNKernel error (should never happen)
+   TERR_INTERNAL             = -10, //-- Internal TNKernel error (should never happen)
 };
 
 enum TN_WaitReason {

@@ -68,14 +68,9 @@ static enum TN_Retval _fifo_write(struct TN_DQueue *dque, void *p_data)
    }
 #endif
 
-   if (dque->items_cnt <= 0){
-      rc = TERR_OUT_OF_MEM;
-      goto out;
-   }
-
    if (dque->filled_items_cnt >= dque->items_cnt){
       //-- no space for new data
-      rc = TERR_OVERFLOW;
+      rc = TERR_TIMEOUT;
       goto out;
    }
 
@@ -102,14 +97,9 @@ static enum TN_Retval _fifo_read(struct TN_DQueue *dque, void **pp_data)
    }
 #endif
 
-   if (dque->items_cnt <= 0){
-      rc = TERR_OUT_OF_MEM;
-      goto out;
-   }
-
    if (dque->filled_items_cnt == 0){
       //-- nothing to read
-      rc = TERR_UNDERFLOW;
+      rc = TERR_TIMEOUT;
       goto out;
    }
 
@@ -149,13 +139,6 @@ static inline enum TN_Retval _queue_send(
    } else {
       //-- the data queue's  wait_receive list is empty
       rc = _fifo_write(dque, p_data);
-      if (rc == TERR_OUT_OF_MEM || rc == TERR_OVERFLOW){
-         //-- No free items in data queue: just convert errorcode
-         rc = TERR_TIMEOUT;
-      } else {
-         //-- data is either successfully written or failed with some
-         //   unexpected error. In either case, leave return code as is.
-      }
    }
 
    return rc;
@@ -193,8 +176,7 @@ static inline enum TN_Retval _queue_receive(
             _tn_task_wait_complete(task, TERR_NO_ERR);
          }
          break;
-      case TERR_OUT_OF_MEM:
-      case TERR_UNDERFLOW:
+      case TERR_TIMEOUT:
          //-- data FIFO is empty, there's nothing to read.
          //   let's check if some task waits to write
          //   (that might happen if only dque->items_cnt is 0)
@@ -214,8 +196,7 @@ static inline enum TN_Retval _queue_receive(
 
             rc = TERR_NO_ERR;
          } else {
-            //-- wait_send_list is empty. return TERR_TIMEOUT
-            rc = TERR_TIMEOUT;
+            //-- wait_send_list is empty.
          }
          break;
       default:
