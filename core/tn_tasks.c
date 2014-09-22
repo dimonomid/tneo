@@ -485,7 +485,7 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
 
 }
 
-/**
+/*
  * See comments in the file tn_tasks.h .
  *
  * This function merely performs little checks, disables interrupts
@@ -497,7 +497,7 @@ enum TN_Retval tn_task_wakeup(struct TN_Task *task)
    return _task_job_perform(task, _task_wakeup);
 }
 
-/**
+/*
  * See comments in the file tn_tasks.h .
  *
  * This function merely performs little checks, disables interrupts
@@ -521,7 +521,7 @@ enum TN_Retval tn_task_activate(struct TN_Task *task)
    return _task_job_perform(task, _task_activate);
 }
 
-/**
+/*
  * See comments in the file tn_tasks.h .
  *
  * This function merely performs little checks, disables interrupts
@@ -533,7 +533,7 @@ enum TN_Retval tn_task_iactivate(struct TN_Task *task)
    return _task_job_iperform(task, _task_activate);
 }
 
-/**
+/*
  * See comments in the file tn_tasks.h .
  *
  * This function merely performs little checks, disables interrupts
@@ -545,7 +545,7 @@ enum TN_Retval tn_task_release_wait(struct TN_Task *task)
    return _task_job_perform(task, _task_release_wait);
 }
 
-/**
+/*
  * See comments in the file tn_tasks.h .
  *
  * This function merely performs little checks, disables interrupts

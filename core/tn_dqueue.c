@@ -386,7 +386,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
+   tn_disable_interrupt();
 
    _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
    _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));

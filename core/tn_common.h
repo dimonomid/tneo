@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ *   \file
  *   Description:   TODO
  *
  ******************************************************************************/
@@ -35,6 +36,9 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * Magic number for object validity verification
+ */
 enum TN_ObjId {
    TN_ID_TASK           = 0x47ABCF69,
    TN_ID_SEMAPHORE      = 0x6FA173EB,
@@ -45,6 +49,9 @@ enum TN_ObjId {
    TN_ID_RENDEZVOUS     = 0x74289EBD,
 };
 
+/**
+ * Result code returned by kernel services
+ */
 enum TN_Retval {
    TERR_NO_ERR               =   0,
    TERR_OVERFLOW             =  -1, //-- OOV
@@ -60,6 +67,9 @@ enum TN_Retval {
    TERR_INTERNAL             = -10, //-- Internal TNKernel error (should never happen)
 };
 
+/**
+ * Task wait reason
+ */
 enum TN_WaitReason {
   TSK_WAIT_REASON_NONE             = 0,
   TSK_WAIT_REASON_SLEEP            = (1 << 0),
