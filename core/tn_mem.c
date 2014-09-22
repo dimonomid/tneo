@@ -259,11 +259,15 @@ enum TN_Retval tn_fmem_delete(struct TN_Fmp *fmp)
    tn_disable_interrupt();
 
    //-- remove all tasks (if any) from fmp's wait queue
-   _tn_wait_queue_notify_deleted(&(fmp->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(fmp->wait_queue));
 
    fmp->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
 
    tn_enable_interrupt();
+
+   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+   //   has woken up some high-priority task
+   _tn_switch_context_if_needed();
 
 out:
    return rc;

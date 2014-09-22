@@ -235,11 +235,15 @@ enum TN_Retval tn_eventgrp_delete(struct TN_Event * evf)
 
    tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   _tn_wait_queue_notify_deleted(&(evf->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(evf->wait_queue));
 
    evf->id_event = 0; //-- event does not exist now
 
    tn_enable_interrupt();
+
+   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+   //   has woken up some high-priority task
+   _tn_switch_context_if_needed();
 
    return TERR_NO_ERR;
 }

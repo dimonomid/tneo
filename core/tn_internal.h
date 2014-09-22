@@ -40,7 +40,7 @@ struct TN_ListItem;
  * Remove all tasks from wait queue, returning the TERR_DLT code.
  * Note: this function might sleep.
  */
-void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC);
+void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
 
 
 /**

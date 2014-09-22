@@ -219,11 +219,15 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   _tn_wait_queue_notify_deleted(&(sem->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(sem->wait_queue));
 
    sem->id_sem = 0; //-- Semaphore does not exist now
 
    tn_enable_interrupt();
+
+   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+   //   has woken up some high-priority task
+   _tn_switch_context_if_needed();
 
    return TERR_NO_ERR;
 }

@@ -432,7 +432,7 @@ void tn_callback_deadlock_set(TNCallbackDeadlock cb)
 /**
  * See comment in the tn_internal.h file
  */
-void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DATA_ARG_DEC)
+void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 {
    struct TN_Task *task;         //-- "cursor" for the loop iteration
    struct TN_Task *tmp_task;     //-- we need for temporary item because
@@ -453,16 +453,6 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue, TN_INTSAVE_DA
       TN_FATAL_ERROR("");
    }
 #endif
-
-   //-- Now all tasks from the wait_queue were made runnable,
-   //   so if we need to switch context
-   //   (i.e. if some of newly runnable tasks has higher priority),
-   //   then switch context.
-   if (_tn_need_context_switch()){
-      tn_enable_interrupt();
-      tn_switch_context();
-      tn_disable_interrupt();
-   }
 }
 
 /**

@@ -543,7 +543,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    //-- Remove all tasks (if any) from mutex's wait queue
    //   NOTE: we might sleep there
-   _tn_wait_queue_notify_deleted(&(mutex->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(mutex->wait_queue));
 
    if (mutex->holder != NULL){
       //-- If the mutex is locked
@@ -560,6 +560,11 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
 out:
    tn_enable_interrupt();
+
+   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+   //   has woken up some high-priority task
+   _tn_switch_context_if_needed();
+
    return ret;
 }
 

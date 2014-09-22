@@ -388,12 +388,16 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
    tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
 
-   _tn_wait_queue_notify_deleted(&(dque->wait_send_list),    TN_INTSAVE_DATA_ARG_GIVE);
-   _tn_wait_queue_notify_deleted(&(dque->wait_receive_list), TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
+   _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
 
    dque->id_dque = 0; //-- data queue does not exist now
 
    tn_enable_interrupt();
+
+   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+   //   has woken up some high-priority task
+   _tn_switch_context_if_needed();
 
    return TERR_NO_ERR;
 
