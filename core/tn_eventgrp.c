@@ -54,7 +54,11 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static BOOL _cond_check(struct TN_Event *evf, enum TN_EGrpWaitMode wait_mode, int wait_pattern)
+static BOOL _cond_check(
+      struct TN_Event *evf,
+      enum TN_EGrpWaitMode wait_mode,
+      int wait_pattern
+      )
 {
    BOOL cond = FALSE;
 
@@ -116,7 +120,10 @@ static enum TN_Retval _eventgrp_wait(
    enum TN_Retval rc = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
-   if (wait_pattern == 0){
+   if (evf->id_event != TN_ID_EVENT){
+      rc = TERR_NOEXS;
+      goto out;
+   } else if (wait_pattern == 0){
       rc = TERR_WRONG_PARAM;
       goto out;
    }
@@ -147,7 +154,10 @@ static enum TN_Retval _eventgrp_modify(
    enum TN_Retval rc = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
-   if (pattern == 0){
+   if (evf->id_event != TN_ID_EVENT){
+      rc = TERR_NOEXS;
+      goto out;
+   } else if (pattern == 0){
       rc = TERR_WRONG_PARAM;
       goto out;
    }
@@ -187,7 +197,7 @@ out:
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_create(
       struct TN_Event * evf,
-      unsigned int initial_pattern       //-- Initial value of the eventflag bit pattern
+      unsigned int initial_pattern //-- initial value of the pattern
       )  
 {
 
@@ -225,7 +235,7 @@ enum TN_Retval tn_eventgrp_delete(struct TN_Event * evf)
 
    tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   _tn_wait_queue_notify_deleted(&(evf->wait_queue),  TN_INTSAVE_DATA_ARG_GIVE);
+   _tn_wait_queue_notify_deleted(&(evf->wait_queue), TN_INTSAVE_DATA_ARG_GIVE);
 
    evf->id_event = 0; //-- event does not exist now
 
@@ -246,11 +256,6 @@ enum TN_Retval tn_eventgrp_wait(
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
    BOOL waited_for_event = FALSE;
-
-#if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
 
    TN_CHECK_NON_INT_CONTEXT;
 
@@ -300,11 +305,6 @@ enum TN_Retval tn_eventgrp_wait_polling(
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
 
-#if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
-
    TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
@@ -317,7 +317,7 @@ enum TN_Retval tn_eventgrp_wait_polling(
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_eventgrp_iwait(
+enum TN_Retval tn_eventgrp_iwait_polling(
       struct TN_Event     *evf,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
@@ -326,11 +326,6 @@ enum TN_Retval tn_eventgrp_iwait(
 {
    TN_INTSAVE_DATA_INT;
    enum TN_Retval rc;
-
-#if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
 
    TN_CHECK_INT_CONTEXT;
 
@@ -353,11 +348,6 @@ enum TN_Retval tn_eventgrp_modify(
    TN_INTSAVE_DATA;
    enum TN_Retval rc = TERR_NO_ERR;
 
-#if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
-
    TN_CHECK_NON_INT_CONTEXT;
 
    tn_disable_interrupt();
@@ -378,11 +368,6 @@ enum TN_Retval tn_eventgrp_imodify(
 {
    TN_INTSAVE_DATA_INT;
    enum TN_Retval rc;
-
-#if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT)
-      return TERR_NOEXS;
-#endif
 
    TN_CHECK_INT_CONTEXT;
 

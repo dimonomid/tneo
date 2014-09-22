@@ -20,8 +20,8 @@
  ******************************************************************************/
 
 enum TN_EGrpWaitMode {
-   TN_EVENTGRP_WMODE_OR        = (1 << 0),    //-- any set bit is enough for event
-   TN_EVENTGRP_WMODE_AND       = (1 << 1),    //-- all bits should be set for event
+   TN_EVENTGRP_WMODE_OR     = (1 << 0), //-- any set bit is enough for event
+   TN_EVENTGRP_WMODE_AND    = (1 << 1), //-- all bits should be set for event
 };
 
 enum TN_EGrpOp {
@@ -74,7 +74,7 @@ enum TN_Retval tn_eventgrp_wait_polling(
       unsigned int        *p_flags_pattern
       );
 
-enum TN_Retval tn_eventgrp_iwait(
+enum TN_Retval tn_eventgrp_iwait_polling(
       struct TN_Event     *evf,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
