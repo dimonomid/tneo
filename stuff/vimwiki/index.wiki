@@ -60,7 +60,8 @@ _mutex_do_unlock
    * fixed minor bug in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
    * fixed minor bug: when deleting mutex or semaphore, tn_switch_context was called for each non-suspended task that was waiting for that mutex/sepaphore. It's better to just make them runnable one-by-one without calling tn_switch_context after each one, and switch context just once after all (if needed).
    * fixed bug: if task that waits for mutex was in WAITING_SUSPENDED state, and mutex is deleted, TERR_NO_ERR is returned instead of TERR_DLT. The same for queue deletion, semaphore deletion, event deletion.
-   * fixed bug: event: if TN_EVENT_ATTR_CLR flag is set, and the task waiting for event is suspended, this flag TN_EVENT_ATTR_CLR is ignored (pattern is not reset)
+   * fixed bug: dqueue: actual capacity of buffer was less by 1 than user has specified (and allocated).
+   * found bug: event: if TN_EVENT_ATTR_CLR flag is set, and the task waiting for event is suspended, this flag TN_EVENT_ATTR_CLR is ignored (pattern is not reset). I can't say this bug is "fixed" because TNeoKernel has event groups instead of events, and there is no TN_EVENT_ATTR_CLR flag.
 
 
    
