@@ -21,12 +21,13 @@ struct TN_DQueue {
    struct TN_ListItem  wait_send_list;
    struct TN_ListItem  wait_receive_list;
 
-   void         **data_fifo;     //-- array of (void *) to store 
-                                 //   items data queue 
-   int            items_cnt;     //-- capacity (total items count). Can be 0.
-   int            head_idx;      //-- head item index in data_fifo
-   int            tail_idx;      //-- tail item index in data_fifo
-   enum TN_ObjId  id_dque;       //-- id for verification
+   void         **data_fifo;           //-- array of (void *) to store 
+                                       //   items data queue 
+   int            items_cnt;           //-- capacity (total items count). Can be 0.
+   int            filled_items_cnt;    //-- written items count
+   int            head_idx;            //-- head item index in data_fifo
+   int            tail_idx;            //-- tail item index in data_fifo
+   enum TN_ObjId  id_dque;             //-- id for verification
 };
 
 

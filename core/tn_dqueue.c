@@ -60,26 +60,22 @@ enum _JobType {
 //---------------------------------------------------------------------------
 static enum TN_Retval  dque_fifo_write(struct TN_DQueue *dque, void *p_data)
 {
-   register int flag;
-
 #if TN_CHECK_PARAM
    if(dque == NULL)
       return TERR_WRONG_PARAM;
 #endif
 
-   //-- v.2.7
-
    if(dque->items_cnt <= 0)
       return TERR_OUT_OF_MEM;
 
-   flag = ((dque->tail_idx == 0 && dque->head_idx == dque->items_cnt - 1)
-         || dque->head_idx == dque->tail_idx-1);
-   if(flag)
-      return  TERR_OVERFLOW;  //--  full
+   if (dque->filled_items_cnt >= dque->items_cnt){
+      return TERR_OVERFLOW;
+   }
 
    //-- wr  data
 
    dque->data_fifo[dque->head_idx] = p_data;
+   dque->filled_items_cnt++;
    dque->head_idx++;
    if(dque->head_idx >= dque->items_cnt)
       dque->head_idx = 0;
@@ -95,17 +91,16 @@ static enum TN_Retval  dque_fifo_read(struct TN_DQueue * dque, void **pp_data)
       return TERR_WRONG_PARAM;
 #endif
 
-   //-- v.2.7  Thanks to kosyak© from electronix.ru
-
-   if(dque->items_cnt <= 0)
+   if (dque->items_cnt <= 0)
       return TERR_OUT_OF_MEM;
 
-   if(dque->tail_idx == dque->head_idx)
+   if (dque->filled_items_cnt == 0)
       return TERR_UNDERFLOW; //-- empty
 
-   //-- rd data
+   //-- read data
 
    *pp_data = dque->data_fifo[dque->tail_idx];
+   dque->filled_items_cnt--;
    dque->tail_idx++;
    if(dque->tail_idx >= dque->items_cnt)
       dque->tail_idx = 0;
@@ -345,14 +340,15 @@ enum TN_Retval tn_queue_create(
    tn_list_reset(&(dque->wait_send_list));
    tn_list_reset(&(dque->wait_receive_list));
 
-   dque->data_fifo      = data_fifo;
-   dque->items_cnt    = items_cnt;
+   dque->data_fifo         = data_fifo;
+   dque->items_cnt         = items_cnt;
    if (dque->data_fifo == NULL){
       dque->items_cnt = 0;
    }
 
-   dque->tail_idx   = 0;
-   dque->head_idx = 0;
+   dque->filled_items_cnt  = 0;
+   dque->tail_idx          = 0;
+   dque->head_idx          = 0;
 
    dque->id_dque = TN_ID_DATAQUEUE;
 
