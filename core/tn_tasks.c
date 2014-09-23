@@ -341,8 +341,8 @@ static void _task_terminate(struct TN_Task *task)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-/**
- * Create task. See comments in tn_tasks.h file.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_create(
       struct TN_Task         *task,
@@ -395,9 +395,9 @@ enum TN_RCode tn_task_create(
 
    task->task_func_addr  = task_func;
    task->task_func_param = param;
-   task->stk_start       = _stk_bottom_get(task_stack_start, task_stack_size);                //-- Base address of task stack space
-   task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
-   task->base_priority   = priority;                         //-- Task base priority
+   task->stk_start       = _stk_bottom_get(task_stack_start, task_stack_size);
+   task->stk_size        = task_stack_size;
+   task->base_priority   = priority;
    task->task_state      = TN_TASK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
 
@@ -411,7 +411,7 @@ enum TN_RCode tn_task_create(
 
    //-- Add task to created task queue
 
-   tn_list_add_tail(&tn_create_queue,&(task->create_queue));
+   tn_list_add_tail(&tn_create_queue, &(task->create_queue));
    tn_created_tasks_cnt++;
 
    if ((opts & TN_TASK_CREATE_OPT_START)){
@@ -427,9 +427,8 @@ enum TN_RCode tn_task_create(
 
 
 
-/**
- * If the task is runnable, it is moved to the SUSPENDED state. If the task
- * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_suspend(struct TN_Task *task)
 {
@@ -465,11 +464,8 @@ out:
    return rc;
 }
 
-/**
- * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
- * it is moved to READY state; afterwards it has the lowest precedence amoung
- * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
- * it is moved to WAITING state.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_resume(struct TN_Task *task)
 {
@@ -507,17 +503,8 @@ out:
 
 }
 
-/**
- * Put current task to sleep for at most timeout ticks. When the timeout
- * expires and the task was not suspended during the sleep, it is switched
- * to runnable state. If the timeout value is TN_WAIT_INFINITE and the task
- * was not suspended during the sleep, the task will sleep until another
- * function call (like tn_task_wakeup() or similar) will make it runnable.
- *
- * Each task has a wakeup request counter. If its value for currently
- * running task is greater then 0, the counter is decremented by 1 and the
- * currently running task is not switched to the sleeping mode and
- * continues execution.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_sleep(unsigned long timeout)
 {
@@ -542,11 +529,7 @@ enum TN_RCode tn_task_sleep(unsigned long timeout)
 }
 
 /*
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_wakeup() function, in which real job is done.
- * It then re-enables interrupts, switches context if needed, and returns.
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_wakeup(struct TN_Task *task)
 {
@@ -554,23 +537,15 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task)
 }
 
 /*
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_wakeup() function, in which real job is done.
- * It then re-enables interrupts and returns.
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task)
 {
    return _task_job_iperform(task, _task_wakeup);
 }
 
-/**
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_activate() function, in which real job is done.
- * It then re-enables interrupts, switches context if needed, and returns.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_activate(struct TN_Task *task)
 {
@@ -578,11 +553,7 @@ enum TN_RCode tn_task_activate(struct TN_Task *task)
 }
 
 /*
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_activate() function, in which real job is done.
- * It then re-enables interrupts and returns.
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_iactivate(struct TN_Task *task)
 {
@@ -590,11 +561,7 @@ enum TN_RCode tn_task_iactivate(struct TN_Task *task)
 }
 
 /*
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_release_wait() function, in which real job is done.
- * It then re-enables interrupts, switches context if needed, and returns.
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_release_wait(struct TN_Task *task)
 {
@@ -602,19 +569,15 @@ enum TN_RCode tn_task_release_wait(struct TN_Task *task)
 }
 
 /*
- * See comments in the file tn_tasks.h .
- *
- * This function merely performs little checks, disables interrupts
- * and calls _task_release_wait() function, in which real job is done.
- * It then re-enables interrupts and returns.
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_irelease_wait(struct TN_Task *task)
 {
    return _task_job_iperform(task, _task_release_wait);
 }
 
-/**
- * See comments in the file tn_tasks.h .
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 void tn_task_exit(enum TN_TaskExitOpt opts)
 {
@@ -642,8 +605,8 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
    tn_switch_context_exit();  // interrupts will be enabled inside tn_switch_context_exit()
 }
 
-/**
- * See comments in the file tn_tasks.h .
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task)
 {
@@ -699,8 +662,8 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
    return rc;
 }
 
-/**
- * See comments in the file tn_tasks.h .
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_delete(struct TN_Task *task)
 {
@@ -725,9 +688,8 @@ enum TN_RCode tn_task_delete(struct TN_Task *task)
    return rc;
 }
 
-/**
- * Set new priority for task.
- * If priority is 0, then task's base_priority is set.
+/*
+ * See comments in the header file (tn_tasks.h)
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
@@ -755,10 +717,8 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 
    if (_tn_task_is_dormant(task)){
       rc = TN_RC_WSTATE;
-   } else if (_tn_task_is_runnable(task)){
-      _tn_change_running_task_priority(task,new_priority);
    } else {
-      task->priority = new_priority;
+      _tn_change_task_priority(task, new_priority);
    }
 
    tn_enable_interrupt();

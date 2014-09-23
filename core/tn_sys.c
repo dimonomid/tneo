@@ -116,33 +116,25 @@ TNCallbackDeadlock  *tn_callback_deadlock = NULL;
  ******************************************************************************/
 
 /**
- * Disable interrupts, call user-provided callback function,
- * enable interrupts back.
- *
- * This function is called by idle task while system is being started.
+ * Idle task body. In fact, this task is always in RUNNABLE state.
  */
-static inline void _call_appl_callback(void)
+static void _idle_task_body(void *par)
 {
    //-- Make sure interrupts are disabled before calling application callback,
    //   so that this idle task is guaranteed to not be be preempted
    //   until tn_callback_appl_init() finished its job.
    tn_cpu_int_disable();
 
-   //-- User application init - user's objects (tasks etc.) initial creation
+   //-- User application init - hardware initialization (among other things,
+   //   system hardware timer interrupt should be set up there), user's objects
+   //   (tasks etc.) initial creation
    tn_callback_appl_init();
 
    //-- Enable interrupt here ( including tick int)
    tn_cpu_int_enable();
-}
 
-/**
- * Idle task body. In fact, this task is always in RUNNABLE state.
- */
-static void _idle_task_body(void *par)
-{
 
-   _call_appl_callback();
-
+   //-- enter endless loop with calling user-provided hook function
    for(;;)
    {
       tn_callback_idle_hook();
