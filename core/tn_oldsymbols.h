@@ -33,7 +33,7 @@ typedef struct TN_ListItem    CDLL_QUEUE;
 typedef struct TN_Mutex       TN_MUTEX;
 typedef struct TN_DQueue      TN_DQUE;
 typedef struct TN_Task        TN_TCB;
-typedef struct TN_Fmp         TN_FMP;
+typedef struct TN_FMem        TN_FMP;
 typedef struct TN_Sem         TN_SEM;
 
 //there's no compatibility with TNKernel's event object,
@@ -58,7 +58,7 @@ typedef struct TN_Sem         TN_SEM;
 #define  _TN_MUTEX      TN_Mutex
 #define  _TN_DQUE       TN_DQueue
 #define  _TN_TCB        TN_Task
-#define  _TN_FMP        TN_Fmp
+#define  _TN_FMP        TN_FMem
 #define  _TN_SEM        TN_Sem
 
 //there's no compatibility with TNKernel's event object,

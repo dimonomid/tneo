@@ -56,7 +56,7 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline enum TN_RCode _fmem_get(struct TN_Fmp *fmp, void **p_data)
+static inline enum TN_RCode _fmem_get(struct TN_FMem *fmp, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = NULL;
@@ -77,7 +77,7 @@ static inline enum TN_RCode _fmem_get(struct TN_Fmp *fmp, void **p_data)
    return rc;
 }
 
-static inline enum TN_RCode _fmem_release(struct TN_Fmp *fmp, void *p_data)
+static inline enum TN_RCode _fmem_release(struct TN_FMem *fmp, void *p_data)
 {
    struct TN_Task *task;
 
@@ -105,7 +105,7 @@ static inline enum TN_RCode _fmem_release(struct TN_Fmp *fmp, void *p_data)
 
 
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_fmem_create(struct TN_Fmp *fmp)
+static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmp)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -118,7 +118,7 @@ static inline enum TN_RCode _check_param_fmem_create(struct TN_Fmp *fmp)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_delete(struct TN_Fmp *fmp)
+static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmp)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -131,7 +131,7 @@ static inline enum TN_RCode _check_param_fmem_delete(struct TN_Fmp *fmp)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_get(struct TN_Fmp *fmp, void **p_data)
+static inline enum TN_RCode _check_param_fmem_get(struct TN_FMem *fmp, void **p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -144,7 +144,7 @@ static inline enum TN_RCode _check_param_fmem_get(struct TN_Fmp *fmp, void **p_d
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_release(struct TN_Fmp *fmp, void *p_data)
+static inline enum TN_RCode _check_param_fmem_release(struct TN_FMem *fmp, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -170,7 +170,7 @@ static inline enum TN_RCode _check_param_fmem_release(struct TN_Fmp *fmp, void *
  ******************************************************************************/
 
 enum TN_RCode tn_fmem_create(
-      struct TN_Fmp    *fmp,
+      struct TN_FMem    *fmp,
       void             *start_addr,
       unsigned int      block_size,
       int               blocks_cnt
@@ -244,7 +244,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_delete(struct TN_Fmp *fmp)
+enum TN_RCode tn_fmem_delete(struct TN_FMem *fmp)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
@@ -274,7 +274,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long timeout)
+enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
@@ -315,7 +315,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_get_polling(struct TN_Fmp *fmp,void **p_data)
+enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmp,void **p_data)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
@@ -338,7 +338,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_iget_polling(struct TN_Fmp *fmp, void **p_data)
+enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmp, void **p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
@@ -361,7 +361,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_release(struct TN_Fmp *fmp, void *p_data)
+enum TN_RCode tn_fmem_release(struct TN_FMem *fmp, void *p_data)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
@@ -385,7 +385,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_irelease(struct TN_Fmp *fmp, void *p_data)
+enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmp, void *p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
