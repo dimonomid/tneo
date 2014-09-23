@@ -15,12 +15,12 @@
       <logicalFolder name="core" displayName="core" projectFiles="true">
         <itemPath>../../../core/tn_mutex.c</itemPath>
         <itemPath>../../../core/tn_sem.c</itemPath>
-        <itemPath>../../../core/tn_mem.c</itemPath>
         <itemPath>../../../core/tn_tasks.c</itemPath>
         <itemPath>../../../core/tn_dqueue.c</itemPath>
         <itemPath>../../../core/tn_sys.c</itemPath>
         <itemPath>../../../core/tn_list.c</itemPath>
         <itemPath>../../../core/tn_eventgrp.c</itemPath>
+        <itemPath>../../../core/tn_fmem.c</itemPath>
       </logicalFolder>
       <logicalFolder name="portable" displayName="portable" projectFiles="true">
         <logicalFolder name="pic32" displayName="pic32" projectFiles="true">

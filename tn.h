@@ -14,7 +14,7 @@
 #include "core/tn_common.h"
 #include "core/tn_dqueue.h"
 #include "core/tn_eventgrp.h"
-#include "core/tn_mem.h"
+#include "core/tn_fmem.h"
 #include "core/tn_mutex.h"
 #include "core/tn_sem.h"
 #include "core/tn_tasks.h"

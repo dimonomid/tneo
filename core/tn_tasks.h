@@ -52,7 +52,7 @@
 
 #include "tn_eventgrp.h"
 #include "tn_dqueue.h"
-#include "tn_mem.h"
+#include "tn_fmem.h"
 
 
 /*******************************************************************************
@@ -124,7 +124,7 @@ enum TN_WaitReason {
    ///
    /// task wants to get memory block from memory pool, and there's no free
    /// memory blocks
-   /// @see tn_mem.h
+   /// @see tn_fmem.h
    TN_WAIT_REASON_WFIXMEM,
 };
 
@@ -242,7 +242,7 @@ struct TN_Task {
       /// fields specific to tn_dqueue.h
       struct TN_DQueueTaskWait dqueue;
       ///
-      /// fields specific to tn_mem.h
+      /// fields specific to tn_fmem.h
       struct TN_FMemTaskWait fmem;
    } subsys_wait;
 

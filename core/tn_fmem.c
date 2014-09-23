@@ -38,7 +38,7 @@
 #include "tn_internal.h"
 
 //-- header of current module
-#include "tn_mem.h"
+#include "tn_fmem.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"

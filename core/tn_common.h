@@ -63,7 +63,7 @@ enum TN_RCode {
    /// trying to increment semaphore count more than its max count,
    /// or trying to return extra memory block to fixed memory pool.
    /// @see tn_sem.h
-   /// @see tn_mem.h
+   /// @see tn_fmem.h
    TN_RC_OVERFLOW             =  -2,
    ///
    /// wrong context error: returned if user calls some task service from
