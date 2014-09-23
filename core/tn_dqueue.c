@@ -1,31 +1,38 @@
-/*
+/*******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation 
+ *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
+ *    as well as new features added, and it is tested carefully with unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
 
-  TNKernel real-time kernel
-
-  Copyright © 2004, 2013 Yuri Tiomkin
-  All rights reserved.
-
-  Permission to use, copy, modify, and distribute this software in source
-  and binary forms and its documentation for any purpose and without fee
-  is hereby granted, provided that the above copyright notice appear
-  in all copies and that both that copyright notice and this permission
-  notice appear in supporting documentation.
-
-  THIS SOFTWARE IS PROVIDED BY THE YURI TIOMKIN AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL YURI TIOMKIN OR CONTRIBUTORS BE LIABLE
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-  SUCH DAMAGE.
-
-*/
-
-  /* ver 2.7  */
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -50,6 +57,8 @@ enum _JobType {
    _JOB_TYPE__SEND,
    _JOB_TYPE__RECEIVE,
 };
+
+
 
 /*******************************************************************************
  *    PRIVATE FUNCTIONS
@@ -116,7 +125,7 @@ out:
 }
 // }}}
 
-static inline enum TN_Retval _queue_send(
+static enum TN_Retval _queue_send(
       struct TN_DQueue *dque,
       void *p_data
       )
@@ -144,7 +153,7 @@ static inline enum TN_Retval _queue_send(
    return rc;
 }
 
-static inline enum TN_Retval _queue_receive(
+static enum TN_Retval _queue_receive(
       struct TN_DQueue *dque,
       void **pp_data
       )
@@ -209,7 +218,7 @@ static inline enum TN_Retval _queue_receive(
 }
 
 
-static inline enum TN_Retval _dqueue_job_perform(
+static enum TN_Retval _dqueue_job_perform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data,
@@ -291,7 +300,7 @@ static inline enum TN_Retval _dqueue_job_perform(
    return rc;
 }
 
-static inline enum TN_Retval _dqueue_job_iperform(
+static enum TN_Retval _dqueue_job_iperform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data      //-- used for _JOB_TYPE__SEND
@@ -370,7 +379,10 @@ enum TN_Retval tn_queue_create(
    return TERR_NO_ERR;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA;
@@ -388,6 +400,8 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
    tn_disable_interrupt();
 
+   //-- notify waiting tasks that the object is deleted
+   //   (TERR_DLT is returned)
    _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
    _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
 
@@ -403,51 +417,67 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval tn_queue_send(struct TN_DQueue *dque, void *p_data, unsigned long timeout)
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_Retval tn_queue_send(
+      struct TN_DQueue *dque,
+      void *p_data,
+      unsigned long timeout
+      )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, timeout);
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_Retval tn_queue_send_polling(struct TN_DQueue *dque, void *p_data)
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, 0);
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_Retval tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__SEND, p_data);
 }
 
-//----------------------------------------------------------------------------
-enum TN_Retval tn_queue_receive(struct TN_DQueue *dque, void **pp_data, unsigned long timeout)
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_Retval tn_queue_receive(
+      struct TN_DQueue *dque,
+      void **pp_data,
+      unsigned long timeout
+      )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, timeout);
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_Retval tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, 0);
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_Retval tn_queue_ireceive(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__RECEIVE, pp_data);
 }
 
-
-
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 
 

@@ -6,7 +6,7 @@ let g:proj_project_filename=s:sPath.'/.vimprojects'
 
 let &tabstop = 3
 let &shiftwidth = 3
-set colorcolumn=80
+set colorcolumn=81
 
 let g:indexer_ctagsDontSpecifyFilesIfPossible = 1
 "let g:indexer_ctagsJustAppendTagsAtFileSave = 1
