@@ -85,13 +85,6 @@
 #endif
 
 /**
- * Whether events API should be available
- */
-#ifndef TN_USE_EVENTS
-#  define TN_USE_EVENTS          1
-#endif
-
-/**
  * API option for tn_task_create() :
  *
  *    TN_API_TASK_CREATE__NATIVE: 

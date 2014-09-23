@@ -192,10 +192,8 @@ struct TN_Task {
    /// interfere with each other. It's quite ok here because task can't wait
    /// for different things.
    union {
-#if  TN_USE_EVENTS
       /// fields specific to tn_eventgrp.h
       struct TN_EGrpTaskWait eventgrp;
-#endif
       ///
       /// fields specific to tn_dqueue.h
       struct TN_DQueueTaskWait dqueue;
