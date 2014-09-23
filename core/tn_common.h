@@ -12,9 +12,6 @@
  ******************************************************************************/
 
 //-- Configuration constants
-#define  TN_API_TASK_CREATE__NATIVE       1     
-#define  TN_API_TASK_CREATE__CONVENIENT   2
-
 #define  TN_API_MAKE_ALIG_ARG__TYPE       1     //-- this way is used in the majority of ports.
 #define  TN_API_MAKE_ALIG_ARG__SIZE       2     //-- this way is stated in TNKernel docs
                                                 //   and used in port by AlexB.
