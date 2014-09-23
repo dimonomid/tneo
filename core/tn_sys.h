@@ -108,8 +108,7 @@
  *
  * 
  *
- * In TNeoKernel, `main()` function should look like the following:
- *
+ * ### Basic example for PIC32
  *
  *     #define SYS_FREQ 80000000UL
  *
