@@ -99,12 +99,12 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
    // checking ALL of the tasks waiting on the event.
 
    tn_list_for_each_entry_safe(task, tmp_task, &(eventgrp->wait_queue), task_queue){
-      if (_cond_check(eventgrp, task->eventgrp.wait_mode, task->eventgrp.wait_pattern)){
+      if (_cond_check(eventgrp, task->subsys.eventgrp.wait_mode, task->subsys.eventgrp.wait_pattern)){
          //-- Condition to finish the waiting
-         task->eventgrp.actual_pattern = eventgrp->pattern;
+         task->subsys.eventgrp.actual_pattern = eventgrp->pattern;
          _tn_task_wait_complete(task, TERR_NO_ERR);
 
-         _clear_pattern_if_needed(eventgrp, task->eventgrp.wait_mode, task->eventgrp.wait_pattern);
+         _clear_pattern_if_needed(eventgrp, task->subsys.eventgrp.wait_mode, task->subsys.eventgrp.wait_pattern);
       }
    }
 }
@@ -268,8 +268,8 @@ enum TN_Retval tn_eventgrp_wait(
    rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
    if (rc == TERR_TIMEOUT && timeout != 0){
-      tn_curr_run_task->eventgrp.wait_mode = wait_mode;
-      tn_curr_run_task->eventgrp.wait_pattern = wait_pattern;
+      tn_curr_run_task->subsys.eventgrp.wait_mode = wait_mode;
+      tn_curr_run_task->subsys.eventgrp.wait_pattern = wait_pattern;
       _tn_task_curr_to_wait_action(
             &(eventgrp->wait_queue),
             TSK_WAIT_REASON_EVENT,
@@ -290,7 +290,7 @@ enum TN_Retval tn_eventgrp_wait(
       if (     tn_curr_run_task->task_wait_rc == TERR_NO_ERR
             && p_flags_pattern != NULL )
       {
-         *p_flags_pattern = tn_curr_run_task->eventgrp.actual_pattern;
+         *p_flags_pattern = tn_curr_run_task->subsys.eventgrp.actual_pattern;
       }
       rc = tn_curr_run_task->task_wait_rc;
    }

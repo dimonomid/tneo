@@ -158,7 +158,8 @@ struct TN_Task {
    ///
    /// time slice counter
    int tslice_count;
-
+   ///
+   /// subsystem-specific fields
    union {
 #if  TN_USE_EVENTS
       /// fields specific to tn_eventgrp.h
@@ -170,7 +171,7 @@ struct TN_Task {
       ///
       /// fields specific to tn_mem.h
       struct TN_FMemTaskFld fmem;
-   };
+   } subsys;
 
 #if TN_DEBUG
    /// task name for debug purposes, user may want to set it by hand

@@ -86,7 +86,7 @@ static inline enum TN_Retval _fmem_release(struct TN_Fmp *fmp, void *p_data)
    if (!tn_is_list_empty(&(fmp->wait_queue))){
       task = tn_list_first_entry(&(fmp->wait_queue), typeof(*task), task_queue);
 
-      task->fmem.data_elem = p_data;
+      task->subsys.fmem.data_elem = p_data;
 
       _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
@@ -305,7 +305,7 @@ enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long time
    if (waited_for_data){
       //-- now, fmem.data_elem field should contain valid value, so,
       //   return it to caller.
-      *p_data = tn_curr_run_task->fmem.data_elem;
+      *p_data = tn_curr_run_task->subsys.fmem.data_elem;
 
       rc = tn_curr_run_task->task_wait_rc;
    }
