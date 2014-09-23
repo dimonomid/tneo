@@ -220,12 +220,11 @@ static inline void _round_robin_manage(void)
 static inline void _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
 {
-   _tn_task_create(
+   tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_NUM_PRIORITY - 1,             //-- task priority
-         &(idle_task_stack                //-- task stack first addr in memory
-            [idle_task_stack_size - 1]),
+         idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
          NULL,                            //-- task function parameter

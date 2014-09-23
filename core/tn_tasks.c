@@ -54,31 +54,10 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-/**
- * Depending on TN_API_TASK_CREATE, provinde proper method for getting
- * bottom stack address from user-provided stack pointer.
- */
-#if (!defined TN_API_TASK_CREATE)
-#  error TN_API_TASK_CREATE is not defined
-#elif (!defined TN_API_TASK_CREATE__NATIVE)
-#  error TN_API_TASK_CREATE__NATIVE is not defined
-#elif (!defined TN_API_TASK_CREATE__CONVENIENT)
-#  error TN_API_TASK_CREATE__CONVENIENT is not defined
-#endif
-
-#if (TN_API_TASK_CREATE == TN_API_TASK_CREATE__NATIVE)
-static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
-{
-   return user_provided_addr;
-}
-#elif (TN_API_TASK_CREATE == TN_API_TASK_CREATE__CONVENIENT)
 static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
 {
    return user_provided_addr + task_stack_size - 1;
 }
-#else
-#  error wrong TN_API_TASK_CREATE
-#endif
 
 //-- Private utilities {{{
 
@@ -374,10 +353,72 @@ enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TC
                  enum TN_TaskCreateOpt opts       //-- creation options
                  )                      
 {
-   return _tn_task_create(task, task_func, priority,
-                          _stk_bottom_get(task_stack_start, task_stack_size),
-                          task_stack_size, param, opts
-                         );
+   TN_INTSAVE_DATA;
+   enum TN_RCode rc;
+
+   unsigned int * ptr_stack;
+   int i;
+
+   //-- Lightweight checking of system tasks recreation
+   if (0
+         || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
+      )
+   {
+      return TN_RC_WPARAM;
+   }
+
+   if (0
+         || (priority < 0 || priority > (TN_NUM_PRIORITY - 1))
+         || task_stack_size < TN_MIN_STACK_SIZE
+         || task_func == NULL
+         || task == NULL
+         || task_stack_start == NULL
+         || task->id_task != 0      //-- task recreation
+      )
+   {
+      return TN_RC_WPARAM;
+   }
+
+   rc = TN_RC_OK;
+
+   TN_CHECK_NON_INT_CONTEXT;
+
+   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+      tn_disable_interrupt();
+   }
+
+   //--- Init task TCB
+
+   task->task_func_addr  = (void*)task_func;
+   task->task_func_param = param;
+   task->stk_start       = _stk_bottom_get(task_stack_start, task_stack_size);                //-- Base address of task stack space
+   task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
+   task->base_priority   = priority;                         //-- Task base priority
+   task->task_state      = TN_TASK_STATE_NONE;
+   task->id_task         = TN_ID_TASK;
+
+   //-- Fill all task stack space by TN_FILL_STACK_VAL - only inside create_task
+
+   for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
+      *ptr_stack-- = TN_FILL_STACK_VAL;
+   }
+
+   _tn_task_set_dormant(task);
+
+   //-- Add task to created task queue
+
+   tn_list_add_tail(&tn_create_queue,&(task->create_queue));
+   tn_created_tasks_cnt++;
+
+   if ((opts & TN_TASK_CREATE_OPT_START)){
+      _task_activate(task);
+   }
+
+   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+      tn_enable_interrupt();
+   }
+
+   return rc;
 }
 
 
@@ -729,84 +770,6 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 /*******************************************************************************
  *    INTERNAL TNKERNEL FUNCTIONS
  ******************************************************************************/
-
-enum TN_RCode _tn_task_create(struct TN_Task *task,                 //-- task TCB
-                 void (*task_func)(void *param),  //-- task function
-                 int priority,                    //-- task priority
-                 unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
-                 int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
-                 void *param,                     //-- task function parameter
-                 enum TN_TaskCreateOpt opts       //-- creation options
-      )
-{
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
-
-   unsigned int * ptr_stack;
-   int i;
-
-   //-- Lightweight checking of system tasks recreation
-   if (0
-         || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
-      )
-   {
-      return TN_RC_WPARAM;
-   }
-
-   if (0
-         || (priority < 0 || priority > (TN_NUM_PRIORITY - 1))
-         || task_stack_size < TN_MIN_STACK_SIZE
-         || task_func == NULL
-         || task == NULL
-         || task_stack_bottom == NULL
-         || task->id_task != 0      //-- task recreation
-      )
-   {
-      
-      return TN_RC_WPARAM;
-   }
-
-   rc = TN_RC_OK;
-
-   TN_CHECK_NON_INT_CONTEXT;
-
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
-      tn_disable_interrupt();
-   }
-
-   //--- Init task TCB
-
-   task->task_func_addr  = (void*)task_func;
-   task->task_func_param = param;
-   task->stk_start       = task_stack_bottom;                //-- Base address of task stack space
-   task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)
-   task->base_priority   = priority;                         //-- Task base priority
-   task->task_state      = TN_TASK_STATE_NONE;
-   task->id_task         = TN_ID_TASK;
-
-   //-- Fill all task stack space by TN_FILL_STACK_VAL - only inside create_task
-
-   for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
-      *ptr_stack-- = TN_FILL_STACK_VAL;
-   }
-
-   _tn_task_set_dormant(task);
-
-   //-- Add task to created task queue
-
-   tn_list_add_tail(&tn_create_queue,&(task->create_queue));
-   tn_created_tasks_cnt++;
-
-   if ((opts & TN_TASK_CREATE_OPT_START)){
-      _task_activate(task);
-   }
-
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
-      tn_enable_interrupt();
-   }
-
-   return rc;
-}
 
 /**
  * See comment in the tn_internal.h file

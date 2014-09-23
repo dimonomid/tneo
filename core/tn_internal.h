@@ -171,16 +171,6 @@ static inline void _tn_switch_context_if_needed(void)
  *    tn_tasks.c
  ******************************************************************************/
 
-enum TN_RCode  _tn_task_create(
-      struct TN_Task *task,            //-- task TCB
-      void (*task_func)(void *param),  //-- task function
-      int priority,                    //-- task priority
-      unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
-      int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
-      void *param,                     //-- task function parameter
-      enum TN_TaskCreateOpt opts       //-- creation options
-);
-
 static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_RUNNABLE);

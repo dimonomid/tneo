@@ -95,27 +95,6 @@
 #endif
 
 /**
- * API option for tn_task_create() :
- *
- *    TN_API_TASK_CREATE__NATIVE: 
- *             task_stack_start should be given to tn_task_create()
- *             as a bottom address of the stack.
- *             Typically done as follows:
- *             (assuming you have array of int named "my_stack")
- *
- *                &(my_stack[my_stack_size - 1])
- *
- *
- *    TN_API_TASK_CREATE__CONVENIENT:
- *             task_stack_start should be given to tn_task_create()
- *             as an address of array. Just give your array to
- *             tn_task_create(), and you're done.
- */
-#ifndef TN_API_TASK_CREATE
-#  define TN_API_TASK_CREATE   TN_API_TASK_CREATE__NATIVE
-#endif
-
-/**
  * API option for MAKE_ALIG() macro.
  *
  * There is a terrible mess with MAKE_ALIG() macro: TNKernel docs specify
