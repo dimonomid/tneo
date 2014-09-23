@@ -342,24 +342,19 @@ static void _on_task_wait_complete(struct TN_Task *task)
  *    * unlock all mutexes that are held by task
  *    * set dormant state (reinitialize everything)
  *    * reitinialize stack
- *
- * @return TRUE
  */
-static BOOL _task_terminate(struct TN_Task *task)
+static void _task_terminate(struct TN_Task *task)
 {
 #if TN_DEBUG
    if (task->task_state != TN_TASK_STATE_NONE){
       TN_FATAL_ERROR("");
    }
 #endif
-   BOOL ret = TRUE;
 
    //-- Unlock all mutexes locked by the task
    _tn_mutex_unlock_all_by_task(task);
 
    _tn_task_set_dormant(task);
-
-   return ret;
 }
 
 
@@ -593,14 +588,10 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
    task = tn_curr_run_task;
    _tn_task_clear_runnable(task);
 
-   if (!_task_terminate(task)){
-      //-- Cannot exit, do nothing special here
-   } else {
+   _task_terminate(task);
 
-      if ((opts & TN_TASK_EXIT_OPT_DELETE)){
-         _task_delete(task);
-      }
-
+   if ((opts & TN_TASK_EXIT_OPT_DELETE)){
+      _task_delete(task);
    }
 
    tn_switch_context_exit();  // interrupts will be enabled inside tn_switch_context_exit()

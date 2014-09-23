@@ -142,7 +142,7 @@ static enum TN_Retval _queue_send(
             &(dque->wait_receive_list), typeof(*task), task_queue
             );
 
-      task->subsys.dqueue.data_elem = p_data;
+      task->subsys_wait.dqueue.data_elem = p_data;
 
       _tn_task_wait_complete(task, TERR_NO_ERR);
    } else {
@@ -177,7 +177,7 @@ static enum TN_Retval _queue_receive(
                   task_queue
                   );
 
-            rc = _fifo_write(dque, task->subsys.dqueue.data_elem); //-- Put to data FIFO
+            rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); //-- Put to data FIFO
             if (rc != TERR_NO_ERR){
                TN_FATAL_ERROR("rc should always be TERR_NO_ERR here");
             }
@@ -200,7 +200,7 @@ static enum TN_Retval _queue_receive(
                   task_queue
                   );
 
-            *pp_data = task->subsys.dqueue.data_elem; //-- Return to caller
+            *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
             _tn_task_wait_complete(task, TERR_NO_ERR);
 
             rc = TERR_NO_ERR;
@@ -248,7 +248,7 @@ static enum TN_Retval _dqueue_job_perform(
          if (rc == TERR_TIMEOUT && timeout != 0){
             //-- save user-provided data in the dqueue.data_elem task field,
             //   and put current task to wait until there's room in the queue.
-            tn_curr_run_task->subsys.dqueue.data_elem = p_data;
+            tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
             _tn_task_curr_to_wait_action(
                   &(dque->wait_send_list),
                   TSK_WAIT_REASON_DQUE_WSEND,
@@ -291,7 +291,7 @@ static enum TN_Retval _dqueue_job_perform(
          case _JOB_TYPE__RECEIVE:
             //-- dqueue.data_elem should contain valid value now,
             //   return it to caller
-            *pp_data = tn_curr_run_task->subsys.dqueue.data_elem;
+            *pp_data = tn_curr_run_task->subsys_wait.dqueue.data_elem;
             rc = tn_curr_run_task->task_wait_rc;
             break;
       }

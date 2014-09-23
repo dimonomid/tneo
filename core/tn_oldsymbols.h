@@ -66,6 +66,11 @@ typedef struct TN_Sem         TN_SEM;
 
 #define  TN_TASK_START_ON_CREATION     TN_TASK_CREATE_OPT_START
 #define  TN_EXIT_AND_DELETE_TASK       TN_TASK_EXIT_OPT_DELETE
+
+#define  TN_EVENT_WCOND_AND            TN_EVENTGRP_WMODE_AND
+#define  TN_EVENT_WCOND_OR             TN_EVENTGRP_WMODE_OR
+
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

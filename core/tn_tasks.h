@@ -65,6 +65,7 @@
 enum TN_TaskState {
    /// This state may be stored in task_state only temporarily,
    /// while some system service is in progress.
+   /// It should never be publicly available.
    TN_TASK_STATE_NONE         = 0,
    ///
    /// Task is ready to run (it doesn't mean that it is running at the moment)
@@ -83,6 +84,9 @@ enum TN_TaskState {
    TN_TASK_STATE_DORMANT      = (1 << 3),
 };
 
+/**
+ * Options for `tn_task_create()`
+ */
 enum TN_TaskCreateOpt {
    ///
    /// whether task should be activated right after it is created.
@@ -95,6 +99,9 @@ enum TN_TaskCreateOpt {
    TN_TASK_CREATE_OPT_IDLE =  (1 << 1),
 };
 
+/**
+ * Options for `tn_task_exit()`
+ */
 enum TN_TaskExitOpt {
    ///
    /// whether task should be deleted right after it is exited.
@@ -108,7 +115,9 @@ enum TN_TaskExitOpt {
  * Task
  */
 struct TN_Task {
-   /// pointer to task's current stack pointer
+   /// pointer to task's current stack pointer;
+   /// Note that this field **must** be a first field in the struct,
+   /// this fact is exploited by platform-specific routines.
    unsigned int *task_stk;   
    ///
    /// queue is used to include task in ready/wait lists
@@ -178,19 +187,22 @@ struct TN_Task {
    /// time slice counter
    int tslice_count;
    ///
-   /// subsystem-specific fields
+   /// subsystem-specific fields that are used while task waits for something.
+   /// Do note that these fields are grouped by union, so, they must not
+   /// interfere with each other. It's quite ok here because task can't wait
+   /// for different things.
    union {
 #if  TN_USE_EVENTS
       /// fields specific to tn_eventgrp.h
-      struct TN_EGrpTaskFld eventgrp;
+      struct TN_EGrpTaskWait eventgrp;
 #endif
       ///
       /// fields specific to tn_dqueue.h
-      struct TN_DQueueTaskFld dqueue;
+      struct TN_DQueueTaskWait dqueue;
       ///
       /// fields specific to tn_mem.h
-      struct TN_FMemTaskFld fmem;
-   } subsys;
+      struct TN_FMemTaskWait fmem;
+   } subsys_wait;
 
 #if TN_DEBUG
    /// task name for debug purposes, user may want to set it by hand

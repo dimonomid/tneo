@@ -76,7 +76,7 @@ struct TN_EventGrp {
 /**
  * EventGrp-specific fields for struct TN_Task.
  */
-struct TN_EGrpTaskFld {
+struct TN_EGrpTaskWait {
    ///
    /// event wait pattern (relevant if only `task_state` is `WAIT` or
    /// `WAITSUSP`, and `task_wait_reason` is `EVENT`)

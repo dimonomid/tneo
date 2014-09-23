@@ -110,7 +110,7 @@ struct TN_DQueue {
 /**
  * DQueue-specific fields for struct TN_Task.
  */
-struct TN_DQueueTaskFld {
+struct TN_DQueueTaskWait {
    /// if task tries to send the data to the data queue,
    /// and there's no space in the queue, value to put to queue is stored
    /// in this field

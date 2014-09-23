@@ -36,7 +36,7 @@ struct TN_Fmp {
 /**
  * FMem-specific fields for struct TN_Task.
  */
-struct TN_FMemTaskFld {
+struct TN_FMemTaskWait {
    /// if task tries to receive data from memory pool,
    /// and there's no more free blocks in the pool, location to store 
    /// pointer is saved in this field
