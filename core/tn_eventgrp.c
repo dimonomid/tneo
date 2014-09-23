@@ -55,7 +55,7 @@
  ******************************************************************************/
 
 static BOOL _cond_check(
-      struct TN_Event *evf,
+      struct TN_EventGrp *eventgrp,
       enum TN_EGrpWaitMode wait_mode,
       int wait_pattern
       )
@@ -65,11 +65,11 @@ static BOOL _cond_check(
    switch (wait_mode){
       case TN_EVENTGRP_WMODE_OR:
          //-- any bit set is enough for release condition
-         cond = ((evf->pattern & wait_pattern) != 0);
+         cond = ((eventgrp->pattern & wait_pattern) != 0);
          break;
       case TN_EVENTGRP_WMODE_AND:
          //-- all bits should be set for release condition
-         cond = ((evf->pattern & wait_pattern) == wait_pattern);
+         cond = ((eventgrp->pattern & wait_pattern) == wait_pattern);
          break;
 #if TN_DEBUG
       default:
@@ -82,7 +82,7 @@ static BOOL _cond_check(
 }
 
 static void _clear_pattern_if_needed(
-      struct TN_Event        *evf,
+      struct TN_EventGrp     *eventgrp,
       enum TN_EGrpWaitMode    wait_mode,
       unsigned int            pattern
       )
@@ -91,27 +91,27 @@ static void _clear_pattern_if_needed(
    //   TN_EVENTGRP_WMODE_CLR, and if it is set, then clear pattern here
 }
 
-static void _scan_event_waitqueue(struct TN_Event *evf)
+static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 {
    struct TN_Task *task;
    struct TN_Task *tmp_task;
 
    // checking ALL of the tasks waiting on the event.
 
-   tn_list_for_each_entry_safe(task, tmp_task, &(evf->wait_queue), task_queue){
-      if (_cond_check(evf, task->ewait_mode, task->ewait_pattern)){
+   tn_list_for_each_entry_safe(task, tmp_task, &(eventgrp->wait_queue), task_queue){
+      if (_cond_check(eventgrp, task->eventgrp.wait_mode, task->eventgrp.wait_pattern)){
          //-- Condition to finish the waiting
-         task->eactual_pattern = evf->pattern;
+         task->eventgrp.actual_pattern = eventgrp->pattern;
          _tn_task_wait_complete(task, TERR_NO_ERR);
 
-         _clear_pattern_if_needed(evf, task->ewait_mode, task->ewait_pattern);
+         _clear_pattern_if_needed(eventgrp, task->eventgrp.wait_mode, task->eventgrp.wait_pattern);
       }
    }
 }
 
 
 static enum TN_Retval _eventgrp_wait(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern
@@ -120,7 +120,7 @@ static enum TN_Retval _eventgrp_wait(
    enum TN_Retval rc = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT){
+   if (eventgrp->id_event != TN_ID_EVENT){
       rc = TERR_NOEXS;
       goto out;
    } else if (wait_pattern == 0){
@@ -131,11 +131,11 @@ static enum TN_Retval _eventgrp_wait(
 
    //-- Check release condition
 
-   if (_cond_check(evf, wait_mode, wait_pattern)){
+   if (_cond_check(eventgrp, wait_mode, wait_pattern)){
       if (p_flags_pattern != NULL){
-         *p_flags_pattern = evf->pattern;
+         *p_flags_pattern = eventgrp->pattern;
       }
-      _clear_pattern_if_needed(evf, wait_mode, wait_pattern);
+      _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
       rc = TERR_NO_ERR;
    } else {
       rc = TERR_TIMEOUT;
@@ -146,7 +146,7 @@ out:
 }
 
 static enum TN_Retval _eventgrp_modify(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       )
@@ -154,7 +154,7 @@ static enum TN_Retval _eventgrp_modify(
    enum TN_Retval rc = TERR_NO_ERR;
 
 #if TN_CHECK_PARAM
-   if (evf->id_event != TN_ID_EVENT){
+   if (eventgrp->id_event != TN_ID_EVENT){
       rc = TERR_NOEXS;
       goto out;
    } else if (pattern == 0){
@@ -165,17 +165,17 @@ static enum TN_Retval _eventgrp_modify(
 
    switch (operation){
       case TN_EVENTGRP_OP_CLEAR:
-         evf->pattern &= ~pattern;
+         eventgrp->pattern &= ~pattern;
          break;
 
       case TN_EVENTGRP_OP_SET:
-         evf->pattern |= pattern;
-         _scan_event_waitqueue(evf);
+         eventgrp->pattern |= pattern;
+         _scan_event_waitqueue(eventgrp);
          break;
 
       case TN_EVENTGRP_OP_TOGGLE:
-         evf->pattern ^= pattern;
-         _scan_event_waitqueue(evf);
+         eventgrp->pattern ^= pattern;
+         _scan_event_waitqueue(eventgrp);
          break;
    }
 
@@ -193,41 +193,41 @@ out:
 
 
 //----------------------------------------------------------------------------
-//  Structure's field evf->id_event have to be set to 0
+//  Structure's field eventgrp->id_event have to be set to 0
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_create(
-      struct TN_Event * evf,
+      struct TN_EventGrp *eventgrp,
       unsigned int initial_pattern //-- initial value of the pattern
       )  
 {
 
 #if TN_CHECK_PARAM
-   if (evf == NULL){
+   if (eventgrp == NULL){
       return TERR_WRONG_PARAM;
    }
 
-   if (evf->id_event == TN_ID_EVENT){
+   if (eventgrp->id_event == TN_ID_EVENT){
       return TERR_WRONG_PARAM;
    }
 #endif
 
-   tn_list_reset(&(evf->wait_queue));
+   tn_list_reset(&(eventgrp->wait_queue));
 
-   evf->pattern = initial_pattern;
-   evf->id_event = TN_ID_EVENT;
+   eventgrp->pattern = initial_pattern;
+   eventgrp->id_event = TN_ID_EVENT;
 
    return TERR_NO_ERR;
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_eventgrp_delete(struct TN_Event * evf)
+enum TN_Retval tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 {
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
-   if(evf == NULL)
+   if(eventgrp == NULL)
       return TERR_WRONG_PARAM;
-   if(evf->id_event != TN_ID_EVENT)
+   if(eventgrp->id_event != TN_ID_EVENT)
       return TERR_NOEXS;
 #endif
 
@@ -235,9 +235,9 @@ enum TN_Retval tn_eventgrp_delete(struct TN_Event * evf)
 
    tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
 
-   _tn_wait_queue_notify_deleted(&(evf->wait_queue));
+   _tn_wait_queue_notify_deleted(&(eventgrp->wait_queue));
 
-   evf->id_event = 0; //-- event does not exist now
+   eventgrp->id_event = 0; //-- event does not exist now
 
    tn_enable_interrupt();
 
@@ -250,7 +250,7 @@ enum TN_Retval tn_eventgrp_delete(struct TN_Event * evf)
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_wait(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern,
@@ -265,13 +265,13 @@ enum TN_Retval tn_eventgrp_wait(
 
    tn_disable_interrupt();
 
-   rc = _eventgrp_wait(evf, wait_pattern, wait_mode, p_flags_pattern);
+   rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
    if (rc == TERR_TIMEOUT && timeout != 0){
-      tn_curr_run_task->ewait_mode = wait_mode;
-      tn_curr_run_task->ewait_pattern = wait_pattern;
+      tn_curr_run_task->eventgrp.wait_mode = wait_mode;
+      tn_curr_run_task->eventgrp.wait_pattern = wait_pattern;
       _tn_task_curr_to_wait_action(
-            &(evf->wait_queue),
+            &(eventgrp->wait_queue),
             TSK_WAIT_REASON_EVENT,
             timeout
             );
@@ -290,7 +290,7 @@ enum TN_Retval tn_eventgrp_wait(
       if (     tn_curr_run_task->task_wait_rc == TERR_NO_ERR
             && p_flags_pattern != NULL )
       {
-         *p_flags_pattern = tn_curr_run_task->eactual_pattern;
+         *p_flags_pattern = tn_curr_run_task->eventgrp.actual_pattern;
       }
       rc = tn_curr_run_task->task_wait_rc;
    }
@@ -300,7 +300,7 @@ enum TN_Retval tn_eventgrp_wait(
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_wait_polling(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern
@@ -313,7 +313,7 @@ enum TN_Retval tn_eventgrp_wait_polling(
 
    tn_disable_interrupt();
 
-   rc = _eventgrp_wait(evf, wait_pattern, wait_mode, p_flags_pattern);
+   rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
    tn_enable_interrupt();
 
@@ -322,7 +322,7 @@ enum TN_Retval tn_eventgrp_wait_polling(
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_iwait_polling(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern
@@ -335,7 +335,7 @@ enum TN_Retval tn_eventgrp_iwait_polling(
 
    tn_idisable_interrupt();
 
-   rc = _eventgrp_wait(evf, wait_pattern, wait_mode, p_flags_pattern);
+   rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
    tn_ienable_interrupt();
 
@@ -344,7 +344,7 @@ enum TN_Retval tn_eventgrp_iwait_polling(
 
 //----------------------------------------------------------------------------
 enum TN_Retval tn_eventgrp_modify(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       )
@@ -356,7 +356,7 @@ enum TN_Retval tn_eventgrp_modify(
 
    tn_disable_interrupt();
 
-   rc = _eventgrp_modify(evf, operation, pattern);
+   rc = _eventgrp_modify(eventgrp, operation, pattern);
 
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
@@ -365,7 +365,7 @@ enum TN_Retval tn_eventgrp_modify(
 }
 
 enum TN_Retval tn_eventgrp_imodify(
-      struct TN_Event     *evf,
+      struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       )
@@ -377,7 +377,7 @@ enum TN_Retval tn_eventgrp_imodify(
 
    tn_idisable_interrupt();
 
-   rc = _eventgrp_modify(evf, operation, pattern);
+   rc = _eventgrp_modify(eventgrp, operation, pattern);
 
    tn_ienable_interrupt();
 

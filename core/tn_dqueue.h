@@ -107,6 +107,13 @@ struct TN_DQueue {
    enum TN_ObjId  id_dque;
 };
 
+struct TN_DQueueTaskFld {
+   /// if task tries to send the data to the data queue,
+   /// and there's no space in the queue, value to put to queue is stored
+   /// in this field
+   void *data_elem;
+};
+
 
 /*******************************************************************************
  *    GLOBAL VARIABLES

@@ -32,6 +32,15 @@ struct TN_Fmp {
                                           //   memory pool or another object?)
 };
 
+
+struct TN_FMemTaskFld {
+   /// if task tries to receive data from memory pool,
+   /// and there's no more free blocks in the pool, location to store 
+   /// pointer is saved in this field
+   void *data_elem;
+};
+
+
 /*******************************************************************************
  *    GLOBAL VARIABLES
  ******************************************************************************/

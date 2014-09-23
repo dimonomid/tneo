@@ -64,7 +64,7 @@ struct TN_ListItem;
  *    GLOBAL VARIABLES
  ******************************************************************************/
 
-/// list of all ready to run (TSK_STATE_RUNNABLE) tasks
+/// list of all ready to run (TN_TASK_STATE_RUNNABLE) tasks
 extern struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];
 
 /// list all created tasks (now it is used for statictic only)
@@ -183,22 +183,22 @@ enum TN_Retval  _tn_task_create(
 
 static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
 {
-   return !!(task->task_state & TSK_STATE_RUNNABLE);
+   return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
 }
 
 static inline BOOL _tn_task_is_waiting(struct TN_Task *task)
 {
-   return !!(task->task_state & TSK_STATE_WAIT);
+   return !!(task->task_state & TN_TASK_STATE_WAIT);
 }
 
 static inline BOOL _tn_task_is_suspended(struct TN_Task *task)
 {
-   return !!(task->task_state & TSK_STATE_SUSPEND);
+   return !!(task->task_state & TN_TASK_STATE_SUSPEND);
 }
 
 static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
 {
-   return !!(task->task_state & TSK_STATE_DORMANT);
+   return !!(task->task_state & TN_TASK_STATE_DORMANT);
 }
 
 /**
@@ -260,7 +260,7 @@ static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_Retval w
 
 /**
  * calls _tn_task_clear_runnable() for current task, i.e. tn_curr_run_task
- * Set task state to TSK_STATE_WAIT, set given wait_reason and timeout.
+ * Set task state to TN_TASK_STATE_WAIT, set given wait_reason and timeout.
  *
  * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
  * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list

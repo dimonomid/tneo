@@ -68,7 +68,7 @@
  * increments the currently running task time slice counter. When the time
  * slice interval is completed, the task is placed at the tail of the ready to
  * run queue of its priority level (this queue contains tasks in the
- * `TSK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then the
+ * `TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then the
  * task may be preempted by tasks of higher or equal priority.
  *
  * In most cases, there is no reason to enable round robin scheduling. For

@@ -1,9 +1,44 @@
+/*******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation 
+ *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
+ *    as well as new features added, and it is tested carefully with unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
+
 /**
  * \file
  *
  *   Description:   TODO
  *
- ******************************************************************************/
+ */
 
 #ifndef _TN_TASKS_H
 #define _TN_TASKS_H
@@ -16,58 +51,129 @@
 #include "tn_common.h"
 
 #include "tn_eventgrp.h"
+#include "tn_dqueue.h"
+#include "tn_mem.h"
 
 
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * Task state
+ */
+enum TN_TaskState {
+   /// This state may be stored in task_state only temporarily,
+   /// while some system service is in progress.
+   TN_TASK_STATE_NONE         = 0,
+   ///
+   /// Task is ready to run (it doesn't mean that it is running at the moment)
+   TN_TASK_STATE_RUNNABLE     = (1 << 0),
+   ///
+   /// Task is waiting
+   TN_TASK_STATE_WAIT         = (1 << 1),
+   ///
+   /// Task is suspended (by some other task)
+   TN_TASK_STATE_SUSPEND      = (1 << 2),
+   ///
+   /// Task was previously waiting, and after this it was suspended
+   TN_TASK_STATE_WAITSUSP     = (TN_TASK_STATE_WAIT | TN_TASK_STATE_SUSPEND),
+   ///
+   /// Task isn't yet activated or it was terminated by `tn_task_terminate()`.
+   TN_TASK_STATE_DORMANT      = (1 << 3),
+};
+
+
+
+/**
+ * Task
+ */
 struct TN_Task {
-   unsigned int * task_stk;   //-- Pointer to task's top of stack
-   struct TN_ListItem task_queue;     //-- Queue is used to include task in ready/wait lists
-   struct TN_ListItem timer_queue;    //-- Queue is used to include task in timer(timeout,etc.) list
-   struct TN_ListItem * pwait_queue;  //-- Ptr to object's(semaphor,event,etc.) wait list,
-                                      // that task has been included for waiting (ver 2.x)
-   struct TN_ListItem create_queue;   //-- Queue is used to include task in create list only
+   /// pointer to task's current stack pointer
+   unsigned int *task_stk;   
+   ///
+   /// queue is used to include task in ready/wait lists
+   struct TN_ListItem task_queue;     
+   ///
+   /// queue is used to include task in timer list
+   struct TN_ListItem timer_queue;
+   ///
+   /// pointer to object's (semaphore, mutex, event, etc) wait list in which 
+   /// task is included for waiting
+   struct TN_ListItem *pwait_queue;
+   ///
+   /// queue is used to include task in creation list
+   /// (currently, this list is used for statistics only)
+   struct TN_ListItem create_queue;
 
 #if TN_USE_MUTEXES
-
-   struct TN_ListItem mutex_queue;    //-- List of all mutexes that task locked
+   ///
+   /// list of all mutexes that are locked by task
+   struct TN_ListItem mutex_queue;
 #if TN_MUTEX_DEADLOCK_DETECT
-   struct TN_ListItem deadlock_list;  //-- List of other tasks involved in
-                                      //   deadlock  (if no deadlock,
-                                      //   this list is empty)
+   ///
+   /// list of other tasks involved in deadlock. This list is non-empty
+   /// only in emergency cases, and it is here to help you fix your bug
+   /// that led to deadlock.
+   ///
+   /// @see `TN_MUTEX_DEADLOCK_DETECT`
+   struct TN_ListItem deadlock_list;
+#endif
 #endif
 
-#endif
+   /// base address of task's stack space
+   unsigned int *stk_start;
+   ///
+   /// size of task's stack (in `sizeof(unsigned int)`, not bytes)
+   int stk_size;
+   ///
+   /// pointer to task's body function given to `tn_task_create()`
+   void *task_func_addr;
+   ///
+   /// pointer to task's parameter given to `tn_task_create()`
+   void *task_func_param;
+   ///
+   /// base priority of the task (actual current priority may be higher than 
+   /// base priority because of mutex)
+   int base_priority;
+   ///
+   /// current task priority
+   int priority;
+   ///
+   /// id for object validity verification
+   enum TN_ObjId id_task;
+   ///
+   /// task state
+   enum TN_TaskState task_state;
+   ///
+   /// reason for waiting (relevant if only `task_state` is `WAIT` or
+   /// `WAITSUSP`)
+   enum TN_WaitReason task_wait_reason;
+   ///
+   /// waiting result code (reason why waiting finished)
+   enum TN_Retval task_wait_rc;
+   ///
+   /// remaining time until timeout; may be `TN_WAIT_INFINITE`.
+   unsigned long tick_count;
+   ///
+   /// time slice counter
+   int tslice_count;
 
-   unsigned int * stk_start;  //-- Base address of task's stack space
-   int   stk_size;            //-- Task's stack size (in sizeof(void*),not bytes)
-   void * task_func_addr;     //-- filled on creation  (ver 2.x)
-   void * task_func_param;    //-- filled on creation  (ver 2.x)
-
-   int  base_priority;        //-- Task base priority  (ver 2.x)
-   int  priority;             //-- Task current priority
-   enum TN_ObjId  id_task;    //-- ID for verification(is it a task or another object?)
-                              // All tasks have the same id_task magic number (ver 2.x)
-
-   int  task_state;           //-- Task state
-   enum TN_WaitReason  task_wait_reason;  //-- Reason for waiting
-   int  task_wait_rc;         //-- Waiting return code(reason why waiting  finished)
-   unsigned long tick_count;  //-- Remaining time until timeout
-   int  tslice_count;         //-- Time slice counter
-
+   union {
 #if  TN_USE_EVENTS
-
-   int  ewait_pattern;        //-- Event wait pattern
-   int  eactual_pattern;      //-- pattern that caused task to finish waiting
-   enum TN_EGrpWaitMode ewait_mode; //-- Event wait mode:  _AND or _OR
-
+      /// fields specific to tn_eventgrp.h
+      struct TN_EGrpTaskFld eventgrp;
 #endif
-
-   void * data_elem;          //-- Store data queue entry,if data queue is full
+      ///
+      /// fields specific to tn_dqueue.h
+      struct TN_DQueueTaskFld dqueue;
+      ///
+      /// fields specific to tn_mem.h
+      struct TN_FMemTaskFld fmem;
+   };
 
 #if TN_DEBUG
+   /// task name for debug purposes, user may want to set it by hand
    const char *name;          
 #endif
 
@@ -75,9 +181,11 @@ struct TN_Task {
    //   see file tn_mutex.c , function _mutex_do_unlock().
    unsigned          priority_already_updated : 1;
 
+
 // Other implementation specific fields may be added below
 
 };
+
 
 
 
@@ -93,16 +201,6 @@ struct TN_Task {
 #define  TN_TASK_START_ON_CREATION        1
 #define  TN_TASK_TIMER                 0x80
 #define  TN_TASK_IDLE                  0x40
-
-
-//-- task states
-#define  TSK_STATE_NONE                0     //-- may be stored in task_state only temporarily,
-                                             //   while some system service is in progress.
-#define  TSK_STATE_RUNNABLE            0x01
-#define  TSK_STATE_WAIT                0x04
-#define  TSK_STATE_SUSPEND             0x08
-#define  TSK_STATE_WAITSUSP            (TSK_STATE_SUSPEND | TSK_STATE_WAIT)
-#define  TSK_STATE_DORMANT             0x10
 
 
 //-- attr for tn_task_exit()
@@ -252,7 +350,7 @@ void tn_task_exit(int attr);
 
 
 /**
- * This function terminates the task specified by the task. The task is moved to the DORMANT state.
+ * This function terminates the task specified by the task. The task is moved to the `DORMANT` state.
  * When the task is waiting in a wait queue, the task is removed from the queue.
  * If activate requests exist (activation request count is 1) the count 
  * is decremented and the task is moved to the READY state.
@@ -268,11 +366,13 @@ void tn_task_exit(int attr);
  *
  * A task must not terminate itself by this function (use the tn_task_exit() function instead).
  * This function cannot be used in interrupts.
+ *
+ * @see enum TN_TaskState
  */
 enum TN_Retval tn_task_terminate(struct TN_Task *task);
 
 /**
- * This function deletes the task specified by the task. The task must be in the DORMANT state,
+ * This function deletes the task specified by the task. The task must be in the `DORMANT` state,
  * otherwise TERR_WCONTEXT will be returned.
  *
  * This function resets the id_task field in the task structure to 0
