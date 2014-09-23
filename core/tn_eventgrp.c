@@ -284,7 +284,7 @@ enum TN_Retval tn_eventgrp_wait(
       tn_curr_run_task->subsys_wait.eventgrp.wait_pattern = wait_pattern;
       _tn_task_curr_to_wait_action(
             &(eventgrp->wait_queue),
-            TSK_WAIT_REASON_EVENT,
+            TN_WAIT_REASON_EVENT,
             timeout
             );
       waited_for_event = TRUE;

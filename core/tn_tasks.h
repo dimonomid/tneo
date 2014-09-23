@@ -84,6 +84,50 @@ enum TN_TaskState {
    TN_TASK_STATE_DORMANT      = (1 << 3),
 };
 
+
+/**
+ * Task wait reason
+ */
+enum TN_WaitReason {
+   ///
+   /// task isn't waiting for anything
+   TN_WAIT_REASON_NONE,
+   ///
+   /// task has called `tn_task_sleep()`
+   TN_WAIT_REASON_SLEEP,
+   ///
+   /// task waits to acquire a semaphore
+   /// @see tn_sem.h
+   TN_WAIT_REASON_SEM,
+   ///
+   /// task waits for some event in the event group to be set
+   /// @see tn_eventgrp.h
+   TN_WAIT_REASON_EVENT,
+   ///
+   /// task wants to put some data to the data queue, and there's no space
+   /// in the queue.
+   /// @see tn_dqueue.h
+   TN_WAIT_REASON_DQUE_WSEND,
+   ///
+   /// task wants to receive some data to the data queue, and there's no data
+   /// in the queue
+   /// @see tn_dqueue.h
+   TN_WAIT_REASON_DQUE_WRECEIVE,
+   ///
+   /// task wants to lock a mutex with priority ceiling
+   /// @see tn_mutex.h
+   TN_WAIT_REASON_MUTEX_C,
+   ///
+   /// task wants to lock a mutex with priority inheritance
+   /// @see tn_mutex.h
+   TN_WAIT_REASON_MUTEX_I,
+   ///
+   /// task wants to get memory block from memory pool, and there's no free
+   /// memory blocks
+   /// @see tn_mem.h
+   TN_WAIT_REASON_WFIXMEM,
+};
+
 /**
  * Options for `tn_task_create()`
  */

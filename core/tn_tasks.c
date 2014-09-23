@@ -150,7 +150,7 @@ static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
    enum TN_Retval rc = TERR_NO_ERR;
 
    if (     (_tn_task_is_waiting(task))
-         && (task->task_wait_reason == TSK_WAIT_REASON_SLEEP))
+         && (task->task_wait_reason == TN_WAIT_REASON_SLEEP))
    {
       //-- Task is sleeping, so, let's wake it up.
 
@@ -310,7 +310,7 @@ static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int 
  * task had, such as task_wait_reason and pwait_queue.
  *      
  *   TODO: probably create callback list, so, when task_wait_reason 
- *         is set to TSK_WAIT_REASON_MUTEX_I/.._C
+ *         is set to TN_WAIT_REASON_MUTEX_I/.._C
  *         (this is done in tn_mutex.c, _add_curr_task_to_mutex_wait_queue())
  *         it should add its callback that will be called 
  *         when task stops waiting.
@@ -321,13 +321,13 @@ static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int 
 static void _on_task_wait_complete(struct TN_Task *task)
 {
    //-- for mutex with priority inheritance, call special handler
-   if (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I){
+   if (task->task_wait_reason == TN_WAIT_REASON_MUTEX_I){
       _tn_mutex_i_on_task_wait_complete(task);
    }
 
    //-- for any mutex, call special handler
-   if (     (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
-         || (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
+   if (     (task->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
+         || (task->task_wait_reason == TN_WAIT_REASON_MUTEX_C)
       )
    {
       _tn_mutex_on_task_wait_complete(task);
@@ -487,7 +487,7 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
 
    tn_disable_interrupt();
 
-   _tn_task_curr_to_wait_action(NULL, TSK_WAIT_REASON_SLEEP, timeout);
+   _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
 
    tn_enable_interrupt();
    _tn_switch_context_if_needed();
@@ -971,7 +971,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc)
    task->task_state &= ~TN_TASK_STATE_WAIT;
 
    //-- Clear wait reason
-   task->task_wait_reason = TSK_WAIT_REASON_NONE;
+   task->task_wait_reason = TN_WAIT_REASON_NONE;
 }
 
 void _tn_task_set_suspended(struct TN_Task *task)

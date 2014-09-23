@@ -294,7 +294,7 @@ enum TN_Retval tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long time
    if (rc == TERR_TIMEOUT && timeout > 0){
       _tn_task_curr_to_wait_action(
             &(fmp->wait_queue),
-            TSK_WAIT_REASON_WFIXMEM,
+            TN_WAIT_REASON_WFIXMEM,
             timeout
             );
       waited_for_data = TRUE;

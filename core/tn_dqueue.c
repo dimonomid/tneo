@@ -251,7 +251,7 @@ static enum TN_Retval _dqueue_job_perform(
             tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
             _tn_task_curr_to_wait_action(
                   &(dque->wait_send_list),
-                  TSK_WAIT_REASON_DQUE_WSEND,
+                  TN_WAIT_REASON_DQUE_WSEND,
                   timeout
                   );
 
@@ -266,7 +266,7 @@ static enum TN_Retval _dqueue_job_perform(
             //-- put current task to wait until new data comes.
             _tn_task_curr_to_wait_action(
                   &(dque->wait_receive_list),
-                  TSK_WAIT_REASON_DQUE_WRECEIVE,
+                  TN_WAIT_REASON_DQUE_WRECEIVE,
                   timeout
                   );
 

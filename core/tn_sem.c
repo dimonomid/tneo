@@ -76,7 +76,7 @@ static inline enum TN_Retval _sem_job_perform(
    rc = p_worker(sem);
 
    if (rc == TERR_TIMEOUT && timeout != 0){
-      _tn_task_curr_to_wait_action(&(sem->wait_queue), TSK_WAIT_REASON_SEM, timeout);
+      _tn_task_curr_to_wait_action(&(sem->wait_queue), TN_WAIT_REASON_SEM, timeout);
 
       //-- rc will be set later thanks to waited_for_sem
       waited_for_sem = TRUE;

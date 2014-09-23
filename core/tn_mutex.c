@@ -196,7 +196,7 @@ in:
 
       //-- and check if the task is waiting for mutex
       if (     (_tn_task_is_waiting(task))
-            && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+            && (task->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
          )
       {
          //-- Task is waiting for another mutex. In this case, 
@@ -250,8 +250,8 @@ static void _link_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
 in:
    holder = mutex->holder;
 
-   if (     (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_I)
-         && (holder->task_wait_reason != TSK_WAIT_REASON_MUTEX_C)
+   if (     (holder->task_wait_reason != TN_WAIT_REASON_MUTEX_I)
+         && (holder->task_wait_reason != TN_WAIT_REASON_MUTEX_C)
       )
    {
       TN_FATAL_ERROR();
@@ -316,8 +316,8 @@ in:
    holder = mutex->holder;
    if (     (_tn_task_is_waiting(task))
          && (
-               (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
-            || (holder->task_wait_reason == TSK_WAIT_REASON_MUTEX_C)
+               (holder->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
+            || (holder->task_wait_reason == TN_WAIT_REASON_MUTEX_C)
             )
       )
    {
@@ -402,10 +402,10 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
          _task_priority_elevate(mutex->holder, tn_curr_run_task->priority);
       }
 
-      wait_reason = TSK_WAIT_REASON_MUTEX_I;
+      wait_reason = TN_WAIT_REASON_MUTEX_I;
    } else {
       //-- Priority ceiling protocol
-      wait_reason = TSK_WAIT_REASON_MUTEX_C;
+      wait_reason = TN_WAIT_REASON_MUTEX_C;
    }
 
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
@@ -757,9 +757,9 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
  */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 {
-   //-- NOTE: task->task_wait_reason should be TSK_WAIT_REASON_MUTEX_I here
+   //-- NOTE: task->task_wait_reason should be TN_WAIT_REASON_MUTEX_I here
 #if TN_DEBUG
-   if (task->task_wait_reason != TSK_WAIT_REASON_MUTEX_I){
+   if (task->task_wait_reason != TN_WAIT_REASON_MUTEX_I){
       TN_FATAL_ERROR();
    }
 #endif
@@ -778,7 +778,7 @@ in:
 
       //-- and check if the task is waiting for mutex
       if (     (_tn_task_is_waiting(task))
-            && (task->task_wait_reason == TSK_WAIT_REASON_MUTEX_I)
+            && (task->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
          )
       {
          //-- task is waiting for another mutex. In this case, 

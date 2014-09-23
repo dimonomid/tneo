@@ -67,25 +67,6 @@ enum TN_Retval {
    TERR_INTERNAL             = -10, //-- Internal TNKernel error (should never happen)
 };
 
-/**
- * Task wait reason
- */
-enum TN_WaitReason {
-  TSK_WAIT_REASON_NONE             = 0,
-  TSK_WAIT_REASON_SLEEP            = (1 << 0),
-  TSK_WAIT_REASON_SEM              = (1 << 1),
-  TSK_WAIT_REASON_EVENT            = (1 << 2),
-  TSK_WAIT_REASON_DQUE_WSEND       = (1 << 3),
-  TSK_WAIT_REASON_DQUE_WRECEIVE    = (1 << 4),
-  TSK_WAIT_REASON_MUTEX_C          = (1 << 5),
-  TSK_WAIT_REASON_MUTEX_C_BLK      = (1 << 6),
-  TSK_WAIT_REASON_MUTEX_I          = (1 << 7),
-  TSK_WAIT_REASON_MUTEX_H          = (1 << 8),
-  TSK_WAIT_REASON_RENDEZVOUS       = (1 << 9),
-
-  TSK_WAIT_REASON_WFIXMEM          = (1 << 13),
-};
-
 
 
 /*******************************************************************************
