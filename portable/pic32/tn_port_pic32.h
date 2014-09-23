@@ -113,7 +113,7 @@ extern "C"  {
 
 #define  TN_CHECK_INT_CONTEXT           \
              if(!tn_inside_int())       \
-                return TERR_WCONTEXT;
+                return TN_RC_WCONTEXT;
 
 #define  TN_CHECK_INT_CONTEXT_NORETVAL  \
              if(!tn_inside_int())       \
@@ -121,7 +121,7 @@ extern "C"  {
 
 #define  TN_CHECK_NON_INT_CONTEXT       \
              if(tn_inside_int())        \
-                return TERR_WCONTEXT;
+                return TN_RC_WCONTEXT;
 
 #define  TN_CHECK_NON_INT_CONTEXT_NORETVAL  \
              if(tn_inside_int())            \

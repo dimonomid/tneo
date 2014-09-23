@@ -66,20 +66,20 @@ enum _JobType {
 
 //-- Data queue storage FIFO processing {{{
 
-static enum TN_Retval _fifo_write(struct TN_DQueue *dque, void *p_data)
+static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if (dque == NULL){
-      rc = TERR_WRONG_PARAM;
+      rc = TN_RC_WPARAM;
       goto out;
    }
 #endif
 
    if (dque->filled_items_cnt >= dque->items_cnt){
       //-- no space for new data
-      rc = TERR_TIMEOUT;
+      rc = TN_RC_TIMEOUT;
       goto out;
    }
 
@@ -96,19 +96,19 @@ out:
 }
 
 
-static enum TN_Retval _fifo_read(struct TN_DQueue *dque, void **pp_data)
+static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 #if TN_CHECK_PARAM
    if (dque == NULL || pp_data == NULL){
-      rc = TERR_WRONG_PARAM;
+      rc = TN_RC_WPARAM;
       goto out;
    }
 #endif
 
    if (dque->filled_items_cnt == 0){
       //-- nothing to read
-      rc = TERR_TIMEOUT;
+      rc = TN_RC_TIMEOUT;
       goto out;
    }
 
@@ -125,12 +125,12 @@ out:
 }
 // }}}
 
-static enum TN_Retval _queue_send(
+static enum TN_RCode _queue_send(
       struct TN_DQueue *dque,
       void *p_data
       )
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (!tn_is_list_empty(&(dque->wait_receive_list))){
       struct TN_Task *task;
@@ -144,7 +144,7 @@ static enum TN_Retval _queue_send(
 
       task->subsys_wait.dqueue.data_elem = p_data;
 
-      _tn_task_wait_complete(task, TERR_NO_ERR);
+      _tn_task_wait_complete(task, TN_RC_OK);
    } else {
       //-- the data queue's  wait_receive list is empty
       rc = _fifo_write(dque, p_data);
@@ -153,17 +153,17 @@ static enum TN_Retval _queue_send(
    return rc;
 }
 
-static enum TN_Retval _queue_receive(
+static enum TN_RCode _queue_receive(
       struct TN_DQueue *dque,
       void **pp_data
       )
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    rc = _fifo_read(dque, pp_data);
 
    switch (rc){
-      case TERR_NO_ERR:
+      case TN_RC_OK:
          //-- data is successfully read from the queue.
          //   Let's check whether there is some task that
          //   wants to write more data, and waits for room
@@ -178,14 +178,14 @@ static enum TN_Retval _queue_receive(
                   );
 
             rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); //-- Put to data FIFO
-            if (rc != TERR_NO_ERR){
-               TN_FATAL_ERROR("rc should always be TERR_NO_ERR here");
+            if (rc != TN_RC_OK){
+               TN_FATAL_ERROR("rc should always be TN_RC_OK here");
             }
 
-            _tn_task_wait_complete(task, TERR_NO_ERR);
+            _tn_task_wait_complete(task, TN_RC_OK);
          }
          break;
-      case TERR_TIMEOUT:
+      case TN_RC_TIMEOUT:
          //-- data FIFO is empty, there's nothing to read.
          //   let's check if some task waits to write
          //   (that might happen if only dque->items_cnt is 0)
@@ -201,9 +201,9 @@ static enum TN_Retval _queue_receive(
                   );
 
             *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
-            _tn_task_wait_complete(task, TERR_NO_ERR);
+            _tn_task_wait_complete(task, TN_RC_OK);
 
-            rc = TERR_NO_ERR;
+            rc = TN_RC_OK;
          } else {
             //-- wait_send_list is empty.
          }
@@ -218,7 +218,7 @@ static enum TN_Retval _queue_receive(
 }
 
 
-static enum TN_Retval _dqueue_job_perform(
+static enum TN_RCode _dqueue_job_perform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data,
@@ -226,15 +226,15 @@ static enum TN_Retval _dqueue_job_perform(
       )
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
    BOOL waited = FALSE;
    void **pp_data = (void **)p_data;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -245,7 +245,7 @@ static enum TN_Retval _dqueue_job_perform(
       case _JOB_TYPE__SEND:
          rc = _queue_send(dque, p_data);
 
-         if (rc == TERR_TIMEOUT && timeout != 0){
+         if (rc == TN_RC_TIMEOUT && timeout != 0){
             //-- save user-provided data in the dqueue.data_elem task field,
             //   and put current task to wait until there's room in the queue.
             tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
@@ -262,7 +262,7 @@ static enum TN_Retval _dqueue_job_perform(
       case _JOB_TYPE__RECEIVE:
          rc = _queue_receive(dque, pp_data);
 
-         if (rc == TERR_TIMEOUT && timeout != 0){
+         if (rc == TN_RC_TIMEOUT && timeout != 0){
             //-- put current task to wait until new data comes.
             _tn_task_curr_to_wait_action(
                   &(dque->wait_receive_list),
@@ -300,21 +300,21 @@ static enum TN_Retval _dqueue_job_perform(
    return rc;
 }
 
-static enum TN_Retval _dqueue_job_iperform(
+static enum TN_RCode _dqueue_job_iperform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data      //-- used for _JOB_TYPE__SEND
       )
 {
    TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
    void **pp_data = (void **)p_data;
 
 #if TN_CHECK_PARAM
    if(dque == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_INT_CONTEXT;
@@ -346,7 +346,7 @@ static enum TN_Retval _dqueue_job_iperform(
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_create(
+enum TN_RCode tn_queue_create(
       struct TN_DQueue *dque,
       void **data_fifo,
       int items_cnt
@@ -354,10 +354,10 @@ enum TN_Retval tn_queue_create(
 {
 #if TN_CHECK_PARAM
    if (dque == NULL){
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
    if (items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE){
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
 #endif
 
@@ -376,23 +376,23 @@ enum TN_Retval tn_queue_create(
 
    dque->id_dque = TN_ID_DATAQUEUE;
 
-   return TERR_NO_ERR;
+   return TN_RC_OK;
 }
 
 
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
+enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if (dque == NULL){
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
    if (dque->id_dque != TN_ID_DATAQUEUE){
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
    }
 #endif
 
@@ -401,7 +401,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
    tn_disable_interrupt();
 
    //-- notify waiting tasks that the object is deleted
-   //   (TERR_DLT is returned)
+   //   (TN_RC_DELETED is returned)
    _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
    _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
 
@@ -413,7 +413,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return TERR_NO_ERR;
+   return TN_RC_OK;
 
 }
 
@@ -421,7 +421,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue * dque)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_send(
+enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
       unsigned long timeout
@@ -434,7 +434,7 @@ enum TN_Retval tn_queue_send(
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_send_polling(struct TN_DQueue *dque, void *p_data)
+enum TN_RCode tn_queue_send_polling(struct TN_DQueue *dque, void *p_data)
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, 0);
 }
@@ -443,7 +443,7 @@ enum TN_Retval tn_queue_send_polling(struct TN_DQueue *dque, void *p_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
+enum TN_RCode tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__SEND, p_data);
 }
@@ -452,7 +452,7 @@ enum TN_Retval tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_receive(
+enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
       unsigned long timeout
@@ -465,7 +465,7 @@ enum TN_Retval tn_queue_receive(
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
+enum TN_RCode tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, 0);
 }
@@ -474,7 +474,7 @@ enum TN_Retval tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_Retval tn_queue_ireceive(struct TN_DQueue *dque, void **pp_data)
+enum TN_RCode tn_queue_ireceive(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__RECEIVE, pp_data);
 }

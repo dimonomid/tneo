@@ -52,19 +52,55 @@ enum TN_ObjId {
 /**
  * Result code returned by kernel services
  */
-enum TN_Retval {
-   TERR_NO_ERR               =   0,
-   TERR_OVERFLOW             =  -1, //-- OOV
-   TERR_WCONTEXT             =  -2, //-- Wrong context context error
-   TERR_WSTATE               =  -3, //-- Wrong state   state error
-   TERR_TIMEOUT              =  -4, //-- Polling failure or timeout
-   TERR_WRONG_PARAM          =  -5,
-   TERR_ILUSE                =  -6, //-- Illegal using
-   TERR_NOEXS                =  -7, //-- Non-valid or Non-existent object
-   TERR_DLT                  =  -8, //-- Waiting object deleted
-   TERR_FORCED               =  -9, //-- Currently, only returned for waiting task 
-                                    //   if tn_task_release_wait() is called
-   TERR_INTERNAL             = -10, //-- Internal TNKernel error (should never happen)
+enum TN_RCode {
+   ///
+   /// successful
+   TN_RC_OK                   =   0,
+   ///
+   /// timeout or polling failure
+   TN_RC_TIMEOUT              =  -1,
+   ///
+   /// trying to increment semaphore count more than its max count,
+   /// or trying to return extra memory block to fixed memory pool.
+   /// @see tn_sem.h
+   /// @see tn_mem.h
+   TN_RC_OVERFLOW             =  -2,
+   ///
+   /// wrong context error: returned if user calls some task service from
+   /// interrupt or vice versa
+   TN_RC_WCONTEXT             =  -3,
+   ///
+   /// wrong task state error: requested operation requires different 
+   /// task state
+   TN_RC_WSTATE               =  -4,
+   ///
+   /// this code is returned by most of the kernel functions when 
+   /// wrong params were given to function. This error code can be returned
+   /// if only build-time option `TN_CHECK_PARAM` is non-zero
+   /// @see `TN_CHECK_PARAM`
+   TN_RC_WPARAM               =  -5,
+   ///
+   /// Illegal usage. Returned in the following cases:
+   /// * task tries to unlock or delete the mutex that is locked by different
+   ///   task,
+   /// * task tries to lock mutex with priority ceiling whose priority is
+   ///   lower than task's priority
+   /// @see tn_mutex.h
+   TN_RC_ILLEGAL_USE          =  -6,
+   ///
+   /// returned when user tries to perform some operation on invalid object
+   /// (mutex, semaphore, etc).
+   /// Object validity is checked by comparing special `id_...` value with the
+   /// value from `enum TN_ObjId`
+   TN_RC_INVALID_OBJ          =  -7,
+   /// object for whose event task was waiting is deleted.
+   TN_RC_DELETED              =  -8,
+   /// task was released from waiting forcibly because some other task 
+   /// called `tn_task_release_wait()`
+   TN_RC_FORCED               =  -9,
+   /// internal kernel error, should never be returned by kernel services.
+   /// If it is returned, it's a bug in the kernel.
+   TN_RC_INTERNAL             = -10,
 };
 
 

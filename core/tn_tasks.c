@@ -145,36 +145,36 @@ static void _find_next_task_to_run(void)
 /**
  * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
  */
-static inline enum TN_Retval _task_wakeup(struct TN_Task *task)
+static inline enum TN_RCode _task_wakeup(struct TN_Task *task)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (     (_tn_task_is_waiting(task))
          && (task->task_wait_reason == TN_WAIT_REASON_SLEEP))
    {
       //-- Task is sleeping, so, let's wake it up.
 
-      _tn_task_wait_complete(task, TERR_NO_ERR);
+      _tn_task_wait_complete(task, TN_RC_OK);
    } else {
       //-- Task isn't sleeping. Probably it is in WAIT state,
       //   but not because of call to tn_task_sleep().
 
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    }
 
    return rc;
 }
 
-static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
+static inline enum TN_RCode _task_release_wait(struct TN_Task *task)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if ((_tn_task_is_waiting(task))){
       //-- task is in WAIT state, so, let's release it from that state,
-      //   returning TERR_FORCED.
-      _tn_task_wait_complete(task, TERR_FORCED);
+      //   returning TN_RC_FORCED.
+      _tn_task_wait_complete(task, TN_RC_FORCED);
    } else {
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    }
 
    return rc;
@@ -183,27 +183,27 @@ static inline enum TN_Retval _task_release_wait(struct TN_Task *task)
 /**
  * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
  */
-static inline enum TN_Retval _task_activate(struct TN_Task *task)
+static inline enum TN_RCode _task_activate(struct TN_Task *task)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (_tn_task_is_dormant(task)){
       _tn_task_clear_dormant(task);
       _tn_task_set_runnable(task);
    } else {
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    }
 
    return rc;
 }
 
-static inline enum TN_Retval _task_delete(struct TN_Task *task)
+static inline enum TN_RCode _task_delete(struct TN_Task *task)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (!_tn_task_is_dormant(task)){
       //-- Cannot delete not-terminated task
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    } else {
       tn_list_remove_entry(&(task->create_queue));
       tn_created_tasks_cnt--;
@@ -213,19 +213,19 @@ static inline enum TN_Retval _task_delete(struct TN_Task *task)
    return rc;
 }
 
-static inline enum TN_Retval _task_job_perform(
+static inline enum TN_RCode _task_job_perform(
       struct TN_Task *task,
       int (p_worker)(struct TN_Task *task)
       )
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -240,19 +240,19 @@ static inline enum TN_Retval _task_job_perform(
    return rc;
 }
 
-static inline enum TN_Retval _task_job_iperform(
+static inline enum TN_RCode _task_job_iperform(
       struct TN_Task *task,
       int (p_worker)(struct TN_Task *task)
       )
 {
    TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_INT_CONTEXT;
@@ -365,7 +365,7 @@ static void _task_terminate(struct TN_Task *task)
 /**
  * Create task. See comments in tn_tasks.h file.
  */
-enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task TCB
+enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
@@ -386,16 +386,16 @@ enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task T
  * If the task is runnable, it is moved to the SUSPENDED state. If the task
  * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
  */
-enum TN_Retval tn_task_suspend(struct TN_Task *task)
+enum TN_RCode tn_task_suspend(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -403,7 +403,7 @@ enum TN_Retval tn_task_suspend(struct TN_Task *task)
    tn_disable_interrupt();
 
    if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
       goto out;
    }
 
@@ -426,16 +426,16 @@ out:
  * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
  * it is moved to WAITING state.
  */
-enum TN_Retval tn_task_resume(struct TN_Task *task)
+enum TN_RCode tn_task_resume(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -443,7 +443,7 @@ enum TN_Retval tn_task_resume(struct TN_Task *task)
    tn_disable_interrupt();
 
    if (!_tn_task_is_suspended(task)){
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
       goto out;
    }
 
@@ -474,13 +474,13 @@ out:
  * currently running task is not switched to the sleeping mode and
  * continues execution.
  */
-enum TN_Retval tn_task_sleep(unsigned long timeout)
+enum TN_RCode tn_task_sleep(unsigned long timeout)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc;
+   enum TN_RCode rc;
 
    if (timeout == 0){
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -503,7 +503,7 @@ enum TN_Retval tn_task_sleep(unsigned long timeout)
  * and calls _task_wakeup() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-enum TN_Retval tn_task_wakeup(struct TN_Task *task)
+enum TN_RCode tn_task_wakeup(struct TN_Task *task)
 {
    return _task_job_perform(task, _task_wakeup);
 }
@@ -515,7 +515,7 @@ enum TN_Retval tn_task_wakeup(struct TN_Task *task)
  * and calls _task_wakeup() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-enum TN_Retval tn_task_iwakeup(struct TN_Task *task)
+enum TN_RCode tn_task_iwakeup(struct TN_Task *task)
 {
    return _task_job_iperform(task, _task_wakeup);
 }
@@ -527,7 +527,7 @@ enum TN_Retval tn_task_iwakeup(struct TN_Task *task)
  * and calls _task_activate() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-enum TN_Retval tn_task_activate(struct TN_Task *task)
+enum TN_RCode tn_task_activate(struct TN_Task *task)
 {
    return _task_job_perform(task, _task_activate);
 }
@@ -539,7 +539,7 @@ enum TN_Retval tn_task_activate(struct TN_Task *task)
  * and calls _task_activate() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-enum TN_Retval tn_task_iactivate(struct TN_Task *task)
+enum TN_RCode tn_task_iactivate(struct TN_Task *task)
 {
    return _task_job_iperform(task, _task_activate);
 }
@@ -551,7 +551,7 @@ enum TN_Retval tn_task_iactivate(struct TN_Task *task)
  * and calls _task_release_wait() function, in which real job is done.
  * It then re-enables interrupts, switches context if needed, and returns.
  */
-enum TN_Retval tn_task_release_wait(struct TN_Task *task)
+enum TN_RCode tn_task_release_wait(struct TN_Task *task)
 {
    return _task_job_perform(task, _task_release_wait);
 }
@@ -563,7 +563,7 @@ enum TN_Retval tn_task_release_wait(struct TN_Task *task)
  * and calls _task_release_wait() function, in which real job is done.
  * It then re-enables interrupts and returns.
  */
-enum TN_Retval tn_task_irelease_wait(struct TN_Task *task)
+enum TN_RCode tn_task_irelease_wait(struct TN_Task *task)
 {
    return _task_job_iperform(task, _task_release_wait);
 }
@@ -600,17 +600,17 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
 /**
  * See comments in the file tn_tasks.h .
  */
-enum TN_Retval tn_task_terminate(struct TN_Task *task)
+enum TN_RCode tn_task_terminate(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
 
-   enum TN_Retval rc;
+   enum TN_RCode rc;
 	 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -620,15 +620,15 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 
    //--------------------------------------------------
 
-   rc = TERR_NO_ERR;
+   rc = TN_RC_OK;
 
    if (_tn_task_is_dormant(task)){
       //-- The task is already terminated
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    } else if (tn_curr_run_task == task){
       //-- Cannot terminate currently running task
       //   (use tn_task_exit() instead)
-      rc = TERR_WCONTEXT;
+      rc = TN_RC_WCONTEXT;
    } else {
 
       if (_tn_task_is_runnable(task)){
@@ -636,7 +636,7 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
       } else if (_tn_task_is_waiting(task)){
          _tn_task_clear_waiting(
                task,
-               TERR_NO_ERR    //-- doesn't matter: nobody will read it
+               TN_RC_OK    //-- doesn't matter: nobody will read it
                );
       }
 
@@ -657,16 +657,16 @@ enum TN_Retval tn_task_terminate(struct TN_Task *task)
 /**
  * See comments in the file tn_tasks.h .
  */
-enum TN_Retval tn_task_delete(struct TN_Task *task)
+enum TN_RCode tn_task_delete(struct TN_Task *task)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc;
+   enum TN_RCode rc;
 
 #if TN_CHECK_PARAM
    if(task == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -684,18 +684,18 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
  */
-enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
+enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if (task == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if (task->id_task != TN_ID_TASK)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
    if (new_priority < 0 || new_priority >= (TN_NUM_PRIORITY - 1))
-      return TERR_WRONG_PARAM; //-- tried to set priority reverved by system
+      return TN_RC_WPARAM; //-- tried to set priority reverved by system
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -706,10 +706,10 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
       new_priority = task->base_priority;
    }
 
-   rc = TERR_NO_ERR;
+   rc = TN_RC_OK;
 
    if (_tn_task_is_dormant(task)){
-      rc = TERR_WSTATE;
+      rc = TN_RC_WSTATE;
    } else if (_tn_task_is_runnable(task)){
       _tn_change_running_task_priority(task,new_priority);
    } else {
@@ -730,7 +730,7 @@ enum TN_Retval tn_task_change_priority(struct TN_Task *task, int new_priority)
  *    INTERNAL TNKERNEL FUNCTIONS
  ******************************************************************************/
 
-enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task TCB
+enum TN_RCode _tn_task_create(struct TN_Task *task,                 //-- task TCB
                  void (*task_func)(void *param),  //-- task function
                  int priority,                    //-- task priority
                  unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
@@ -740,7 +740,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
       )
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc;
+   enum TN_RCode rc;
 
    unsigned int * ptr_stack;
    int i;
@@ -750,7 +750,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
          || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
       )
    {
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
 
    if (0
@@ -763,10 +763,10 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
       )
    {
       
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    }
 
-   rc = TERR_NO_ERR;
+   rc = TN_RC_OK;
 
    TN_CHECK_NON_INT_CONTEXT;
 
@@ -922,7 +922,7 @@ void _tn_task_set_waiting(
 /**
  * See comment in the tn_internal.h file
  */
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc)
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
 {
 #if TN_DEBUG
    //-- only WAIT and SUSPEND bits are allowed here,
@@ -1024,7 +1024,7 @@ void _tn_task_set_dormant(struct TN_Task* task)
    task->priority    = task->base_priority; //-- Task curr priority
    task->task_state  |= TN_TASK_STATE_DORMANT;   //-- Task state
    task->task_wait_reason = 0;              //-- Reason for waiting
-   task->task_wait_rc = TERR_NO_ERR;
+   task->task_wait_rc = TN_RC_OK;
 
    task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
 

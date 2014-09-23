@@ -132,7 +132,7 @@ struct TN_DQueueTaskWait {
 
 /**
  * Construct data queue. `id_dque` member should not contain `TN_ID_DATAQUEUE`,
- * otherwise, `TERR_WRONG_PARAM` is returned.
+ * otherwise, `TN_RC_WPARAM` is returned.
  *
  * @param dque       pointer to already allocated struct TN_DQueue.
  * @param data_fifo  pointer to already allocated array of `void *` to store
@@ -141,7 +141,7 @@ struct TN_DQueueTaskWait {
  *                   (count of elements in the `data_fifo` array)
  *                   Can be 0.
  */
-enum TN_Retval tn_queue_create(
+enum TN_RCode tn_queue_create(
       struct TN_DQueue *dque,
       void **data_fifo,
       int items_cnt
@@ -152,11 +152,11 @@ enum TN_Retval tn_queue_create(
  * Destruct data queue.
  *
  * All tasks that wait for writing to or reading from the queue become
- * runnable with `TERR_DLT` code returned.
+ * runnable with `TN_RC_DELETED` code returned.
  *
  * @param dque       pointer to data queue to be deleted
  */
-enum TN_Retval tn_queue_delete(struct TN_DQueue *dque);
+enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
 
 
 /**
@@ -172,7 +172,7 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue *dque);
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
  * behavior depends on the `timeout` value:
  *
- * * `0`:                  `TERR_TIMEOUT` is returned immediately;
+ * * `0`:                  `TN_RC_TIMEOUT` is returned immediately;
  * * `TN_WAIT_INFINITE`:   task is switched to waiting state until
  *                         there is empty element in the FIFO;
  * * other:                task is switched to waiting state until
@@ -181,16 +181,16 @@ enum TN_Retval tn_queue_delete(struct TN_DQueue *dque);
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
- * @param timeout    timeout after which `TERR_TIMEOUT` is returned if queue
+ * @param timeout    timeout after which `TN_RC_TIMEOUT` is returned if queue
  *                   is full
  *
  * @return  
- * * `TERR_NO_ERR`   if data was successfully sent;
- * * `TERR_TIMEOUT`  if there was a timeout.
- * * `TERR_FORCED`   if task was released from wait forcibly by calling
+ * * `TN_RC_OK`   if data was successfully sent;
+ * * `TN_RC_TIMEOUT`  if there was a timeout.
+ * * `TN_RC_FORCED`   if task was released from wait forcibly by calling
  *                      `tn_task_release_wait()`
  */
-enum TN_Retval tn_queue_send(
+enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
       unsigned long timeout
@@ -199,7 +199,7 @@ enum TN_Retval tn_queue_send(
 /**
  * The same as `tn_queue_send()` with zero timeout
  */
-enum TN_Retval tn_queue_send_polling(
+enum TN_RCode tn_queue_send_polling(
       struct TN_DQueue *dque,
       void *p_data
       );
@@ -207,7 +207,7 @@ enum TN_Retval tn_queue_send_polling(
 /**
  * The same as `tn_queue_send()` with zero timeout, but for using in the ISR.
  */
-enum TN_Retval tn_queue_isend_polling(
+enum TN_RCode tn_queue_isend_polling(
       struct TN_DQueue *dque,
       void *p_data
       );
@@ -224,7 +224,7 @@ enum TN_Retval tn_queue_isend_polling(
  * entries in the data FIFO and there are no tasks in the wait_send list,
  * behavior depends on the `timeout` value:
  *
- * * `0`:                  `TERR_TIMEOUT` is returned immediately;
+ * * `0`:                  `TN_RC_TIMEOUT` is returned immediately;
  * * `TN_WAIT_INFINITE`:   task is switched to waiting state
  *                         until new data comes
  * * other:                task is switched to waiting state until new data 
@@ -232,16 +232,16 @@ enum TN_Retval tn_queue_isend_polling(
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
- * @param timeout    timeout after which `TERR_TIMEOUT` is returned if queue
+ * @param timeout    timeout after which `TN_RC_TIMEOUT` is returned if queue
  *                   is empty
  *
  * @return  
- * * `TERR_NO_ERR`   if data was successfully received;
- * * `TERR_TIMEOUT`  if there was a timeout.
- * * `TERR_FORCED`   if task was released from wait forcibly by calling
+ * * `TN_RC_OK`   if data was successfully received;
+ * * `TN_RC_TIMEOUT`  if there was a timeout.
+ * * `TN_RC_FORCED`   if task was released from wait forcibly by calling
  *                   `tn_task_release_wait()`
  */
-enum TN_Retval tn_queue_receive(
+enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
       unsigned long timeout
@@ -250,7 +250,7 @@ enum TN_Retval tn_queue_receive(
 /**
  * The same as `tn_queue_receive()` with zero timeout
  */
-enum TN_Retval tn_queue_receive_polling(
+enum TN_RCode tn_queue_receive_polling(
       struct TN_DQueue *dque,
       void **pp_data
       );
@@ -258,7 +258,7 @@ enum TN_Retval tn_queue_receive_polling(
 /**
  * The same as `tn_queue_receive()` with zero timeout, but for using in the ISR.
  */
-enum TN_Retval tn_queue_ireceive(
+enum TN_RCode tn_queue_ireceive(
       struct TN_DQueue *dque,
       void **pp_data
       );

@@ -119,14 +119,14 @@ struct TN_EGrpTaskWait {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-enum TN_Retval tn_eventgrp_create(
+enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp *eventgrp,
       unsigned int initial_pattern
       );
 
-enum TN_Retval tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
+enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 
-enum TN_Retval tn_eventgrp_wait(
+enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
@@ -134,27 +134,27 @@ enum TN_Retval tn_eventgrp_wait(
       unsigned long        timeout
       );
 
-enum TN_Retval tn_eventgrp_wait_polling(
+enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern
       );
 
-enum TN_Retval tn_eventgrp_iwait_polling(
+enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern
       );
 
-enum TN_Retval tn_eventgrp_modify(
+enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       );
 
-enum TN_Retval tn_eventgrp_imodify(
+enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern

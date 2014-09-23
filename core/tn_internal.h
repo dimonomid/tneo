@@ -125,7 +125,7 @@ extern void *tn_int_sp;
  ******************************************************************************/
 
 /**
- * Remove all tasks from wait queue, returning the TERR_DLT code.
+ * Remove all tasks from wait queue, returning the TN_RC_DELETED code.
  * Note: this function might sleep.
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
@@ -171,7 +171,7 @@ static inline void _tn_switch_context_if_needed(void)
  *    tn_tasks.c
  ******************************************************************************/
 
-enum TN_Retval  _tn_task_create(
+enum TN_RCode  _tn_task_create(
       struct TN_Task *task,            //-- task TCB
       void (*task_func)(void *param),  //-- task function
       int priority,                    //-- task priority
@@ -232,7 +232,7 @@ void _tn_task_set_waiting(
 /**
  * @param wait_rc return code that will be returned to waiting task
  */
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_Retval wait_rc);
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc);
 
 void _tn_task_set_suspended(struct TN_Task *task);
 void _tn_task_clear_suspended(struct TN_Task *task);
@@ -246,7 +246,7 @@ void _tn_task_clear_dormant(struct TN_Task *task);
  *
  * @param wait_rc return code that will be returned to waiting task
  */
-static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_Retval wait_rc)
+static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wait_rc)
 {
    _tn_task_clear_waiting(task, wait_rc);
 

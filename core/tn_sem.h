@@ -40,13 +40,13 @@ struct TN_Sem {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-enum TN_Retval tn_sem_create(struct TN_Sem * sem, int start_count, int max_count);
-enum TN_Retval tn_sem_delete(struct TN_Sem * sem);
-enum TN_Retval tn_sem_signal(struct TN_Sem * sem);
-enum TN_Retval tn_sem_isignal(struct TN_Sem * sem);
-enum TN_Retval tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout);
-enum TN_Retval tn_sem_polling(struct TN_Sem * sem);
-enum TN_Retval tn_sem_ipolling(struct TN_Sem * sem);
+enum TN_RCode tn_sem_create(struct TN_Sem * sem, int start_count, int max_count);
+enum TN_RCode tn_sem_delete(struct TN_Sem * sem);
+enum TN_RCode tn_sem_signal(struct TN_Sem * sem);
+enum TN_RCode tn_sem_isignal(struct TN_Sem * sem);
+enum TN_RCode tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout);
+enum TN_RCode tn_sem_polling(struct TN_Sem * sem);
+enum TN_RCode tn_sem_ipolling(struct TN_Sem * sem);
 
 
 #endif // _TN_SEM_H

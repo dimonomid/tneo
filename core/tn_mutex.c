@@ -54,11 +54,11 @@
 #if TN_MUTEX_REC
 //-- recursive locking enabled
 #  define __mutex_lock_cnt_change(mutex, value)  { (mutex)->cnt += (value); }
-#  define __MUTEX_REC_LOCK_RETVAL   TERR_NO_ERR
+#  define __MUTEX_REC_LOCK_RETVAL   TN_RC_OK
 #else
 //-- recursive locking disabled
 #  define __mutex_lock_cnt_change(mutex, value)
-#  define __MUTEX_REC_LOCK_RETVAL   TERR_ILUSE
+#  define __MUTEX_REC_LOCK_RETVAL   TN_RC_ILLEGAL_USE
 #endif
 
 // L. Sha, R. Rajkumar, J. Lehoczky, Priority Inheritance Protocols: An Approach
@@ -468,7 +468,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       //   It's probably not so elegant, but I believe it is
       //   acceptable tradeoff in the name of efficiency.
       mutex->holder->priority_already_updated = TRUE;
-      _tn_task_wait_complete(task, TERR_NO_ERR);
+      _tn_task_wait_complete(task, TN_RC_OK);
       mutex->holder->priority_already_updated = FALSE;
 
       //-- lock mutex by it
@@ -485,21 +485,21 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
 //----------------------------------------------------------------------------
 //  Structure's Field mutex->id_mutex should be set to 0
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
+enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
                     int attribute,
                     int ceil_priority)
 {
 
 #if TN_CHECK_PARAM
    if(mutex == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(mutex->id_mutex != 0) //-- no recreation
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(attribute != TN_MUTEX_ATTR_CEILING && attribute != TN_MUTEX_ATTR_INHERIT)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(attribute == TN_MUTEX_ATTR_CEILING &&
          (ceil_priority < 1 || ceil_priority > TN_NUM_PRIORITY - 2))
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
 #endif
 
    tn_list_reset(&(mutex->wait_queue));
@@ -514,21 +514,21 @@ enum TN_Retval tn_mutex_create(struct TN_Mutex * mutex,
    mutex->cnt           = 0;
    mutex->id_mutex      = TN_ID_MUTEX;
 
-   return TERR_NO_ERR;
+   return TN_RC_OK;
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
+enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 {
    TN_INTSAVE_DATA;
 
-   enum TN_Retval ret = TERR_NO_ERR;
+   enum TN_RCode ret = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(mutex == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(mutex->id_mutex != TN_ID_MUTEX)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -537,7 +537,7 @@ enum TN_Retval tn_mutex_delete(struct TN_Mutex *mutex)
 
    //-- mutex can be deleted if only it isn't held 
    if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
-      ret = TERR_ILUSE;
+      ret = TN_RC_ILLEGAL_USE;
       goto out;
    }
 
@@ -569,20 +569,20 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
 
-   enum TN_Retval ret = TERR_NO_ERR;
+   enum TN_RCode ret = TN_RC_OK;
    BOOL waited_for_mutex = FALSE;
 
 #if TN_CHECK_PARAM
    if (mutex == NULL){
-      ret = TERR_WRONG_PARAM;
+      ret = TN_RC_WPARAM;
       goto out;
    }
    if (mutex->id_mutex != TN_ID_MUTEX){
-      ret = TERR_NOEXS;
+      ret = TN_RC_INVALID_OBJ;
       goto out;
    }
 #endif
@@ -606,7 +606,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
       )
    {
       //-- base priority of current task higher
-      ret = TERR_ILUSE;
+      ret = TN_RC_ILLEGAL_USE;
       goto out_ei;
    }
 
@@ -626,8 +626,8 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
    } else {
       //-- mutex is already locked
       if (timeout == 0){
-         //-- in polling mode, just return TERR_TIMEOUT
-         ret = TERR_TIMEOUT;
+         //-- in polling mode, just return TN_RC_TIMEOUT
+         ret = TN_RC_TIMEOUT;
          goto out_ei;
       } else {
          //-- timeout specified, so, wait until mutex is free or timeout expired
@@ -641,7 +641,7 @@ enum TN_Retval tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
    }
 
    //-- should never be here
-   ret = TERR_INTERNAL;
+   ret = TN_RC_INTERNAL;
    goto out;
 
 out:
@@ -667,25 +667,25 @@ out_ei:
 //----------------------------------------------------------------------------
 //  Try to lock mutex
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_lock_polling(struct TN_Mutex *mutex)
+enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex)
 {
    return tn_mutex_lock(mutex, 0);
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
+enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 {
-   enum TN_Retval ret = TERR_NO_ERR;
+   enum TN_RCode ret = TN_RC_OK;
 
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(mutex == NULL){
-      ret = TERR_WRONG_PARAM;
+      ret = TN_RC_WPARAM;
       goto out;
    }
    if(mutex->id_mutex != TN_ID_MUTEX){
-      ret = TERR_NOEXS;
+      ret = TN_RC_INVALID_OBJ;
       goto out;
    }
 #endif
@@ -696,7 +696,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
 
    //-- unlocking is enabled only for the owner and already locked mutex
    if (tn_curr_run_task != mutex->holder){
-      ret = TERR_ILUSE;
+      ret = TN_RC_ILLEGAL_USE;
       goto out_ei;
    }
 
@@ -704,7 +704,7 @@ enum TN_Retval tn_mutex_unlock(struct TN_Mutex *mutex)
 
    if (mutex->cnt > 0){
       //-- there was recursive lock, so here we just decremented counter, 
-      //   but don't unlock the mutex. TERR_NO_ERR will be returned.
+      //   but don't unlock the mutex. TN_RC_OK will be returned.
       goto out_ei;
    } else if (mutex->cnt < 0){
       //-- should never be here: lock count is negative.

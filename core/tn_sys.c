@@ -171,7 +171,7 @@ static inline void _wait_timeout_list_manage(void)
 
          if (task->tick_count == 0){
             //-- Timeout expired
-            _tn_task_wait_complete((struct TN_Task *)task, TERR_TIMEOUT);
+            _tn_task_wait_complete((struct TN_Task *)task, TN_RC_TIMEOUT);
          }
       }
    }
@@ -348,9 +348,9 @@ void tn_tick_int_processing(void)
 /*
  * See comments in the header file (tn_sys.h)
  */
-enum TN_Retval tn_sys_tslice_ticks(int priority, int value)
+enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
 {
-   int ret = TERR_NO_ERR;
+   int ret = TN_RC_OK;
 
    TN_INTSAVE_DATA;
    TN_CHECK_NON_INT_CONTEXT;
@@ -358,7 +358,7 @@ enum TN_Retval tn_sys_tslice_ticks(int priority, int value)
    if (     priority <= 0 || priority >= (TN_NUM_PRIORITY - 1)
          || value    <  0 || value    >   MAX_TIME_SLICE)
    {
-      ret = TERR_WRONG_PARAM;
+      ret = TN_RC_WPARAM;
       goto out;
    }
 
@@ -434,10 +434,10 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
-   //   and setting TERR_DLT as a wait return code.
+   //   and setting TN_RC_DELETED as a wait return code.
    tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
       //-- call _tn_task_wait_complete for every task
-      _tn_task_wait_complete(task, TERR_DLT);
+      _tn_task_wait_complete(task, TN_RC_DELETED);
    }
 
 #if TN_DEBUG

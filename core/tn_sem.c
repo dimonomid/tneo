@@ -50,23 +50,23 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline enum TN_Retval _sem_job_perform(
+static inline enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem),
       unsigned long timeout
       )
 {
    TN_INTSAVE_DATA;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
    BOOL waited_for_sem = FALSE;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -75,7 +75,7 @@ static inline enum TN_Retval _sem_job_perform(
 
    rc = p_worker(sem);
 
-   if (rc == TERR_TIMEOUT && timeout != 0){
+   if (rc == TN_RC_TIMEOUT && timeout != 0){
       _tn_task_curr_to_wait_action(&(sem->wait_queue), TN_WAIT_REASON_SEM, timeout);
 
       //-- rc will be set later thanks to waited_for_sem
@@ -97,21 +97,21 @@ static inline enum TN_Retval _sem_job_perform(
    return rc;
 }
 
-static inline enum TN_Retval _sem_job_iperform(
+static inline enum TN_RCode _sem_job_iperform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem)
       )
 {
    TN_INTSAVE_DATA_INT;
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(sem->max_count == 0)
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_INT_CONTEXT;
@@ -125,9 +125,9 @@ static inline enum TN_Retval _sem_job_iperform(
    return rc;
 }
 
-static inline enum TN_Retval _sem_signal(struct TN_Sem *sem)
+static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (!(tn_is_list_empty(&(sem->wait_queue)))){
       struct TN_Task *task;
@@ -138,28 +138,28 @@ static inline enum TN_Retval _sem_signal(struct TN_Sem *sem)
       task = tn_list_first_entry(&(sem->wait_queue), typeof(*task), task_queue);
 
       //-- wake it up
-      _tn_task_wait_complete(task, TERR_NO_ERR);
+      _tn_task_wait_complete(task, TN_RC_OK);
    } else {
       //-- no tasks are waiting for that semaphore,
       //   so, just increase its count if possible.
       if (sem->count < sem->max_count){
          sem->count++;
       } else {
-         rc = TERR_OVERFLOW;
+         rc = TN_RC_OVERFLOW;
       }
    }
 
    return rc;
 }
 
-static inline enum TN_Retval _sem_acquire(struct TN_Sem *sem)
+static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
 {
-   enum TN_Retval rc = TERR_NO_ERR;
+   enum TN_RCode rc = TN_RC_OK;
 
    if (sem->count >= 1){
       sem->count--;
    } else {
-      rc = TERR_TIMEOUT;
+      rc = TN_RC_TIMEOUT;
    }
 
    return rc;
@@ -176,19 +176,19 @@ static inline enum TN_Retval _sem_acquire(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 //   Structure's field sem->id_sem have to be set to 0
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_create(struct TN_Sem * sem,
+enum TN_RCode tn_sem_create(struct TN_Sem * sem,
                   int start_count,
                   int max_count)
 {
 
 #if TN_CHECK_PARAM
    if(sem == NULL) //-- Thanks to Michael Fisher
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    if(max_count <= 0 || start_count < 0 ||
          start_count > max_count || sem->id_sem != 0) //-- no recreation
    {
       sem->max_count = 0;
-      return  TERR_WRONG_PARAM;
+      return  TN_RC_WPARAM;
    }
 #endif
 
@@ -200,19 +200,19 @@ enum TN_Retval tn_sem_create(struct TN_Sem * sem,
    sem->max_count = max_count;
    sem->id_sem    = TN_ID_SEMAPHORE;
 
-   return TERR_NO_ERR;
+   return TN_RC_OK;
 }
 
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
+enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
-      return TERR_WRONG_PARAM;
+      return TN_RC_WPARAM;
    if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TERR_NOEXS;
+      return TN_RC_INVALID_OBJ;
 #endif
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -229,13 +229,13 @@ enum TN_Retval tn_sem_delete(struct TN_Sem * sem)
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return TERR_NO_ERR;
+   return TN_RC_OK;
 }
 
 //----------------------------------------------------------------------------
 //  Release Semaphore Resource
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_signal(struct TN_Sem *sem)
+enum TN_RCode tn_sem_signal(struct TN_Sem *sem)
 {
    return _sem_job_perform(sem, _sem_signal, 0);
 }
@@ -243,7 +243,7 @@ enum TN_Retval tn_sem_signal(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 // Release Semaphore Resource inside Interrupt
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_isignal(struct TN_Sem *sem)
+enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 {
    return _sem_job_iperform(sem, _sem_signal);
 }
@@ -251,7 +251,7 @@ enum TN_Retval tn_sem_isignal(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 //   Acquire Semaphore Resource
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
+enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
 {
    return _sem_job_perform(sem, _sem_acquire, timeout);
 }
@@ -259,7 +259,7 @@ enum TN_Retval tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
 //----------------------------------------------------------------------------
 //  Acquire(Polling) Semaphore Resource (do not call  in the interrupt)
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_polling(struct TN_Sem *sem)
 {
    return _sem_job_perform(sem, _sem_acquire, 0);
 }
@@ -267,7 +267,7 @@ enum TN_Retval tn_sem_polling(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 // Acquire(Polling) Semaphore Resource inside interrupt
 //----------------------------------------------------------------------------
-enum TN_Retval tn_sem_ipolling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_ipolling(struct TN_Sem *sem)
 {
    return _sem_job_iperform(sem, _sem_acquire);
 }

@@ -80,6 +80,19 @@ typedef struct TN_Sem         TN_SEM;
 #define  TSK_WAIT_REASON_MUTEX_I       TN_WAIT_REASON_MUTEX_I
 #define  TSK_WAIT_REASON_WFIXMEM       TN_WAIT_REASON_WFIXMEM
 
+
+#define  TERR_NO_ERR                   TN_RC_OK
+#define  TERR_OVERFLOW                 TN_RC_OVERFLOW
+#define  TERR_WCONTEXT                 TN_RC_WCONTEXT
+#define  TERR_WSTATE                   TN_RC_WSTATE
+#define  TERR_TIMEOUT                  TN_RC_TIMEOUT
+#define  TERR_WRONG_PARAM              TN_RC_WPARAM
+#define  TERR_ILUSE                    TN_RC_ILLEGAL_USE
+#define  TERR_NOEXS                    TN_RC_INVALID_OBJ
+#define  TERR_DLT                      TN_RC_DELETED
+#define  TERR_FORCED                   TN_RC_FORCED
+#define  TERR_INTERNAL                 TN_RC_INTERNAL
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
