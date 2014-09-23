@@ -56,21 +56,33 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * Events waiting mode: wait for all flags to be set or just for any of the 
+ * specified flags to be set.
+ */
 enum TN_EGrpWaitMode {
-   TN_EVENTGRP_WMODE_OR     = (1 << 0), //-- any set bit is enough for event
-   TN_EVENTGRP_WMODE_AND    = (1 << 1), //-- all bits should be set for event
+   /// any set flag is enough for releasing task from waiting
+   TN_EVENTGRP_WMODE_OR     = (1 << 0),
+   /// all flags must be set for releasing task from waiting
+   TN_EVENTGRP_WMODE_AND    = (1 << 1),
 };
 
+/**
+ * Modify operation: set, clear or toggle
+ */
 enum TN_EGrpOp {
-   TN_EVENTGRP_OP_SET,      //-- set flags that are set in pattern argument
-   TN_EVENTGRP_OP_CLEAR,    //-- clear flags that are set in pattern argument
-   TN_EVENTGRP_OP_TOGGLE,   //-- toggle flags that are set in pattern argument
+   TN_EVENTGRP_OP_SET,      //!< set flags that are set in pattern argument
+   TN_EVENTGRP_OP_CLEAR,    //!< clear flags that are set in pattern argument
+   TN_EVENTGRP_OP_TOGGLE,   //!< toggle flags that are set in pattern argument
 };
 
+/**
+ * Event group
+ */
 struct TN_EventGrp {
-   struct TN_ListItem   wait_queue; //-- task wait queue
-   unsigned int         pattern;    //-- current flags pattern
-   enum TN_ObjId        id_event;   //-- id for verification
+   struct TN_ListItem   wait_queue; //!< task wait queue
+   unsigned int         pattern;    //!< current flags pattern
+   enum TN_ObjId        id_event;   //!< id for object validity verification
 };
 
 /**
