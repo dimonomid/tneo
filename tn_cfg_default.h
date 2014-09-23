@@ -63,7 +63,17 @@
 #endif
 
 /**
- * Whenter mutexes API should be available
+ * Whether old TNKernel names (definitions, functions, etc) should be available.
+ * If you're porting your existing application written for TNKernel,
+ * it is definitely worth enabling.
+ * If you start new project with TNeoKernel, it's better to avoid old names.
+ */
+#ifndef TN_OLD_TNKERNEL_NAMES
+#  define TN_OLD_TNKERNEL_NAMES  1
+#endif
+
+/**
+ * Whether mutexes API should be available
  */
 #ifndef TN_USE_MUTEXES
 #  define TN_USE_MUTEXES         1

@@ -15,6 +15,16 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "tn_common.h"
+
+
+
+#ifndef TN_OLD_TNKERNEL_NAMES
+#  error TN_OLD_TNKERNEL_NAMES is not defined
+#endif
+
+#if TN_OLD_TNKERNEL_NAMES
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -104,6 +114,7 @@ typedef struct TN_Sem         TN_SEM;
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+#endif // TN_OLD_TNKERNEL_NAMES
 
 #endif // _TN_OLDSYMBOLS_H
 
