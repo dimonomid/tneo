@@ -63,9 +63,9 @@
  * Task state
  */
 enum TN_TaskState {
-   /// This state may be stored in task_state only temporarily,
+   /// This state should never be publicly available.
+   /// It may be stored in task_state only temporarily,
    /// while some system service is in progress.
-   /// It should never be publicly available.
    TN_TASK_STATE_NONE         = 0,
    ///
    /// Task is ready to run (it doesn't mean that it is running at the moment)
@@ -346,13 +346,13 @@ struct TN_Task {
  *    Priority for new task. NOTE: the lower value, the higher priority.  Must
  *    be > 0 and < `(TN_NUM_PRIORITY - 1)`.
  * @param task_stack_start    
- *    Task start pointer. A stack must be allocated as an array of `int`.
- *    Actually, the size of stack array element must be identical to the
- *    processor register size (for most 32-bits and 16-bits processors a
+ *    Pointer to the stack for task. A stack must be allocated as an array of
+ *    `int`.  Actually, the size of stack array element must be identical to
+ *    the processor register size (for most 32-bits and 16-bits processors a
  *    register size equals `sizeof(int)`).
  * @param task_stack_size 
- *    Size of task stack, in `int`-s, not in bytes. (i.e., size of array that is
- *    used for `task_stack_start`).
+ *    Size of task stack, in `int`-s, not in bytes. (i.e., size of array that
+ *    is used for `task_stack_start`).
  * @param param 
  *    Parameter that is passed to `task_func`.
  * @param opts 
@@ -372,30 +372,34 @@ enum TN_RCode tn_task_create(
 
 
 /**
- * If the task is runnable, it is moved to the SUSPENDED state. If the task
- * is in the WAITING state, it is moved to the WAITING­SUSPENDED state.
+ * If the task is runnable, it is moved to the `SUSPEND` state. If the task
+ * is in the `WAIT` state, it is moved to the `WAITSUSP` state.
+ * (waiting + suspended)
+ *
+ * @param task    Task to suspend
+ *
+ * @see enum TN_TaskState
  */
 enum TN_RCode tn_task_suspend(struct TN_Task *task);
 
 /**
- * Release task from SUSPENDED state. If the given task is in the SUSPENDED state,
- * it is moved to READY state; afterwards it has the lowest precedence amoung
- * runnable tasks with the same priority. If the task is in WAITING_SUSPENDED state,
- * it is moved to WAITING state.
+ * Release task from `SUSPEND` state. If the given task is in the `SUSPEND`
+ * state, it is moved to `RUNNABLE` state; afterwards it has the lowest
+ * precedence among runnable tasks with the same priority. If the task is in
+ * `WAITSUSP` state, it is moved to `WAIT` state.
+ *
+ * @param task    Task to release from suspended state
+ *
+ * @see enum TN_TaskState
  */
 enum TN_RCode tn_task_resume(struct TN_Task *task);
 
 /**
  * Put current task to sleep for at most timeout ticks. When the timeout
- * expires and the task was not suspended during the sleep, it is switched
- * to runnable state. If the timeout value is TN_WAIT_INFINITE and the task
- * was not suspended during the sleep, the task will sleep until another
- * function call (like tn_task_wakeup() or similar) will make it runnable.
- *
- * Each task has a wakeup request counter. If its value for currently
- * running task is greater then 0, the counter is decremented by 1 and the
- * currently running task is not switched to the sleeping mode and
- * continues execution.
+ * expires and the task was not suspended during the sleep, it is switched to
+ * runnable state. If the timeout value is `TN_WAIT_INFINITE` and the task was
+ * not suspended during the sleep, the task will sleep until another function
+ * call (like `tn_task_wakeup()` or similar) will make it runnable.
  */
 enum TN_RCode tn_task_sleep(unsigned long timeout);
 
