@@ -1,32 +1,45 @@
-/*
+/*******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation 
+ *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
+ *    as well as new features added, and it is tested carefully with unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
 
-  TNKernel real-time kernel
+/**
+ * \file
+ *
+ * Kernel system routines.
+ *   
+ */
 
-  Copyright © 2004, 2013 Yuri Tiomkin
-  PIC32 version modifications copyright © 2013 Anders Montonen
-  All rights reserved.
-
-  Permission to use, copy, modify, and distribute this software in source
-  and binary forms and its documentation for any purpose and without fee
-  is hereby granted, provided that the above copyright notice appear
-  in all copies and that both that copyright notice and this permission
-  notice appear in supporting documentation.
-
-  THIS SOFTWARE IS PROVIDED BY THE YURI TIOMKIN AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL YURI TIOMKIN OR CONTRIBUTORS BE LIABLE
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-  SUCH DAMAGE.
-
-*/
-
-  /* ver 2.7 */
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -39,46 +52,39 @@
 #include "tn_tasks.h"
 
 
-//  The System uses two levels of priorities for the own purpose:
-//
-//   - level 0                    (highest) for system timers task
-//   - level (TN_NUM_PRIORITY-1)  (lowest)  for system idle task
-
-
-
-
 
 
 /*******************************************************************************
  *    PUBLIC DATA
  ******************************************************************************/
 
-struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];        //-- all ready to run(RUNNABLE) tasks
-struct TN_ListItem tn_create_queue;                       //-- all created tasks
-volatile int tn_created_tasks_qty;                //-- num of created tasks
-struct TN_ListItem tn_wait_timeout_list;                  //-- all tasks that wait timeout expiration
+/*
+ * For comments on these variables, please see tn_internal.h file.
+ */
+struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];
+struct TN_ListItem tn_create_queue;
+volatile int tn_created_tasks_cnt;
+struct TN_ListItem tn_wait_timeout_list;
 
-unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];  //-- for round-robin only
+unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];
 
 volatile enum TN_StateFlag tn_sys_state;
 
-struct TN_Task * tn_next_task_to_run;                     //-- Task to be run after switch context
-struct TN_Task * tn_curr_run_task;                        //-- Task that is running now
+struct TN_Task * tn_next_task_to_run;
+struct TN_Task * tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
-volatile unsigned long tn_idle_count;
-volatile unsigned long tn_curr_performance;
 
 volatile unsigned int  tn_sys_time_count;
 
 volatile int tn_int_nest_count;
 
 #if TN_MUTEX_DEADLOCK_DETECT
-volatile int tn_deadlocks_cnt;   //-- Count of active deadlocks
+volatile int tn_deadlocks_cnt;
 #endif
 
-void * tn_user_sp;               //-- Saved task stack pointer
-void * tn_int_sp;                //-- Saved ISR stack pointer
+void * tn_user_sp;
+void * tn_int_sp;
 
 //-- System tasks
 
@@ -87,17 +93,21 @@ void * tn_int_sp;                //-- Saved ISR stack pointer
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
 
-/* Pointer to user callback app init function */
-TNApplInitCallback appl_init_callback = NULL;
+/** 
+ * Pointer to user callback app init function
+ */
+TNCallbackApplInit *tn_callback_appl_init = NULL;
 
-/* Pointer to user idle loop function         */
-TNIdleCallback idle_user_func_callback = NULL;
+/**
+ * Pointer to user idle loop function
+ */
+TNCallbackIdle *tn_callback_idle_hook = NULL;
 
-/*
+/**
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
  */
-TNCallbackDeadlock   tn_callback_deadlock = NULL;
+TNCallbackDeadlock  *tn_callback_deadlock = NULL;
 
 
 
@@ -115,11 +125,11 @@ static inline void _call_appl_callback(void)
 {
    //-- Make sure interrupts are disabled before calling application callback,
    //   so that this idle task is guaranteed to not be be preempted
-   //   until appl_init_callback() finished its job.
+   //   until tn_callback_appl_init() finished its job.
    tn_cpu_int_disable();
 
-   //-- User application init - user's objects initial (tasks etc.) creation
-   appl_init_callback();
+   //-- User application init - user's objects (tasks etc.) initial creation
+   tn_callback_appl_init();
 
    //-- Enable interrupt here ( including tick int)
    tn_cpu_int_enable();
@@ -131,24 +141,11 @@ static inline void _call_appl_callback(void)
 static void _idle_task_body(void *par)
 {
 
-#if TN_MEAS_PERFORMANCE
-   TN_INTSAVE_DATA;
-#endif
-
    _call_appl_callback();
 
    for(;;)
    {
-#if TN_MEAS_PERFORMANCE
-      tn_disable_interrupt();
-#endif
-
-      idle_user_func_callback();
-      tn_idle_count++;
-
-#if TN_MEAS_PERFORMANCE
-      tn_enable_interrupt();
-#endif
+      tn_callback_idle_hook();
    }
 }
 
@@ -185,8 +182,10 @@ static inline void _wait_timeout_list_manage(void)
  */
 static inline void _round_robin_manage(void)
 {
-   volatile struct TN_ListItem *curr_que;   //-- Need volatile here only to solve
-   volatile struct TN_ListItem *pri_queue;  //-- IAR(c) compiler's high optimization mode problem
+   //-- volatile is used here only to solve
+   //   IAR(c) compiler's high optimization mode problem
+   volatile struct TN_ListItem *curr_que;
+   volatile struct TN_ListItem *pri_queue;
    volatile int priority = tn_curr_run_task->priority;
 
    if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
@@ -197,12 +196,18 @@ static inline void _round_robin_manage(void)
 
          pri_queue = &(tn_ready_list[priority]);
          //-- If ready queue is not empty and qty  of queue's tasks > 1
-         if (!(tn_is_list_empty((struct TN_ListItem *)pri_queue)) && pri_queue->next->next != pri_queue){
+         if (     !(tn_is_list_empty((struct TN_ListItem *)pri_queue))
+               && pri_queue->next->next != pri_queue
+            )
+         {
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
             curr_que = tn_list_remove_head(&(tn_ready_list[priority]));
-            tn_list_add_tail(&(tn_ready_list[priority]),(struct TN_ListItem *)curr_que);
+            tn_list_add_tail(
+                  &(tn_ready_list[priority]),
+                  (struct TN_ListItem *)curr_que
+                  );
          }
       }
    }
@@ -216,12 +221,13 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
 {
    _tn_task_create(
-         (struct TN_Task*)&tn_idle_task,          //-- task TCB
+         (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_NUM_PRIORITY - 1,             //-- task priority
          &(idle_task_stack                //-- task stack first addr in memory
-            [idle_task_stack_size-1]),
-         idle_task_stack_size,            //-- task stack size (in int,not bytes)
+            [idle_task_stack_size - 1]),
+         idle_task_stack_size,            //-- task stack size
+                                          //   (in int, not bytes)
          NULL,                            //-- task function parameter
          (TN_TASK_IDLE)                   //-- Creation option
          );
@@ -243,17 +249,16 @@ static inline void _idle_task_to_runnable(void)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-/**
- * Main TNKernel function, never returns.
- * Typically called from main().
+/*
+ * See comments in the header file (tn_sys.h)
  */
 void tn_start_system(
-      unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
-      unsigned int   idle_task_stack_size,   //-- size of idle task stack
-      unsigned int  *int_stack,              //-- pointer to array for interrupt stack
-      unsigned int   int_stack_size,         //-- size of interrupt stack
-      TNApplInitCallback app_in_cb,          //-- callback function used for setup user tasks etc.
-      TNIdleCallback idle_user_cb            //-- callback function repeatedly called from idle task
+      unsigned int        *idle_task_stack,
+      unsigned int         idle_task_stack_size,
+      unsigned int        *int_stack,
+      unsigned int         int_stack_size,
+      TNCallbackApplInit  *cb_appl_init,
+      TNCallbackIdle      *cb_idle
       )
 {
    int i;
@@ -266,14 +271,11 @@ void tn_start_system(
    }
 
    tn_list_reset(&tn_create_queue);
-   tn_created_tasks_qty = 0;
+   tn_created_tasks_cnt = 0;
 
    tn_sys_state = (0);  //-- no flags set
 
    tn_ready_to_run_bmp = 0;
-
-   tn_idle_count       = 0;
-   tn_curr_performance = 0;
 
    tn_next_task_to_run = NULL;
    tn_curr_run_task    = NULL;
@@ -311,8 +313,8 @@ void tn_start_system(
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
    //-- remember user-provided callbacks
-   appl_init_callback          = app_in_cb;
-   idle_user_func_callback     = idle_user_cb;
+   tn_callback_appl_init          = cb_appl_init;
+   tn_callback_idle_hook     = cb_idle;
 
    //-- Run OS - first context switch
    tn_start_exe();
@@ -320,9 +322,8 @@ void tn_start_system(
 
 
 
-/**
- * Process system tick. Should be called periodically, typically
- * from some kind of timer ISR.
+/*
+ * See comments in the header file (tn_sys.h)
  */
 void tn_tick_int_processing(void)
 {
@@ -341,15 +342,11 @@ void tn_tick_int_processing(void)
    //-- increment system timer
    tn_sys_time_count++;
 
-   tn_ienable_interrupt();  //--  !!! thanks to Audrius Urmanavicius !!!
+   tn_ienable_interrupt();
 }
 
-/**
- * Set time slice ticks value for specified priority (round-robin scheduling).
- * 
- * @param priority   priority of tasks for which time slice value should be set
- * @param value      time slice value. Set to NO_TIME_SLICE for no round-robin
- *                   scheduling for given priority (it's default value).
+/*
+ * See comments in the header file (tn_sys.h)
  */
 enum TN_Retval tn_sys_tslice_ticks(int priority, int value)
 {
@@ -375,8 +372,8 @@ out:
    return ret;
 }
 
-/**
- * Get system ticks count.
+/*
+ * See comments in the header file (tn_sys.h)
  */
 unsigned int tn_sys_time_get(void)
 {
@@ -384,13 +381,8 @@ unsigned int tn_sys_time_get(void)
    return tn_sys_time_count;
 }
 
-/**
- * Set system ticks count. Note that this value does NOT affect
- * any of the internal TNKernel routines, it is just incremented
- * each system tick (i.e. in tn_tick_int_processing())
- * and is returned by tn_sys_time_get().
- *
- * It is not used by TNKernel itself at all.
+/*
+ * See comments in the header file (tn_sys.h)
  */
 void tn_sys_time_set(unsigned int value)
 {
@@ -419,7 +411,7 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
 /**
  * See comment in tn_sys.h file
  */
-void tn_callback_deadlock_set(TNCallbackDeadlock cb)
+void tn_callback_deadlock_set(TNCallbackDeadlock *cb)
 {
    tn_callback_deadlock = cb;
 }

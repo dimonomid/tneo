@@ -1,32 +1,141 @@
-/*
+/*******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation 
+ *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
+ *    as well as new features added, and it is tested carefully with unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
 
-  TNKernel real-time kernel
-
-  Copyright © 2004, 2013 Yuri Tiomkin
-  PIC32 version modifications copyright © 2013 Anders Montonen
-  All rights reserved.
-
-  Permission to use, copy, modify, and distribute this software in source
-  and binary forms and its documentation for any purpose and without fee
-  is hereby granted, provided that the above copyright notice appear
-  in all copies and that both that copyright notice and this permission
-  notice appear in supporting documentation.
-
-  THIS SOFTWARE IS PROVIDED BY THE YURI TIOMKIN AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL YURI TIOMKIN OR CONTRIBUTORS BE LIABLE
-  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-  SUCH DAMAGE.
-
-*/
-
-/* ver 2.7 */
+/**
+ * \file
+ *
+ * Kernel system routines: system start, tick processing, time slice managing.
+ *
+ * ## Time ticks
+ *
+ * For the purpose of calculating timeouts, the kernel uses a time tick timer.
+ * In TNeoKernel, this time tick timer must to be a some kind of hardware timer
+ * that produces interrupt for time ticks processing. The period of this timer
+ * is determined by user (typically 1 ms, but user is free to set different
+ * value).  Within the time ticks interrupt processing, it is only necessary to
+ * call the `tn_tick_int_processing()` function:
+ *
+ *     //-- example for PIC32, hardware timer 5 interrupt:
+ *     tn_soft_isr(_TIMER_5_VECTOR)
+ *     {
+ *        INTClearFlag(INT_T5);
+ *        tn_tick_int_processing();
+ *     }
+ *
+ * Notice the `tn_soft_isr()` ISR wrapper macro we've used here.
+ *
+ * ## Round-robin scheduling
+ *
+ * TNKernel has the ability to make round robin scheduling for tasks with
+ * identical priority.  By default, round robin scheduling is turned off for
+ * all priorities. To enable round robin scheduling for tasks on certain
+ * priority level and to set time slices for these priority, user must call the
+ * `tn_sys_tslice_ticks()` function.  The time slice value is the same for all
+ * tasks with identical priority but may be different for each priority level.
+ * If the round robin scheduling is enabled, every system time tick interrupt
+ * increments the currently running task time slice counter. When the time
+ * slice interval is completed, the task is placed at the tail of the ready to
+ * run queue of its priority level (this queue contains tasks in the
+ * `TSK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then the
+ * task may be preempted by tasks of higher or equal priority.
+ *
+ * In most cases, there is no reason to enable round robin scheduling. For
+ * applications running multiple copies of the same code, however, (GUI
+ * windows, etc), round robin scheduling is an acceptable solution.
+ *
+ * ## Starting the kernel
+ *
+ * In TNeoKernel, `main()` function should look like the following:
+ *
+ *
+ *     #define SYS_FREQ 80000000UL
+ *
+ *     //-- idle task stack size, in words
+ *     #define IDLE_TASK_STACK_SIZE          64
+ *
+ *     //-- interrupt stack size, in words
+ *     #define INTERRUPT_STACK_SIZE          128
+ *
+ *     //-- allocate arrays for idle task and interrupt statically
+ *     unsigned int idle_task_stack[ IDLE_TASK_STACK_SIZE ];
+ *     unsigned int interrupt_stack[ INTERRUPT_STACK_SIZE ];
+ *
+ *     static void _appl_init(void)
+ *     {
+ *        //-- initialize system timer, initialize and enable its interrupt
+ *        //   NOTE: ISR won't be called until _appl_init() returns because
+ *        //   interrupts are now disabled globally by idle task.
+ *        //   TODO
+ *
+ *        //-- initialize user task(s) and probably other kernel objects
+ *        my_tasks_create();
+ *     }
+ *
+ *     static void _idle_task_callback(void)
+ *     {
+ *        //-- do nothing here
+ *     }
+ *
+ *     int main(void)
+ *     {
+ *        
+ *        //-- some essential CPU initialization:
+ *        //   say, for PIC32, it might be something like:
+ *        SYSTEMConfig(SYS_FREQ, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE)
+ *
+ *        //-- NOTE: at this point, no interrupts were set up,
+ *        //   this is important. All interrupts should be set up in 
+ *        //   _appl_init() that is called from idle task, or later from 
+ *        //   other user tasks.
+ *
+ *        //-- call to tn_start_system() never returns
+ *        tn_start_system(
+ *           idle_task_stack,
+ *           IDLE_TASK_STACK_SIZE,
+ *           interrupt_stack,
+ *           INTERRUPT_STACK_SIZE,
+ *           _appl_init,
+ *           _idle_task_callback
+ *           );
+ *
+ *        //-- unreachable
+ *        return 0;
+ *     }
+ *
+ *   
+ */
 
 #ifndef _TN_SYS_H
 #define _TN_SYS_H
@@ -40,11 +149,12 @@
 #include "tn_list.h"
 #include "tn_port.h"
 
-//-- Thanks to megajohn from electronix.ru - for IAR Embedded C++ compatibility
+
+
+
 #ifdef __cplusplus
 extern "C"  {  /*}*/
 #endif
-
 
 /*******************************************************************************
  *    EXTERNAL TYPES
@@ -59,56 +169,72 @@ struct TN_Mutex;
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * System state flags
+ */
 enum TN_StateFlag {
-   TN_STATE_FLAG__SYS_RUNNING    = (1 << 0), //-- system is running
-   TN_STATE_FLAG__DEADLOCK       = (1 << 1), //-- deadlock is active
+   ///
+   /// system is running
+   TN_STATE_FLAG__SYS_RUNNING    = (1 << 0),
+   ///
+   /// deadlock is active
+   /// Note: this feature works if only `TN_MUTEX_DEADLOCK_DETECT` is non-zero.
+   /// @see `TN_MUTEX_DEADLOCK_DETECT`
+   TN_STATE_FLAG__DEADLOCK       = (1 << 1),
 };
 
-typedef void (*TNApplInitCallback)(void);
-typedef void (*TNIdleCallback)(void);
+/**
+ * User-provided callback function that is called once from idle task when
+ * system is just started.  User must initialize *system timer* here. (*system
+ * timer* is some kind of hardware timer whose ISR calls
+ * `tn_tick_int_processing()`) User may want to initialize other tasks and
+ * kernel objects in this function. Make sure that idle task has enough stack
+ * space to call this function (array for idle task stack is given to
+ * tn_start_system()).
+ *
+ * **Note:** this function is called with interrupts disabled, in order to
+ * guarantee that idle task won't be preempted by any other task until callback
+ * function finishes its job. User should not enable interrupts there: they are
+ * enabled by idle task when callback function returns.
+ *
+ * @see `tn_start_system()`
+ */
+typedef void (TNCallbackApplInit)(void);
+
+/**
+ * User-provided callback function that is called repeatedly from the idle task 
+ * loop. Make sure that idle task has enough stack space to call this function.
+ *
+ * **This function should not sleep**, because idle task should always 
+ * be runnable, by design. Sleeping in this function leads to instable system.
+ *
+ *
+ * @see `tn_start_system()`
+ */
+typedef void (TNCallbackIdle)(void);
 
 /**
  * User-provided callback function that is called whenever 
  * deadlock becomes active or inactive.
+ * Note: this feature works if only `TN_MUTEX_DEADLOCK_DETECT` is non-zero.
  *
- * @param active  if TRUE, deadlock becomes active, otherwise it becomes inactive
- *                (say, if task stopped waiting for mutex because of timeout)
- * @param mutex   mutex that is involved in deadlock. You may find out other mutexes
- *                involved by means of mutex->deadlock_list.
- * @param task    task that is involved in deadlock. You may find out other tasks
- *                involved by means of task->deadlock_list.
+ * @param active  if `TRUE`, deadlock becomes active, otherwise it becomes
+ *                inactive (say, if task stopped waiting for mutex 
+ *                because of timeout)
+ * @param mutex   mutex that is involved in deadlock. You may find out other
+ *                mutexes involved by means of `mutex->deadlock_list`.
+ * @param task    task that is involved in deadlock. You may find out other 
+ *                tasks involved by means of `task->deadlock_list`.
+ *
+ * @see `TN_MUTEX_DEADLOCK_DETECT`
  */
-typedef void (*TNCallbackDeadlock)(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
+typedef void (TNCallbackDeadlock)(
+      BOOL active,
+      struct TN_Mutex *mutex,
+      struct TN_Task *task
+      );
 
 
-
-
-
-/*******************************************************************************
- *    GLOBAL VARIABLES
- ******************************************************************************/
-
-extern struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];   //-- all ready to run(RUNNABLE) tasks
-extern struct TN_ListItem tn_create_queue;                  //-- all created tasks(now - for statictic only)
-extern volatile int tn_created_tasks_qty;           //-- num of created tasks
-extern struct TN_ListItem tn_wait_timeout_list;             //-- all tasks that wait timeout expiration
-
-
-extern volatile enum TN_StateFlag tn_sys_state;
-
-extern struct TN_Task * tn_curr_run_task;       //-- Task that  run now
-extern struct TN_Task * tn_next_task_to_run;    //-- Task to be run after switch context
-
-extern volatile unsigned int tn_ready_to_run_bmp;
-extern volatile unsigned long tn_idle_count;
-extern volatile unsigned long tn_curr_performance;
-
-extern volatile unsigned int  tn_sys_time_count;
-
-extern volatile int tn_int_nest_count;
-
-extern void * tn_user_sp;               //-- Saved task stack pointer
-extern void * tn_int_sp;                //-- Saved ISR stack pointer
 
 
 
@@ -116,33 +242,82 @@ extern void * tn_int_sp;                //-- Saved ISR stack pointer
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+/**
+ * Initial TNeoKernel system start function, never returns.
+ * Typically called from main().
+ * See the section '**Starting the kernel**' above for the usage example and
+ * additional comments.
+ *
+ * @param   idle_task_stack      pointer to array for idle task stack. User must
+ *                               allocate it as an array of `unsigned int`.
+ * @param   idle_task_stack_size size of idle task stack, in `int`s.
+ * @param   int_stack            pointer to array for interrupt stack. User must
+ *                               allocate it as an array of `unsigned int`.
+ * @param   int_stack_size       size of interrupt stack, in `int`s.
+ * @param   cb_appl_init         callback function used for setup user tasks,
+ *                               etc. Called from idle task, so, make sure
+ *                               idle task has enough stack space for it.
+ * @param   cb_idle              callback function repeatedly called 
+ *                               from idle task.
+ */
 void tn_start_system(
-      unsigned int  *idle_task_stack,        //-- pointer to array for idle task stack
-      unsigned int   idle_task_stack_size,   //-- size of idle task stack
-      unsigned int  *int_stack,              //-- pointer to array for interrupt stack
-      unsigned int   int_stack_size,         //-- size of interrupt stack
-      void          (*app_in_cb)(void),      //-- callback function used for setup user tasks etc.
-      void          (*idle_user_cb)(void)    //-- callback function repeatedly called from idle task
+      unsigned int        *idle_task_stack,
+      unsigned int         idle_task_stack_size,
+      unsigned int        *int_stack,
+      unsigned int         int_stack_size,
+      TNCallbackApplInit  *cb_appl_init,
+      TNCallbackIdle      *cb_idle
       );
+
+/**
+ * Process system tick; should be called periodically, typically
+ * from some kind of timer ISR.
+ *
+ * The period of this timer is determined by user 
+ * (typically 1 ms, but user is free to set different value)
+ */
 void tn_tick_int_processing(void);
+
+/**
+ * Set time slice ticks value for specified priority (round-robin scheduling).
+ * 
+ * @param priority   priority of tasks for which time slice value should be set
+ * @param value      time slice value. Set to `NO_TIME_SLICE` for no round-robin
+ *                   scheduling for given priority (it's default value).
+ */
 enum TN_Retval tn_sys_tslice_ticks(int priority, int value);
+
+/**
+ * Get current system ticks count.
+ */
 unsigned int tn_sys_time_get(void);
+
+/**
+ * Set system ticks count. Note that this value does **not** affect any of the
+ * internal TNeoKernel routines, it is just incremented each system tick (i.e.
+ * in `tn_tick_int_processing()`) and is returned to user by
+ * `tn_sys_time_get()`.
+ *
+ * It is not used by TNeoKernel itself at all.
+ */
 void tn_sys_time_set(unsigned int value);
 
 
 /**
- * Set callback function that should be called whenever
- * deadlock occurs or becomes inactive
- * (say, if one of tasks stopped waiting because of timeout)
+ * Set callback function that should be called whenever deadlock occurs or
+ * becomes inactive (say, if one of tasks involved in the deadlock was released
+ * from wait because of timeout)
  *
- * Should be called before tn_start_system()
  *
- * @see TNCallbackDeadlock for callback function prototype
+ * **Note:** this function should be called before `tn_start_system()`
+ *
+ * @see `TN_MUTEX_DEADLOCK_DETECT`
+ * @see `TNCallbackDeadlock` for callback function prototype
  */
-void tn_callback_deadlock_set(TNCallbackDeadlock cb);
+void tn_callback_deadlock_set(TNCallbackDeadlock *cb);
 
 /**
- * Returns current state flags
+ * Returns current system state flags
  */
 enum TN_StateFlag tn_sys_state_flags_get(void);
 
@@ -152,3 +327,4 @@ enum TN_StateFlag tn_sys_state_flags_get(void);
 #endif
 
 #endif   // _TN_SYS_H
+

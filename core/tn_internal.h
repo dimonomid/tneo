@@ -1,8 +1,44 @@
-
 /*******************************************************************************
- *    Internal TNKernel header
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation 
+ *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
+ *    as well as new features added, and it is tested carefully with unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
  *
  ******************************************************************************/
+
+/**
+ * \file
+ * 
+ *    Internal TNeoKernel header
+ *
+ */
 
 
 #ifndef _TN_INTERNAL_H
@@ -25,7 +61,59 @@ struct TN_ListItem;
 
 
 /*******************************************************************************
- *    INTERNAL TNKERNEL TYPES
+ *    GLOBAL VARIABLES
+ ******************************************************************************/
+
+/// list of all ready to run (TSK_STATE_RUNNABLE) tasks
+extern struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];
+
+/// list all created tasks (now it is used for statictic only)
+extern struct TN_ListItem tn_create_queue;
+
+/// count of created tasks
+extern volatile int tn_created_tasks_cnt;           
+
+/// list of all tasks that wait timeout expiration
+extern struct TN_ListItem tn_wait_timeout_list;             
+
+/// system state flags
+extern volatile enum TN_StateFlag tn_sys_state;
+
+/// task that runs now
+extern struct TN_Task * tn_curr_run_task;
+
+/// task that should run as soon as possible (after context switch)
+extern struct TN_Task * tn_next_task_to_run;
+
+/// bitmask of priorities with runnable tasks.
+/// lowest priority bit (1 << (TN_NUM_PRIORITY - 1)) should always be set,
+/// since this priority is used by idle task and it is always runnable.
+extern volatile unsigned int tn_ready_to_run_bmp;
+
+/// system time that is get/set by `tn_sys_time_get()`/`tn_sys_time_set()`,
+/// respectively.
+///
+/// NOTE that these and only these TNeoKernel functions use this counter,
+/// it is not used for internal timeout calculation, or anything.
+/// Its usage completely depends on user.
+extern volatile unsigned int tn_sys_time_count;
+
+/// current interrupt nesting count. Used by macros
+/// `tn_soft_isr()` and `tn_srs_isr()`.
+extern volatile int tn_int_nest_count;
+
+/// saved task stack pointer. Needed when switching stack pointer from 
+/// task stack to interrupt stack.
+extern void *tn_user_sp;
+
+/// saved ISR stack pointer. Needed when switching stack pointer from
+/// interrupt stack to task stack.
+extern void *tn_int_sp;
+
+
+
+/*******************************************************************************
+ *    INTERNAL KERNEL TYPES
  ******************************************************************************/
 
 /* none yet */

@@ -584,7 +584,7 @@ void tn_task_exit(int attr)
       // V 2.6 Thanks to Alex Borisov
       if (attr == TN_EXIT_AND_DELETE_TASK){
          tn_list_remove_entry(&(task->create_queue));
-         tn_created_tasks_qty--;
+         tn_created_tasks_cnt--;
          task->id_task = 0;
       }
 
@@ -676,7 +676,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
       rc = TERR_WSTATE;
    } else {
       tn_list_remove_entry(&(task->create_queue));
-      tn_created_tasks_qty--;
+      tn_created_tasks_cnt--;
       task->id_task = 0;
    }
 
@@ -801,7 +801,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    //-- Add task to created task queue
 
    tn_list_add_tail(&tn_create_queue,&(task->create_queue));
-   tn_created_tasks_qty++;
+   tn_created_tasks_cnt++;
 
    if ((option & TN_TASK_START_ON_CREATION) != 0){
       _tn_task_clear_dormant(task);
