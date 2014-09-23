@@ -344,14 +344,15 @@ static void _task_terminate(struct TN_Task *task)
 /**
  * Create task. See comments in tn_tasks.h file.
  */
-enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TCB
-                 void (*task_func)(void *param),  //-- task function
-                 int priority,                    //-- task priority
-                 unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
-                 int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
-                 void *param,                     //-- task function parameter
-                 enum TN_TaskCreateOpt opts       //-- creation options
-                 )                      
+enum TN_RCode tn_task_create(
+      struct TN_Task         *task,
+      TN_TaskBody            *task_func,
+      int                     priority,
+      unsigned int           *task_stack_start,
+      int                     task_stack_size,
+      void                   *param,
+      enum TN_TaskCreateOpt   opts
+      )
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
@@ -362,6 +363,9 @@ enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TC
    //-- Lightweight checking of system tasks recreation
    if (0
          || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
+         || (priority == 0)   //-- there's no more timer task in the kernel,
+                              //   but for a kind of compatibility
+                              //   it's better to disallow tasks with priority 0
       )
    {
       return TN_RC_WPARAM;
@@ -373,7 +377,7 @@ enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TC
          || task_func == NULL
          || task == NULL
          || task_stack_start == NULL
-         || task->id_task != 0      //-- task recreation
+         || task->id_task == TN_ID_TASK
       )
    {
       return TN_RC_WPARAM;
@@ -389,7 +393,7 @@ enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TC
 
    //--- Init task TCB
 
-   task->task_func_addr  = (void*)task_func;
+   task->task_func_addr  = task_func;
    task->task_func_param = param;
    task->stk_start       = _stk_bottom_get(task_stack_start, task_stack_size);                //-- Base address of task stack space
    task->stk_size        = task_stack_size;                  //-- Task stack size (in bytes)

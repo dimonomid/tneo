@@ -134,7 +134,7 @@ enum TN_WaitReason {
 enum TN_TaskCreateOpt {
    ///
    /// whether task should be activated right after it is created.
-   /// If this flag is not set, user must activate it manually by calling
+   /// If this flag is not set, user must activate task manually by calling
    /// `tn_task_activate()`.
    TN_TASK_CREATE_OPT_START = (1 << 0),
    ///
@@ -154,6 +154,12 @@ enum TN_TaskExitOpt {
    /// `tn_task_activate()`.
    TN_TASK_EXIT_OPT_DELETE = (1 << 0),
 };
+
+/**
+ * Prototype for task body function.
+ */
+typedef void (TN_TaskBody)(void *param);
+
 
 /**
  * Task
@@ -200,7 +206,7 @@ struct TN_Task {
    int stk_size;
    ///
    /// pointer to task's body function given to `tn_task_create()`
-   void *task_func_addr;
+   TN_TaskBody *task_func_addr;
    ///
    /// pointer to task's parameter given to `tn_task_create()`
    void *task_func_param;
@@ -262,7 +268,6 @@ struct TN_Task {
 
 
 
-
 /*******************************************************************************
  *    GLOBAL VARIABLES
  ******************************************************************************/
@@ -289,50 +294,81 @@ struct TN_Task {
  ******************************************************************************/
 
 /**
- * Create task.
+ * Construct task and probably start it (depends on options, see below).
+ * `id_task` member should not contain `TN_ID_TASK`, otherwise, `TN_RC_WPARAM`
+ * is returned.
  *
- * This function creates a task. A field id_task of the structure task must be set to 0 before invoking this
- * function. A memory for the task TCB and a task stack must be allocated before the function call. An
- * allocation may be static (global variables of the struct TN_Task type for the task and
- * unsigned int [task_stack_size] for the task stack) or dynamic, if the user application supports
- * malloc/alloc (TNKernel itself does not use dynamic memory allocation).
- * The task_stack_size value must to be chosen big enough to fit the task_func local variables and its switch
- * context (processor registers, stack and instruction pointers, etc.).
- * The task stack must to be created as an array of unsigned int. Actually, the size of stack array element
- * must be identical to the processor register size (for most 32-bits and 16-bits processors a register size
- * equals sizeof(int)).
- * A parameter task_stack_start must point to the stack bottom. For instance, if the processor stack grows
- * from the high to the low memory addresses and the task stack array is defined as
- * unsigned int xxx_xxx[task_stack_size] (in C-language notation),
- * then the task_stack_start parameter has to be &xxx_xxx[task_stack_size - 1].
+ * Usage example:
  *
- * @param task       Ready-allocated struct TN_Task structure. A field id_task of it must be 
- *                   set to 0 before invocation of tn_task_create().
- * @param task_func  Task body function.
- * @param priority   Priority for new task. NOTE: the lower value, the higher priority.
- *                   Must be > 0 and < (TN_NUM_PRIORITY - 1).
- * @param task_stack_start    Task start pointer.
- *                            A task must be created as an array of int. Actually, the size
- *                            of stack array element must be identical to the processor 
- *                            register size (for most 32-bits and 16-bits processors
- *                            a register size equals sizeof(int)).
- *                            NOTE: See option TN_API_TASK_CREATE for further details.
- * @param task_stack_size     Size of task stack
- *                            (actually, size of array that is used for task_stack_start).
- * @param            Parameter that is passed to task_func.
- * @option           (0): task is created in DORMANT state,
- *                        you need to call tn_task_activate() after task creation.
- *                   (TN_TASK_START_ON_CREATION): task is created and activated.
- *                   
+ *     #define MY_TASK_STACK_SIZE   256
+ *     #define MY_TASK_PRIORITY     5
+ *
+ *     struct TN_Task my_task;
+ *     int my_task_stack[ MY_TASK_STACK_SIZE ];
+ *
+ *     void my_task_body(void *param)
+ *     {
+ *        //-- an endless loop
+ *        for (;;){
+ *           tn_task_sleep(1);
+ *
+ *           //-- probably do something useful
+ *        }
+ *     }
+ *
+ *
+ *
+ *     // ... and then, somewhere from other task:
+ *     void some_different_task_body(void *param)
+ *     {
+ *        // ........
+ *        enum TN_RCode rc = tn_task_create(
+ *              &my_task,
+ *              my_task_body,
+ *              MY_TASK_PRIORITY,
+ *              my_task_stack,
+ *              MY_TASK_STACK_SIZE,
+ *              NULL,                     //-- parameter isn't used
+ *              TN_TASK_CREATE_OPT_START  //-- start task on creation
+ *              );
+ *        if (rc != TN_RC_OK){
+ *           //-- handle error
+ *        }
+ *        // ........
+ *     }
+ *
+ * @param task 
+ *    Ready-allocated struct TN_Task structure. `id_task` member should not
+ *    contain `TN_ID_TASK`, otherwise `TN_RC_WPARAM` is returned.
+ * @param task_func  
+ *    Pointer to task body function.
+ * @param priority 
+ *    Priority for new task. NOTE: the lower value, the higher priority.  Must
+ *    be > 0 and < `(TN_NUM_PRIORITY - 1)`.
+ * @param task_stack_start    
+ *    Task start pointer. A stack must be allocated as an array of `int`.
+ *    Actually, the size of stack array element must be identical to the
+ *    processor register size (for most 32-bits and 16-bits processors a
+ *    register size equals `sizeof(int)`).
+ * @param task_stack_size 
+ *    Size of task stack, in `int`-s, not in bytes. (i.e., size of array that is
+ *    used for `task_stack_start`).
+ * @param param 
+ *    Parameter that is passed to `task_func`.
+ * @param opts 
+ *    Options for task creation
+ *
+ * @see `enum TN_TaskCreateOpt`
  */
-enum TN_RCode tn_task_create(struct TN_Task *task,                  //-- task TCB
-                 void (*task_func)(void *param),  //-- task function
-                 int priority,                    //-- task priority
-                 unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
-                 int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
-                 void *param,                     //-- task function parameter
-                 enum TN_TaskCreateOpt opts       //-- creation options
-                 );
+enum TN_RCode tn_task_create(
+      struct TN_Task         *task,
+      TN_TaskBody            *task_func,
+      int                     priority,
+      unsigned int           *task_stack_start,
+      int                     task_stack_size,
+      void                   *param,
+      enum TN_TaskCreateOpt   opts
+      );
 
 
 /**
