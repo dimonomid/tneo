@@ -37,7 +37,7 @@
  * \file
  *
  * A data queue is a FIFO that stores pointer (of type `void *`) in each cell,
- * called (in μITRON style) a data element. A data queue also has an associated
+ * called (in uITRON style) a data element. A data queue also has an associated
  * wait queue each for sending (`wait_send` queue) and for receiving
  * (`wait_receive` queue).  A task that sends a data element tries to put the
  * data element into the FIFO. If there is no space left in the FIFO, the task

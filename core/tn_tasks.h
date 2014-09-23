@@ -411,43 +411,57 @@ enum TN_RCode tn_task_sleep(unsigned long timeout);
  * without errors.
  */
 enum TN_RCode tn_task_wakeup(struct TN_Task *task);
+
+/**
+ * The same as `tn_task_wakeup()` but for using in the ISR.
+ */
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
 /**
- * Activate task that was created by tn_task_create() without TN_TASK_START_ON_CREATION
- * option.
+ * Activate task that was created by `tn_task_create()` without
+ * `TN_TASK_START_ON_CREATION` option.
  *
- * Task is moved from DORMANT state to the READY state.
+ * Task is moved from `DORMANT` state to the `RUNNABLE` state.
+ *
+ * @see TN_TaskState
  */
 enum TN_RCode tn_task_activate(struct TN_Task *task);
+
+/**
+ * The same as `tn_task_activate()` but for using in the ISR.
+ */
 enum TN_RCode tn_task_iactivate(struct TN_Task *task);
 
 /**
- * Release task from WAIT state.
+ * Release task from `WAIT` state, independently of the reason of waiting.
  *
- * These functions forcibly release task from any waiting state.
- * If task is in WAITING state, it is moved to READY state.
- * If task is in WAITING_SUSPENDED state, it is moved to SUSPENDED state.
+ * If task is in `WAITING` state, it is moved to `RUNNABLE` state.
+ * If task is in `WAITSUSP` state, it is moved to `SUSPEND` state.
+ *
+ * `TERR_FORCED` is returned to the waiting task.
+ *
+ * @see TN_TaskState
  */
 enum TN_RCode tn_task_release_wait(struct TN_Task *task);
+
+/**
+ * The same as `tn_task_release_wait()` but for using in the ISR.
+ */
 enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
 
 /**
- * This function terminates the currently running task. The task is moved to the DORMANT state.
- * If activate requests exist (activation request count is 1) the count 
- * is decremented and the task is moved to the READY state.
- * In this case the task starts execution from the beginning (as after creation and activation),
- * all mutexes locked by the task are unlocked etc.
- * The task will have the lowest precedence among all tasks with the same priority in the READY state.
+ * This function terminates the currently running task. The task is moved to
+ * the `DORMANT` state.
  *
- * After exiting, the task may be reactivated by the tn_task_iactivate()
- * function or the tn_task_activate() function call.
- * In this case task starts execution from beginning (as after creation/activation).
- * The task will have the lowest precedence among all tasks with the same
- * priority in the READY state.
+ * After exiting, the task may be either deleted by the `tn_task_delete()`
+ * function call or reactivated by the `tn_task_activate()` /
+ * `tn_task_iactivate()` function call. In this case task starts execution from
+ * beginning (as after creation/activation).  The task will have the lowest
+ * precedence among all tasks with the same priority in the `RUNNABLE` state.
  *
- * If this function is invoked with TN_TASK_EXIT_OPT_DELETE parameter value, the task will be deleted
- * after termination and cannot be reactivated (needs recreation).
+ * If this function is invoked with `TN_TASK_EXIT_OPT_DELETE` option set,
+ * the task will be deleted after termination and cannot be reactivated (needs
+ * recreation).
  * 
  * This function cannot be invoked from interrupts.
  */
@@ -455,34 +469,26 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
 
 
 /**
- * This function terminates the task specified by the task. The task is moved to the `DORMANT` state.
- * When the task is waiting in a wait queue, the task is removed from the queue.
- * If activate requests exist (activation request count is 1) the count 
- * is decremented and the task is moved to the READY state.
- * In this case the task starts execution from beginning (as after creation and activation), all
- * mutexes locked by the task are unlocked etc.
- * The task will have the lowest precedence among all tasks with the same priority in the READY state.
+ * This function is similar to `tn_task_exit()` but it terminates any task
+ * other than currently running one.
  *
- * After termination, the task may be reactivated by the tn_task_iactivate()
- * function or the tn_task_activate() function call.
- * In this case the task starts execution from the beginning (as after creation/activation).
- * The task will have the lowest precedence among all tasks with the same
- * priority in the READY state.
+ * After exiting, the task may be either deleted by the `tn_task_delete()`
+ * function call or reactivated by the `tn_task_activate()` /
+ * `tn_task_iactivate()` function call. In this case task starts execution from
+ * beginning (as after creation/activation).  The task will have the lowest
+ * precedence among all tasks with the same priority in the `RUNNABLE` state.
  *
- * A task must not terminate itself by this function (use the tn_task_exit() function instead).
- * This function cannot be used in interrupts.
- *
- * @see enum TN_TaskState
+ * After task is terminated, 
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task);
 
 /**
- * This function deletes the task specified by the task. The task must be in the `DORMANT` state,
- * otherwise TN_RC_WCONTEXT will be returned.
+ * This function deletes the task specified by the task. The task must be in
+ * the `DORMANT` state, otherwise `TN_RC_WCONTEXT` will be returned.
  *
- * This function resets the id_task field in the task structure to 0
- * and removes the task from the system tasks list.
- * The task can not be reactivated after this function call (the task must be recreated).
+ * This function resets the `id_task` field in the task structure to 0 and
+ * removes the task from the system tasks list. The task can not be
+ * reactivated after this function call (the task must be recreated).
  *
  * This function cannot be invoked from interrupts.
  */

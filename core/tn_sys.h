@@ -77,6 +77,37 @@
  *
  * ## Starting the kernel
  *
+ * ### Quick guide on startup process
+ *
+ * * You allocate arrays for idle task stack and interrupt stack. Typically,
+ *   these are just static arrays of `int`.
+ * * You provide callback function like `void appl_init(void) { ... }`, in which
+ *   all the peripheral and interrupts should be initialized. Note that
+ *   this function runs with interrupts disabled, in order to make sure nobody 
+ *   will preempt idle task until `appl_init` gets its job done.
+ *   You shouldn't enable them.
+ * * You provide idle callback function to be called periodically from 
+ *   idle task. It's quite fine to leave it empty.
+ * * In the `main()`, you firstly perform some essential CPU settings, such as
+ *   oscillator settings and similar things. Don't set up any peripheral and
+ *   interrupts here, these things should be done in your callback
+ *   `appl_init()`.
+ * * You call `tn_start_system()` providing all necessary information:
+ *   pointers to stacks, their sizes, and your callback functions.
+ * * Kernel acts as follows:
+ *   * performs all necessary housekeeping;
+ *   * creates idle task;
+ *   * performs first context switch (to idle task).
+ * * Idle task acts as follows:
+ *   * disables interrupts to make sure nobody will preempt it until all the
+ *     job is done;
+ *   * calls your `appl_init()` function;
+ *   * enables interrupts
+ *
+ * At this point, system is started and operates normally.
+ *
+ * 
+ *
  * In TNeoKernel, `main()` function should look like the following:
  *
  *
