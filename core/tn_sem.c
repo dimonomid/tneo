@@ -259,7 +259,7 @@ enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
 //----------------------------------------------------------------------------
 //  Acquire(Polling) Semaphore Resource (do not call  in the interrupt)
 //----------------------------------------------------------------------------
-enum TN_RCode tn_sem_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem)
 {
    return _sem_job_perform(sem, _sem_acquire, 0);
 }
@@ -267,7 +267,7 @@ enum TN_RCode tn_sem_polling(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 // Acquire(Polling) Semaphore Resource inside interrupt
 //----------------------------------------------------------------------------
-enum TN_RCode tn_sem_ipolling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem)
 {
    return _sem_job_iperform(sem, _sem_acquire);
 }

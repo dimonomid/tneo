@@ -65,7 +65,7 @@ enum TN_RCode tn_fmem_create(
 enum TN_RCode tn_fmem_delete(struct TN_Fmp *fmp);;
 enum TN_RCode tn_fmem_get(struct TN_Fmp *fmp, void **p_data, unsigned long timeout);
 enum TN_RCode tn_fmem_get_polling(struct TN_Fmp *fmp, void **p_data);
-enum TN_RCode tn_fmem_get_ipolling(struct TN_Fmp *fmp, void **p_data);
+enum TN_RCode tn_fmem_iget_polling(struct TN_Fmp *fmp, void **p_data);
 enum TN_RCode tn_fmem_release(struct TN_Fmp *fmp, void *p_data);
 enum TN_RCode tn_fmem_irelease(struct TN_Fmp *fmp, void *p_data);
 

@@ -338,7 +338,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_get_ipolling(struct TN_Fmp *fmp, void **p_data)
+enum TN_RCode tn_fmem_iget_polling(struct TN_Fmp *fmp, void **p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;

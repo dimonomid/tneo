@@ -93,6 +93,13 @@ typedef struct TN_Sem         TN_SEM;
 #define  TERR_FORCED                   TN_RC_FORCED
 #define  TERR_INTERNAL                 TN_RC_INTERNAL
 
+
+
+#define  tn_sem_polling                tn_sem_acquire_polling
+#define  tn_sem_ipolling               tn_sem_iacquire_polling
+
+#define  tn_fmem_get_ipolling          tn_fmem_iget_polling
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
