@@ -64,7 +64,8 @@ typedef struct TN_Sem         TN_SEM;
 #define  TSK_STATE_WAITSUSP            TN_TASK_STATE_WAITSUSP
 #define  TSK_STATE_DORMANT             TN_TASK_STATE_DORMANT
 
-
+#define  TN_TASK_START_ON_CREATION     TN_TASK_CREATE_OPT_START
+#define  TN_EXIT_AND_DELETE_TASK       TN_TASK_EXIT_OPT_DELETE
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

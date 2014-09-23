@@ -197,6 +197,22 @@ static inline enum TN_Retval _task_activate(struct TN_Task *task)
    return rc;
 }
 
+static inline enum TN_Retval _task_delete(struct TN_Task *task)
+{
+   enum TN_Retval rc = TERR_NO_ERR;
+
+   if (!_tn_task_is_dormant(task)){
+      //-- Cannot delete not-terminated task
+      rc = TERR_WSTATE;
+   } else {
+      tn_list_remove_entry(&(task->create_queue));
+      tn_created_tasks_cnt--;
+      task->id_task = 0;
+   }
+
+   return rc;
+}
+
 static inline enum TN_Retval _task_job_perform(
       struct TN_Task *task,
       int (p_worker)(struct TN_Task *task)
@@ -360,12 +376,12 @@ enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task T
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option                       //-- creation option
+                 enum TN_TaskCreateOpt opts       //-- creation options
                  )                      
 {
    return _tn_task_create(task, task_func, priority,
                           _stk_bottom_get(task_stack_start, task_stack_size),
-                          task_stack_size, param, option
+                          task_stack_size, param, opts
                          );
 }
 
@@ -560,7 +576,7 @@ enum TN_Retval tn_task_irelease_wait(struct TN_Task *task)
 /**
  * See comments in the file tn_tasks.h .
  */
-void tn_task_exit(int attr)
+void tn_task_exit(enum TN_TaskExitOpt opts)
 {
    struct TN_Task *task;
 	 
@@ -581,11 +597,8 @@ void tn_task_exit(int attr)
       //-- Cannot exit, do nothing special here
    } else {
 
-      // V 2.6 Thanks to Alex Borisov
-      if (attr == TN_EXIT_AND_DELETE_TASK){
-         tn_list_remove_entry(&(task->create_queue));
-         tn_created_tasks_cnt--;
-         task->id_task = 0;
+      if ((opts & TN_TASK_EXIT_OPT_DELETE)){
+         _task_delete(task);
       }
 
    }
@@ -669,16 +682,7 @@ enum TN_Retval tn_task_delete(struct TN_Task *task)
 
    tn_disable_interrupt();
 
-   rc = TERR_NO_ERR;
-
-   if (!_tn_task_is_dormant(task)){
-      //-- Cannot delete not-terminated task
-      rc = TERR_WSTATE;
-   } else {
-      tn_list_remove_entry(&(task->create_queue));
-      tn_created_tasks_cnt--;
-      task->id_task = 0;
-   }
+   rc = _task_delete(task);
 
    tn_enable_interrupt();
 
@@ -741,7 +745,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
                  unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option                       //-- Creation option
+                 enum TN_TaskCreateOpt opts       //-- creation options
       )
 {
    TN_INTSAVE_DATA;
@@ -752,15 +756,14 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
 
    //-- Lightweight checking of system tasks recreation
    if (0
-         || (priority == 0                     && !(option & TN_TASK_TIMER))
-         || (priority == (TN_NUM_PRIORITY - 1) && !(option & TN_TASK_IDLE))
+         || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
       )
    {
       return TERR_WRONG_PARAM;
    }
 
    if (0
-         || (priority < 0 || priority > TN_NUM_PRIORITY-1)
+         || (priority < 0 || priority > (TN_NUM_PRIORITY - 1))
          || task_stack_size < TN_MIN_STACK_SIZE
          || task_func == NULL
          || task == NULL
@@ -803,7 +806,7 @@ enum TN_Retval _tn_task_create(struct TN_Task *task,                 //-- task T
    tn_list_add_tail(&tn_create_queue,&(task->create_queue));
    tn_created_tasks_cnt++;
 
-   if ((option & TN_TASK_START_ON_CREATION)){
+   if ((opts & TN_TASK_CREATE_OPT_START)){
       _task_activate(task);
    }
 

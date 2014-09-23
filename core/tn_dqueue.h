@@ -107,6 +107,9 @@ struct TN_DQueue {
    enum TN_ObjId  id_dque;
 };
 
+/**
+ * DQueue-specific fields for struct TN_Task.
+ */
 struct TN_DQueueTaskFld {
    /// if task tries to send the data to the data queue,
    /// and there's no space in the queue, value to put to queue is stored

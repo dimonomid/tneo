@@ -83,7 +83,26 @@ enum TN_TaskState {
    TN_TASK_STATE_DORMANT      = (1 << 3),
 };
 
+enum TN_TaskCreateOpt {
+   ///
+   /// whether task should be activated right after it is created.
+   /// If this flag is not set, user must activate it manually by calling
+   /// `tn_task_activate()`.
+   TN_TASK_CREATE_OPT_START = (1 << 0),
+   ///
+   /// for internal kernel usage only: this option must be provided
+   /// when creating idle task
+   TN_TASK_CREATE_OPT_IDLE =  (1 << 1),
+};
 
+enum TN_TaskExitOpt {
+   ///
+   /// whether task should be deleted right after it is exited.
+   /// If this flag is not set, user must either delete it manually by
+   /// calling `tn_task_delete()` or re-activate it by calling
+   /// `tn_task_activate()`.
+   TN_TASK_EXIT_OPT_DELETE = (1 << 0),
+};
 
 /**
  * Task
@@ -198,15 +217,6 @@ struct TN_Task {
  *    DEFINITIONS
  ******************************************************************************/
 
-//-- options for tn_task_create()
-#define  TN_TASK_START_ON_CREATION        1
-#define  TN_TASK_TIMER                 0x80
-#define  TN_TASK_IDLE                  0x40
-
-
-//-- attr for tn_task_exit()
-#define  TN_EXIT_AND_DELETE_TASK          1
-
 
 #define get_task_by_tsk_queue(que)                                   \
    (que ? container_of(que, struct TN_Task, task_queue) : 0)
@@ -267,7 +277,7 @@ enum TN_Retval tn_task_create(struct TN_Task *task,                  //-- task T
                  unsigned int *task_stack_start,  //-- task stack first addr in memory (see option TN_API_TASK_CREATE)
                  int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
                  void *param,                     //-- task function parameter
-                 int option                       //-- creation option
+                 enum TN_TaskCreateOpt opts       //-- creation options
                  );
 
 
@@ -342,12 +352,12 @@ enum TN_Retval tn_task_irelease_wait(struct TN_Task *task);
  * The task will have the lowest precedence among all tasks with the same
  * priority in the READY state.
  *
- * If this function is invoked with TN_EXIT_AND_DELETE_TASK parameter value, the task will be deleted
+ * If this function is invoked with TN_TASK_EXIT_OPT_DELETE parameter value, the task will be deleted
  * after termination and cannot be reactivated (needs recreation).
  * 
  * This function cannot be invoked from interrupts.
  */
-void tn_task_exit(int attr);
+void tn_task_exit(enum TN_TaskExitOpt opts);
 
 
 /**

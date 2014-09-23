@@ -229,7 +229,7 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
          NULL,                            //-- task function parameter
-         (TN_TASK_IDLE)                   //-- Creation option
+         (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
          );
 }
 

@@ -73,6 +73,9 @@ struct TN_EventGrp {
    enum TN_ObjId        id_event;   //-- id for verification
 };
 
+/**
+ * EventGrp-specific fields for struct TN_Task.
+ */
 struct TN_EGrpTaskFld {
    ///
    /// event wait pattern (relevant if only `task_state` is `WAIT` or

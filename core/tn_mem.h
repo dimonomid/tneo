@@ -33,6 +33,9 @@ struct TN_Fmp {
 };
 
 
+/**
+ * FMem-specific fields for struct TN_Task.
+ */
 struct TN_FMemTaskFld {
    /// if task tries to receive data from memory pool,
    /// and there's no more free blocks in the pool, location to store 

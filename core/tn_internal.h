@@ -178,7 +178,7 @@ enum TN_Retval  _tn_task_create(
       unsigned int *task_stack_bottom, //-- task stack first addr in memory (bottom)
       int task_stack_size,             //-- task stack size (in sizeof(void*),not bytes)
       void *param,                     //-- task function parameter
-      int option                       //-- Creation option
+      enum TN_TaskCreateOpt opts       //-- creation options
 );
 
 static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
