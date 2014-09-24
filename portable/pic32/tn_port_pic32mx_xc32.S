@@ -86,11 +86,16 @@ tn_start_exe:
     .ent tn_switch_context_exit
 
 tn_switch_context_exit:
-    lw      $t1, tn_next_task_to_run
-    lw      $sp, 0($t1)                 /* get new task's sp */
-    la      $t0, tn_curr_run_task
+
+    /* get new task's sp */
+
+    lw      $t1, tn_next_task_to_run   /* t1 = tn_next_task_to_run; */
+    lw      $sp, 0($t1)                /* sp = *t1; */
+                                       /* i.e. sp = *(int *)tn_next_task_to_run; */
+    la      $t0, tn_curr_run_task      /* t0 = &tn_curr_run_task; */
     j       tn_restore_context
-    sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    sw      $t1, 0($t0)                /* *t0 = t1; */
+                                       /* i.e. tn_curr_run_task = tn_next_task_to_run; */
 
     .end tn_switch_context_exit
 

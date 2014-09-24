@@ -54,11 +54,6 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline unsigned int *_stk_bottom_get(unsigned int *user_provided_addr, int task_stack_size)
-{
-   return user_provided_addr + task_stack_size - 1;
-}
-
 //-- Private utilities {{{
 
 #if TN_USE_MUTEXES
@@ -331,7 +326,7 @@ enum TN_RCode tn_task_create(
       struct TN_Task         *task,
       TN_TaskBody            *task_func,
       int                     priority,
-      unsigned int           *task_stack_start,
+      unsigned int           *task_stack_low_addr,
       int                     task_stack_size,
       void                   *param,
       enum TN_TaskCreateOpt   opts
@@ -359,7 +354,7 @@ enum TN_RCode tn_task_create(
          || task_stack_size < TN_MIN_STACK_SIZE
          || task_func == NULL
          || task == NULL
-         || task_stack_start == NULL
+         || task_stack_low_addr == NULL
          || task->id_task == TN_ID_TASK
       )
    {
@@ -378,7 +373,10 @@ enum TN_RCode tn_task_create(
 
    task->task_func_addr  = task_func;
    task->task_func_param = param;
-   task->stk_start       = _stk_bottom_get(task_stack_start, task_stack_size);
+   task->stk_start       = _tn_arch_stack_start_get(
+         task_stack_low_addr,
+         task_stack_size
+         );
    task->stk_size        = task_stack_size;
    task->base_priority   = priority;
    task->task_state      = TN_TASK_STATE_NONE;
@@ -565,16 +563,16 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task)
 void tn_task_exit(enum TN_TaskExitOpt opts)
 {
    struct TN_Task *task;
+
+   //-- it is here only for tn_disable_interrupt() normal operation,
+   //   but actually we don't need to save current interrupt status:
+   //   this function never returns, and interrupt status is restored
+   //   from different task's stack inside tn_switch_context_exit() call.
+   TN_INTSAVE_DATA;
 	 
    TN_CHECK_NON_INT_CONTEXT_NORETVAL;
 
-#ifdef TNKERNEL_PORT_MSP430X
-   __disable_interrupt();
-#else
-   tn_cpu_save_sr();  //-- For ARM - disable interrupts without saving SPSR
-#endif
-
-   //--------------------------------------------------
+   tn_disable_interrupt();
 
    task = tn_curr_run_task;
    _tn_task_clear_runnable(task);

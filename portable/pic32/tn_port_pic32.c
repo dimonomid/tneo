@@ -69,70 +69,69 @@ extern unsigned long _gp;
 //      SP + 00 lo
 //----------------------------------------------------------------------------
 
+unsigned int *_tn_arch_stack_start_get(
+      unsigned int *stack_low_address,
+      int stack_size
+      )
+{
+   return stack_low_address + stack_size - 1;
+}
+
 
 //----------------------------------------------------------------------------
 //   Processor specific routine - here for MIPS4K
 //
 //   sizeof(void*) = sizeof(int)
 //----------------------------------------------------------------------------
-unsigned int * tn_stack_init(void * task_func,
-                             void * stack_start,
-                             void * param)
+unsigned int *tn_stack_init(
+      void *task_func,
+      void *stack_start,
+      void *param
+      )
 {
-    unsigned int * stk;
+   unsigned int *p_stk;
 
- //-- filling register's position in the stack - for debugging only
+   //-- filling register's position in the stack - for debugging only
 
-    stk  = (unsigned int *)stack_start;     //-- Load stack pointer
-    *stk-- = 0;                             //-- ABI argument area
-    *stk-- = 0;
-    *stk-- = 0;
-    *stk-- = 0;
-    *stk-- = (unsigned int)task_func;       //-- EPC
- //-- CU0 = 0
- //-- RP = 0
- //-- RE = 0
- //-- BEV = 0
- //-- SR = 0
- //-- NMI = 0
- //-- IPL<2:0> = 0
- //-- UM = 0
- //-- ERL = 0
- //-- EXL = 0
- //-- IE = 1
-    *stk-- = 3;                             //-- Status: EXL and IE bits are set
-    *stk-- = (unsigned int)tn_task_exit;    //-- ra
-    *stk-- = 0x30303030L;                   //-- fp
-    *stk-- = (unsigned int)&_gp;            //-- gp - provided by linker
-    *stk-- = 0x25252525L;                   //-- t9
-    *stk-- = 0x24242424L;                   //-- t8
-    *stk-- = 0x23232323L;                   //-- s7
-    *stk-- = 0x22222222L;                   //-- s6
-    *stk-- = 0x21212121L;                   //-- s5
-    *stk-- = 0x20202020L;                   //-- s4
-    *stk-- = 0x19191919L;                   //-- s3
-    *stk-- = 0x18181818L;                   //-- s2
-    *stk-- = 0x17171717L;                   //-- s1
-    *stk-- = 0x16161616L;                   //-- s0
-    *stk-- = 0x15151515L;                   //-- t7
-    *stk-- = 0x14141414L;                   //-- t6
-    *stk-- = 0x13131313L;                   //-- t5
-    *stk-- = 0x12121212L;                   //-- t4
-    *stk-- = 0x11111111L;                   //-- t3
-    *stk-- = 0x10101010L;                   //-- t2
-    *stk-- = 0x09090909L;                   //-- t1
-    *stk-- = 0x08080808L;                   //-- t0
-    *stk-- = 0x07070707L;                   //-- a3
-    *stk-- = 0x06060606L;                   //-- a2
-    *stk-- = 0x05050505L;                   //-- a1
-    *stk-- = (unsigned int)param;           //-- a0 - task's function argument
-    *stk-- = 0x03030303L;                   //-- v1
-    *stk-- = 0x02020202L;                   //-- v0
-    *stk-- = 0x01010101L;                   //-- at
-    *stk-- = 0x33333333L;                   //-- hi
-    *stk = 0x32323232L;                     //-- lo
+   p_stk  = (unsigned int *)stack_start;     //-- Load stack pointer
+   *p_stk-- = 0;                             //-- ABI argument area
+   *p_stk-- = 0;
+   *p_stk-- = 0;
+   *p_stk-- = 0;
+   *p_stk-- = (unsigned int)task_func;       //-- EPC
+   *p_stk-- = 3;                             //-- Status: EXL and IE bits are set
+   *p_stk-- = (unsigned int)tn_task_exit;    //-- ra
+   *p_stk-- = 0x30303030L;                   //-- fp
+   *p_stk-- = (unsigned int)&_gp;            //-- gp - provided by linker
+   *p_stk-- = 0x25252525L;                   //-- t9
+   *p_stk-- = 0x24242424L;                   //-- t8
+   *p_stk-- = 0x23232323L;                   //-- s7
+   *p_stk-- = 0x22222222L;                   //-- s6
+   *p_stk-- = 0x21212121L;                   //-- s5
+   *p_stk-- = 0x20202020L;                   //-- s4
+   *p_stk-- = 0x19191919L;                   //-- s3
+   *p_stk-- = 0x18181818L;                   //-- s2
+   *p_stk-- = 0x17171717L;                   //-- s1
+   *p_stk-- = 0x16161616L;                   //-- s0
+   *p_stk-- = 0x15151515L;                   //-- t7
+   *p_stk-- = 0x14141414L;                   //-- t6
+   *p_stk-- = 0x13131313L;                   //-- t5
+   *p_stk-- = 0x12121212L;                   //-- t4
+   *p_stk-- = 0x11111111L;                   //-- t3
+   *p_stk-- = 0x10101010L;                   //-- t2
+   *p_stk-- = 0x09090909L;                   //-- t1
+   *p_stk-- = 0x08080808L;                   //-- t0
+   *p_stk-- = 0x07070707L;                   //-- a3
+   *p_stk-- = 0x06060606L;                   //-- a2
+   *p_stk-- = 0x05050505L;                   //-- a1
+   *p_stk-- = (unsigned int)param;           //-- a0 - task's function argument
+   *p_stk-- = 0x03030303L;                   //-- v1
+   *p_stk-- = 0x02020202L;                   //-- v0
+   *p_stk-- = 0x01010101L;                   //-- at
+   *p_stk-- = 0x33333333L;                   //-- hi
+   *p_stk = 0x32323232L;                     //-- lo
 
-    return stk;
+   return p_stk;
 }
 
 //_____________________________________________________________________________

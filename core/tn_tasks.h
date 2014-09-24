@@ -345,14 +345,14 @@ struct TN_Task {
  * @param priority 
  *    Priority for new task. NOTE: the lower value, the higher priority.  Must
  *    be > 0 and < `(TN_NUM_PRIORITY - 1)`.
- * @param task_stack_start    
+ * @param task_stack_low_addr    
  *    Pointer to the stack for task. A stack must be allocated as an array of
  *    `int`.  Actually, the size of stack array element must be identical to
  *    the processor register size (for most 32-bits and 16-bits processors a
  *    register size equals `sizeof(int)`).
  * @param task_stack_size 
  *    Size of task stack, in `int`-s, not in bytes. (i.e., size of array that
- *    is used for `task_stack_start`).
+ *    is used for `task_stack_low_addr`).
  * @param param 
  *    Parameter that is passed to `task_func`.
  * @param opts 
@@ -364,7 +364,7 @@ enum TN_RCode tn_task_create(
       struct TN_Task         *task,
       TN_TaskBody            *task_func,
       int                     priority,
-      unsigned int           *task_stack_start,
+      unsigned int           *task_stack_low_addr,
       int                     task_stack_size,
       void                   *param,
       enum TN_TaskCreateOpt   opts
