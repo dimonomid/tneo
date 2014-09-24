@@ -159,23 +159,6 @@ static inline enum TN_RCode _task_release_wait(struct TN_Task *task)
    return rc;
 }
 
-/**
- * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
- */
-static inline enum TN_RCode _task_activate(struct TN_Task *task)
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (_tn_task_is_dormant(task)){
-      _tn_task_clear_dormant(task);
-      _tn_task_set_runnable(task);
-   } else {
-      rc = TN_RC_WSTATE;
-   }
-
-   return rc;
-}
-
 static inline enum TN_RCode _task_delete(struct TN_Task *task)
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -415,7 +398,7 @@ enum TN_RCode tn_task_create(
    tn_created_tasks_cnt++;
 
    if ((opts & TN_TASK_CREATE_OPT_START)){
-      _task_activate(task);
+      _tn_task_activate(task);
    }
 
    if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
@@ -549,7 +532,7 @@ enum TN_RCode tn_task_iwakeup(struct TN_Task *task)
  */
 enum TN_RCode tn_task_activate(struct TN_Task *task)
 {
-   return _task_job_perform(task, _task_activate);
+   return _task_job_perform(task, _tn_task_activate);
 }
 
 /*
@@ -557,7 +540,7 @@ enum TN_RCode tn_task_activate(struct TN_Task *task)
  */
 enum TN_RCode tn_task_iactivate(struct TN_Task *task)
 {
-   return _task_job_iperform(task, _task_activate);
+   return _task_job_iperform(task, _tn_task_activate);
 }
 
 /*
@@ -977,6 +960,24 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 
    task->task_state &= ~TN_TASK_STATE_DORMANT;
 }
+
+/**
+ * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
+ */
+enum TN_RCode _tn_task_activate(struct TN_Task *task)
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (_tn_task_is_dormant(task)){
+      _tn_task_clear_dormant(task);
+      _tn_task_set_runnable(task);
+   } else {
+      rc = TN_RC_WSTATE;
+   }
+
+   return rc;
+}
+
 
 
 /**

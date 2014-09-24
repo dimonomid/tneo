@@ -231,6 +231,8 @@ void _tn_task_set_dormant(struct TN_Task* task);
 
 void _tn_task_clear_dormant(struct TN_Task *task);
 
+enum TN_RCode _tn_task_activate(struct TN_Task *task);
+
 /**
  * Should be called when task finishes waiting for anything.
  *

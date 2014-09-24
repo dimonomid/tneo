@@ -207,7 +207,6 @@ static inline void _round_robin_manage(void)
 
 /**
  * Create idle task, the task is NOT started after creation.
- * _idle_task_to_runnable() is used to make it runnable.
  */
 static inline void _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
@@ -222,15 +221,6 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
          NULL,                            //-- task function parameter
          (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
          );
-}
-
-/**
- * Make idle task runnable.
- */
-static inline void _idle_task_to_runnable(void)
-{
-   _tn_task_clear_dormant(&tn_idle_task);
-   _tn_task_set_runnable(&tn_idle_task);
 }
 
 
@@ -293,19 +283,21 @@ void tn_start_system(
     */
 
    //-- create system tasks
+   //   TODO: it may actually fail, say, if there were wrong params given,
+   //   so we need to check it
    _idle_task_create(idle_task_stack, idle_task_stack_size);
 
    //-- Just for the _tn_task_set_runnable() proper operation
    tn_next_task_to_run = &tn_idle_task; 
 
-   //-- call _tn_task_set_runnable() for system tasks
-   _idle_task_to_runnable();
+   //-- make system tasks runnable
+   _tn_task_activate(&tn_idle_task);
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
    //-- remember user-provided callbacks
-   tn_callback_appl_init          = cb_appl_init;
-   tn_callback_idle_hook     = cb_idle;
+   tn_callback_appl_init = cb_appl_init;
+   tn_callback_idle_hook = cb_idle;
 
    //-- Run OS - first context switch
    tn_start_exe();
