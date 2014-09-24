@@ -140,7 +140,7 @@ void  tn_cpu_restore_sr(unsigned int sr);
  ******************************************************************************/
 
 #if defined(__PIC32MX__)
-    #include "pic32/tn_port_pic32.h"
+    #include "pic32/tn_arch_pic32.h"
 #else
     #error "unknown platform"
 #endif

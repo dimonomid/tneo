@@ -12,6 +12,12 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="arch" displayName="arch" projectFiles="true">
+        <logicalFolder name="pic32" displayName="pic32" projectFiles="true">
+          <itemPath>../tn_arch_pic32.c</itemPath>
+          <itemPath>../tn_arch_pic32mx_xc32.S</itemPath>
+        </logicalFolder>
+      </logicalFolder>
       <logicalFolder name="core" displayName="core" projectFiles="true">
         <itemPath>../../../core/tn_mutex.c</itemPath>
         <itemPath>../../../core/tn_sem.c</itemPath>
@@ -21,12 +27,6 @@
         <itemPath>../../../core/tn_list.c</itemPath>
         <itemPath>../../../core/tn_eventgrp.c</itemPath>
         <itemPath>../../../core/tn_fmem.c</itemPath>
-      </logicalFolder>
-      <logicalFolder name="portable" displayName="portable" projectFiles="true">
-        <logicalFolder name="pic32" displayName="pic32" projectFiles="true">
-          <itemPath>../tn_port_pic32.c</itemPath>
-          <itemPath>../tn_port_pic32mx_xc32.S</itemPath>
-        </logicalFolder>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

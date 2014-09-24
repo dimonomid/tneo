@@ -49,7 +49,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_port.h"
+#include "tn_arch.h"
 
 #include "tn_tasks.h"   //-- for inline functions
 #include "tn_sys.h"     //-- for inline functions
