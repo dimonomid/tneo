@@ -119,9 +119,17 @@
  *     //-- interrupt stack size, in words
  *     #define INTERRUPT_STACK_SIZE          128
  *
- *     //-- allocate arrays for idle task and interrupt statically
- *     unsigned int idle_task_stack[ IDLE_TASK_STACK_SIZE ];
- *     unsigned int interrupt_stack[ INTERRUPT_STACK_SIZE ];
+ *     //-- allocate arrays for idle task and interrupt statically.
+ *     //   notice special architecture-dependent macros we use here,
+ *     //   they are needed to make sure that all requirements
+ *     //   regarding to stack are met.
+ *     TN_ARCH_STK_ATTR_BEFORE
+ *     unsigned int idle_task_stack[ IDLE_TASK_STACK_SIZE ]
+ *     TN_ARCH_STK_ATTR_AFTER;
+ *
+ *     TN_ARCH_STK_ATTR_BEFORE
+ *     unsigned int interrupt_stack[ INTERRUPT_STACK_SIZE ]
+ *     TN_ARCH_STK_ATTR_AFTER;
  *
  *     static void _appl_init(void)
  *     {

@@ -36,8 +36,8 @@
 /* --------- PIC32 port -------- */
 
 #if defined (__XC32)
-#  define TN_ARCH_STK_ALIGN_BEFORE
-#  define TN_ARCH_STK_ALIGN_AFTER        __attribute__((aligned(0x8)))
+#  define TN_ARCH_STK_ATTR_BEFORE
+#  define TN_ARCH_STK_ATTR_AFTER       __attribute__((aligned(0x8)))
 #else
 #  error "Unknown compiler"
 #endif

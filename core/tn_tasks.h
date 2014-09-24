@@ -304,7 +304,13 @@ struct TN_Task {
  *     #define MY_TASK_PRIORITY     5
  *
  *     struct TN_Task my_task;
- *     int my_task_stack[ MY_TASK_STACK_SIZE ];
+ *
+ *     //-- notice special architecture-dependent macros we use here,
+ *     //   they are needed to make sure that all requirements
+ *     //   regarding to stack are met.
+ *     TN_ARCH_STK_ATTR_BEFORE
+ *     int my_task_stack[ MY_TASK_STACK_SIZE ]
+ *     TN_ARCH_STK_ATTR_AFTER;
  *
  *     void my_task_body(void *param)
  *     {
@@ -359,6 +365,8 @@ struct TN_Task {
  *    Options for task creation
  *
  * @see `enum TN_TaskCreateOpt`
+ * @see `TN_ARCH_STK_ATTR_BEFORE`
+ * @see `TN_ARCH_STK_ATTR_AFTER`
  */
 enum TN_RCode tn_task_create(
       struct TN_Task         *task,
@@ -400,15 +408,29 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * runnable state. If the timeout value is `TN_WAIT_INFINITE` and the task was
  * not suspended during the sleep, the task will sleep until another function
  * call (like `tn_task_wakeup()` or similar) will make it runnable.
+ *
+ * @returns
+ *    * `TN_RC_TIMEOUT` if task has slept specified timeout;
+ *    * `TN_RC_OK` if task was woken up from other task by `tn_task_wakeup()`
+ *    * `TN_RC_FORCED` if task was released from wait forcibly by 
+ *       `tn_task_release_wait()`
  */
 enum TN_RCode tn_task_sleep(unsigned long timeout);
 
 /**
  * Wake up task from sleep.
  *
- * These functions wakes up the task specified by the task from sleep mode.
- * The function placing the task into the sleep mode will return to the task
- * without errors.
+ * Task is woken up if only it sleeps because of call to `tn_task_sleep()`.
+ * If task sleeps for some another reason, task won't be woken up, 
+ * and `tn_task_wakeup()` returns `TN_RC_WSTATE`.
+ *
+ * After this call, `tn_task_sleep()` returns `TN_RC_OK`.
+ *
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_WSTATE` task is not sleeping, or it is sleeping for
+ *       some reason other than `tn_task_sleep()` call.
+ *
  */
 enum TN_RCode tn_task_wakeup(struct TN_Task *task);
 
@@ -418,8 +440,9 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task);
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
 /**
- * Activate task that was created by `tn_task_create()` without
- * `TN_TASK_START_ON_CREATION` option.
+ * Activate task that is in `DORMANT` state, i.e. it was either just created by
+ * `tn_task_create()` without `TN_TASK_START_ON_CREATION` option, or 
+ * terminated.
  *
  * Task is moved from `DORMANT` state to the `RUNNABLE` state.
  *
@@ -464,6 +487,11 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  * recreation).
  * 
  * This function cannot be invoked from interrupts.
+ *
+ * @see `TN_TASK_EXIT_OPT_DELETE`
+ * @see `tn_task_delete()`
+ * @see `tn_task_activate()`
+ * @see `tn_task_iactivate()`
  */
 void tn_task_exit(enum TN_TaskExitOpt opts);
 

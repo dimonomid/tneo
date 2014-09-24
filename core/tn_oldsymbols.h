@@ -113,8 +113,8 @@ typedef struct TN_Sem         TN_SEM;
 
 
 
-#define  align_attr_start              TN_ARCH_STK_ALIGN_BEFORE
-#define  align_attr_end                TN_ARCH_STK_ALIGN_AFTER
+#define  align_attr_start              TN_ARCH_STK_ATTR_BEFORE
+#define  align_attr_end                TN_ARCH_STK_ATTR_AFTER
 
 #define  tn_cpu_int_disable            tn_arch_int_dis
 #define  tn_cpu_int_enable             tn_arch_int_en
