@@ -215,6 +215,22 @@ enum TN_StateFlag {
 };
 
 /**
+ * System context
+ */
+enum TN_Context {
+   ///
+   /// None: this code is possible if only system is not running
+   /// (flag (`TN_STATE_FLAG__SYS_RUNNING` is not set in the `tn_sys_state`))
+   TN_CONTEXT_NONE,
+   ///
+   /// Task context
+   TN_CONTEXT_TASK,
+   ///
+   /// ISR context
+   TN_CONTEXT_ISR,
+};
+
+/**
  * User-provided callback function that is called once from idle task when
  * system is just started.  User must initialize *system timer* here. (*system
  * timer* is some kind of hardware timer whose ISR calls
@@ -352,6 +368,12 @@ void tn_callback_deadlock_set(TNCallbackDeadlock *cb);
  */
 enum TN_StateFlag tn_sys_state_flags_get(void);
 
+/**
+ * Returns system context: task or ISR.
+ *
+ * @see enum TN_Context
+ */
+enum TN_Context tn_sys_context_get(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */

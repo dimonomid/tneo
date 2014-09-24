@@ -83,7 +83,7 @@ unsigned int *_tn_arch_stack_start_get(
 //
 //   sizeof(void*) = sizeof(int)
 //----------------------------------------------------------------------------
-unsigned int *tn_stack_init(
+unsigned int *_tn_arch_stack_init(
       void *task_func,
       void *stack_start,
       void *param

@@ -42,13 +42,13 @@
 
     /* Public functions declared in this file */
 
-    .global  tn_switch_context_exit
-    .global  tn_switch_context
+    .global  _tn_arch_context_switch_exit
+    .global  _tn_arch_context_switch
     .global  tn_cpu_save_sr
     .global  tn_cpu_restore_sr
-    .global  tn_start_exe
+    .global  _tn_arch_system_start
     .global  cs0_int_handler
-    .global  tn_inside_int
+    .global  _tn_arch_inside_isr
 
     /* Constants */
 
@@ -62,9 +62,9 @@
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_start_exe
+    .ent _tn_arch_system_start
 
-tn_start_exe:
+_tn_arch_system_start:
 
     li      $t0, 1                      /* 1 -> TN_STATE_FLAG__SYS_RUNNING */
     la      $t1, tn_sys_state
@@ -76,16 +76,16 @@ tn_start_exe:
     j       tn_restore_context
     sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
-    .end tn_start_exe
+    .end _tn_arch_system_start
 
 /*----------------------------------------------------------------------------
 * Interrupts should be disabled here
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_switch_context_exit
+    .ent _tn_arch_context_switch_exit
 
-tn_switch_context_exit:
+_tn_arch_context_switch_exit:
 
     /* get new task's sp */
 
@@ -97,16 +97,16 @@ tn_switch_context_exit:
     sw      $t1, 0($t0)                /* *t0 = t1; */
                                        /* i.e. tn_curr_run_task = tn_next_task_to_run; */
 
-    .end tn_switch_context_exit
+    .end _tn_arch_context_switch_exit
 
 /*----------------------------------------------------------------------------
 *
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_switch_context
+    .ent _tn_arch_context_switch
 
-tn_switch_context:
+_tn_arch_context_switch:
 
     /* check if task switch needed */
 
@@ -131,7 +131,7 @@ tn_switch_context:
     jr      $ra
     nop
 
-    .end tn_switch_context
+    .end _tn_arch_context_switch
 
 /*----------------------------------------------------------------------------
 *
@@ -304,9 +304,9 @@ tn_cpu_restore_sr:
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_inside_int
+    .ent _tn_arch_inside_isr
 
-tn_inside_int:
+_tn_arch_inside_isr:
 
     mfc0    $v0, $12                    /* c0_status */
     ins     $v0, $zero, 2, 8            /* zero everything between EXL and IPL */
@@ -315,7 +315,7 @@ tn_inside_int:
     jr      $ra
     xori    $v0, $v0, 1                 /* flip result */
 
-    .end tn_inside_int
+    .end _tn_arch_inside_isr
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/

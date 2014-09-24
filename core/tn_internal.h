@@ -159,7 +159,7 @@ static inline BOOL _tn_need_context_switch(void)
 static inline void _tn_switch_context_if_needed(void)
 {
    if (_tn_need_context_switch()){
-      tn_switch_context();
+      _tn_arch_context_switch();
    }
 }
 

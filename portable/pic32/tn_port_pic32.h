@@ -93,19 +93,19 @@
 #define  tn_chk_irq_disabled()   ((__builtin_mfc0(12, 0) & 1) == 0)
 
 #define  TN_CHECK_INT_CONTEXT           \
-             if(!tn_inside_int())       \
+             if(!_tn_arch_inside_isr())       \
                 return TN_RC_WCONTEXT;
 
 #define  TN_CHECK_INT_CONTEXT_NORETVAL  \
-             if(!tn_inside_int())       \
+             if(!_tn_arch_inside_isr())       \
                 return;
 
 #define  TN_CHECK_NON_INT_CONTEXT       \
-             if(tn_inside_int())        \
+             if(_tn_arch_inside_isr())        \
                 return TN_RC_WCONTEXT;
 
 #define  TN_CHECK_NON_INT_CONTEXT_NORETVAL  \
-             if(tn_inside_int())            \
+             if(_tn_arch_inside_isr())            \
                 return ;
 
 

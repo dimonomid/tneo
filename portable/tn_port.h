@@ -24,12 +24,9 @@ extern "C"  {  /*}*/
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-void tn_cpu_int_enable(void);
-void tn_cpu_int_disable(void);
-
 /**
  * Should return start stack address, which may be either the lowest address of
- * the stack array or the highest one.
+ * the stack array or the highest one, depending on the architecture.
  *
  * @param   stack_low_address    start address of the stack array.
  * @param   stack_size           size of the stack in `int`-s, not in bytes.
@@ -40,7 +37,7 @@ unsigned int *_tn_arch_stack_start_get(
       );
 
 /**
- * Should initialize stack for new task.
+ * Should initialize stack for new task and return current stack pointer.
  *
  * @param task_func
  *    Pointer to task body function.
@@ -48,8 +45,10 @@ unsigned int *_tn_arch_stack_start_get(
  *    Start address of the stack, returned by `_tn_arch_stack_start_get()`.
  * @param param
  *    User-provided parameter for task body function.
+ *
+ * @return current stack pointer (top of the stack)
  */
-unsigned int *tn_stack_init(
+unsigned int *_tn_arch_stack_init(
       TN_TaskBody *task_func,
       unsigned int *stack_start,
       void *param
@@ -58,43 +57,74 @@ unsigned int *tn_stack_init(
 /**
  * Should return 1 if ISR is currently running, 0 otherwise
  */
-int  tn_inside_int(void);
+int _tn_arch_inside_isr(void);
 
 /**
  * Called whenever we need to switch context to other task.
  *
  * **Preconditions:**
  *
- * * interrupts are enabled
- * * `tn_curr_run_task` points to currently running (preempted) task
- * * `tn_next_task_to_run` points to new task to run
+ * * interrupts are enabled;
+ * * `tn_curr_run_task` points to currently running (preempted) task;
+ * * `tn_next_task_to_run` points to new task to run.
  *    
  * **Actions to perform:**
  *
- * * save context of the preempted task to its stack
- * * set `tn_curr_run_task` to `tn_next_task_to_run`
- * * switch context to it
+ * * save context of the preempted task to its stack;
+ * * set `tn_curr_run_task` to `tn_next_task_to_run`;
+ * * switch context to it.
+ *
+ * @see `tn_curr_run_task`
+ * @see `tn_next_task_to_run`
  */
-void  tn_switch_context(void);
+void _tn_arch_context_switch(void);
 
 /**
  * Called when some task calls `tn_task_exit()`.
  *
  * **Preconditions:**
  *
- * * interrupts are disabled
- * * `tn_next_task_to_run` is already set to other task
+ * * interrupts are disabled;
+ * * `tn_next_task_to_run` is already set to other task.
  *    
  * **Actions to perform:**
  *
- * * set `tn_curr_run_task` to `tn_next_task_to_run`
- * * switch context to it
+ * * set `tn_curr_run_task` to `tn_next_task_to_run`;
+ * * switch context to it.
+ *
+ * @see `tn_curr_run_task`
+ * @see `tn_next_task_to_run`
  */
-void  tn_switch_context_exit(void);
+void _tn_arch_context_switch_exit(void);
+
+/**
+ * Should perform first context switch (to idle task, but this doesn't matter).
+ *
+ * **Preconditions:**
+ *
+ * * no interrupts are set up yet, so, it's like interrupts disabled,
+ *   but they actually aren't;
+ * * `tn_next_task_to_run` is already set to idle task.
+ *    
+ * **Actions to perform:**
+ *
+ * * set `TN_STATE_FLAG__SYS_RUNNING` flag in the `tn_sys_state` variable;
+ * * set `tn_curr_run_task` to `tn_next_task_to_run`;
+ * * switch context to it.
+ *
+ * @see `TN_STATE_FLAG__SYS_RUNNING`
+ * @see `tn_sys_state`
+ * @see `tn_curr_run_task`
+ * @see `tn_next_task_to_run`
+ */
+void _tn_arch_system_start(void);
+
+
+void tn_cpu_int_enable(void);
+void tn_cpu_int_disable(void);
 
 unsigned int tn_cpu_save_sr(void);
 void  tn_cpu_restore_sr(unsigned int sr);
-void  tn_start_exe(void);
 
 
 

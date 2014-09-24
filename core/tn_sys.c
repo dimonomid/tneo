@@ -300,7 +300,7 @@ void tn_start_system(
    tn_callback_idle_hook = cb_idle;
 
    //-- Run OS - first context switch
-   tn_start_exe();
+   _tn_arch_system_start();
 }
 
 
@@ -369,7 +369,7 @@ unsigned int tn_sys_time_get(void)
  */
 void tn_sys_time_set(unsigned int value)
 {
-   if (tn_inside_int()){
+   if (_tn_arch_inside_isr()){
       TN_INTSAVE_DATA_INT;
       tn_idisable_interrupt();
       tn_sys_time_count = value;
@@ -383,7 +383,7 @@ void tn_sys_time_set(unsigned int value)
 
 }
 
-/**
+/*
  * Returns current state flags (tn_sys_state)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void)
@@ -391,12 +391,30 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
    return tn_sys_state;
 }
 
-/**
+/*
  * See comment in tn_sys.h file
  */
 void tn_callback_deadlock_set(TNCallbackDeadlock *cb)
 {
    tn_callback_deadlock = cb;
+}
+
+/*
+ * See comment in tn_sys.h file
+ */
+enum TN_Context tn_sys_context_get(void)
+{
+   enum TN_Context ret;
+
+   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+      ret = _tn_arch_inside_isr()
+         ? TN_CONTEXT_ISR
+         : TN_CONTEXT_TASK;
+   } else {
+      ret = TN_CONTEXT_NONE;
+   }
+
+   return ret;
 }
 
 
