@@ -216,6 +216,8 @@ enum TN_StateFlag {
 
 /**
  * System context
+ *
+ * @see `tn_sys_context_get()`
  */
 enum TN_Context {
    ///
@@ -371,7 +373,7 @@ enum TN_StateFlag tn_sys_state_flags_get(void);
 /**
  * Returns system context: task or ISR.
  *
- * @see enum TN_Context
+ * @see `enum TN_Context`
  */
 enum TN_Context tn_sys_context_get(void);
 

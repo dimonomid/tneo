@@ -65,6 +65,9 @@ enum TN_RCode {
    ///
    /// wrong context error: returned if user calls some task service from
    /// interrupt or vice versa
+   ///
+   /// @see `tn_sys_context_get()`
+   /// @see `enum TN_Context`
    TN_RC_WCONTEXT             =  -3,
    ///
    /// wrong task state error: requested operation requires different 
