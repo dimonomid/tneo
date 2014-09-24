@@ -40,8 +40,8 @@
 
 #if defined (__XC32)
 
-#define align_attr_start
-#define align_attr_end     __attribute__((aligned(0x8)))
+#define TN_ARCH_STK_ALIGN_BEFORE
+#define TN_ARCH_STK_ALIGN_AFTER        __attribute__((aligned(0x8)))
 
 #else
 

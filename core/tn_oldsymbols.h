@@ -110,6 +110,12 @@ typedef struct TN_Sem         TN_SEM;
 
 #define  tn_fmem_get_ipolling          tn_fmem_iget_polling
 
+
+
+
+#define  align_attr_start              TN_ARCH_STK_ALIGN_BEFORE
+#define  align_attr_end                TN_ARCH_STK_ALIGN_AFTER
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
