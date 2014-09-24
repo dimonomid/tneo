@@ -334,6 +334,7 @@ enum TN_RCode tn_task_create(
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
+   enum TN_Context context;
 
    unsigned int * ptr_stack;
    int i;
@@ -363,9 +364,16 @@ enum TN_RCode tn_task_create(
 
    rc = TN_RC_OK;
 
-   TN_CHECK_NON_INT_CONTEXT;
+   context = tn_sys_context_get();
 
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+   //-- Note: since `tn_task_create()` is called from `tn_start_system()`, it
+   //   is allowed to have `TN_CONTEXT_NONE` here. In this case,
+   //   interrupts aren't disabled/enabled.
+   if (context != TN_CONTEXT_TASK && context != TN_CONTEXT_NONE){
+      return TN_RC_WCONTEXT;
+   }
+
+   if (context == TN_CONTEXT_TASK){
       tn_disable_interrupt();
    }
 
@@ -399,7 +407,7 @@ enum TN_RCode tn_task_create(
       _tn_task_activate(task);
    }
 
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+   if (context == TN_CONTEXT_TASK){
       tn_enable_interrupt();
    }
 
