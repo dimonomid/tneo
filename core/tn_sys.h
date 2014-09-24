@@ -6,9 +6,10 @@
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
  *    TNeoKernel:                copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation 
- *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
- *    as well as new features added, and it is tested carefully with unit-tests.
+ *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
+ *    as well as new features being added, and it is tested carefully with
+ *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
  *    hence the new name: TNeoKernel.
@@ -68,8 +69,8 @@
  * increments the currently running task time slice counter. When the time
  * slice interval is completed, the task is placed at the tail of the ready to
  * run queue of its priority level (this queue contains tasks in the
- * `TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then the
- * task may be preempted by tasks of higher or equal priority.
+ * `TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then
+ * the task may be preempted by tasks of higher or equal priority.
  *
  * In most cases, there is no reason to enable round robin scheduling. For
  * applications running multiple copies of the same code, however, (GUI

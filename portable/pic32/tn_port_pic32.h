@@ -57,13 +57,11 @@
 
 //#define  TN_TIMER_STACK_SIZE       68   // Size of timer task stack, in words
 //#define  TN_IDLE_STACK_SIZE        68   // Size of idle task stack, in words
-#define  TN_MIN_STACK_SIZE         68   // Minimum task stack size, in words
+#define  TN_MIN_STACK_SIZE         36   // Minimum task stack size, in words
 
 #define  TN_BITS_IN_INT            32
 
 #define  TN_ALIG                   sizeof(void*)
-
-#define  TN_PORT_STACK_EXPAND_AT_EXIT  32
 
   //----------------------------------------------------
 
