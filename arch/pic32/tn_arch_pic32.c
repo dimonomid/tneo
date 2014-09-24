@@ -136,14 +136,14 @@ unsigned int *_tn_arch_stack_init(
 
 //_____________________________________________________________________________
 //
-void tn_cpu_int_enable(void)
-{
-    __builtin_enable_interrupts();
-}
-
-void tn_cpu_int_disable(void)
+void tn_arch_int_dis(void)
 {
     __builtin_disable_interrupts();
+}
+
+void tn_arch_int_en(void)
+{
+   __builtin_enable_interrupts();
 }
 
 

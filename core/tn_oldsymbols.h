@@ -116,6 +116,12 @@ typedef struct TN_Sem         TN_SEM;
 #define  align_attr_start              TN_ARCH_STK_ALIGN_BEFORE
 #define  align_attr_end                TN_ARCH_STK_ALIGN_AFTER
 
+#define  tn_cpu_int_disable            tn_arch_int_dis
+#define  tn_cpu_int_enable             tn_arch_int_en
+
+#define  tn_cpu_save_sr                tn_arch_sr_save_int_dis
+#define  tn_cpu_restore_sr             tn_arch_sr_restore
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

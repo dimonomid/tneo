@@ -49,18 +49,8 @@
 
 #endif
 
-#define  USE_ASM_FFS
-
-//#ifndef TN_INT_STACK_SIZE
-//# define  TN_INT_STACK_SIZE        128  // Size of interrupt stack, in words
-//#endif
-
-//#define  TN_TIMER_STACK_SIZE       68   // Size of timer task stack, in words
-//#define  TN_IDLE_STACK_SIZE        68   // Size of idle task stack, in words
 #define  TN_MIN_STACK_SIZE         36   // Minimum task stack size, in words
-
 #define  TN_BITS_IN_INT            32
-
 #define  TN_ALIG                   sizeof(void*)
 
   //----------------------------------------------------
@@ -71,8 +61,6 @@
 #define  TN_FILL_STACK_VAL      0xFFFFFFFF
 #define  TN_INVALID_VAL         0xFFFFFFFF
 
-#define  ffs_asm(x) (32-__builtin_clz((x)&(0-(x))))
-
 
 //-- Interrupt processing   - processor specific
 
@@ -80,8 +68,8 @@
 #define  TN_INTSAVE_DATA         int tn_save_status_reg = 0;
 
 #ifdef __mips16
-#  define tn_disable_interrupt()  tn_save_status_reg = tn_cpu_save_sr()
-#  define tn_enable_interrupt()   tn_cpu_restore_sr(tn_save_status_reg)
+#  define tn_disable_interrupt()  tn_save_status_reg = tn_arch_sr_save_int_dis()
+#  define tn_enable_interrupt()   tn_arch_sr_restore(tn_save_status_reg)
 #else
 #  define tn_disable_interrupt()  __asm__ __volatile__("di %0; ehb" : "=d" (tn_save_status_reg))
 #  define tn_enable_interrupt()   __builtin_mtc0(12, 0, tn_save_status_reg)
@@ -109,8 +97,6 @@
                 return ;
 
 
-
-#define  TN_FATAL_ERROR(error_msg, ...)         {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
 
 
 /**
