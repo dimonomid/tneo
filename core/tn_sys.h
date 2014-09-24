@@ -286,6 +286,22 @@ typedef void (TNCallbackDeadlock)(
 
 
 
+/*******************************************************************************
+ *    DEFINITIONS
+ ******************************************************************************/
+
+/**
+ * Value to pass to `tn_sys_tslice_ticks()` to turn round-robin off.
+ */
+#define  TN_NO_TIME_SLICE              0
+
+/**
+ * Max value of time slice
+ */
+#define  TN_MAX_TIME_SLICE             0xFFFE
+
+
+
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
@@ -331,8 +347,10 @@ void tn_tick_int_processing(void);
  * Set time slice ticks value for specified priority (round-robin scheduling).
  * 
  * @param priority   priority of tasks for which time slice value should be set
- * @param value      time slice value. Set to `NO_TIME_SLICE` for no round-robin
- *                   scheduling for given priority (it's default value).
+ * @param value      time slice value. Set to `TN_NO_TIME_SLICE` for no
+ *                   round-robin scheduling for given priority
+ *                   (it's default value).
+ *                   Value can't be higher than `TN_MAX_TIME_SLICE`.
  */
 enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
 

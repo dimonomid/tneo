@@ -98,7 +98,7 @@ static void _find_next_task_to_run(void)
    mask = 1;
    priority = 0;
 
-   for (i = 0; i < TN_BITS_IN_INT; i++){
+   for (i = 0; i < TN_NUM_PRIORITY; i++){
       //-- for each bit in bmp
       if (tn_ready_to_run_bmp & mask){
          priority = i;

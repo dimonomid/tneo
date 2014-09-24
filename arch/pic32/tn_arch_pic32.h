@@ -28,38 +28,30 @@
 
    /* ver 2.7  */
 
-/**
- * \file
- */
 
 
 #ifndef  _TN_ARCH_PIC32_H
 #define  _TN_ARCH_PIC32_H
 
-  /* --------- PIC32 port -------- */
+/* --------- PIC32 port -------- */
 
 #if defined (__XC32)
-
-#define TN_ARCH_STK_ALIGN_BEFORE
-#define TN_ARCH_STK_ALIGN_AFTER        __attribute__((aligned(0x8)))
-
+#  define TN_ARCH_STK_ALIGN_BEFORE
+#  define TN_ARCH_STK_ALIGN_AFTER        __attribute__((aligned(0x8)))
 #else
-
-  #error "Unknown compiler"
-
+#  error "Unknown compiler"
 #endif
 
 #define  TN_MIN_STACK_SIZE         36   // Minimum task stack size, in words
 #define  TN_BITS_IN_INT            32
 #define  TN_ALIG                   sizeof(void*)
 
-  //----------------------------------------------------
+//----------------------------------------------------
 
-#define  TN_NUM_PRIORITY        TN_BITS_IN_INT  //-- 0..31  Priority 0 always is used by timers task
+#define  TN_NUM_PRIORITY        TN_BITS_IN_INT  //-- 0 .. 31
 
 #define  TN_WAIT_INFINITE       0xFFFFFFFF
-#define  TN_FILL_STACK_VAL      0xFFFFFFFF
-#define  TN_INVALID_VAL         0xFFFFFFFF
+#define  TN_FILL_STACK_VAL      0xFEEDFACE
 
 
 //-- Interrupt processing   - processor specific

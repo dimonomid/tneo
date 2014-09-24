@@ -182,7 +182,7 @@ static inline void _round_robin_manage(void)
    volatile struct TN_ListItem *pri_queue;
    volatile int priority = tn_curr_run_task->priority;
 
-   if (tn_tslice_ticks[priority] != NO_TIME_SLICE){
+   if (tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
       tn_curr_run_task->tslice_count++;
 
       if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
@@ -250,7 +250,7 @@ void tn_start_system(
 
    for (i = 0; i < TN_NUM_PRIORITY; i++){
       tn_list_reset(&(tn_ready_list[i]));
-      tn_tslice_ticks[i] = NO_TIME_SLICE;
+      tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
    tn_list_reset(&tn_create_queue);
@@ -341,7 +341,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
    TN_CHECK_NON_INT_CONTEXT;
 
    if (     priority <= 0 || priority >= (TN_NUM_PRIORITY - 1)
-         || value    <  0 || value    >   MAX_TIME_SLICE)
+         || value    <  0 || value    >   TN_MAX_TIME_SLICE)
    {
       ret = TN_RC_WPARAM;
       goto out;

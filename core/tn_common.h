@@ -114,13 +114,6 @@ enum TN_RCode {
  ******************************************************************************/
 
 
-//--- wait reasons
-
-#define  NO_TIME_SLICE                   0
-#define  MAX_TIME_SLICE             0xFFFE
-
-
-
 #ifndef NULL
 #  define NULL       ((void *)0)
 #endif
@@ -138,15 +131,12 @@ enum TN_RCode {
 #endif
 
 
-#if !defined(container_of)
-/* given a pointer @ptr to the field @member embedded into type (usually
- * struct) @type, return pointer to the embedding instance of @type. */
-#define container_of(ptr, type, member) \
-   ((type *)((char *)(ptr)-(char *)(&((type *)0)->member)))
-#endif
-
-
 //-- TN_MAKE_ALIG() macro
+/**
+ * Macro for making address aligned properly.
+ *
+ * @see `tn_fmem_create()`
+ */
 #define  TN_MAKE_ALIG_SIZE(a)  (((a) + (TN_ALIG - 1)) & (~(TN_ALIG - 1)))
 
 //-- self-checking

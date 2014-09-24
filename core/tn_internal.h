@@ -120,6 +120,21 @@ extern void *tn_int_sp;
 
 
 
+
+/*******************************************************************************
+ *    DEFINITIONS
+ ******************************************************************************/
+
+#if !defined(container_of)
+/* given a pointer @ptr to the field @member embedded into type (usually
+ * struct) @type, return pointer to the embedding instance of @type. */
+#define container_of(ptr, type, member) \
+   ((type *)((char *)(ptr)-(char *)(&((type *)0)->member)))
+#endif
+
+
+
+
 /*******************************************************************************
  *    tn_sys.c
  ******************************************************************************/
