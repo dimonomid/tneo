@@ -4,7 +4,7 @@
  ******************************************************************************/
 
 /**
- * \mainpage
+ * \mainpage TNeoKernel overview
  *
  * TNeoKernel was born as a thorough review and re-implementation of
  * TNKernel. The new kernel has well-formed code, inherited bugs are fixed
