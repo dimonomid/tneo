@@ -6,9 +6,10 @@
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
  *    TNeoKernel:                copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation 
- *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
- *    as well as new features added, and it is tested carefully with unit-tests.
+ *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
+ *    as well as new features being added, and it is tested carefully with
+ *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
  *    hence the new name: TNeoKernel.
@@ -172,7 +173,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
  * behavior depends on the `timeout` value:
  *
- * * `0`:                  `TN_RC_TIMEOUT` is returned immediately;
+ * * `0`:                  function returns `TN_RC_TIMEOUT` immediately;
  * * `TN_WAIT_INFINITE`:   task is switched to waiting state until
  *                         there is empty element in the FIFO;
  * * other:                task is switched to waiting state until

@@ -170,6 +170,8 @@ typedef struct TN_Sem         TN_SEM;
 #define  tn_idisable_interrupt         TN_INT_IDIS_SAVE
 #define  tn_ienable_interrupt          TN_INT_IRESTORE
 
+#define  TN_ALIG                       TN_ALIGN
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
