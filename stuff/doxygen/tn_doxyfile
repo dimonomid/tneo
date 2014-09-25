@@ -795,6 +795,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../../core/tn_internal.h        \
+                         ../../core/tn_list.h            \
                          ../../arch/tn_arch_internal.h   \
                          ../../tn_cfg.h
 
