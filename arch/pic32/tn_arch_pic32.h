@@ -35,6 +35,16 @@
 
 /* --------- PIC32 port -------- */
 
+#define  USE_ASM_FFS
+#define  ffs_asm(x) (32-__builtin_clz((x)&(0-(x))))
+
+#define  TN_FATAL_ERROR(error_msg, ...)         {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
+
+
+
+
+
+
 #if defined (__XC32)
 #  define TN_ARCH_STK_ATTR_BEFORE
 #  define TN_ARCH_STK_ATTR_AFTER       __attribute__((aligned(0x8)))
