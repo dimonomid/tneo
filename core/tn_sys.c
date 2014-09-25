@@ -419,6 +419,22 @@ enum TN_Context tn_sys_context_get(void)
    return ret;
 }
 
+/*
+ * See comment in tn_sys.h file
+ */
+struct TN_Task *tn_sys_cur_task_get(void)
+{
+   return tn_curr_run_task;
+}
+
+/*
+ * See comment in tn_sys.h file
+ */
+TN_TaskBody *tn_cur_task_body_get(void)
+{
+   return tn_curr_run_task->task_func_addr;
+}
+
 
 /*******************************************************************************
  *    INTERNAL TNKERNEL FUNCTIONS

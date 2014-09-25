@@ -296,6 +296,16 @@ static inline BOOL tn_is_isr_context(void)
    return (tn_sys_context_get() == TN_CONTEXT_ISR);
 }
 
+/**
+ * Returns pointer to the currently running task.
+ */
+struct TN_Task *tn_cur_task_get(void);
+
+/**
+ * Returns pointer to the body function of the currently running task.
+ */
+TN_TaskBody *tn_cur_task_body_get(void);
+
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
