@@ -258,7 +258,7 @@ enum TN_RCode tn_queue_receive_polling(
 /**
  * The same as `tn_queue_receive()` with zero timeout, but for using in the ISR.
  */
-enum TN_RCode tn_queue_ireceive(
+enum TN_RCode tn_queue_ireceive_polling(
       struct TN_DQueue *dque,
       void **pp_data
       );

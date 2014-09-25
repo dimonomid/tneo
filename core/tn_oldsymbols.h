@@ -110,6 +110,7 @@ typedef struct TN_Sem         TN_SEM;
 
 #define  tn_fmem_get_ipolling          tn_fmem_iget_polling
 
+#define  tn_queue_ireceive             tn_queue_ireceive_polling
 
 
 

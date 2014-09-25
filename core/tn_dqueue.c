@@ -474,7 +474,7 @@ enum TN_RCode tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_RCode tn_queue_ireceive(struct TN_DQueue *dque, void **pp_data)
+enum TN_RCode tn_queue_ireceive_polling(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__RECEIVE, pp_data);
 }
