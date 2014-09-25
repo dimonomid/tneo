@@ -426,8 +426,11 @@ EXTRACT_PACKAGE        = NO
 # If the EXTRACT_STATIC tag is set to YES all static members of a file will be
 # included in the documentation.
 # The default value is: NO.
+#
+# dfrank: it is set to YES in order to include static inline functions
+# from headers
 
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES classes (and structs) defined
 # locally in source files will be included in the documentation. If set to NO

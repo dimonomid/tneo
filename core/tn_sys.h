@@ -403,6 +403,34 @@ enum TN_StateFlag tn_sys_state_flags_get(void);
  */
 enum TN_Context tn_sys_context_get(void);
 
+/**
+ * Returns whether current system context is `TN_CONTEXT_TASK`
+ *
+ * @return `TRUE` if current system context is `TN_CONTEXT_TASK`,
+ *         `FALSE` otherwise.
+ *
+ * @see `tn_sys_context_get()`
+ * @see `enum TN_Context`
+ */
+static inline BOOL tn_is_task_context(void)
+{
+   return (tn_sys_context_get() == TN_CONTEXT_TASK);
+}
+
+/**
+ * Returns whether current system context is `TN_CONTEXT_ISR`
+ *
+ * @return `TRUE` if current system context is `TN_CONTEXT_ISR`,
+ *         `FALSE` otherwise.
+ *
+ * @see `tn_sys_context_get()`
+ * @see `enum TN_Context`
+ */
+static inline BOOL tn_is_isr_context(void)
+{
+   return (tn_sys_context_get() == TN_CONTEXT_ISR);
+}
+
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif

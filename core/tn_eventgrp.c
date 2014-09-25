@@ -234,6 +234,7 @@ enum TN_RCode tn_eventgrp_create(
 //----------------------------------------------------------------------------
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 {
+   enum TN_RCode rc = TN_RC_OK;
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
@@ -243,7 +244,10 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -257,7 +261,8 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 //----------------------------------------------------------------------------
@@ -273,7 +278,10 @@ enum TN_RCode tn_eventgrp_wait(
    enum TN_RCode rc = TN_RC_OK;
    BOOL waited_for_event = FALSE;
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -308,6 +316,7 @@ enum TN_RCode tn_eventgrp_wait(
       rc = tn_curr_run_task->task_wait_rc;
    }
 
+out:
    return rc;
 }
 
@@ -322,7 +331,10 @@ enum TN_RCode tn_eventgrp_wait_polling(
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -330,6 +342,7 @@ enum TN_RCode tn_eventgrp_wait_polling(
 
    TN_INT_RESTORE();
 
+out:
    return rc;
 }
 
@@ -344,7 +357,10 @@ enum TN_RCode tn_eventgrp_iwait_polling(
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -352,6 +368,7 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 
    TN_INT_IRESTORE();
 
+out:
    return rc;
 }
 
@@ -365,7 +382,10 @@ enum TN_RCode tn_eventgrp_modify(
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -374,6 +394,7 @@ enum TN_RCode tn_eventgrp_modify(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
+out:
    return rc;
 }
 
@@ -386,7 +407,10 @@ enum TN_RCode tn_eventgrp_imodify(
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -394,6 +418,7 @@ enum TN_RCode tn_eventgrp_imodify(
 
    TN_INT_IRESTORE();
 
+out:
    return rc;
 }
 
