@@ -37,7 +37,8 @@ void tn_arch_int_dis(void);
 void tn_arch_int_en(void);
 
 /**
- * Save current status register value and disable interrupts atomically
+ * Disable interrupts and return previous value of status register,
+ * atomically
  *
  * @see `tn_arch_sr_restore()`
  */

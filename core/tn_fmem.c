@@ -56,15 +56,15 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static inline enum TN_RCode _fmem_get(struct TN_FMem *fmp, void **p_data)
+static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = NULL;
 
-   if (fmp->free_blocks_cnt > 0){
-      ptr = fmp->free_list;
-      fmp->free_list = *(void **)fmp->free_list;   //-- ptr - to new free list
-      fmp->free_blocks_cnt--;
+   if (fmem->free_blocks_cnt > 0){
+      ptr = fmem->free_list;
+      fmem->free_list = *(void **)fmem->free_list;   //-- ptr - to new free list
+      fmem->free_blocks_cnt--;
    }
 
    if (ptr != NULL){
@@ -77,23 +77,23 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmp, void **p_data)
    return rc;
 }
 
-static inline enum TN_RCode _fmem_release(struct TN_FMem *fmp, void *p_data)
+static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    struct TN_Task *task;
 
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!tn_is_list_empty(&(fmp->wait_queue))){
-      task = tn_list_first_entry(&(fmp->wait_queue), typeof(*task), task_queue);
+   if (!tn_is_list_empty(&(fmem->wait_queue))){
+      task = tn_list_first_entry(&(fmem->wait_queue), typeof(*task), task_queue);
 
       task->subsys_wait.fmem.data_elem = p_data;
 
       _tn_task_wait_complete(task, TN_RC_OK);
    } else {
-      if (fmp->free_blocks_cnt < fmp->blocks_cnt){
-         *(void **)p_data = fmp->free_list;   //-- insert block into free block list
-         fmp->free_list = p_data;
-         fmp->free_blocks_cnt++;
+      if (fmem->free_blocks_cnt < fmem->blocks_cnt){
+         *(void **)p_data = fmem->free_list;   //-- insert block into free block list
+         fmem->free_list = p_data;
+         fmem->free_blocks_cnt++;
       } else {
          rc = TN_RC_OVERFLOW;
       }
@@ -105,62 +105,62 @@ static inline enum TN_RCode _fmem_release(struct TN_FMem *fmp, void *p_data)
 
 
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmp)
+static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmp == NULL){
+   if (fmem == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmp->id_fmp == TN_ID_FSMEMORYPOOL){
+   } else if (fmem->id_fmp == TN_ID_FSMEMORYPOOL){
       rc = TN_RC_WPARAM;
    }
 
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmp)
+static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmp == NULL){
+   if (fmem == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmp->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
       rc = TN_RC_INVALID_OBJ;
    }
 
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_get(struct TN_FMem *fmp, void **p_data)
+static inline enum TN_RCode _check_param_fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmp == NULL || p_data == NULL){
+   if (fmem == NULL || p_data == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmp->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
       rc = TN_RC_INVALID_OBJ;
    }
 
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_release(struct TN_FMem *fmp, void *p_data)
+static inline enum TN_RCode _check_param_fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmp == NULL || p_data == NULL){
+   if (fmem == NULL || p_data == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmp->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
       rc = TN_RC_INVALID_OBJ;
    }
 
    return rc;
 }
 #else
-#  define _check_param_fmem_create(fmp)               (TN_RC_OK)
-#  define _check_param_fmem_delete(fmp)               (TN_RC_OK)
-#  define _check_param_fmem_get(fmp, p_data)          (TN_RC_OK)
-#  define _check_param_fmem_release(fmp, p_data)      (TN_RC_OK)
+#  define _check_param_fmem_create(fmem)               (TN_RC_OK)
+#  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
+#  define _check_param_fmem_get(fmem, p_data)          (TN_RC_OK)
+#  define _check_param_fmem_release(fmem, p_data)      (TN_RC_OK)
 #endif
 
 
@@ -170,7 +170,7 @@ static inline enum TN_RCode _check_param_fmem_release(struct TN_FMem *fmp, void 
  ******************************************************************************/
 
 enum TN_RCode tn_fmem_create(
-      struct TN_FMem    *fmp,
+      struct TN_FMem   *fmem,
       void             *start_addr,
       unsigned int      block_size,
       int               blocks_cnt
@@ -178,7 +178,7 @@ enum TN_RCode tn_fmem_create(
 {
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_create(fmp);
+   rc = _check_param_fmem_create(fmem);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -210,12 +210,12 @@ enum TN_RCode tn_fmem_create(
 
    //-- checks are done; proceed to actual creation
 
-   fmp->start_addr = start_addr;
-   fmp->block_size = block_size;
-   fmp->blocks_cnt = blocks_cnt;
+   fmem->start_addr = start_addr;
+   fmem->block_size = block_size;
+   fmem->blocks_cnt = blocks_cnt;
 
    //-- reset wait_queue
-   tn_list_reset(&(fmp->wait_queue));
+   tn_list_reset(&(fmem->wait_queue));
 
    //-- init block pointers
    {
@@ -223,33 +223,33 @@ enum TN_RCode tn_fmem_create(
       unsigned char *p_block;
       int i;
 
-      p_tmp    = (void **)fmp->start_addr;
-      p_block  = (unsigned char *)fmp->start_addr + fmp->block_size;
-      for (i = 0; i < (fmp->blocks_cnt - 1); i++){
+      p_tmp    = (void **)fmem->start_addr;
+      p_block  = (unsigned char *)fmem->start_addr + fmem->block_size;
+      for (i = 0; i < (fmem->blocks_cnt - 1); i++){
          *p_tmp  = (void *)p_block;  //-- contents of cell = addr of next block
          p_tmp   = (void **)p_block;
-         p_block += fmp->block_size;
+         p_block += fmem->block_size;
       }
       *p_tmp = NULL;          //-- Last memory block first cell contents -  NULL
 
-      fmp->free_list       = fmp->start_addr;
-      fmp->free_blocks_cnt = fmp->blocks_cnt;
+      fmem->free_list       = fmem->start_addr;
+      fmem->free_blocks_cnt = fmem->blocks_cnt;
    }
 
    //-- set id
-   fmp->id_fmp = TN_ID_FSMEMORYPOOL;
+   fmem->id_fmp = TN_ID_FSMEMORYPOOL;
 
 out:
    return rc;
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_delete(struct TN_FMem *fmp)
+enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
    
-   rc = _check_param_fmem_delete(fmp);
+   rc = _check_param_fmem_delete(fmem);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -258,10 +258,10 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmp)
 
    TN_INT_DIS_SAVE();
 
-   //-- remove all tasks (if any) from fmp's wait queue
-   _tn_wait_queue_notify_deleted(&(fmp->wait_queue));
+   //-- remove all tasks (if any) from fmem's wait queue
+   _tn_wait_queue_notify_deleted(&(fmem->wait_queue));
 
-   fmp->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
+   fmem->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
 
    TN_INT_RESTORE();
 
@@ -274,13 +274,13 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long timeout)
+enum TN_RCode tn_fmem_get(struct TN_FMem *fmem, void **p_data, unsigned long timeout)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
    BOOL waited_for_data = FALSE;
    
-   rc = _check_param_fmem_get(fmp, p_data);
+   rc = _check_param_fmem_get(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -289,11 +289,11 @@ enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long time
 
    TN_INT_DIS_SAVE();
 
-   rc = _fmem_get(fmp, p_data);
+   rc = _fmem_get(fmem, p_data);
 
    if (rc == TN_RC_TIMEOUT && timeout > 0){
       _tn_task_curr_to_wait_action(
-            &(fmp->wait_queue),
+            &(fmem->wait_queue),
             TN_WAIT_REASON_WFIXMEM,
             timeout
             );
@@ -315,12 +315,12 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmp,void **p_data)
+enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem,void **p_data)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_get(fmp, p_data);
+   rc = _check_param_fmem_get(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -329,7 +329,7 @@ enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmp,void **p_data)
 
    TN_INT_DIS_SAVE();
 
-   rc = _fmem_get(fmp, p_data);
+   rc = _fmem_get(fmem, p_data);
 
    TN_INT_RESTORE();
 
@@ -338,12 +338,12 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmp, void **p_data)
+enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_get(fmp, p_data);
+   rc = _check_param_fmem_get(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -352,7 +352,7 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmp, void **p_data)
 
    TN_INT_IDIS_SAVE();
 
-   rc = _fmem_get(fmp, p_data);
+   rc = _fmem_get(fmem, p_data);
 
    TN_INT_IRESTORE();
 
@@ -361,12 +361,12 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_release(struct TN_FMem *fmp, void *p_data)
+enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_release(fmp, p_data);
+   rc = _check_param_fmem_release(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -375,7 +375,7 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmp, void *p_data)
 
    TN_INT_DIS_SAVE();
 
-   rc = _fmem_release(fmp, p_data);
+   rc = _fmem_release(fmem, p_data);
 
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
@@ -385,12 +385,12 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmp, void *p_data)
+enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
    
-   rc = _check_param_fmem_release(fmp, p_data);
+   rc = _check_param_fmem_release(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -399,7 +399,7 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmp, void *p_data)
 
    TN_INT_IDIS_SAVE();
 
-   rc = _fmem_release(fmp, p_data);
+   rc = _fmem_release(fmem, p_data);
 
    TN_INT_IRESTORE();
 

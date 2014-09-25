@@ -57,17 +57,17 @@ struct TN_FMemTaskWait {
  ******************************************************************************/
 
 enum TN_RCode tn_fmem_create(
-      struct TN_FMem    *fmp,
+      struct TN_FMem   *fmem,
       void             *start_addr,
       unsigned int      block_size,
       int               blocks_cnt
       );
-enum TN_RCode tn_fmem_delete(struct TN_FMem *fmp);;
-enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long timeout);
-enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmp, void **p_data);
-enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmp, void **p_data);
-enum TN_RCode tn_fmem_release(struct TN_FMem *fmp, void *p_data);
-enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmp, void *p_data);
+enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
+enum TN_RCode tn_fmem_get(struct TN_FMem *fmem, void **p_data, unsigned long timeout);
+enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem, void **p_data);
+enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
+enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
+enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
 
 
 #endif // _TN_MEM_H
