@@ -71,7 +71,7 @@ static inline enum TN_RCode _sem_job_perform(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = p_worker(sem);
 
@@ -88,7 +88,7 @@ static inline enum TN_RCode _sem_job_perform(
    }
 #endif
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_sem){
       rc = tn_curr_run_task->task_wait_rc;
@@ -116,11 +116,11 @@ static inline enum TN_RCode _sem_job_iperform(
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = p_worker(sem);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
    return rc;
 }
@@ -182,7 +182,7 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
 {
 
 #if TN_CHECK_PARAM
-   if(sem == NULL) //-- Thanks to Michael Fisher
+   if(sem == NULL)
       return  TN_RC_WPARAM;
    if(max_count <= 0 || start_count < 0 ||
          start_count > max_count || sem->id_sem != 0) //-- no recreation
@@ -217,13 +217,13 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt(); // v.2.7 - thanks to Eugene Scopal
+   TN_INT_DIS_SAVE();
 
    _tn_wait_queue_notify_deleted(&(sem->wait_queue));
 
    sem->id_sem = 0; //-- Semaphore does not exist now
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task

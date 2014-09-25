@@ -239,7 +239,7 @@ static enum TN_RCode _dqueue_job_perform(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    switch (job_type){
       case _JOB_TYPE__SEND:
@@ -281,7 +281,7 @@ static enum TN_RCode _dqueue_job_perform(
    }
 #endif
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited){
       switch (job_type){
@@ -319,7 +319,7 @@ static enum TN_RCode _dqueue_job_iperform(
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    switch (job_type){
       case _JOB_TYPE__SEND:
@@ -330,7 +330,7 @@ static enum TN_RCode _dqueue_job_iperform(
          break;
    }
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
    return rc;
 }
@@ -398,7 +398,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    //-- notify waiting tasks that the object is deleted
    //   (TN_RC_DELETED is returned)
@@ -407,7 +407,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 
    dque->id_dque = 0; //-- data queue does not exist now
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task

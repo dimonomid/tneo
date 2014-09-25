@@ -256,14 +256,14 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmp)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    //-- remove all tasks (if any) from fmp's wait queue
    _tn_wait_queue_notify_deleted(&(fmp->wait_queue));
 
    fmp->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
@@ -287,7 +287,7 @@ enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long time
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _fmem_get(fmp, p_data);
 
@@ -300,7 +300,7 @@ enum TN_RCode tn_fmem_get(struct TN_FMem *fmp, void **p_data, unsigned long time
       waited_for_data = TRUE;
    }
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_data){
       //-- now, fmem.data_elem field should contain valid value, so,
@@ -327,11 +327,11 @@ enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmp,void **p_data)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _fmem_get(fmp, p_data);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
 out:
    return rc;
@@ -350,11 +350,11 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmp, void **p_data)
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = _fmem_get(fmp, p_data);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
 out:
    return rc;
@@ -373,11 +373,11 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmp, void *p_data)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _fmem_release(fmp, p_data);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
 out:
@@ -397,11 +397,11 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmp, void *p_data)
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = _fmem_release(fmp, p_data);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
 out:
    return rc;

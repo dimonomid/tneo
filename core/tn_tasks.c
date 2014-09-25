@@ -187,11 +187,11 @@ static inline enum TN_RCode _task_job_perform(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = p_worker(task);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
    return rc;
@@ -214,11 +214,11 @@ static inline enum TN_RCode _task_job_iperform(
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = p_worker(task);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
    return rc;
 }
@@ -374,7 +374,7 @@ enum TN_RCode tn_task_create(
    }
 
    if (context == TN_CONTEXT_TASK){
-      tn_disable_interrupt();
+      TN_INT_DIS_SAVE();
    }
 
    //--- Init task TCB
@@ -408,7 +408,7 @@ enum TN_RCode tn_task_create(
    }
 
    if (context == TN_CONTEXT_TASK){
-      tn_enable_interrupt();
+      TN_INT_RESTORE();
    }
 
    return rc;
@@ -433,7 +433,7 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
       rc = TN_RC_WSTATE;
@@ -447,7 +447,7 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
    _tn_task_set_suspended(task);
 
 out:
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
    return rc;
@@ -470,7 +470,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    if (!_tn_task_is_suspended(task)){
       rc = TN_RC_WSTATE;
@@ -486,7 +486,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
    }
 
 out:
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    return rc;
 
@@ -506,11 +506,11 @@ enum TN_RCode tn_task_sleep(unsigned long timeout)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    rc = tn_curr_run_task->task_wait_rc;
    return rc;
@@ -572,7 +572,7 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
 {
    struct TN_Task *task;
 
-   //-- it is here only for tn_disable_interrupt() normal operation,
+   //-- it is here only for TN_INT_DIS_SAVE() normal operation,
    //   but actually we don't need to save current interrupt status:
    //   this function never returns, and interrupt status is restored
    //   from different task's stack inside `_tn_arch_context_switch_exit()`
@@ -581,7 +581,7 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
 	 
    TN_CHECK_NON_INT_CONTEXT_NORETVAL;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    task = tn_curr_run_task;
    _tn_task_clear_runnable(task);
@@ -614,7 +614,7 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
 
    //--------------------------------------------------
@@ -647,7 +647,7 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
    }
 
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
    return rc;
@@ -670,11 +670,11 @@ enum TN_RCode tn_task_delete(struct TN_Task *task)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _task_delete(task);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    return rc;
 }
@@ -698,7 +698,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    if(new_priority == 0){
       new_priority = task->base_priority;
@@ -712,7 +712,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
       _tn_change_task_priority(task, new_priority);
    }
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
    return rc;
@@ -930,7 +930,6 @@ void _tn_task_set_dormant(struct TN_Task* task)
    }
 #endif
 
-   // v.2.7 - thanks to Alexander Gacov, Vyacheslav Ovsiyenko
    tn_list_reset(&(task->task_queue));
    tn_list_reset(&(task->timer_queue));
 

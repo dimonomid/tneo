@@ -122,6 +122,12 @@ typedef struct TN_Sem         TN_SEM;
 #define  tn_cpu_save_sr                tn_arch_sr_save_int_dis
 #define  tn_cpu_restore_sr             tn_arch_sr_restore
 
+#define  tn_disable_interrupt          TN_INT_DIS_SAVE
+#define  tn_enable_interrupt           TN_INT_RESTORE
+
+#define  tn_idisable_interrupt         TN_INT_IDIS_SAVE
+#define  tn_ienable_interrupt          TN_INT_IRESTORE
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

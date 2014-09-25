@@ -533,7 +533,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    //-- mutex can be deleted if only it isn't held 
    if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
@@ -559,7 +559,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
    mutex->id_mutex = 0; //-- mutex does not exist now
 
 out:
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
@@ -589,7 +589,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    if (tn_curr_run_task == mutex->holder){
       //-- mutex is already locked by current task
@@ -655,7 +655,7 @@ out_ei:
    }
 #endif
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_mutex){
       ret = tn_curr_run_task->task_wait_rc;
@@ -692,7 +692,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    //-- unlocking is enabled only for the owner and already locked mutex
    if (tn_curr_run_task != mutex->holder){
@@ -720,7 +720,7 @@ out:
    return ret;
 
 out_ei:
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    return ret;
 

@@ -44,11 +44,11 @@
 
     .global  _tn_arch_context_switch_exit
     .global  _tn_arch_context_switch
-    .global  tn_cpu_save_sr
-    .global  tn_cpu_restore_sr
     .global  _tn_arch_system_start
-    .global  cs0_int_handler
     .global  _tn_arch_inside_isr
+    .global  tn_arch_sr_save_int_dis
+    .global  tn_arch_sr_restore
+    .global  cs0_int_handler
 
     /* Constants */
 
@@ -264,9 +264,9 @@ tn_restore_context:
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_cpu_save_sr
+    .ent tn_arch_sr_save_int_dis
 
-tn_cpu_save_sr:
+tn_arch_sr_save_int_dis:
 
     di      $v0                         /* Disable interrupts */
 .if buildmode != simulator
@@ -277,16 +277,16 @@ tn_cpu_save_sr:
     ehb
 .endif
 
-    .end tn_cpu_save_sr
+    .end tn_arch_sr_save_int_dis
 
 /*----------------------------------------------------------------------------
 *
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent tn_cpu_restore_sr
+    .ent tn_arch_sr_restore
 
-tn_cpu_restore_sr:
+tn_arch_sr_restore:
 
     mtc0    $a0, $12                    /* c0_status */
 .if buildmode != simulator
@@ -297,7 +297,7 @@ tn_cpu_restore_sr:
     ehb
 .endif
 
-    .end tn_cpu_restore_sr
+    .end tn_arch_sr_restore
 
 /*----------------------------------------------------------------------------
 *

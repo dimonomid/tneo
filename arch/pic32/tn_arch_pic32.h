@@ -44,7 +44,7 @@
 
 #define  TN_MIN_STACK_SIZE         36   // Minimum task stack size, in words
 #define  TN_BITS_IN_INT            32
-#define  TN_ALIG                   sizeof(void*)
+#define  TN_ALIG                   sizeof(void *)
 
 //----------------------------------------------------
 
@@ -56,21 +56,23 @@
 
 //-- Interrupt processing   - processor specific
 
-#define  TN_INTSAVE_DATA_INT     int tn_save_status_reg = 0;
 #define  TN_INTSAVE_DATA         int tn_save_status_reg = 0;
+#define  TN_INTSAVE_DATA_INT     TN_INTSAVE_DATA
 
 #ifdef __mips16
-#  define tn_disable_interrupt()  tn_save_status_reg = tn_arch_sr_save_int_dis()
-#  define tn_enable_interrupt()   tn_arch_sr_restore(tn_save_status_reg)
+#  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
+#  define TN_INT_RESTORE()    tn_arch_sr_restore(tn_save_status_reg)
 #else
-#  define tn_disable_interrupt()  __asm__ __volatile__("di %0; ehb" : "=d" (tn_save_status_reg))
-#  define tn_enable_interrupt()   __builtin_mtc0(12, 0, tn_save_status_reg)
+#  define TN_INT_DIS_SAVE()   __asm__ __volatile__("di %0; ehb" : "=d" (tn_save_status_reg))
+#  define TN_INT_RESTORE()    __builtin_mtc0(12, 0, tn_save_status_reg)
 #endif
 
-#define tn_idisable_interrupt() tn_disable_interrupt()
-#define tn_ienable_interrupt()  tn_enable_interrupt()
+#define TN_INT_IDIS_SAVE()       TN_INT_DIS_SAVE()
+#define TN_INT_IRESTORE()        TN_INT_RESTORE()
 
-#define  tn_chk_irq_disabled()   ((__builtin_mfc0(12, 0) & 1) == 0)
+#define tn_chk_irq_disabled()    ((__builtin_mfc0(12, 0) & 1) == 0)
+
+
 
 #define  TN_CHECK_INT_CONTEXT           \
              if(!_tn_arch_inside_isr())       \

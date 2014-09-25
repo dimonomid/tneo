@@ -125,7 +125,7 @@ static void _idle_task_body(void *par)
    //-- Make sure interrupts are disabled before calling application callback,
    //   so that this idle task is guaranteed to not be be preempted
    //   until tn_callback_appl_init() finished its job.
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    //-- User application init - hardware initialization (among other things,
    //   system hardware timer interrupt should be set up there), user's objects
@@ -133,7 +133,7 @@ static void _idle_task_body(void *par)
    tn_callback_appl_init();
 
    //-- Enable interrupt here ( including tick int)
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
 
    //-- enter endless loop with calling user-provided hook function
@@ -316,7 +316,7 @@ void tn_tick_int_processing(void)
 
    TN_CHECK_INT_CONTEXT_NORETVAL;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    //-- manage round-robin (if used)
    _round_robin_manage();
@@ -327,7 +327,7 @@ void tn_tick_int_processing(void)
    //-- increment system timer
    tn_sys_time_count++;
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 }
 
 /*
@@ -347,11 +347,11 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
       goto out;
    }
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    tn_tslice_ticks[priority] = value;
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
 out:
    return ret;
@@ -373,14 +373,14 @@ void tn_sys_time_set(unsigned int value)
 {
    if (_tn_arch_inside_isr()){
       TN_INTSAVE_DATA_INT;
-      tn_idisable_interrupt();
+      TN_INT_IDIS_SAVE();
       tn_sys_time_count = value;
-      tn_ienable_interrupt();
+      TN_INT_IRESTORE();
    } else {
       TN_INTSAVE_DATA;
-      tn_disable_interrupt();
+      TN_INT_DIS_SAVE();
       tn_sys_time_count = value;
-      tn_enable_interrupt();
+      TN_INT_RESTORE();
    }
 
 }

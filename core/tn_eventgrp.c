@@ -245,13 +245,13 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();    // v.2.7 - thanks to Eugene Scopal
+   TN_INT_DIS_SAVE();
 
    _tn_wait_queue_notify_deleted(&(eventgrp->wait_queue));
 
    eventgrp->id_event = 0; //-- event does not exist now
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
@@ -275,7 +275,7 @@ enum TN_RCode tn_eventgrp_wait(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
@@ -296,7 +296,7 @@ enum TN_RCode tn_eventgrp_wait(
    }
 #endif
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_event){
       if (     tn_curr_run_task->task_wait_rc == TN_RC_OK
@@ -324,11 +324,11 @@ enum TN_RCode tn_eventgrp_wait_polling(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
 
    return rc;
 }
@@ -346,11 +346,11 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
    return rc;
 }
@@ -367,11 +367,11 @@ enum TN_RCode tn_eventgrp_modify(
 
    TN_CHECK_NON_INT_CONTEXT;
 
-   tn_disable_interrupt();
+   TN_INT_DIS_SAVE();
 
    rc = _eventgrp_modify(eventgrp, operation, pattern);
 
-   tn_enable_interrupt();
+   TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
    return rc;
@@ -388,11 +388,11 @@ enum TN_RCode tn_eventgrp_imodify(
 
    TN_CHECK_INT_CONTEXT;
 
-   tn_idisable_interrupt();
+   TN_INT_IDIS_SAVE();
 
    rc = _eventgrp_modify(eventgrp, operation, pattern);
 
-   tn_ienable_interrupt();
+   TN_INT_IRESTORE();
 
    return rc;
 }
