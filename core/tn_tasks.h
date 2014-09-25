@@ -71,7 +71,10 @@ enum TN_TaskState {
    /// Task is ready to run (it doesn't mean that it is running at the moment)
    TN_TASK_STATE_RUNNABLE     = (1 << 0),
    ///
-   /// Task is waiting
+   /// Task is waiting. The reason of waiting can be obtained from
+   /// `task_wait_reason` field of the `struct TN_Task`.
+   ///
+   /// @see `enum TN_WaitReason`
    TN_TASK_STATE_WAIT         = (1 << 1),
    ///
    /// Task is suspended (by some other task)

@@ -1,7 +1,9 @@
 TNeoKernel: a real-time kernel
 ==============
 
-A real-time kernel based on [TNKernel](http://www.tnkernel.com/ "TNKernel"), currently for PIC32 only, but can be ported to other architectures easily. Tested on PIC32MX.
+TNeoKernel was born as a thorough review and re-implementation of TNKernel. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, and it is tested carefully with unit-tests.
+
+Currently it is available for PIC32 only, but will probably be ported to other architectures. Tested on PIC32MX.
 
 Note: the project is in BETA stage for now. This means that API still may change. I have plans to get it out of BETA until december, 2014.
 
