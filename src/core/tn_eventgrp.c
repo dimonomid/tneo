@@ -77,7 +77,7 @@ static BOOL _cond_check(
          break;
 #if TN_DEBUG
       default:
-         TN_FATAL_ERROR("");
+         _TN_FATAL_ERROR("");
          break;
 #endif
    }
@@ -306,7 +306,7 @@ enum TN_RCode tn_eventgrp_wait(
 
 #if TN_DEBUG
    if (!_tn_need_context_switch() && waited_for_event){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 

@@ -180,7 +180,7 @@ static enum TN_RCode _queue_receive(
 
             rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); //-- Put to data FIFO
             if (rc != TN_RC_OK){
-               TN_FATAL_ERROR("rc should always be TN_RC_OK here");
+               _TN_FATAL_ERROR("rc should always be TN_RC_OK here");
             }
 
             _tn_task_wait_complete(task, TN_RC_OK);
@@ -278,7 +278,7 @@ static enum TN_RCode _dqueue_job_perform(
 
 #if TN_DEBUG
    if (!_tn_need_context_switch() && waited){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 

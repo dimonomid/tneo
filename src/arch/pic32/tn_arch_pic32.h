@@ -34,22 +34,61 @@
  *
  ******************************************************************************/
 
+/**
+ *
+ * \file
+ *
+ */
 
 
 #ifndef  _TN_ARCH_PIC32_H
 #define  _TN_ARCH_PIC32_H
 
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+
 /* --------- PIC32 port -------- */
 
-#define  USE_ASM_FFS
-#define  ffs_asm(x) (32-__builtin_clz((x)&(0-(x))))
+/**
+ * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
+ *
+ * May be not defined: in this case, naive algorithm will be used.
+ */
+#define  _TN_FFS(x) (32 - __builtin_clz((x) & (0 - (x))))
 
-#define  TN_FATAL_ERROR(error_msg, ...)         {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
+/**
+ * Used by the kernel as a signal that something really bad happened
+ * (indicating a bug in the kernel)
+ *
+ * Typically, set to assembler instruction that causes debugger to halt.
+ */
+#define  _TN_FATAL_ERROR(error_msg, ...)         \
+   {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
 
 
 
+/**
+ * \def TN_ARCH_STK_ATTR_BEFORE
+ *
+ * Compiler-specific attribute that should be placed **before** declaration of
+ * array used for stack. It is needed because there are often additional 
+ * restrictions applied to alignment of stack, so, to meet them, stack arrays
+ * need to be declared with these macros.
+ *
+ * @see TN_ARCH_STK_ATTR_AFTER
+ */
 
-
+/**
+ * \def TN_ARCH_STK_ATTR_AFTER
+ *
+ * Compiler-specific attribute that should be placed **after** declaration of
+ * array used for stack. It is needed because there are often additional 
+ * restrictions applied to alignment of stack, so, to meet them, stack arrays
+ * need to be declared with these macros.
+ *
+ * @see TN_ARCH_STK_ATTR_BEFORE
+ */
 
 #if defined (__XC32)
 #  define TN_ARCH_STK_ATTR_BEFORE
@@ -58,22 +97,87 @@
 #  error "Unknown compiler"
 #endif
 
-#define  TN_MIN_STACK_SIZE         36   // Minimum task stack size, in words
-#define  TN_BITS_IN_INT            32
-#define  TN_ALIGN                  sizeof(void *)
+/**
+ * Minimum task's stack size, in words, not in bytes; includes a space for
+ * context plus for parameters passed to task's body function.
+ */
+#define  TN_MIN_STACK_SIZE          36
 
-//----------------------------------------------------
+/**
+ * Width of `int` type.
+ */
+#define  TN_INT_WIDTH               32
 
-#define  TN_NUM_PRIORITY        TN_BITS_IN_INT  //-- 0 .. 31
+/**
+ * Size of CPU register. Usually it's `sizeof(int)` or `sizeof(void *)`
+ */
+#define  TN_ALIGN                   sizeof(void *)
 
-#define  TN_WAIT_INFINITE       0xFFFFFFFF
-#define  TN_FILL_STACK_VAL      0xFEEDFACE
+/**
+ * Number of priorities available, this value usually matches `TN_INT_WIDTH`.
+ * For compatibility with all platforms, it's recommended to use only values
+ * from 1 to 14, inclusive.
+ *
+ * @see `TN_INT_WIDTH`
+ */
+#define  TN_PRIORITIES_CNT          TN_INT_WIDTH
+
+/**
+ * Value for infinite waiting, usually matches `UINT_MAX`
+ */
+#define  TN_WAIT_INFINITE           0xFFFFFFFF
+
+/**
+ * Value for initializing the task's stack
+ */
+#define  TN_FILL_STACK_VAL          0xFEEDFACE
 
 
-//-- Interrupt processing   - processor specific
 
-#define  TN_INTSAVE_DATA         int tn_save_status_reg = 0;
-#define  TN_INTSAVE_DATA_INT     TN_INTSAVE_DATA
+
+/**
+ * Declares variable that is used by macros `TN_INT_DIS_SAVE()` and
+ * `TN_INT_RESTORE()` for storing status register value.
+ *
+ * @see `TN_INT_DIS_SAVE()`
+ * @see `TN_INT_RESTORE()`
+ */
+#define  TN_INTSAVE_DATA            int tn_save_status_reg = 0;
+
+/**
+ * The same as `TN_INTSAVE_DATA` but for using in ISR together with
+ * `TN_INT_IDIS_SAVE()`, `TN_INT_IRESTORE()`.
+ *
+ * @see `TN_INT_IDIS_SAVE()`
+ * @see `TN_INT_IRESTORE()`
+ */
+#define  TN_INTSAVE_DATA_INT        TN_INTSAVE_DATA
+
+/**
+ * \def TN_INT_DIS_SAVE()
+ *
+ * Disable interrupts and return previous value of status register,
+ * atomically. Similar `tn_arch_sr_save_int_dis()`, but implemented
+ * as a macro, so it is potentially faster.
+ *
+ * Uses `TN_INTSAVE_DATA` as a temporary storage.
+ *
+ * @see `TN_INTSAVE_DATA`
+ * @see `tn_arch_sr_save_int_dis()`
+ */
+
+/**
+ * \def TN_INT_RESTORE()
+ *
+ * Restore previously saved status register.
+ * Similar to `tn_arch_sr_restore()`, but implemented as a macro,
+ * so it is potentially faster.
+ *
+ * Uses `TN_INTSAVE_DATA` as a temporary storage.
+ *
+ * @see `TN_INTSAVE_DATA`
+ * @see `tn_arch_sr_save_int_dis()`
+ */
 
 #ifdef __mips16
 #  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
@@ -83,31 +187,56 @@
 #  define TN_INT_RESTORE()    __builtin_mtc0(12, 0, tn_save_status_reg)
 #endif
 
+/**
+ * The same as `TN_INT_DIS_SAVE()` but for using in ISR.
+ *
+ * Uses `TN_INTSAVE_DATA_INT` as a temporary storage.
+ *
+ * @see `TN_INTSAVE_DATA_INT`
+ */
 #define TN_INT_IDIS_SAVE()       TN_INT_DIS_SAVE()
+
+/**
+ * The same as `TN_INT_RESTORE()` but for using in ISR.
+ *
+ * Uses `TN_INTSAVE_DATA_INT` as a temporary storage.
+ *
+ * @see `TN_INTSAVE_DATA_INT`
+ */
 #define TN_INT_IRESTORE()        TN_INT_RESTORE()
 
-#define tn_chk_irq_disabled()    ((__builtin_mfc0(12, 0) & 1) == 0)
+/**
+ * Returns nonzero if interrupts are disabled, zero otherwise.
+ */
+#define TN_IS_INT_DISABLED()     ((__builtin_mfc0(12, 0) & 1) == 0)
 
 
 
-#define  TN_CHECK_INT_CONTEXT           \
-             if(!_tn_arch_inside_isr())       \
+
+
+#define  TN_CHECK_INT_CONTEXT                      \
+             if(!_tn_arch_inside_isr())            \
                 return TN_RC_WCONTEXT;
 
-#define  TN_CHECK_INT_CONTEXT_NORETVAL  \
-             if(!_tn_arch_inside_isr())       \
+#define  TN_CHECK_INT_CONTEXT_NORETVAL             \
+             if(!_tn_arch_inside_isr())            \
                 return;
 
-#define  TN_CHECK_NON_INT_CONTEXT       \
-             if(_tn_arch_inside_isr())        \
+#define  TN_CHECK_NON_INT_CONTEXT                  \
+             if(_tn_arch_inside_isr())             \
                 return TN_RC_WCONTEXT;
 
-#define  TN_CHECK_NON_INT_CONTEXT_NORETVAL  \
-             if(_tn_arch_inside_isr())            \
+#define  TN_CHECK_NON_INT_CONTEXT_NORETVAL         \
+             if(_tn_arch_inside_isr())             \
                 return ;
 
 
 
+
+#endif   //-- DOXYGEN_SHOULD_SKIP_THIS
+
+
+// ---------------------------------------------------------------------------
 
 /**
  * Interrupt handler wrapper macro for software context saving.

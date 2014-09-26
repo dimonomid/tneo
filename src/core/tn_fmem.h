@@ -145,6 +145,8 @@ struct TN_FMemTaskWait {
  * @param block_size size of memory block; should be a multiple of `TN_ALIGN`,
  *                   see example above
  * @param blocks_cnt capacity (total number of blocks in the memory pool)
+ *
+ * @see TN_MAKE_ALIG_SIZE
  */
 enum TN_RCode tn_fmem_create(
       struct TN_FMem   *fmem,

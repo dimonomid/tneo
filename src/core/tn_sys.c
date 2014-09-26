@@ -62,12 +62,12 @@
 /*
  * For comments on these variables, please see tn_internal.h file.
  */
-struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];
+struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 struct TN_ListItem tn_create_queue;
 volatile int tn_created_tasks_cnt;
 struct TN_ListItem tn_wait_timeout_list;
 
-unsigned short tn_tslice_ticks[TN_NUM_PRIORITY];
+unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 volatile enum TN_StateFlag tn_sys_state;
 
@@ -89,7 +89,7 @@ void * tn_int_sp;
 
 //-- System tasks
 
-//-- idle task - priority (TN_NUM_PRIORITY-1) - lowest
+//-- idle task - priority (TN_PRIORITIES_CNT-1) - lowest
 
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
@@ -158,7 +158,7 @@ static inline void _wait_timeout_list_manage(void)
 
       if (task->tick_count == TN_WAIT_INFINITE){
          //-- should never be here
-         TN_FATAL_ERROR();
+         _TN_FATAL_ERROR();
       }
 
       if (task->tick_count > 0) {
@@ -217,7 +217,7 @@ static inline void _idle_task_create(unsigned int  *idle_task_stack,
    tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
-         TN_NUM_PRIORITY - 1,             //-- task priority
+         TN_PRIORITIES_CNT - 1,             //-- task priority
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
@@ -249,7 +249,7 @@ void tn_start_system(
 
    //-- Clear/set all globals (vars, lists, etc)
 
-   for (i = 0; i < TN_NUM_PRIORITY; i++){
+   for (i = 0; i < TN_PRIORITIES_CNT; i++){
       tn_list_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
@@ -341,7 +341,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
    TN_INTSAVE_DATA;
    TN_CHECK_NON_INT_CONTEXT;
 
-   if (     priority <= 0 || priority >= (TN_NUM_PRIORITY - 1)
+   if (     priority <= 0 || priority >= (TN_PRIORITIES_CNT - 1)
          || value    <  0 || value    >   TN_MAX_TIME_SLICE)
    {
       ret = TN_RC_WPARAM;
@@ -462,7 +462,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 
 #if TN_DEBUG
    if (!tn_is_list_empty(wait_queue)){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 }

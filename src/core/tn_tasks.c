@@ -95,8 +95,8 @@ static void _find_next_task_to_run(void)
 {
    int priority;
 
-#ifdef USE_ASM_FFS
-   priority = ffs_asm(tn_ready_to_run_bmp);
+#ifdef _TN_FFS
+   priority = _TN_FFS(tn_ready_to_run_bmp);
    priority--;
 #else
    int i;
@@ -105,7 +105,7 @@ static void _find_next_task_to_run(void)
    mask = 1;
    priority = 0;
 
-   for (i = 0; i < TN_NUM_PRIORITY; i++){
+   for (i = 0; i < TN_PRIORITIES_CNT; i++){
       //-- for each bit in bmp
       if (tn_ready_to_run_bmp & mask){
          priority = i;
@@ -311,7 +311,7 @@ static void _task_terminate(struct TN_Task *task)
 {
 #if TN_DEBUG
    if (task->task_state != TN_TASK_STATE_NONE){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -348,7 +348,7 @@ enum TN_RCode tn_task_create(
 
    //-- Lightweight checking of system tasks recreation
    if (0
-         || (priority == (TN_NUM_PRIORITY - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
+         || (priority == (TN_PRIORITIES_CNT - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
          || (priority == 0)   //-- there's no more timer task in the kernel,
                               //   but for a kind of compatibility
                               //   it's better to disallow tasks with priority 0
@@ -358,7 +358,7 @@ enum TN_RCode tn_task_create(
    }
 
    if (0
-         || (priority < 0 || priority > (TN_NUM_PRIORITY - 1))
+         || (priority < 0 || priority > (TN_PRIORITIES_CNT - 1))
          || task_stack_size < TN_MIN_STACK_SIZE
          || task_func == NULL
          || task == NULL
@@ -699,7 +699,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
       return  TN_RC_WPARAM;
    if (task->id_task != TN_ID_TASK)
       return TN_RC_INVALID_OBJ;
-   if (new_priority < 0 || new_priority >= (TN_NUM_PRIORITY - 1))
+   if (new_priority < 0 || new_priority >= (TN_PRIORITIES_CNT - 1))
       return TN_RC_WPARAM; //-- tried to set priority reverved by system
 #endif
 
@@ -741,7 +741,7 @@ void _tn_task_set_runnable(struct TN_Task * task)
 #if TN_DEBUG
    //-- task_state should be NONE here
    if (task->task_state != TN_TASK_STATE_NONE){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -772,7 +772,7 @@ void _tn_task_clear_runnable(struct TN_Task *task)
 #if TN_DEBUG
    //-- task_state should be exactly TN_TASK_STATE_RUNNABLE here
    if (task->task_state != TN_TASK_STATE_RUNNABLE){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -819,7 +819,7 @@ void _tn_task_set_waiting(
 #if TN_DEBUG
    //-- only SUSPEND bit is allowed here
    if (task->task_state & ~(TN_TASK_STATE_SUSPEND)){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -857,11 +857,11 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
          || (!(task->task_state &  (TN_TASK_STATE_WAIT)                    ))
       )
    {
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 
    if (tn_is_list_empty(&task->task_queue) != (task->pwait_queue == NULL)){
-      TN_FATAL_ERROR("task_queue and pwait_queue are out of sync");
+      _TN_FATAL_ERROR("task_queue and pwait_queue are out of sync");
    }
 
 #endif
@@ -904,7 +904,7 @@ void _tn_task_set_suspended(struct TN_Task *task)
 #if TN_DEBUG
    //-- only WAIT bit is allowed here
    if (task->task_state & ~(TN_TASK_STATE_WAIT)){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -921,7 +921,7 @@ void _tn_task_clear_suspended(struct TN_Task *task)
          || (!(task->task_state &                   (TN_TASK_STATE_SUSPEND)))
       )
    {
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -933,7 +933,7 @@ void _tn_task_set_dormant(struct TN_Task* task)
 
 #if TN_DEBUG
    if (task->task_state != TN_TASK_STATE_NONE){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -960,7 +960,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 #if TN_DEBUG
    //-- task_state should be exactly TN_TASK_STATE_DORMANT here
    if (task->task_state != TN_TASK_STATE_DORMANT){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -1012,7 +1012,7 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority)
 void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
    if (!_tn_task_is_runnable(task)){
-      TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
+      _TN_FATAL_ERROR("_tn_change_running_task_priority called for non-runnable task");
    }
 
    //-- remove curr task from any (wait/ready) queue

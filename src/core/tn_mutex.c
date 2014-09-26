@@ -126,7 +126,7 @@ static inline int _find_max_priority_by_mutex(
 
       default:
          //-- should never happen
-         TN_FATAL_ERROR("wrong mutex attr=%d", mutex->attr);
+         _TN_FATAL_ERROR("wrong mutex attr=%d", mutex->attr);
          break;
    }
 
@@ -261,7 +261,7 @@ in:
          && (holder->task_wait_reason != TN_WAIT_REASON_MUTEX_C)
       )
    {
-      TN_FATAL_ERROR();
+      _TN_FATAL_ERROR();
    }
 
    struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
@@ -378,7 +378,7 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
       if (tn_is_list_empty(&task->deadlock_list)){
          //-- should never be here: deadlock lists for tasks and mutexes
          //   should either be both non-empty or both empty
-         TN_FATAL_ERROR();
+         _TN_FATAL_ERROR();
       }
 
       //-- cry that deadlock becomes inactive
@@ -505,7 +505,7 @@ enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
    if(attribute != TN_MUTEX_ATTR_CEILING && attribute != TN_MUTEX_ATTR_INHERIT)
       return TN_RC_WPARAM;
    if(attribute == TN_MUTEX_ATTR_CEILING &&
-         (ceil_priority < 1 || ceil_priority > TN_NUM_PRIORITY - 2))
+         (ceil_priority < 1 || ceil_priority > TN_PRIORITIES_CNT - 2))
       return TN_RC_WPARAM;
 #endif
 
@@ -658,7 +658,7 @@ out_ei:
 
 #if TN_DEBUG
    if (!_tn_need_context_switch() && waited_for_mutex){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 
@@ -716,7 +716,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
    } else if (mutex->cnt < 0){
       //-- should never be here: lock count is negative.
       //   bug in RTOS.
-      TN_FATAL_ERROR();
+      _TN_FATAL_ERROR();
    } else {
       //-- lock counter is 0, so, unlock mutex
       _mutex_do_unlock(mutex);
@@ -767,7 +767,7 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
    //-- NOTE: task->task_wait_reason should be TN_WAIT_REASON_MUTEX_I here
 #if TN_DEBUG
    if (task->task_wait_reason != TN_WAIT_REASON_MUTEX_I){
-      TN_FATAL_ERROR();
+      _TN_FATAL_ERROR();
    }
 #endif
 

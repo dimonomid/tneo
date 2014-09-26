@@ -169,9 +169,11 @@ enum TN_RCode {
 
 //-- TN_MAKE_ALIG() macro
 /**
- * Macro for making address aligned properly.
+ * Macro for making a number a multiple of `TN_ALIGN`, should be with fixed
+ * memory block pool.
  *
  * @see `tn_fmem_create()`
+ * @see `TN_ALIGN`
  */
 #define  TN_MAKE_ALIG_SIZE(a)  (((a) + (TN_ALIGN - 1)) & (~(TN_ALIGN - 1)))
 

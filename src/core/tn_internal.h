@@ -66,7 +66,7 @@ struct TN_ListItem;
  ******************************************************************************/
 
 /// list of all ready to run (TN_TASK_STATE_RUNNABLE) tasks
-extern struct TN_ListItem tn_ready_list[TN_NUM_PRIORITY];
+extern struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 
 /// list all created tasks (now it is used for statictic only)
 extern struct TN_ListItem tn_create_queue;
@@ -87,7 +87,7 @@ extern struct TN_Task * tn_curr_run_task;
 extern struct TN_Task * tn_next_task_to_run;
 
 /// bitmask of priorities with runnable tasks.
-/// lowest priority bit (1 << (TN_NUM_PRIORITY - 1)) should always be set,
+/// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,
 /// since this priority is used by idle task and it is always runnable.
 extern volatile unsigned int tn_ready_to_run_bmp;
 

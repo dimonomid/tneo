@@ -354,7 +354,7 @@ struct TN_Task {
  *    Pointer to task body function.
  * @param priority 
  *    Priority for new task. NOTE: the lower value, the higher priority.  Must
- *    be > 0 and < `(TN_NUM_PRIORITY - 1)`.
+ *    be > 0 and < `(TN_PRIORITIES_CNT - 1)`.
  * @param task_stack_low_addr    
  *    Pointer to the stack for task. A stack must be allocated as an array of
  *    `int`.  Actually, the size of stack array element must be identical to

@@ -91,7 +91,7 @@ static inline enum TN_RCode _sem_job_perform(
 
 #if TN_DEBUG
    if (!_tn_need_context_switch() && waited_for_sem){
-      TN_FATAL_ERROR("");
+      _TN_FATAL_ERROR("");
    }
 #endif
 

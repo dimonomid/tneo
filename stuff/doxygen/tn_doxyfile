@@ -794,9 +794,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../../src/core/tn_internal.h        \
-                         ../../src/core/tn_list.h            \
-                         ../../src/arch/tn_arch_internal.h   \
+EXCLUDE                = ../../src/core/tn_internal.h             \
+                         ../../src/core/tn_list.h                 \
                          ../../src/tn_cfg.h
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
@@ -1963,7 +1962,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = __XC32
+PREDEFINED             = DOXYGEN_SHOULD_SKIP_THIS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

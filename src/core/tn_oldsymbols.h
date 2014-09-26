@@ -170,6 +170,10 @@ typedef struct TN_Sem         TN_SEM;
 #define  tn_idisable_interrupt         TN_INT_IDIS_SAVE
 #define  tn_ienable_interrupt          TN_INT_IRESTORE
 
+#define  tn_chk_irq_disabled           TN_IS_INT_DISABLED
+#define  TN_NUM_PRIORITY               TN_PRIORITIES_CNT
+#define  _TN_BITS_IN_INT                TN_INT_WIDTH
+
 #define  TN_ALIG                       TN_ALIGN
 
 /*******************************************************************************
