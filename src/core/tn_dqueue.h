@@ -181,7 +181,8 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * @return  
  *    * `TN_RC_OK`   if data was successfully sent;
- *    * For other possible return codes, refer to `TN_Timeout`
+ *    * Other possible return codes depend on `timeout` value,
+ *      refer to `TN_Timeout`
  *
  * @see `TN_Timeout`
  */
@@ -225,7 +226,8 @@ enum TN_RCode tn_queue_isend_polling(
  *
  * @return  
  *    * `TN_RC_OK`   if data was successfully received;
- *    * For other possible return codes, refer to `TN_Timeout`
+ *    * Other possible return codes depend on `timeout` value,
+ *      refer to `TN_Timeout`
  *
  * @see `TN_Timeout`
  */

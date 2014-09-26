@@ -72,19 +72,35 @@
  * specified flags to be set.
  */
 enum TN_EGrpWaitMode {
-   /// any set flag is enough for releasing task from waiting
+   ///
+   /// Task waits for **any** of the event bits from the `wait_pattern` 
+   /// to be set in the event group
    TN_EVENTGRP_WMODE_OR     = (1 << 0),
-   /// all flags must be set for releasing task from waiting
+   ///
+   /// Task waits for **all** of the event bits from the `wait_pattern` 
+   /// to be set in the event group
    TN_EVENTGRP_WMODE_AND    = (1 << 1),
 };
 
 /**
- * Modify operation: set, clear or toggle
+ * Modify operation: set, clear or toggle. To be used in `tn_eventgrp_modify()`
+ * / `tn_eventgrp_imodify()` functions.
  */
 enum TN_EGrpOp {
-   TN_EVENTGRP_OP_SET,      //!< set flags that are set in pattern argument
-   TN_EVENTGRP_OP_CLEAR,    //!< clear flags that are set in pattern argument
-   TN_EVENTGRP_OP_TOGGLE,   //!< toggle flags that are set in pattern argument
+   ///
+   /// Set flags that are set in given `pattern` argument. Note that this
+   /// operation can lead to the context switch, since other high-priority 
+   /// task(s) might wait for the event.
+   TN_EVENTGRP_OP_SET,
+   ///
+   /// Clear flags that are set in the given `pattern` argument.
+   /// This operation can **not** lead to the context switch, 
+   /// since tasks can't wait for events to be cleared.
+   TN_EVENTGRP_OP_CLEAR,
+   /// Toggle flags that are set in the given `pattern` argument. Note that this
+   /// operation can lead to the context switch, since other high-priority 
+   /// task(s) might wait for the event that was just set (if any).
+   TN_EVENTGRP_OP_TOGGLE,
 };
 
 /**
@@ -156,7 +172,9 @@ enum TN_RCode tn_eventgrp_create(
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 
 /**
- * Wait for specified event(s) in the event group.
+ * Wait for specified event(s) in the event group. If the specified event
+ * is already active, function returns `TN_RC_OK` immediately. Otherwise,
+ * behavior depends on `timeout` value: refer to `TN_Timeout`.
  *
  * @param eventgrp
  *    Pointer to event group to wait events from
@@ -164,13 +182,23 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  *    Events bit pattern for which task should wait
  * @param wait_mode
  *    Specifies whether task should wait for **all** the event bits from
- *    `wait_pattern` to be set, or for just **any** of them
+ *    `wait_pattern` to be set, or for just **any** of them 
+ *    (see enum `TN_EGrpWaitMode`)
  * @param p_flags_pattern
  *    Pointer to the `unsigned int` variable in which actual event pattern
  *    that caused task to stop waiting will be stored.
  *    May be `NULL`.
  * @param timeout
- *    Maximum time to wait.
+ *    refer to `TN_Timeout`
+ *
+ * @return
+ *    * `TN_RC_OK` if specified event is active (so the task can check 
+ *      variable pointed to by `p_flags_pattern` if it wasn't `NULL`).
+ *    * Other possible return codes depend on `timeout` value,
+ *      refer to `TN_Timeout`
+ *    
+ * @see `TN_Timeout`
+ * @see `TN_EGrpWaitMode`
  */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
@@ -180,6 +208,9 @@ enum TN_RCode tn_eventgrp_wait(
       TN_Timeout           timeout
       );
 
+/**
+ * The same as `tn_eventgrp_wait()` with zero timeout.
+ */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
@@ -187,6 +218,9 @@ enum TN_RCode tn_eventgrp_wait_polling(
       unsigned int        *p_flags_pattern
       );
 
+/**
+ * The same as `tn_eventgrp_wait()` with zero timeout, but for using in the ISR.
+ */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
@@ -194,12 +228,29 @@ enum TN_RCode tn_eventgrp_iwait_polling(
       unsigned int        *p_flags_pattern
       );
 
+/**
+ * Modify current events bit pattern in the event group. Behavior depends
+ * on the given `operation`: refer to `enum TN_EGrpOp`
+ *
+ * @param eventgrp
+ *    Pointer to event group to modify events in
+ * @param operation
+ *    Actual operation to perform: set, clear or toggle.
+ *    Refer to `enum TN_EGrpOp`
+ * @param pattern
+ *    Events pattern to be applied (depending on `operation` value)
+ *    
+ * @see `enum TN_EGrpOp`
+ */
 enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       );
 
+/**
+ * The same as `tn_eventgrp_modify()`, but for using in the ISR.
+ */
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,

@@ -190,7 +190,8 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  *
  * @return
  *    * `TN_RC_OK` if block was successfully returned through `p_data`;
- *    * For other possible return codes, refer to `TN_Timeout`
+ *    * Other possible return codes depend on `timeout` value,
+ *      refer to `TN_Timeout`
  *
  * @see `TN_Timeout`
  */
