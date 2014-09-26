@@ -64,6 +64,9 @@
 #include "tn_cfg_default.h"
 
 
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
 
 /*******************************************************************************
  *    PUBLIC TYPES
@@ -236,6 +239,9 @@ typedef unsigned long TN_Timeout;
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_COMMON_H
 

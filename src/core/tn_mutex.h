@@ -92,6 +92,11 @@
 #include "tn_common.h"
 
 
+
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -255,6 +260,10 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
  */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex);
 
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_MUTEX_H
 

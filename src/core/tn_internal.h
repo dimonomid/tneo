@@ -54,7 +54,17 @@
 
 #include "tn_tasks.h"   //-- for inline functions
 #include "tn_sys.h"     //-- for inline functions
-//struct TN_Task;
+
+
+
+
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
+/*******************************************************************************
+ *    EXTERNAL TYPES
+ ******************************************************************************/
 
 struct TN_Mutex;
 struct TN_ListItem;
@@ -338,6 +348,12 @@ void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
 static inline void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
 static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
 static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
+#endif
+
+
+
+#ifdef __cplusplus
+}  /* extern "C" */
 #endif
 
 #endif // _TN_INTERNAL_H

@@ -59,6 +59,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -230,6 +234,11 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
  */
 enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
 
+
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_MEM_H
 

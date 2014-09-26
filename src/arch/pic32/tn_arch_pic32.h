@@ -47,6 +47,10 @@
 #define  _TN_ARCH_PIC32_H
 
 
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -518,4 +522,10 @@ void __attribute__((naked, nomips16))                                          \
                                                                                \
 } __attribute((__noinline__)) void _func##vec(void)
 
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
+
 #endif   // _TN_ARCH_PIC32_H
+

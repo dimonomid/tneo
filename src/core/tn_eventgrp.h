@@ -63,6 +63,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -256,6 +260,11 @@ enum TN_RCode tn_eventgrp_imodify(
       enum TN_EGrpOp       operation,
       unsigned int         pattern
       );
+
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_EVENTGRP_H
 

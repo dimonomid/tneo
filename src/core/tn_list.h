@@ -376,7 +376,7 @@ void tn_list_remove_entry(struct TN_ListItem *entry);
 BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
 
 #ifdef __cplusplus
-}
+}  /* extern "C" */
 #endif
 
 

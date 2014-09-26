@@ -56,6 +56,11 @@
 #include "tn_fmem.h"
 
 
+
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -261,8 +266,9 @@ struct TN_Task {
    const char *name;          
 #endif
 
-   //-- for the comments on the flag priority_already_updated,
-   //   see file tn_mutex.c , function _mutex_do_unlock().
+   /// Internal flag used to optimize mutex priority algorithms.
+   /// For the comments on it, see file tn_mutex.c,
+   /// function `_mutex_do_unlock()`.
    unsigned          priority_already_updated : 1;
 
 
@@ -535,6 +541,12 @@ enum TN_RCode tn_task_delete(struct TN_Task *task);
  * If priority is 0, then task's base_priority is set.
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority);
+
+
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_TASKS_H
 

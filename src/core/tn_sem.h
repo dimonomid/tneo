@@ -74,6 +74,10 @@
 
 
 
+#ifdef __cplusplus
+extern "C"  {     /*}*/
+#endif
+
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
@@ -191,6 +195,10 @@ enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
  */
 enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem);
 
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif // _TN_SEM_H
 
