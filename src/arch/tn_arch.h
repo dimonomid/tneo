@@ -48,8 +48,8 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_common.h"
-#include "tn_tasks.h"
+#include "../core/tn_common.h"
+#include "../core/tn_tasks.h"
 
 
 #ifdef __cplusplus
