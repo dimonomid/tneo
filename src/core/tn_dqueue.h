@@ -176,8 +176,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
- * @param timeout    timeout after which `TN_RC_TIMEOUT` is returned if queue
- *                   is full
+ * @param timeout    refer to `TN_Timeout`
  *
  * @return  
  *    * `TN_RC_OK`   if data was successfully sent;

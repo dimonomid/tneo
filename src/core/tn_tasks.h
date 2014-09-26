@@ -413,6 +413,9 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * not suspended during the sleep, the task will sleep until another function
  * call (like `tn_task_wakeup()` or similar) will make it runnable.
  *
+ * @param timeout
+ *    Refer to `TN_Timeout`
+ *
  * @returns
  *    * `TN_RC_TIMEOUT` if task has slept specified timeout;
  *    * `TN_RC_OK` if task was woken up from other task by `tn_task_wakeup()`

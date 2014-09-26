@@ -145,6 +145,10 @@ typedef struct TN_Sem         TN_SEM;
 #define  TERR_INTERNAL                 TN_RC_INTERNAL
 
 
+#define  TN_MUTEX_ATTR_CEILING         TN_MUTEX_PROT_CEILING
+#define  TN_MUTEX_ATTR_INHERIT         TN_MUTEX_PROT_INHERIT
+
+
 
 #define  tn_sem_polling                tn_sem_acquire_polling
 #define  tn_sem_ipolling               tn_sem_iacquire_polling

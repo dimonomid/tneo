@@ -149,7 +149,7 @@ struct TN_FMemTaskWait {
  * If given `start_addr` and/or `block_size` aren't aligned properly,
  * `TN_RC_WPARAM` is returned.
  *
- * @param fmem       pointer to already allocated struct TN_FMem.
+ * @param fmem       pointer to already allocated `struct TN_FMem`.
  * @param start_addr pointer to start of the array; should be aligned properly,
  *                   see example above
  * @param block_size size of memory block; should be a multiple of `TN_ALIGN`,
@@ -185,8 +185,8 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  *    Pointer to memory pool
  * @param p_data
  *    Address of the `(void *)` to which received block address will be saved
- * @param timeout
- *    Timeout to wait if there is no free memory block.
+ * @param timeout    
+ *    Refer to `TN_Timeout`
  *
  * @return
  *    * `TN_RC_OK` if block was successfully returned through `p_data`;

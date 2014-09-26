@@ -113,20 +113,20 @@ static inline int _find_max_priority_by_mutex(
 {
    int priority = ref_priority;
 
-   switch (mutex->attr){
-      case TN_MUTEX_ATTR_CEILING:
+   switch (mutex->protocol){
+      case TN_MUTEX_PROT_CEILING:
          if (mutex->ceil_priority < priority){
             priority = mutex->ceil_priority;
          }
          break;
 
-      case TN_MUTEX_ATTR_INHERIT:
+      case TN_MUTEX_PROT_INHERIT:
          priority = _find_max_blocked_priority(mutex, priority);
          break;
 
       default:
          //-- should never happen
-         _TN_FATAL_ERROR("wrong mutex attr=%d", mutex->attr);
+         _TN_FATAL_ERROR("wrong mutex protocol=%d", mutex->protocol);
          break;
    }
 
@@ -136,9 +136,9 @@ static inline int _find_max_priority_by_mutex(
 /**
  * Iterate through all the mutexes that are held by task,
  * for each mutex:
- *    * if attr is TN_MUTEX_ATTR_CEILING:
+ *    * if protocol is TN_MUTEX_PROT_CEILING:
  *       check if ceil priority higher than task's base priority
- *    * if attr is TN_MUTEX_ATTR_INHERIT:
+ *    * if protocol is TN_MUTEX_PROT_INHERIT:
  *       iterate through all the tasks that wait for this mutex,
  *       and check if priority of each task is higher than
  *       our task's base priority
@@ -401,7 +401,7 @@ static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, un
 {
    enum TN_WaitReason wait_reason;
 
-   if (mutex->attr == TN_MUTEX_ATTR_INHERIT){
+   if (mutex->protocol == TN_MUTEX_PROT_INHERIT){
       //-- Priority inheritance protocol
 
       //-- if run_task curr priority higher holder's curr priority
@@ -492,9 +492,11 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
 //----------------------------------------------------------------------------
 //  Structure's Field mutex->id_mutex should be set to 0
 //----------------------------------------------------------------------------
-enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
-                    int attribute,
-                    int ceil_priority)
+enum TN_RCode tn_mutex_create(
+      struct TN_Mutex        *mutex,
+      enum TN_MutexProtocol   protocol,
+      int                     ceil_priority
+      )
 {
 
 #if TN_CHECK_PARAM
@@ -502,9 +504,9 @@ enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
       return TN_RC_WPARAM;
    if(mutex->id_mutex != 0) //-- no recreation
       return TN_RC_WPARAM;
-   if(attribute != TN_MUTEX_ATTR_CEILING && attribute != TN_MUTEX_ATTR_INHERIT)
+   if(protocol != TN_MUTEX_PROT_CEILING && protocol != TN_MUTEX_PROT_INHERIT)
       return TN_RC_WPARAM;
-   if(attribute == TN_MUTEX_ATTR_CEILING &&
+   if(protocol == TN_MUTEX_PROT_CEILING &&
          (ceil_priority < 1 || ceil_priority > TN_PRIORITIES_CNT - 2))
       return TN_RC_WPARAM;
 #endif
@@ -515,7 +517,7 @@ enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
    tn_list_reset(&(mutex->deadlock_list));
 #endif
 
-   mutex->attr          = attribute;
+   mutex->protocol      = protocol;
    mutex->holder        = NULL;
    mutex->ceil_priority = ceil_priority;
    mutex->cnt           = 0;
@@ -608,7 +610,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
    }
 
    if (
-         mutex->attr == TN_MUTEX_ATTR_CEILING
+         mutex->protocol == TN_MUTEX_PROT_CEILING
          && tn_curr_run_task->base_priority < mutex->ceil_priority
       )
    {
