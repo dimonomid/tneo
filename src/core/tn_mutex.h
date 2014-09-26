@@ -39,19 +39,26 @@
  *
  * A mutex is an object used to protect shared resource.
  *
+ * There is a lot of confusion about differences between semaphores and
+ * mutexes, so, it's quite recommended to read small article by Michael Barr:
+ * [Mutexes and Semaphores Demystified](http://goo.gl/YprPBW).
+ * 
+ * Very short:
+ *
  * While mutex is seemingly similar to a semaphore with maximum count of `1`
- * (binary semaphore), their usage is very different: as mentioned above, the
- * purpose of mutex is to protect shared resource. A locked mutex is "owned" by
- * the task that locked it, and only the same task may unlock it. This
- * ownership allows to implement algorithms to prevent priority inversion.
- * So, mutex is a *locking mechanism*.
+ * (the so-called binary semaphore), their usage is very different: the purpose
+ * of mutex is to protect shared resource. A locked mutex is "owned" by the
+ * task that locked it, and only the same task may unlock it. This ownership
+ * allows to implement algorithms to prevent priority inversion.  So, mutex is
+ * a *locking mechanism*.
  *
- * Binary semaphore, on the other hand, is *signaling mechanism*. It's quite
- * legal and encouraged for semaphore to be acquired in the task A, and then
- * released in task B.
+ * Semaphore, on the other hand, is *signaling mechanism*. It's quite legal and
+ * encouraged for semaphore to be acquired in the task A, and then signaled
+ * from task B or even from ISR. It may be used in situations like "producer
+ * and consumer", etc.
  *
- * You might want to take a look at this post:
- * http://stackoverflow.com/a/86021/1099240
+ * In addition to the article mentioned above, you may want to look at the
+ * [related question on stackoverflow.com](http://goo.gl/ZBReHK).
  *
  * ---------------------------------------------------------------------------
  *
@@ -161,7 +168,7 @@ struct TN_Mutex {
  ******************************************************************************/
 
 /**
- * Construct mutex. The field `id_mutex` should not contain `TN_ID_MUTEX`, 
+ * Construct the mutex. The field `id_mutex` should not contain `TN_ID_MUTEX`, 
  * otherwise, `TN_RC_WPARAM` is returned.
  *
  * @param mutex

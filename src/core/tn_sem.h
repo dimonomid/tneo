@@ -34,6 +34,34 @@
  *
  ******************************************************************************/
 
+/**
+ * \file
+ *
+ * A semaphore: an object to provide signaling mechanism.
+ *
+ * There is a lot of confusion about differences between semaphores and
+ * mutexes, so, it's quite recommended to read small article by Michael Barr:
+ * [Mutexes and Semaphores Demystified](http://goo.gl/YprPBW).
+ * 
+ * Very short:
+ *
+ * While mutex is seemingly similar to a semaphore with maximum count of `1`
+ * (the so-called binary semaphore), their usage is very different: the purpose
+ * of mutex is to protect shared resource. A locked mutex is "owned" by the
+ * task that locked it, and only the same task may unlock it. This ownership
+ * allows to implement algorithms to prevent priority inversion.  So, mutex is
+ * a *locking mechanism*.
+ *
+ * Semaphore, on the other hand, is *signaling mechanism*. It's quite legal and
+ * encouraged for semaphore to be acquired in the task A, and then signaled
+ * from task B or even from ISR. It may be used in situations like "producer
+ * and consumer", etc.
+ *
+ * In addition to the article mentioned above, you may want to look at the
+ * [related question on stackoverflow.com](http://goo.gl/ZBReHK).
+ *
+ */
+
 #ifndef _TN_SEM_H
 #define _TN_SEM_H
 
@@ -50,12 +78,22 @@
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * Semaphore
+ */
 struct TN_Sem {
-   struct TN_ListItem  wait_queue;
+   ///
+   /// List of tasks that wait to acquire a semaphore
+   struct TN_ListItem wait_queue;
+   ///
+   /// Current semaphore counter value
    int count;
+   ///
+   /// Max value of `count`
    int max_count;
-   enum TN_ObjId id_sem;     //-- ID for verification(is it a semaphore or another object?)
-                   // All semaphores have the same id_sem magic number (ver 2.x)
+   ///
+   /// id for object validity verification
+   enum TN_ObjId id_sem;
 };
 
 
@@ -71,13 +109,87 @@ struct TN_Sem {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
-enum TN_RCode tn_sem_create(struct TN_Sem * sem, int start_count, int max_count);
-enum TN_RCode tn_sem_delete(struct TN_Sem * sem);
-enum TN_RCode tn_sem_signal(struct TN_Sem * sem);
-enum TN_RCode tn_sem_isignal(struct TN_Sem * sem);
-enum TN_RCode tn_sem_acquire(struct TN_Sem * sem, TN_Timeout timeout);
-enum TN_RCode tn_sem_acquire_polling(struct TN_Sem * sem);
-enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem * sem);
+/**
+ * Construct the semaphore. `id_sem` field should not contain
+ * `TN_ID_SEMAPHORE`, otherwise, `TN_RC_WPARAM` is returned.
+ *
+ * @param sem
+ *    Pointer to already allocated `struct TN_Sem`
+ * @param start_count
+ *    Initial counter value, typically it is equal to `max_count`
+ * @param max_count
+ *    Maximum counter value.
+ *
+ * @return `TN_RC_OK`
+ */
+enum TN_RCode tn_sem_create(
+      struct TN_Sem *sem,
+      int start_count,
+      int max_count
+      );
+
+/**
+ * Destruct the semaphore.
+ *
+ * All tasks that wait for acquire the semaphore become runnable with
+ * `TN_RC_DELETED` code returned.
+ *
+ * @param sem     semaphore to destruct
+ *
+ * @return `TN_RC_OK`
+ */
+enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
+
+/**
+ * Signal the semaphore.
+ *
+ * If current semaphore counter (`count`) is less than `max_count`,
+ * counter is incremented by one; otherwise, `TN_RC_OVERFLOW` is returned.
+ *
+ * If wait queue is not empty, the first task from the queue acquires the
+ * semaphore.
+ *
+ * @param sem     semaphore to signal
+ * 
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_OVERFLOW` if `count` is already at maximum value (`max_count`)
+ */
+enum TN_RCode tn_sem_signal(struct TN_Sem *sem);
+
+/**
+ * The same as `tn_sem_signal()` but for using in the ISR.
+ */
+enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
+
+/**
+ * Acquire the semaphore.
+ *
+ * If the current semaphore counter (`count`) is non-zero, it is decremented
+ * and `TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
+ * refer to `TN_Timeout`.
+ *
+ * @param sem     semaphore to acquire
+ * @param timeout refer to `TN_Timeout`
+ *
+ * @return
+ *    * `TN_RC_OK` if semaphore was successfully acquired
+ *    * Other possible return codes depend on `timeout` value,
+ *      refer to `TN_Timeout`
+ *
+ * @see `TN_Timeout`
+ */
+enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout);
+
+/**
+ * The same as `tn_sem_acquire()` with zero timeout.
+ */
+enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
+
+/**
+ * The same as `tn_sem_acquire()` with zero timeout, but for using in the ISR.
+ */
+enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem);
 
 
 #endif // _TN_SEM_H

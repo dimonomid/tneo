@@ -144,7 +144,9 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
       //   so, wake up first one
 
       //-- get first task from semaphore's wait_queue
-      task = tn_list_first_entry(&(sem->wait_queue), typeof(*task), task_queue);
+      task = tn_list_first_entry(
+            &(sem->wait_queue), typeof(*task), task_queue
+            );
 
       //-- wake it up
       _tn_task_wait_complete(task, TN_RC_OK);
