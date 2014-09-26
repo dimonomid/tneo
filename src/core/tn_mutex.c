@@ -344,9 +344,10 @@ in:
                );
 
          //-- cry deadlock active
-         //   (user will be notified if he has set callback with tn_callback_deadlock_set())
-         //   NOTE: we should call this function _after_ calling _link_deadlock_lists(),
-         //   so that user may examine mutexes and tasks involved in deadlock.
+         //   (user will be notified if he has set callback with
+         //   tn_callback_deadlock_set()) NOTE: we should call this function
+         //   _after_ calling _link_deadlock_lists(), so that user may examine
+         //   mutexes and tasks involved in deadlock.
          _tn_cry_deadlock(TRUE, mutex, task);
       } else {
          //-- call this function again, recursively
@@ -382,9 +383,10 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
       }
 
       //-- cry that deadlock becomes inactive
-      //   (user will be notified if he has set callback with tn_callback_deadlock_set())
-      //   NOTE: we should call this function _before_ calling _unlink_deadlock_lists(),
-      //   so that user may examine mutexes and tasks involved in deadlock.
+      //   (user will be notified if he has set callback with
+      //   tn_callback_deadlock_set()) NOTE: we should call this function
+      //   _before_ calling _unlink_deadlock_lists(), so that user may examine
+      //   mutexes and tasks involved in deadlock.
       _tn_cry_deadlock(FALSE, mutex, task);
 
       //-- unlink deadlock lists (for mutexes and tasks involved)
@@ -393,11 +395,16 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 
 }
 #else
-static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task) {}
-static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task) {}
+static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
+{}
+static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
+{}
 #endif
 
-static inline void _add_curr_task_to_mutex_wait_queue(struct TN_Mutex *mutex, unsigned long timeout)
+static inline void _add_curr_task_to_mutex_wait_queue(
+      struct TN_Mutex *mutex,
+      unsigned long timeout
+      )
 {
    enum TN_WaitReason wait_reason;
 
@@ -459,7 +466,10 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       struct TN_Task *task;
 
       //-- get first task from mutex's wait_queue
-      task = tn_list_first_entry(&(mutex->wait_queue), typeof(*task), task_queue);
+      task = tn_list_first_entry(
+            &(mutex->wait_queue),
+            typeof(*task), task_queue
+            );
 
       //-- wake it up.
       //   Note: _update_task_priority() for current holder
@@ -489,9 +499,9 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-//----------------------------------------------------------------------------
-//  Structure's Field mutex->id_mutex should be set to 0
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_mutex.h)
+ */
 enum TN_RCode tn_mutex_create(
       struct TN_Mutex        *mutex,
       enum TN_MutexProtocol   protocol,
@@ -526,7 +536,9 @@ enum TN_RCode tn_mutex_create(
    return TN_RC_OK;
 }
 
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_mutex.h)
+ */
 enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 {
    TN_INTSAVE_DATA;
@@ -577,7 +589,9 @@ out:
    return ret;
 }
 
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_mutex.h)
+ */
 enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 {
    TN_INTSAVE_DATA;
@@ -673,15 +687,18 @@ out_ei:
 
 }
 
-//----------------------------------------------------------------------------
-//  Try to lock mutex
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_mutex.h)
+ */
 enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex)
 {
    return tn_mutex_lock(mutex, 0);
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_mutex.h)
+ */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 {
    enum TN_RCode ret = TN_RC_OK;
@@ -753,7 +770,10 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
                                  //   item is removed from the list
                                  //   in _mutex_do_unlock().
 
-   tn_list_for_each_entry_safe(mutex, tmp_mutex, &(task->mutex_queue), mutex_queue){
+   tn_list_for_each_entry_safe(
+         mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
+         )
+   {
       //-- NOTE: we don't remove item from the list, because it is removed
       //   inside _mutex_do_unlock().
       _mutex_do_unlock(mutex);

@@ -83,7 +83,9 @@ static inline enum TN_RCode _sem_job_perform(
    rc = p_worker(sem);
 
    if (rc == TN_RC_TIMEOUT && timeout != 0){
-      _tn_task_curr_to_wait_action(&(sem->wait_queue), TN_WAIT_REASON_SEM, timeout);
+      _tn_task_curr_to_wait_action(
+            &(sem->wait_queue), TN_WAIT_REASON_SEM, timeout
+            );
 
       //-- rc will be set later thanks to waited_for_sem
       waited_for_sem = TRUE;
@@ -180,9 +182,9 @@ static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
  *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-//----------------------------------------------------------------------------
-//   Structure's field sem->id_sem have to be set to 0
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_create(struct TN_Sem * sem,
                   int start_count,
                   int max_count)
@@ -210,7 +212,9 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
    return TN_RC_OK;
 }
 
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA;
@@ -239,48 +243,44 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
    return TN_RC_OK;
 }
 
-//----------------------------------------------------------------------------
-//  Release Semaphore Resource
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_signal(struct TN_Sem *sem)
 {
    return _sem_job_perform(sem, _sem_signal, 0);
 }
 
-//----------------------------------------------------------------------------
-// Release Semaphore Resource inside Interrupt
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 {
    return _sem_job_iperform(sem, _sem_signal);
 }
 
-//----------------------------------------------------------------------------
-//   Acquire Semaphore Resource
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout)
 {
    return _sem_job_perform(sem, _sem_acquire, timeout);
 }
 
-//----------------------------------------------------------------------------
-//  Acquire(Polling) Semaphore Resource (do not call  in the interrupt)
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem)
 {
    return _sem_job_perform(sem, _sem_acquire, 0);
 }
 
-//----------------------------------------------------------------------------
-// Acquire(Polling) Semaphore Resource inside interrupt
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_sem.h)
+ */
 enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem)
 {
    return _sem_job_iperform(sem, _sem_acquire);
 }
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 

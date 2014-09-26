@@ -210,9 +210,9 @@ out:
  ******************************************************************************/
 
 
-//----------------------------------------------------------------------------
-//  Structure's field eventgrp->id_event have to be set to 0
-//----------------------------------------------------------------------------
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp *eventgrp,
       unsigned int initial_pattern //-- initial value of the pattern
@@ -237,7 +237,10 @@ enum TN_RCode tn_eventgrp_create(
    return TN_RC_OK;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -271,7 +274,10 @@ out:
    return rc;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
@@ -326,7 +332,10 @@ out:
    return rc;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
@@ -352,7 +361,10 @@ out:
    return rc;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
@@ -378,7 +390,10 @@ out:
    return rc;
 }
 
-//----------------------------------------------------------------------------
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
@@ -404,6 +419,10 @@ out:
    return rc;
 }
 
+
+/*
+ * See comments in the header file (tn_eventgrp.h)
+ */
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
@@ -427,20 +446,5 @@ enum TN_RCode tn_eventgrp_imodify(
 out:
    return rc;
 }
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-
-
 
 
