@@ -37,7 +37,7 @@
 /**
  * \file
  *
- *   Description:   TODO
+ * Various task services: create, sleep, wake up, terminate, etc.
  *
  */
 
@@ -504,13 +504,12 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
  * This function is similar to `tn_task_exit()` but it terminates any task
  * other than currently running one.
  *
- * After exiting, the task may be either deleted by the `tn_task_delete()`
- * function call or reactivated by the `tn_task_activate()` /
- * `tn_task_iactivate()` function call. In this case task starts execution from
- * beginning (as after creation/activation).  The task will have the lowest
- * precedence among all tasks with the same priority in the `RUNNABLE` state.
- *
- * After task is terminated, 
+ * After task is terminated, the task may be either deleted by the
+ * `tn_task_delete()` function call or reactivated by the `tn_task_activate()`
+ * / `tn_task_iactivate()` function call. In this case task starts execution
+ * from beginning (as after creation/activation).  The task will have the
+ * lowest precedence among all tasks with the same priority in the `RUNNABLE`
+ * state.
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task);
 
