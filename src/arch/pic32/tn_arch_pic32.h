@@ -38,6 +38,8 @@
  *
  * \file
  *
+ * PIC32 architecture-dependent routines
+ *
  */
 
 
@@ -46,9 +48,6 @@
 
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-
-/* --------- PIC32 port -------- */
 
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.

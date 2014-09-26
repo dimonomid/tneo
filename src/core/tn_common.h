@@ -35,9 +35,9 @@
  ******************************************************************************/
 
 /**
- *   \file
- *   Description:   TODO
- *
+ * \file
+ * 
+ * Definitions used through the whole kernel.
  */
 
 #ifndef _TN_COMMON_H

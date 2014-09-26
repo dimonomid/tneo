@@ -37,7 +37,7 @@
 /**
  * \file
  *
- * Architecture-dependent routines.
+ * Architecture-dependent routines declaration.
  */
 
 #ifndef _TN_ARCH_H
