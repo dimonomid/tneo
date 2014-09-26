@@ -37,7 +37,7 @@
 /**
  * \file
  *
- * TNeoKernel default configuration file.
+ * TNeoKernel default configuration file, to be copied as `tn_cfg.h`.
  *
  * This project is intended to be built as a library, separately from main
  * project (although nothing prevents you from bundling things together, if you
@@ -90,10 +90,10 @@
 #endif
 
 /**
- * Whether old TNKernel names (definitions, functions, etc) should be available.
- * If you're porting your existing application written for TNKernel,
- * it is definitely worth enabling.
- * If you start new project with TNeoKernel, it's better to avoid old names.
+ * Whether old TNKernel names (definitions, functions, etc) should be
+ * available.  If you're porting your existing application written for
+ * TNKernel, it is definitely worth enabling.  If you start new project with
+ * TNeoKernel from scratch, it's better to avoid old names.
  */
 #ifndef TN_OLD_TNKERNEL_NAMES
 #  define TN_OLD_TNKERNEL_NAMES  1
@@ -151,7 +151,7 @@
  *             and used in the port for dsPIC/PIC24/PIC32 by AlexB.
  */
 #ifndef TN_API_MAKE_ALIG_ARG
-#  define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__TYPE
+#  define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__SIZE
 #endif
 
 
