@@ -418,8 +418,10 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  *    * `TN_RC_OK` if task was woken up from other task by `tn_task_wakeup()`
  *    * `TN_RC_FORCED` if task was released from wait forcibly by 
  *       `tn_task_release_wait()`
+ *
+ * @see TN_Timeout
  */
-enum TN_RCode tn_task_sleep(unsigned long timeout);
+enum TN_RCode tn_task_sleep(TN_Timeout timeout);
 
 /**
  * Wake up task from sleep.

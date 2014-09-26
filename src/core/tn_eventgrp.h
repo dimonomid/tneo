@@ -37,8 +37,18 @@
 /**
  * \file
  *
- *   Description:   TODO
+ * Event group.
  *
+ * An event group has an internal variable (of type `unsigned int`), which is
+ * interpreted as a bit pattern where each bit represents an event. An event
+ * group also has a wait queue for the tasks waiting on these events. A task
+ * may set specified bits when an event occurs and may clear specified bits
+ * when necessary. 
+ *
+ * The tasks waiting for an event(s) are placed in the event group's wait
+ * queue. An event group is a very suitable synchronization object for cases
+ * where (for some reasons) one task has to wait for many tasks, or vice versa,
+ * many tasks have to wait for one task.
  */
 
 #ifndef _TN_EVENTGRP_H
@@ -121,19 +131,53 @@ struct TN_EGrpTaskWait {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+/**
+ * Construct event group. `id_event` field should not contain `TN_ID_EVENTGRP`,
+ * otherwise, `TN_RC_WPARAM` is returned.
+ *
+ * @param eventgrp
+ *    Pointer to already allocated struct TN_EventGrp
+ * @param initial_pattern
+ *    Initial events pattern.
+ */
 enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp *eventgrp,
       unsigned int initial_pattern
       );
 
+/**
+ * Destruct event group.
+ * 
+ * All tasks that wait for the event(s) become runnable with `TN_RC_DELETED`
+ * code returned.
+ *
+ * @param eventgrp   Pointer to event groupt to be deleted.
+ */
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 
+/**
+ * Wait for specified event(s) in the event group.
+ *
+ * @param eventgrp
+ *    Pointer to event group to wait events from
+ * @param wait_pattern
+ *    Events bit pattern for which task should wait
+ * @param wait_mode
+ *    Specifies whether task should wait for **all** the event bits from
+ *    `wait_pattern` to be set, or for just **any** of them
+ * @param p_flags_pattern
+ *    Pointer to the `unsigned int` variable in which actual event pattern
+ *    that caused task to stop waiting will be stored.
+ *    May be `NULL`.
+ * @param timeout
+ *    Maximum time to wait.
+ */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern,
-      unsigned long        timeout
+      TN_Timeout           timeout
       );
 
 enum TN_RCode tn_eventgrp_wait_polling(

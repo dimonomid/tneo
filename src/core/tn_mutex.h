@@ -99,7 +99,7 @@ enum TN_RCode tn_mutex_create(struct TN_Mutex * mutex,
                     int attribute,
                     int ceil_priority);
 enum TN_RCode tn_mutex_delete(struct TN_Mutex * mutex);
-enum TN_RCode tn_mutex_lock(struct TN_Mutex * mutex, unsigned long timeout);
+enum TN_RCode tn_mutex_lock(struct TN_Mutex * mutex, TN_Timeout timeout);
 enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex * mutex);
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex * mutex);
 

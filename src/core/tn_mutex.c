@@ -576,7 +576,7 @@ out:
 }
 
 //----------------------------------------------------------------------------
-enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, unsigned long timeout)
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 {
    TN_INTSAVE_DATA;
 

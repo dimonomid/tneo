@@ -138,7 +138,7 @@ static enum TN_RCode _eventgrp_wait(
    enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
-   if (eventgrp->id_event != TN_ID_EVENT){
+   if (eventgrp->id_event != TN_ID_EVENTGRP){
       rc = TN_RC_INVALID_OBJ;
       goto out;
    } else if (wait_pattern == 0){
@@ -172,7 +172,7 @@ static enum TN_RCode _eventgrp_modify(
    enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
-   if (eventgrp->id_event != TN_ID_EVENT){
+   if (eventgrp->id_event != TN_ID_EVENTGRP){
       rc = TN_RC_INVALID_OBJ;
       goto out;
    } else if (pattern == 0){
@@ -224,7 +224,7 @@ enum TN_RCode tn_eventgrp_create(
       return TN_RC_WPARAM;
    }
 
-   if (eventgrp->id_event == TN_ID_EVENT){
+   if (eventgrp->id_event == TN_ID_EVENTGRP){
       return TN_RC_WPARAM;
    }
 #endif
@@ -232,7 +232,7 @@ enum TN_RCode tn_eventgrp_create(
    tn_list_reset(&(eventgrp->wait_queue));
 
    eventgrp->pattern = initial_pattern;
-   eventgrp->id_event = TN_ID_EVENT;
+   eventgrp->id_event = TN_ID_EVENTGRP;
 
    return TN_RC_OK;
 }
@@ -246,7 +246,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 #if TN_CHECK_PARAM
    if(eventgrp == NULL)
       return TN_RC_WPARAM;
-   if(eventgrp->id_event != TN_ID_EVENT)
+   if(eventgrp->id_event != TN_ID_EVENTGRP)
       return TN_RC_INVALID_OBJ;
 #endif
 
@@ -277,7 +277,7 @@ enum TN_RCode tn_eventgrp_wait(
       unsigned int         wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       unsigned int        *p_flags_pattern,
-      unsigned long        timeout
+      TN_Timeout           timeout
       )
 {
    TN_INTSAVE_DATA;

@@ -75,7 +75,7 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem, int start_count, int max_count)
 enum TN_RCode tn_sem_delete(struct TN_Sem * sem);
 enum TN_RCode tn_sem_signal(struct TN_Sem * sem);
 enum TN_RCode tn_sem_isignal(struct TN_Sem * sem);
-enum TN_RCode tn_sem_acquire(struct TN_Sem * sem, unsigned long timeout);
+enum TN_RCode tn_sem_acquire(struct TN_Sem * sem, TN_Timeout timeout);
 enum TN_RCode tn_sem_acquire_polling(struct TN_Sem * sem);
 enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem * sem);
 

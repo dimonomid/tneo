@@ -195,7 +195,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
-      unsigned long timeout
+      TN_Timeout timeout
       );
 
 /**
@@ -246,7 +246,7 @@ enum TN_RCode tn_queue_isend_polling(
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
-      unsigned long timeout
+      TN_Timeout timeout
       );
 
 /**

@@ -258,7 +258,7 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 //----------------------------------------------------------------------------
 //   Acquire Semaphore Resource
 //----------------------------------------------------------------------------
-enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, unsigned long timeout)
+enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout)
 {
    return _sem_job_perform(sem, _sem_acquire, timeout);
 }

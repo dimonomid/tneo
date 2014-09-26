@@ -502,13 +502,14 @@ out:
 /*
  * See comments in the header file (tn_tasks.h)
  */
-enum TN_RCode tn_task_sleep(unsigned long timeout)
+enum TN_RCode tn_task_sleep(TN_Timeout timeout)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
    if (timeout == 0){
-      return TN_RC_WPARAM;
+      rc = TN_RC_TIMEOUT;
+      goto out;
    }
 
    TN_CHECK_NON_INT_CONTEXT;
@@ -520,6 +521,8 @@ enum TN_RCode tn_task_sleep(unsigned long timeout)
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    rc = tn_curr_run_task->task_wait_rc;
+
+out:
    return rc;
 
 }

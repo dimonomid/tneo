@@ -425,7 +425,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, timeout);
@@ -456,7 +456,7 @@ enum TN_RCode tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, timeout);

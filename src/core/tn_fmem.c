@@ -311,7 +311,7 @@ out:
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
       void **p_data,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    TN_INTSAVE_DATA;

@@ -39,6 +39,12 @@
  *
  * Fixed memory blocks pool.
  *
+ * A fixed-sized memory blocks pool is used for managing fixed-sized memory
+ * blocks dynamically. A pool has a memory area where fixed-sized memory blocks
+ * are allocated and the wait queue for acquiring a memory block.  If there are
+ * no free memory blocks, a task trying to acquire a memory block will be
+ * placed into the wait queue until a free memory block arrives (another task
+ * returns it to the memory pool).
  */
 
 #ifndef _TN_MEM_H
@@ -115,7 +121,7 @@ struct TN_FMemTaskWait {
  ******************************************************************************/
 
 /**
- * Construct fixed memory blocks pool. `id_fmp` member should not contain
+ * Construct fixed memory blocks pool. `id_fmp` field should not contain
  * `TN_ID_FSMEMORYPOOL`, otherwise, `TN_RC_WPARAM` is returned.
  *
  * Note that `start_addr` and `block_size` should be aligned by
@@ -127,7 +133,10 @@ struct TN_FMemTaskWait {
  *        // ... arbitrary fields ...
  *     };
  *     
- *     int my_fmp_buf[MY_MEMORY_BUF_SIZE * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))];
+ *     int my_fmp_buf[
+ *             MY_MEMORY_BUF_SIZE 
+ *           * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))
+ *           ];
  *     struct TN_Fmp my_fmp;
  *
  * And then, construct your `my_fmp` as follows:
@@ -192,7 +201,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
       void **p_data,
-      unsigned long timeout
+      TN_Timeout timeout
       );
 
 /**
