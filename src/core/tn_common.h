@@ -169,8 +169,8 @@ enum TN_RCode {
 
 //-- TN_MAKE_ALIG() macro
 /**
- * Macro for making a number a multiple of `TN_ALIGN`, should be with fixed
- * memory block pool.
+ * Macro for making a number a multiple of `TN_ALIGN`, should be used with
+ * fixed memory block pool.
  *
  * @see `tn_fmem_create()`
  * @see `TN_ALIGN`

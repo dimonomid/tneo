@@ -91,7 +91,8 @@ struct TN_FMem {
 
 
 /**
- * FMem-specific fields for struct TN_Task.
+ * FMem-specific fields related to waiting task,
+ * to be included in struct TN_Task.
  */
 struct TN_FMemTaskWait {
    /// if task tries to receive data from memory pool,
@@ -117,8 +118,8 @@ struct TN_FMemTaskWait {
  * Construct fixed memory blocks pool. `id_fmp` member should not contain
  * `TN_ID_FSMEMORYPOOL`, otherwise, `TN_RC_WPARAM` is returned.
  *
- * Note that `start_addr` and `block_size` should be aligned by `TN_ALIGN`.
- * Typical buffer declaration is as follows:
+ * Note that `start_addr` and `block_size` should be aligned by
+ * `TN_MAKE_ALIG_SIZE()` macro. Typical buffer declaration is as follows:
  *
  *     #define MY_MEMORY_BUF_SIZE    8
  *

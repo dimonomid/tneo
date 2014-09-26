@@ -109,7 +109,8 @@ struct TN_DQueue {
 };
 
 /**
- * DQueue-specific fields for struct TN_Task.
+ * DQueue-specific fields related to waiting task,
+ * to be included in struct TN_Task.
  */
 struct TN_DQueueTaskWait {
    /// if task tries to send the data to the data queue,

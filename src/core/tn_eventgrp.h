@@ -87,7 +87,8 @@ struct TN_EventGrp {
 };
 
 /**
- * EventGrp-specific fields for struct TN_Task.
+ * EventGrp-specific fields related to waiting task,
+ * to be included in struct TN_Task.
  */
 struct TN_EGrpTaskWait {
    ///
