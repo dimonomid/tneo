@@ -172,14 +172,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * If there are no tasks in the data queue's `wait_receive` list, parameter
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
- * behavior depends on the `timeout` value:
- *
- * * `0`:                  function returns `TN_RC_TIMEOUT` immediately;
- * * `TN_WAIT_INFINITE`:   task is switched to waiting state until
- *                         there is empty element in the FIFO;
- * * other:                task is switched to waiting state until
- *                         there is empty element in the FIFO or until
- *                         specified timeout expires.
+ * behavior depends on the `timeout` value: refer to `TN_Timeout`.
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
@@ -187,10 +180,10 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *                   is full
  *
  * @return  
- * * `TN_RC_OK`   if data was successfully sent;
- * * `TN_RC_TIMEOUT`  if there was a timeout.
- * * `TN_RC_FORCED`   if task was released from wait forcibly by calling
- *                      `tn_task_release_wait()`
+ *    * `TN_RC_OK`   if data was successfully sent;
+ *    * For other possible return codes, refer to `TN_Timeout`
+ *
+ * @see `TN_Timeout`
  */
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
@@ -224,24 +217,17 @@ enum TN_RCode tn_queue_isend_polling(
  * removed from the head of `wait_send` list, becomes runnable and puts the
  * data entry, stored in this task, to the tail of data FIFO.  If there are no
  * entries in the data FIFO and there are no tasks in the wait_send list,
- * behavior depends on the `timeout` value:
- *
- * * `0`:                  `TN_RC_TIMEOUT` is returned immediately;
- * * `TN_WAIT_INFINITE`:   task is switched to waiting state
- *                         until new data comes
- * * other:                task is switched to waiting state until new data 
- *                         comes or until specified timeout expires.
+ * behavior depends on the `timeout` value: refer to `TN_Timeout`.
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
- * @param timeout    timeout after which `TN_RC_TIMEOUT` is returned if queue
- *                   is empty
+ * @param timeout    refer to `TN_Timeout`
  *
  * @return  
- * * `TN_RC_OK`   if data was successfully received;
- * * `TN_RC_TIMEOUT`  if there was a timeout.
- * * `TN_RC_FORCED`   if task was released from wait forcibly by calling
- *                   `tn_task_release_wait()`
+ *    * `TN_RC_OK`   if data was successfully received;
+ *    * For other possible return codes, refer to `TN_Timeout`
+ *
+ * @see `TN_Timeout`
  */
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,

@@ -179,13 +179,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  * Get memory block from the pool. Start address of the memory block is returned
  * through the `p_data` argument. The content of memory block is undefined.
  * If there is no free block in the pool, behavior depends on `timeout` value:
- *
- * * `0`:                  function returns `TN_RC_TIMEOUT` immediately;
- * * `TN_WAIT_INFINITE`:   task is switched to waiting state until
- *                         there is empty block;
- * * other:                task is switched to waiting state until
- *                         there is empty block or until
- *                         specified timeout expires.
+ * refer to `TN_Timeout`.
  *
  * @param fmem
  *    Pointer to memory pool
@@ -196,7 +190,9 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  *
  * @return
  *    * `TN_RC_OK` if block was successfully returned through `p_data`;
- *    * `TN_RC_TIMEOUT` if there is no free block and timeout expired;
+ *    * For other possible return codes, refer to `TN_Timeout`
+ *
+ * @see `TN_Timeout`
  */
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
