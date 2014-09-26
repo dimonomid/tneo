@@ -37,7 +37,31 @@
 /**
  * \file
  *
- * TNeoKernel default configuration file
+ * TNeoKernel default configuration file.
+ *
+ * This project is intended to be built as a library, separately from main
+ * project (although nothing prevents you from bundling things together, if you
+ * want to).
+ *
+ * There are various options available which affects API and behavior of the
+ * kernel. But these options are specific for particular project, and aren't
+ * related to the kernel itself, so we need to keep them separately.
+ *
+ * To this end, file `tn.h` (the main kernel header file) includes `tn_cfg.h`,
+ * which isn't included in the repository (even more, it is added to
+ * `.hgignore` list actually). Instead, default configuration file
+ * `tn_cfg_default.h` is provided, and when you just cloned the repository, you
+ * might want to copy it as `tn_cfg.h`. Or even better, if your filesystem
+ * supports symbolic links, copy it somewhere to your main project's directory
+ * (so that you can add it to your VCS there), and create symlink to it named
+ * `tn_cfg.h` in the TNeoKernel source directory, like this:
+ *
+ *     $ cd /path/to/tneokernel/src
+ *     $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
+ *     $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
+ *
+ * Default configuration file contains detailed comments, so you can read them
+ * and configure behavior as you like.
  */
 
 #ifndef _TN_CFG_DEFAULT_H
@@ -57,7 +81,9 @@
 #endif
 
 /**
- * TODO: explain
+ * Allows additional internal self-checking, useful to catch internal
+ * TNeoKernel bugs. Produces a couple of extra instructions which usually just
+ * causes debugger to stop if something goes wrong.
  */
 #ifndef TN_DEBUG
 #  define TN_DEBUG               0
@@ -84,7 +110,7 @@
  * Whether mutexes should allow recursive locking/unlocking
  */
 #ifndef TN_MUTEX_REC
-#  define TN_MUTEX_REC           0
+#  define TN_MUTEX_REC           1
 #endif
 
 /**
@@ -98,31 +124,29 @@
 #endif
 
 /**
- * API option for MAKE_ALIG() macro.
+ * API option for `MAKE_ALIG()` macro.
  *
- * There is a terrible mess with MAKE_ALIG() macro: TNKernel docs specify
- * that the argument of it should be the size to align, but almost
- * all ports, including "original" one, defined it so that it takes
- * type, not size.
+ * There is a terrible mess with `MAKE_ALIG()` macro: original TNKernel docs
+ * specify that the argument of it should be the size to align, but almost all
+ * ports, including "original" one, defined it so that it takes type, not size.
  *
  * But the port by AlexB implemented it differently
  * (i.e. accordingly to the docs)
  *
- * When I was moving from the port by AlexB to another one, 
- * do you have any idea how much time it took me to figure out
- * why do I have rare weird bug? :)
+ * When I was moving from the port by AlexB to another one, do you have any
+ * idea how much time it took me to figure out why do I have rare weird bug? :)
  *
  * So, available options:
  *
- *    TN_API_MAKE_ALIG_ARG__TYPE: 
+ *  * `TN_API_MAKE_ALIG_ARG__TYPE`: 
  *             In this case, you should use macro like this: 
- *                MAKE_ALIG(struct my_struct)
+ *                `MAKE_ALIG(struct my_struct)`
  *             This way is used in the majority of TNKernel ports.
  *             (actually, in all ports except the one by AlexB)
  *
- *    TN_API_MAKE_ALIG_ARG__SIZE:
+ *  * `TN_API_MAKE_ALIG_ARG__SIZE`:
  *             In this case, you should use macro like this: 
- *                MAKE_ALIG(sizeof(struct my_struct))
+ *                `MAKE_ALIG(sizeof(struct my_struct))`
  *             This way is stated in TNKernel docs
  *             and used in the port for dsPIC/PIC24/PIC32 by AlexB.
  */
