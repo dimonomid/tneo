@@ -250,6 +250,7 @@ void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
      _isr##vec(void)                                                           \
 {                                                                              \
+   asm volatile(".set push");                                                  \
    asm volatile(".set mips32r2");                                              \
    asm volatile(".set nomips16");                                              \
    asm volatile(".set noreorder");                                             \
@@ -380,8 +381,7 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("mtc0    $k1, $12");               /* c0_status */             \
    asm volatile("eret");                                                       \
                                                                                \
-   asm volatile(".set reorder");                                               \
-   asm volatile(".set at");                                                    \
+   asm volatile(".set pop");                                                   \
                                                                                \
 } __attribute((__noinline__)) void _func##vec(void)
 
@@ -410,6 +410,7 @@ void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
      _isr##vec(void)                                                           \
 {                                                                              \
+   asm volatile(".set push");                                                  \
    asm volatile(".set mips32r2");                                              \
    asm volatile(".set nomips16");                                              \
    asm volatile(".set noreorder");                                             \
@@ -504,8 +505,7 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("mtc0    $k1, $12");               /* c0_status */             \
    asm volatile("eret");                                                       \
                                                                                \
-   asm volatile(".set reorder");                                               \
-   asm volatile(".set at");                                                    \
+   asm volatile(".set pop");                                                   \
                                                                                \
 } __attribute((__noinline__)) void _func##vec(void)
 
