@@ -211,10 +211,10 @@ static inline void _round_robin_manage(void)
 /**
  * Create idle task, the task is NOT started after creation.
  */
-static inline void _idle_task_create(unsigned int  *idle_task_stack,
+static inline enum TN_RCode _idle_task_create(unsigned int  *idle_task_stack,
                                      unsigned int   idle_task_stack_size)
 {
-   tn_task_create(
+   return tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_PRIORITIES_CNT - 1,             //-- task priority
@@ -246,6 +246,7 @@ void tn_start_system(
       )
 {
    int i;
+   enum TN_RCode rc;
 
    //-- Clear/set all globals (vars, lists, etc)
 
@@ -286,15 +287,19 @@ void tn_start_system(
     */
 
    //-- create system tasks
-   //   TODO: it may actually fail, say, if there were wrong params given,
-   //   so we need to check it
-   _idle_task_create(idle_task_stack, idle_task_stack_size);
+   rc = _idle_task_create(idle_task_stack, idle_task_stack_size);
+   if (rc != TN_RC_OK){
+      _TN_FATAL_ERROR("failed to create idle task");
+   }
 
    //-- Just for the _tn_task_set_runnable() proper operation
    tn_next_task_to_run = &tn_idle_task; 
 
    //-- make system tasks runnable
-   _tn_task_activate(&tn_idle_task);
+   rc = _tn_task_activate(&tn_idle_task);
+   if (rc != TN_RC_OK){
+      _TN_FATAL_ERROR("failed to activate idle task");
+   }
 
    tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
 
