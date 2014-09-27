@@ -609,7 +609,9 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
    //   call.
    TN_INTSAVE_DATA;
 	 
-   TN_CHECK_NON_INT_CONTEXT_NORETVAL;
+   if (!tn_is_task_context()){
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -624,6 +626,9 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
 
    //-- interrupts will be enabled inside _tn_arch_context_switch_exit()
    _tn_arch_context_switch_exit();  
+
+out:
+   return;
 }
 
 /*

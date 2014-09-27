@@ -543,7 +543,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 {
    TN_INTSAVE_DATA;
 
-   enum TN_RCode ret = TN_RC_OK;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(mutex == NULL)
@@ -552,14 +552,17 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
    //-- mutex can be deleted if only it isn't held 
    if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
-      ret = TN_RC_ILLEGAL_USE;
-      goto out;
+      rc = TN_RC_ILLEGAL_USE;
+      goto out_ei;
    }
 
    //-- Remove all tasks (if any) from mutex's wait queue
@@ -579,14 +582,15 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 
    mutex->id_mutex = 0; //-- mutex does not exist now
 
-out:
+out_ei:
    TN_INT_RESTORE();
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return ret;
+out:
+   return rc;
 }
 
 /*
@@ -596,21 +600,24 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 {
    TN_INTSAVE_DATA;
 
-   enum TN_RCode ret = TN_RC_OK;
+   enum TN_RCode rc = TN_RC_OK;
    BOOL waited_for_mutex = FALSE;
 
 #if TN_CHECK_PARAM
    if (mutex == NULL){
-      ret = TN_RC_WPARAM;
+      rc = TN_RC_WPARAM;
       goto out;
    }
    if (mutex->id_mutex != TN_ID_MUTEX){
-      ret = TN_RC_INVALID_OBJ;
+      rc = TN_RC_INVALID_OBJ;
       goto out;
    }
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -619,7 +626,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       //   if recursive locking enabled (TN_MUTEX_REC), increment lock count,
       //   otherwise error is returned
       __mutex_lock_cnt_change(mutex, 1);
-      ret = __MUTEX_REC_LOCK_RETVAL;
+      rc = __MUTEX_REC_LOCK_RETVAL;
       goto out_ei;
    }
 
@@ -629,7 +636,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       )
    {
       //-- base priority of current task higher
-      ret = TN_RC_ILLEGAL_USE;
+      rc = TN_RC_ILLEGAL_USE;
       goto out_ei;
    }
 
@@ -650,7 +657,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       //-- mutex is already locked
       if (timeout == 0){
          //-- in polling mode, just return TN_RC_TIMEOUT
-         ret = TN_RC_TIMEOUT;
+         rc = TN_RC_TIMEOUT;
          goto out_ei;
       } else {
          //-- timeout specified, so, wait until mutex is free or timeout expired
@@ -658,17 +665,14 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 
          waited_for_mutex = TRUE;
 
-         //-- ret will be set later to tn_curr_run_task->task_wait_rc;
+         //-- rc will be set later to tn_curr_run_task->task_wait_rc;
          goto out_ei;
       }
    }
 
    //-- should never be here
-   ret = TN_RC_INTERNAL;
-   goto out;
-
-out:
-   return ret;
+   rc = TN_RC_INTERNAL;
+   goto out_ei;
 
 out_ei:
 
@@ -681,9 +685,11 @@ out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_mutex){
-      ret = tn_curr_run_task->task_wait_rc;
+      rc = tn_curr_run_task->task_wait_rc;
    }
-   return ret;
+
+out:
+   return rc;
 
 }
 
@@ -701,28 +707,31 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex)
  */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 {
-   enum TN_RCode ret = TN_RC_OK;
+   enum TN_RCode rc = TN_RC_OK;
 
    TN_INTSAVE_DATA;
 
 #if TN_CHECK_PARAM
    if(mutex == NULL){
-      ret = TN_RC_WPARAM;
+      rc = TN_RC_WPARAM;
       goto out;
    }
    if(mutex->id_mutex != TN_ID_MUTEX){
-      ret = TN_RC_INVALID_OBJ;
+      rc = TN_RC_INVALID_OBJ;
       goto out;
    }
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
    //-- unlocking is enabled only for the owner and already locked mutex
    if (tn_curr_run_task != mutex->holder){
-      ret = TN_RC_ILLEGAL_USE;
+      rc = TN_RC_ILLEGAL_USE;
       goto out_ei;
    }
 
@@ -743,12 +752,12 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
    }
 
 out:
-   return ret;
+   return rc;
 
 out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
-   return ret;
+   return rc;
 
 }
 

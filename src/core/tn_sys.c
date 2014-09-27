@@ -316,11 +316,15 @@ void tn_sys_start(
 /*
  * See comments in the header file (tn_sys.h)
  */
-void tn_tick_int_processing(void)
+enum TN_RCode tn_tick_int_processing(void)
 {
    TN_INTSAVE_DATA_INT;
+   enum TN_RCode rc = TN_RC_OK;
 
-   TN_CHECK_INT_CONTEXT_NORETVAL;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -334,6 +338,9 @@ void tn_tick_int_processing(void)
    tn_sys_time_count++;
 
    TN_INT_IRESTORE();
+
+out:
+   return rc;
 }
 
 /*
@@ -341,15 +348,18 @@ void tn_tick_int_processing(void)
  */
 enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
 {
-   int ret = TN_RC_OK;
+   enum TN_RCode rc = TN_RC_OK;
 
    TN_INTSAVE_DATA;
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    if (     priority <= 0 || priority >= (TN_PRIORITIES_CNT - 1)
          || value    <  0 || value    >   TN_MAX_TIME_SLICE)
    {
-      ret = TN_RC_WPARAM;
+      rc = TN_RC_WPARAM;
       goto out;
    }
 
@@ -360,7 +370,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
    TN_INT_RESTORE();
 
 out:
-   return ret;
+   return rc;
 }
 
 /*

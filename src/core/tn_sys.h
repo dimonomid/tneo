@@ -233,7 +233,7 @@ void tn_sys_start(
  *
  * For further information, refer to \ref quick_guide "Quick guide".
  */
-void tn_tick_int_processing(void);
+enum TN_RCode tn_tick_int_processing(void);
 
 /**
  * Set time slice ticks value for specified priority (round-robin scheduling).

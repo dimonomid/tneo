@@ -238,7 +238,10 @@ static enum TN_RCode _dqueue_job_perform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -298,6 +301,7 @@ static enum TN_RCode _dqueue_job_perform(
       }
    }
 
+out:
    return rc;
 }
 
@@ -318,7 +322,10 @@ static enum TN_RCode _dqueue_job_iperform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -333,6 +340,7 @@ static enum TN_RCode _dqueue_job_iperform(
 
    TN_INT_IRESTORE();
 
+out:
    return rc;
 }
 
@@ -387,6 +395,7 @@ enum TN_RCode tn_queue_create(
 enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 {
    TN_INTSAVE_DATA;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if (dque == NULL){
@@ -397,7 +406,10 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
    }
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -414,7 +426,8 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return TN_RC_OK;
+out:
+   return rc;
 
 }
 

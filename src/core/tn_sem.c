@@ -76,7 +76,10 @@ static inline enum TN_RCode _sem_job_perform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -103,6 +106,7 @@ static inline enum TN_RCode _sem_job_perform(
       rc = tn_curr_run_task->task_wait_rc;
    }
 
+out:
    return rc;
 }
 
@@ -123,7 +127,10 @@ static inline enum TN_RCode _sem_job_iperform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -131,6 +138,7 @@ static inline enum TN_RCode _sem_job_iperform(
 
    TN_INT_IRESTORE();
 
+out:
    return rc;
 }
 
@@ -191,6 +199,7 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
                   int start_count,
                   int max_count)
 {
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -203,7 +212,10 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
    }
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    tn_list_reset(&(sem->wait_queue));
 
@@ -211,7 +223,8 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
    sem->max_count = max_count;
    sem->id_sem    = TN_ID_SEMAPHORE;
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 /*
@@ -220,6 +233,7 @@ enum TN_RCode tn_sem_create(struct TN_Sem * sem,
 enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 {
    TN_INTSAVE_DATA;
+   enum TN_RCode rc = TN_RC_OK;
 
 #if TN_CHECK_PARAM
    if(sem == NULL)
@@ -228,7 +242,10 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -242,7 +259,8 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
    //   has woken up some high-priority task
    _tn_switch_context_if_needed();
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 /*

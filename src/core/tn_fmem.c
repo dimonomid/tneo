@@ -285,7 +285,10 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
       goto out;
    }
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -323,7 +326,10 @@ enum TN_RCode tn_fmem_get(
       goto out;
    }
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -366,7 +372,10 @@ enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem,void **p_data)
       goto out;
    }
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -392,7 +401,10 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data)
       goto out;
    }
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -418,7 +430,10 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data)
       goto out;
    }
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -445,7 +460,10 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
       goto out;
    }
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 

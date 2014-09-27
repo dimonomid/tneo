@@ -215,29 +215,15 @@ extern "C"  {     /*}*/
 #define TN_IS_INT_DISABLED()     ((__builtin_mfc0(12, 0) & 1) == 0)
 
 
-
-
-
-#define  TN_CHECK_INT_CONTEXT                      \
-             if(!_tn_arch_inside_isr())            \
-                return TN_RC_WCONTEXT;
-
-#define  TN_CHECK_INT_CONTEXT_NORETVAL             \
-             if(!_tn_arch_inside_isr())            \
-                return;
-
-#define  TN_CHECK_NON_INT_CONTEXT                  \
-             if(_tn_arch_inside_isr())             \
-                return TN_RC_WCONTEXT;
-
-#define  TN_CHECK_NON_INT_CONTEXT_NORETVAL         \
-             if(_tn_arch_inside_isr())             \
-                return ;
-
-
-
-
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
+
+
+
+
+
+
+
+
 
 
 // ---------------------------------------------------------------------------
