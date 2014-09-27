@@ -5,37 +5,32 @@ define \n
 endef
 
 TN_CALL_FROM_TASK     = \image html attr_call_task.png ${\n}\
-                        \latexonly\
-                        - call from task\
-                        \endlatexonly
-
-export TN_CALL_FROM_TASK
-
-
+                        \latexonly \
+                        \includegraphics{../../images/attr_call_task.png} \
+                        \endlatexonly \
 
 TN_CALL_FROM_ISR      = \image html attr_call_int.png ${\n} \
-                        \latexonly\
-                        - call from ISR\
-                        \endlatexonly
+                        \latexonly \
+                        \includegraphics{../../images/attr_call_int.png} \
+                        \endlatexonly \
 
-export TN_CALL_FROM_ISR
-
-
-TN_CALL_FROM_MAIN     = <i>call from main</i>
-
-export TN_CALL_FROM_MAIN
-
-
+TN_CALL_FROM_MAIN     = #{call from main()}
 
 TN_CAN_SWITCH_CONTEXT = \image html attr_call_ct_sw.png ${\n} \
-                        \latexonly\
-                        - can switch context\
-                        \endlatexonly
+                        \latexonly \
+                        \includegraphics{../../images/attr_call_ct_sw.png} \
+                        \endlatexonly \
 
+
+TN_CAN_SLEEP          = \image html attr_timeout.png ${\n} \
+                        \latexonly \
+                        \includegraphics{../../images/attr_timeout.png}    \
+                        \endlatexonly \
+
+export TN_CALL_FROM_TASK
+export TN_CALL_FROM_ISR
+export TN_CALL_FROM_MAIN
 export TN_CAN_SWITCH_CONTEXT
-
-TN_CAN_SLEEP          = <i>can sleep</i>
-
 export TN_CAN_SLEEP
 
 all: 

@@ -258,11 +258,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout);
 enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
 
 /**
- * $(TN_CALL_FROM_TASK)
- * $(TN_CAN_SWITCH_CONTEXT)
- *
  * Unlock mutex.
- *
  *    * If mutex is not locked or locked by different task, `TN_RC_ILLEGAL_USE`
  *      is returned.
  *    * If mutex is already locked by calling task, lock count is decremented.
@@ -270,6 +266,9 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
  *      task(s) waiting for mutex, the first one from the wait queue locks the
  *      mutex).  Otherwise, mutex remains locked with lock count decremented
  *      and function returns `TN_RC_OK`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @return
  *    * `TN_RC_OK` if mutex is unlocked of if lock count was merely decremented

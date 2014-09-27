@@ -59,14 +59,14 @@ extern "C"  {     /*}*/
 #define  _TN_PIC32_INTSAVE_DATA_INVALID   0xffffffff
 
 #if TN_DEBUG
-#  define   _TN_PIC32_INTSAVE_CHECK()  \
-{\
-   if (tn_save_status_reg == _TN_PIC32_INTSAVE_DATA_INVALID){\
-      _TN_FATAL_ERROR("");\
-   }\
+#  define   _TN_PIC32_INTSAVE_CHECK()                          \
+{                                                              \
+   if (tn_save_status_reg == _TN_PIC32_INTSAVE_DATA_INVALID){  \
+      _TN_FATAL_ERROR("");                                     \
+   }                                                           \
 }
 #else
-#  define   _TN_PIC32_INTSAVE_CHECK()
+#  define   _TN_PIC32_INTSAVE_CHECK()  /* nothing */
 #endif
 
 /**
