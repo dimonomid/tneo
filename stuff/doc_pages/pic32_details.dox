@@ -1,6 +1,8 @@
 /**
 \page pic32_details PIC32 details
 
+\tableofcontents
+
 PIC32 port implementation details
 
 \section pic32_context_switch Context switch

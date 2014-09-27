@@ -1,6 +1,8 @@
 /**
 \page building Building the project
 
+\tableofcontents
+
 Some notes on building the project
 
 \section configuration_file Configuration file

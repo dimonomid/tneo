@@ -1,6 +1,8 @@
 /**
 \page quick_guide Quick guide
 
+\tableofcontents
+
 This page contains quick guide on system startup and important implementation details.
 
 \section time_ticks Time ticks
@@ -28,11 +30,11 @@ tn_soft_isr(_TIMER_5_VECTOR)
   - You allocate arrays for idle task stack and interrupt stack. Typically,
     these are just static arrays of `int`. It is good idea to consult the
     `TN_MIN_STACK_SIZE` to determine stack sizes (see example below).
-  - You provide callback function like `void appl_init(void) { ... }`, in which
-    *system timer* should be initialized, and at least one (and typically just 
-    one) user task is created, in which all the rest system initialization
-    should be done. See details in `TNCallbackApplInit()`, **read it
-    carefully, it is important**.
+  - You provide callback function like `void appl_init(void) { ... }`, in
+    which *system timer* should be initialized, and at least one (and typically
+    just one) user task is created, in which all the rest system initialization
+    should be done. See details in `TNCallbackApplInit()`, **read it carefully,
+    it is important**.
   - You provide idle callback function to be called periodically from 
     idle task. It's quite fine to leave it empty.
   - In the `main()`, you firstly perform some essential CPU settings, such as

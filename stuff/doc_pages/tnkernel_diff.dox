@@ -1,0 +1,198 @@
+/**
+\page tnkernel_diff Differences from TNKernel
+
+\tableofcontents
+
+If you have experience of using TNKernel, this section is must read
+
+\section tnkernel_diff_api API differences
+
+\subsection tnkernel_diff_api_sys_start System startup
+
+Original TNKernel code designed to be built together with main project only, there's no way to build as a separate library: at least, arrays for idle and timer task stacks are allocated statically, so size of them is defined at tnkernel compile time.
+
+It's much better if we could pass these things to tnkernel at runtime, so, `tn_sys_start()` now takes pointers to stack arrays and their sizes. Refer to \ref starting_the_kernel "Starting the kernel" section for the details.
+
+\subsection tnkernel_diff_task_create Task creation API
+
+In original TNKernel, one should give bottom address of the task stack to `tn_task_create()`, like this: 
+
+\code{.c}
+#define MY_STACK_SIZE   0x100
+static unsigned int my_stack[ MY_STACK_SIZE ];
+
+tn_task_create(/* ... several arguments omitted ... */
+               &(my_stack[ MY_STACK_SIZE - 1]),
+               /* ... several arguments omitted ... */);
+\endcode
+
+Alex Borisov implemented it more conveniently in his port: one should give just array address, like this:
+\code{.c}
+tn_task_create(/* ... several arguments omitted ... */
+               my_stack,
+               /* ... several arguments omitted ... */);
+\endcode
+
+This port uses the second way (i.e. the way used in port by Alex Borisov)
+
+\subsection tnkernel_diff_make_alig Macro MAKE_ALIG()
+
+There is a terrible mess with `MAKE_ALIG()` macro: TNKernel docs specify that the argument of it should be the size to align, but almost all ports, including original one, defined it so that it takes type, not size.
+                                                                       
+But the port by AlexB implemented it differently (i.e. accordingly to the docs) : it takes size as an argument.
+
+When I was moving from the port by AlexB to another one, do you have any idea how much time it took me to figure out why do I have rare weird bug? :)
+
+By the way, additional strange thing: why doesn't this macro have any prefix like `TN_`?
+
+TNeoKernel provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
+
+But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `TN_API_MAKE_ALIG_ARG` with two possible values;
+
+  - `TN_API_MAKE_ALIG_ARG__SIZE` - default value, use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
+
+  - `TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
+
+By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
+
+\subsection tnkernel_diff_wakeup_count Task wakeup count, activate count, suspend count
+
+In original TNKernel, requesting non-sleeping task to wake up is quite legal and causes next call to `tn_task_sleep()` to not sleep. The same is with suspending/resuming tasks.
+
+So, if you call `tn_task_wakeup()` on non-sleeping task first time, `TERR_NO_ERR` is returned. If you call it second time, before target task called `tn_task_sleep()`, `TERR_OVERFLOW` is returned.
+
+All of this seems to me as a complete dirty hack, it probably might be used as a workaround to avoid race condition problems, or as a hacky replacement for semaphore.
+
+It just encourages programmer to go with hacky approach, instead of creating straightforward semaphore and provide proper synchronization.
+
+In TNeoKernel these "features" are removed, and if you try to wake up non-sleeping task, or try to resume non-suspended task, \ref TN_RC_WSTATE is returned.
+
+By the way, `suspend_count` is present in `TCB` structure, but is never used, so, it is just removed. And comments for `wakeup_count`, `activate_count`, `suspend_count` suggested that these fields are used for statistics, which is clearly not true. 
+
+
+\subsection tnkernel_diff_fmem Fixed memory pool: non-aligned address or block size
+
+In original TNKernel it's illegal to pass `block_size` that is less than `sizeof(int)`. But, it is legal to pass some value that isn't multiple of `sizeof(int)`: in this case, `block_size` is silently rounded up, and therefore `block_cnt` is silently decremented to fit as many blocks of newly calculated `block_size` as possible. If resulting `block_cnt` is at least 2, it is assumed that everything is fine and we can go on.
+
+Why I don't like it: firstly, silent behavior like this is generally bad practice that leads to hard-to-catch bugs. Secondly, it is inconsistency again: why is it legal for `block_size` not to be multiple of `sizeof(int)`, but it is illegal for it to be less than `sizeof(int)`? After all, the latter is the partucular case of the former.
+
+So, TNeoKernel returns \ref TN_RC_WPARAM in these cases. User must provide `start_addr` and `block_size` that are properly aligned. As a generic rule, it is good practice to declare buffers for fmp like this:
+
+\code{.c}
+    #define MY_MEMORY_BUF_SIZE    8
+
+    struct MyMemoryItem {
+       // ... arbitrary fields ...
+    };
+    
+    int my_fmp_buf[
+            MY_MEMORY_BUF_SIZE 
+          * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))
+          ];
+    struct TN_Fmp my_fmp;
+\endcode
+
+And then, construct your `my_fmp` as follows:
+
+\code{.c}
+    tn_fmem_create( &my_fmp,
+                    my_fmp_buf,
+                    TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
+                    MY_MEMORY_BUF_SIZE );
+\endcode
+
+
+\subsection tnkernel_diff_task_retval Task service return values cleaned
+
+In original TNKernel, `TERR_WCONTEXT` is returned in the following cases:
+
+  - call to `tn_task_terminate()` for already terminated task;
+  - call to `tn_task_delete()` for non-terminated task;
+  - call to `tn_task_change_priority()` for terminated task;
+  - call to `tn_task_wakeup()`/`tn_task_iwakeup()` for terminated task;
+  - call to `tn_task_release_wait()`/`tn_task_irelease_wait()` for terminated task.
+
+The actual error is, of course, wrong state, not wrong context; so, TNeoKernel returns \ref TN_RC_WSTATE in these cases.
+
+\subsection tnkernel_diff_release_wait Force task releasing from wait
+
+In original TNKernel, a call to `tn_task_(i)release_wait()` causes waiting task to wake up, regardless of wait reason, and `TERR_NO_ERR` is returned as a wait result. Actually I believe it is bad idea to ever use `tn_task_release_wait()`, but if we have this service, error code surely should be distinguishable from normal wait completion, so, new code is added: \ref TN_RC_FORCED, and it is returned when task wakes up because of `tn_task_release_wait()` call.
+
+\subsection tnkernel_diff_task_sleep Return code of tn_task_sleep()
+
+In original TNKernel, `tn_task_sleep()` always returns `TERR_NO_ERR`, independently of what actually happened. In TNeoKernel, there are three possible return codes:
+
+  - `TN_RC_TIMEOUT` if timeout is actually in effect;
+  - `TN_RC_OK` if task was woken up by some other task with `tn_task_wakeup()`;
+  - `TN_RC_FORCED` if task was woken up forcibly by some other task with `tn_task_release_wait()`;
+
+\subsection tnkernel_diff_event Events API is changed almost completely
+
+In original TNKernel, I always found events API somewhat confusing. Why is this object named "event", but there are many flags inside, so that they can actually represent many events?
+
+Meanwhile, attributes like `TN_EVENT_ATTR_SINGLE`, `TN_EVENT_ATTR_CLR` imply that "event" object is really just a single event, since it makes no sense to clear just **all** event bits when some particular event happened.
+
+After all, when we call `tn_event_clear(&my_event_obj, flags)`, we might expect that `flags` argument actually specifies flags to clear. But in fact, we must invert it, to make it work: `~flags`. This is really confusing.
+
+In TNeoKernel, there is no such "*event*" object. Instead, there is object "*events group*". Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. I have plans to offer a way to "connect" events group to queue and probably other kernel objects as well, so that queue will set and clear particular flag in the events group automatically, depending on whether a queue is empty. By means of that, it is quite easy to wait for data from multiple queues with just a single call to `tn_eventgrp_wait()`.
+
+For detailed API reference, refer to the `tn_eventgrp.h`.
+
+\subsection tnkernel_diff_mutex_rec Recursive mutexes
+
+Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
+
+Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
+
+@see `TN_MUTEX_REC`
+@see `TN_RC_ILLEGAL_USE`
+
+\subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
+
+In original TNKernel, system functions returned `TERR_WRONG_PARAM` if `timeout` is 0, but it is actually not convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
+
+\subsection tnkernel_diff_api_rename Things renamed
+
+In original TNKernel thare is a lot of inconsistency with naming stuff: 
+
+  - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling` (notice the `i` letter before `polling`)?
+  - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
+  - A lot of macros doesn't have `TN_` prefix;
+  - etc
+
+So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `TN_OLD_TNKERNEL_NAMES` option is non-zero.
+
+@see `TN_OLD_TNKERNEL_NAMES` 
+
+\section tnkernel_diff_other Changes that do not affect API directly
+
+\subsection tnkernel_diff_timer_task No timer task
+
+Yes, timer task's job is important: it manages `tn_wait_timeout_list`, i.e. it wakes up tasks whose timeout is expired. But it's actually better to do it right in `tn_tick_int_processing()` that is called from timer ISR, because presence of the special task provides significant overhead.
+Look at what happens when timer interrupt is fired (assume we don't use shadow register set for that, which is almost always the case):
+
+(measurements were made at PIC32 port)
+
+  - Current context (23 words) is saved to the interrupt stack;
+  - ISR called: particularly, `tn_tick_int_processing()` is called;
+  - `tn_tick_int_processing()` disables interrupts, manages round-robin (if needed), then it wakes up `tn_timer_task`, sets `tn_next_task_to_run`, and enables interrupts back;
+  - `tn_tick_int_processing()` finishes, so ISR macro checks that `tn_next_task_to_run` is different from `tn_curr_run_task`, and sets `CS0` interrupt bit, so that context should be switched as soon as possible;
+  - Context (23 words) gets restored to whatever task we interrupted;
+  - `CS0` ISR is immediately called, so full context (32 words) gets saved on task's stack, and context of `tn_timer_task` is restored;
+  - `tn_timer_task` disables interrupts, performs its not so big job (manages `tn_wait_timeout_list`), puts itself to wait, enables interrupts and pends context switching again;
+  - `CS0` ISR is immediately called, so full context of `tn_timer_task` gets saved in its stack, and then, after all, context of my own interrupted task gets restored and my task continues to run.
+
+I've measured with MPLABX's stopwatch how much time it takes: with just three tasks (idle task, timer task, my own task with priority 6), i.e. without any sleeping tasks, all this routine takes **682 cycles**.
+So I tried to get rid of `tn_timer_task` and perform its job right in the `tn_tick_int_processing()`. When system starts, application callback is therefore called from idle task. Now, the following steps are performed when timer interrupt is fired:
+
+  - Current context (23 words) is saved to the interrupt stack;
+  - ISR called: particularly, `tn_tick_int_processing()` is called;
+  - `tn_tick_int_processing()` disables interrupts, manages round-robin (if needed), manages `tn_wait_timeout_list`, and enables interrupts back;
+  - `tn_tick_int_processing()` finishes, ISR macro checks that `tn_next_task_to_run` is the same as `tn_curr_run_task`
+  - Context (23 words) gets restored to whatever task we interrupted;
+
+That's all. It takes **251 cycles**: 2.7 times less.
+
+So, we need to make sure that interrupt stack size is enough for this (not big) job. As a result, RAM is saved (since you don't need to allocate stack for timer task) and things work much faster. Win-win.
+
+*/
