@@ -73,8 +73,17 @@
  ******************************************************************************/
 
 /**
- * Allows additional param checking for most of the system functions.
+ * Enables additional param checking for most of the system functions.
  * It's surely useful for debug, but probably better to remove in release.
+ * If it is set, most of the system functions are able to return two additional
+ * codes:
+ *
+ *    * `TN_RC_WPARAM` if wrong params were given;
+ *    * `TN_RC_INVALID_OBJ` if given pointer doesn't point to a valid object.
+ *      Object validity is checked by means of the special ID field of type
+ *      `enum TN_ObjId`.
+ *
+ * @see `enum TN_ObjId`
  */
 #ifndef TN_CHECK_PARAM
 #  define TN_CHECK_PARAM         1

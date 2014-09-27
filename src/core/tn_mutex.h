@@ -192,7 +192,10 @@ struct TN_Mutex {
  *    Used if only `protocol` is `TN_MUTEX_PROT_CEILING`: maximum priority
  *    of the task that may lock the mutex.
  *
- * @return  `TN_RC_OK`
+ * @return  
+ *    * `TN_RC_OK` if mutex was successfully created;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `TN_RC_WPARAM`.
  */
 enum TN_RCode tn_mutex_create(
       struct TN_Mutex        *mutex,
@@ -210,6 +213,12 @@ enum TN_RCode tn_mutex_create(
  * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param mutex      mutex to destruct
+ *
+ * @return 
+ *    * `TN_RC_OK` if mutex was successfully destroyed;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
 
@@ -234,6 +243,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *    * `TN_RC_OK` if mutex is successfully locked or if lock count was
  *      merely incremented (this is possible if recursive locking is enabled,
  *      see `TN_MUTEX_REC`)
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * `TN_RC_ILLEGAL_USE` 
  *       * if mutex protocol is `TN_MUTEX_PROT_CEILING`
  *         and calling task's priority is higher than `ceil_priority`
@@ -242,6 +252,8 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *         and the mutex is already locked by calling task
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `TN_Timeout`
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see `TN_Timeout`
  * @see `TN_MutexProtocol`
@@ -273,8 +285,11 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
  * @return
  *    * `TN_RC_OK` if mutex is unlocked of if lock count was merely decremented
  *      (this is possible if recursive locking is enabled, see `TN_MUTEX_REC`)
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * `TN_RC_ILLEGAL_USE` if mutex is either not locked or locked by
  *      different task
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex);

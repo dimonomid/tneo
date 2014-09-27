@@ -238,6 +238,9 @@ void tn_sys_start(
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
  *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context.
  */
 enum TN_RCode tn_tick_int_processing(void);
 
@@ -251,6 +254,12 @@ enum TN_RCode tn_tick_int_processing(void);
  *                   round-robin scheduling for given priority
  *                   (it's default value).
  *                   Value can't be higher than `TN_MAX_TIME_SLICE`.
+ *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
 
@@ -259,6 +268,14 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ *
+ * @return
+ *    Current system ticks count. Note that this value does **not** affect any
+ *    of the internal TNeoKernel routines, it is just incremented each system
+ *    tick (i.e. in `tn_tick_int_processing()`) and is returned to user by
+ *    `tn_sys_time_get()`.
+ *
+ *    It is not used by TNeoKernel itself at all.
  */
 unsigned int tn_sys_time_get(void);
 
@@ -284,6 +301,9 @@ void tn_sys_time_set(unsigned int value);
  * $(TN_CALL_FROM_MAIN)
  *
  * **Note:** this function should be called before `tn_sys_start()`
+ *
+ * @param cb
+ *    Pointer to user-provided callback function.
  *
  * @see `TN_MUTEX_DEADLOCK_DETECT`
  * @see `TNCallbackDeadlock` for callback function prototype

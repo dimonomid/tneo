@@ -378,6 +378,11 @@ struct TN_Task {
  * @param opts 
  *    Options for task creation
  *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `TN_RC_WPARAM` if wrong params were given;
+ *
  * @see `enum TN_TaskCreateOpt`
  * @see `TN_ARCH_STK_ATTR_BEFORE`
  * @see `TN_ARCH_STK_ATTR_AFTER`
@@ -403,6 +408,13 @@ enum TN_RCode tn_task_create(
  *
  * @param task    Task to suspend
  *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `TN_RC_WSTATE` if task is already suspended or dormant;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *
  * @see enum TN_TaskState
  */
 enum TN_RCode tn_task_suspend(struct TN_Task *task);
@@ -417,6 +429,13 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task);
  * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param task    Task to release from suspended state
+ *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `TN_RC_WSTATE` if task is not suspended;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see enum TN_TaskState
  */
@@ -441,6 +460,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  *    * `TN_RC_OK` if task was woken up from other task by `tn_task_wakeup()`
  *    * `TN_RC_FORCED` if task was released from wait forcibly by 
  *       `tn_task_release_wait()`
+ *    * `TN_RC_WCONTEXT` if called from wrong context
  *
  * @see TN_Timeout
  */
@@ -458,10 +478,15 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  *
+ * @param task    sleeping task to wake up
+ *
  * @return
  *    * `TN_RC_OK` if successful
- *    * `TN_RC_WSTATE` task is not sleeping, or it is sleeping for
+ *    * `TN_RC_WSTATE` if task is not sleeping, or it is sleeping for
  *       some reason other than `tn_task_sleep()` call.
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  */
 enum TN_RCode tn_task_wakeup(struct TN_Task *task);
@@ -483,6 +508,15 @@ enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ *
+ * @param task    dormant task to activate
+ *
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_WSTATE` if task is not dormant
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see TN_TaskState
  */
@@ -506,6 +540,16 @@ enum TN_RCode tn_task_iactivate(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ *
+ * @param task    task waiting for anything
+ *
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_WSTATE` if task is not waiting for anything
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *
  *
  * @see TN_TaskState
  */
@@ -536,7 +580,9 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * 
- * This function cannot be invoked from interrupts.
+ * @return
+ *    Returns if only called from wrong context. Normally, it never returns
+ *    (since calling task becomes terminated)
  *
  * @see `TN_TASK_EXIT_OPT_DELETE`
  * @see `tn_task_delete()`
@@ -559,6 +605,15 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ *
+ * @param task    task to terminate
+ *
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_WSTATE` if task is already dormant
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task);
 
@@ -571,6 +626,16 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task);
  * reactivated after this function call (the task must be recreated).
  *
  * $(TN_CALL_FROM_TASK)
+ *
+ * @param task    dormant task to delete
+ *
+ * @return
+ *    * `TN_RC_OK` if successful
+ *    * `TN_RC_WSTATE` if task is not dormant
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *
  */
 enum TN_RCode tn_task_delete(struct TN_Task *task);
 
@@ -579,6 +644,8 @@ enum TN_RCode tn_task_delete(struct TN_Task *task);
  * If priority is 0, then task's base_priority is set.
  *
  * $(TN_CALL_FROM_TASK)
+ *
+ * \attention this function is obsolete and will probably be removed
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority);
 

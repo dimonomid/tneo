@@ -86,34 +86,40 @@ enum TN_ObjId {
 };
 
 /**
- * Result code returned by kernel services
+ * Result code returned by kernel services.
  */
 enum TN_RCode {
    ///
-   /// successful
+   /// Successful operation
    TN_RC_OK                   =   0,
    ///
-   /// timeout or polling failure
+   /// Timeout (consult `TN_Timeout` for details).
+   /// @see `TN_Timeout`
    TN_RC_TIMEOUT              =  -1,
    ///
-   /// trying to increment semaphore count more than its max count,
-   /// or trying to return extra memory block to fixed memory pool.
+   /// This code is returned in the following cases:
+   ///   * Trying to increment semaphore count more than its max count;
+   ///   * Trying to return extra memory block to fixed memory pool.
    /// @see tn_sem.h
    /// @see tn_fmem.h
    TN_RC_OVERFLOW             =  -2,
    ///
-   /// wrong context error: returned if user calls some task service from
-   /// interrupt or vice versa
+   /// Wrong context error: returned if function is called from 
+   /// non-acceptable context. Required context suggested for every
+   /// function by badges:
+   ///
+   ///   * $(TN_CALL_FROM_TASK) - function can be called from task;
+   ///   * $(TN_CALL_FROM_ISR) - function can be called from ISR.
    ///
    /// @see `tn_sys_context_get()`
    /// @see `enum TN_Context`
    TN_RC_WCONTEXT             =  -3,
    ///
-   /// wrong task state error: requested operation requires different 
+   /// Wrong task state error: requested operation requires different 
    /// task state
    TN_RC_WSTATE               =  -4,
    ///
-   /// this code is returned by most of the kernel functions when 
+   /// This code is returned by most of the kernel functions when 
    /// wrong params were given to function. This error code can be returned
    /// if only build-time option `TN_CHECK_PARAM` is non-zero
    /// @see `TN_CHECK_PARAM`
@@ -127,17 +133,18 @@ enum TN_RCode {
    /// @see tn_mutex.h
    TN_RC_ILLEGAL_USE          =  -6,
    ///
-   /// returned when user tries to perform some operation on invalid object
+   /// Returned when user tries to perform some operation on invalid object
    /// (mutex, semaphore, etc).
    /// Object validity is checked by comparing special `id_...` value with the
    /// value from `enum TN_ObjId`
+   /// @see `TN_CHECK_PARAM`
    TN_RC_INVALID_OBJ          =  -7,
-   /// object for whose event task was waiting is deleted.
+   /// Object for whose event task was waiting is deleted.
    TN_RC_DELETED              =  -8,
-   /// task was released from waiting forcibly because some other task 
+   /// Task was released from waiting forcibly because some other task 
    /// called `tn_task_release_wait()`
    TN_RC_FORCED               =  -9,
-   /// internal kernel error, should never be returned by kernel services.
+   /// Internal kernel error, should never be returned by kernel services.
    /// If it is returned, it's a bug in the kernel.
    TN_RC_INTERNAL             = -10,
 };
@@ -145,17 +152,19 @@ enum TN_RCode {
 /**
  * The value representing maximum number of system ticks to wait.
  *
- * Here are possible timeout values and appropriate behavior of some system
- * function, assuming it can't perform its job immediately, i.e. it has to wait
- * or return `TN_RC_TIMEOUT`:
+ * Assume user called some system function, and it can't perform its job 
+ * immediately (say, it needs to lock mutex but it is already locked, etc).
  *
- *    * `0`: function doesn't wait at all, no context switch is performed,
+ * So, function can wait or return an error. There are possible `timeout`
+ * values and appropriate behavior of the function:
+ *
+ *    * `timeout` is set to `0`: function doesn't wait at all, no context switch is performed,
  *      `TN_RC_TIMEOUT` is returned immediately.
- *    * `TN_WAIT_INFINITE`: function waits until it eventually **can** perform
+ *    * `timeout` is set to `TN_WAIT_INFINITE`: function waits until it eventually **can** perform
  *      its job. Timeout is not taken in account, so `TN_RC_TIMEOUT`
  *      is never returned.
- *    * other value: function waits at most specified number of system ticks.
- *      Strictly speaking, it waits from `(value - 1)` to `value` ticks. So, if
+ *    * `timeout` is set to other value: function waits at most specified number of system ticks.
+ *      Strictly speaking, it waits from `(timeout - 1)` to `timeout` ticks. So, if
  *      you specify that timeout is 1, be aware that it might actually don't
  *      wait at all: if system timer interrupt happens just while function is
  *      putting task to wait (with interrupts disabled), then ISR will be

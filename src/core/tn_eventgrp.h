@@ -162,6 +162,11 @@ struct TN_EGrpTaskWait {
  *    Pointer to already allocated struct TN_EventGrp
  * @param initial_pattern
  *    Initial events pattern.
+ *
+ * @return 
+ *    * `TN_RC_OK` if event group was successfully created;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `TN_RC_WPARAM`.
  */
 enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp *eventgrp,
@@ -178,6 +183,12 @@ enum TN_RCode tn_eventgrp_create(
  * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param eventgrp   Pointer to event groupt to be deleted.
+ *
+ * @return 
+ *    * `TN_RC_OK` if event group was successfully deleted;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 
@@ -208,8 +219,11 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  * @return
  *    * `TN_RC_OK` if specified event is active (so the task can check 
  *      variable pointed to by `p_flags_pattern` if it wasn't `NULL`).
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `TN_Timeout`
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *    
  * @see `TN_Timeout`
  * @see `TN_EGrpWaitMode`
@@ -262,6 +276,12 @@ enum TN_RCode tn_eventgrp_iwait_polling(
  *    Refer to `enum TN_EGrpOp`
  * @param pattern
  *    Events pattern to be applied (depending on `operation` value)
+ *
+ * @return
+ *    * `TN_RC_OK` on success;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *    
  * @see `enum TN_EGrpOp`
  */

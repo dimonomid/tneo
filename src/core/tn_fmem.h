@@ -167,6 +167,11 @@ struct TN_FMemTaskWait {
  *                   see example above
  * @param blocks_cnt capacity (total number of blocks in the memory pool)
  *
+ * @return 
+ *    * `TN_RC_OK` if memory pool was successfully created;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `TN_RC_WPARAM`.
+ *
  * @see TN_MAKE_ALIG_SIZE
  */
 enum TN_RCode tn_fmem_create(
@@ -186,6 +191,13 @@ enum TN_RCode tn_fmem_create(
  * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param fmem       pointer to memory pool to be deleted
+ *
+ * @return
+ *    * `TN_RC_OK` if memory pool is successfully deleted;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *
  */
 enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
 
@@ -208,8 +220,11 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  *
  * @return
  *    * `TN_RC_OK` if block was successfully returned through `p_data`;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `TN_Timeout`
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see `TN_Timeout`
  */
@@ -249,6 +264,12 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
  *    Pointer to memory pool.
  * @param p_data
  *    Address of the memory block to release.
+ *
+ * @return
+ *    * `TN_RC_OK` on success
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
 

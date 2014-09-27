@@ -145,6 +145,11 @@ struct TN_DQueueTaskWait {
  * @param items_cnt  capacity of queue
  *                   (count of elements in the `data_fifo` array)
  *                   Can be 0.
+ *
+ * @return 
+ *    * `TN_RC_OK` if queue was successfully created;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `TN_RC_WPARAM`.
  */
 enum TN_RCode tn_queue_create(
       struct TN_DQueue *dque,
@@ -157,12 +162,18 @@ enum TN_RCode tn_queue_create(
  * Destruct data queue.
  *
  * All tasks that wait for writing to or reading from the queue become
- * runnable with `TN_RC_DELETED` code returned.
+ * runnable with `TN_RC_DELETED` code returned. TN_RCode, struct TN_Task.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param dque       pointer to data queue to be deleted
+ *
+ * @return 
+ *    * `TN_RC_OK` if queue was successfully deleted;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
 
@@ -190,8 +201,11 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * @return  
  *    * `TN_RC_OK`   if data was successfully sent;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `TN_Timeout`
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see `TN_Timeout`
  */
@@ -245,8 +259,11 @@ enum TN_RCode tn_queue_isend_polling(
  *
  * @return  
  *    * `TN_RC_OK`   if data was successfully received;
+ *    * `TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `TN_Timeout`
+ *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
  *
  * @see `TN_Timeout`
  */
@@ -261,7 +278,6 @@ enum TN_RCode tn_queue_receive(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
- * $(TN_CAN_SLEEP)
  */
 enum TN_RCode tn_queue_receive_polling(
       struct TN_DQueue *dque,
