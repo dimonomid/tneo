@@ -1,0 +1,11 @@
+/**
+\page legend Legend
+
+In the functions API documentation, the following designations are used:
+
+  - $(TN_CALL_FROM_TASK)      Function can be called from task
+  - $(TN_CALL_FROM_ISR)       Function can be called from ISR
+  - $(TN_CAN_SWITCH_CONTEXT)  Function can switch context to different task
+  - $(TN_CAN_SLEEP)           Function can sleep
+
+*/
