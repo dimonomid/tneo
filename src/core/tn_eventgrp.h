@@ -155,6 +155,9 @@ struct TN_EGrpTaskWait {
  * Construct event group. `id_event` field should not contain `TN_ID_EVENTGRP`,
  * otherwise, `TN_RC_WPARAM` is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ *
  * @param eventgrp
  *    Pointer to already allocated struct TN_EventGrp
  * @param initial_pattern
@@ -171,6 +174,9 @@ enum TN_RCode tn_eventgrp_create(
  * All tasks that wait for the event(s) become runnable with `TN_RC_DELETED`
  * code returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param eventgrp   Pointer to event groupt to be deleted.
  */
 enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
@@ -179,6 +185,10 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  * Wait for specified event(s) in the event group. If the specified event
  * is already active, function returns `TN_RC_OK` immediately. Otherwise,
  * behavior depends on `timeout` value: refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param eventgrp
  *    Pointer to event group to wait events from
@@ -214,6 +224,9 @@ enum TN_RCode tn_eventgrp_wait(
 
 /**
  * The same as `tn_eventgrp_wait()` with zero timeout.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
@@ -224,6 +237,9 @@ enum TN_RCode tn_eventgrp_wait_polling(
 
 /**
  * The same as `tn_eventgrp_wait()` with zero timeout, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
@@ -235,6 +251,9 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 /**
  * Modify current events bit pattern in the event group. Behavior depends
  * on the given `operation`: refer to `enum TN_EGrpOp`
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param eventgrp
  *    Pointer to event group to modify events in
@@ -254,6 +273,9 @@ enum TN_RCode tn_eventgrp_modify(
 
 /**
  * The same as `tn_eventgrp_modify()`, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,

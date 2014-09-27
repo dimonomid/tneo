@@ -117,6 +117,9 @@ struct TN_Sem {
  * Construct the semaphore. `id_sem` field should not contain
  * `TN_ID_SEMAPHORE`, otherwise, `TN_RC_WPARAM` is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ *
  * @param sem
  *    Pointer to already allocated `struct TN_Sem`
  * @param start_count
@@ -138,6 +141,9 @@ enum TN_RCode tn_sem_create(
  * All tasks that wait for acquire the semaphore become runnable with
  * `TN_RC_DELETED` code returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param sem     semaphore to destruct
  *
  * @return `TN_RC_OK`
@@ -153,6 +159,9 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
  * If wait queue is not empty, the first task from the queue acquires the
  * semaphore.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param sem     semaphore to signal
  * 
  * @return
@@ -163,6 +172,10 @@ enum TN_RCode tn_sem_signal(struct TN_Sem *sem);
 
 /**
  * The same as `tn_sem_signal()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  */
 enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
 
@@ -172,6 +185,10 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * If the current semaphore counter (`count`) is non-zero, it is decremented
  * and `TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
  * refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param sem     semaphore to acquire
  * @param timeout refer to `TN_Timeout`
@@ -187,11 +204,17 @@ enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout);
 
 /**
  * The same as `tn_sem_acquire()` with zero timeout.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
 
 /**
  * The same as `tn_sem_acquire()` with zero timeout, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem);
 

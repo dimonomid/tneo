@@ -438,7 +438,7 @@ enum TN_Context tn_sys_context_get(void)
 /*
  * See comment in tn_sys.h file
  */
-struct TN_Task *tn_sys_cur_task_get(void)
+struct TN_Task *tn_cur_task_get(void)
 {
    return tn_curr_run_task;
 }

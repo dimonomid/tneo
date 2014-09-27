@@ -355,6 +355,8 @@ struct TN_Task {
  *     }
  * \endcode
  *
+ * $(TN_CALL_FROM_TASK)
+ *
  * @param task 
  *    Ready-allocated struct TN_Task structure. `id_task` member should not
  *    contain `TN_ID_TASK`, otherwise `TN_RC_WPARAM` is returned.
@@ -396,6 +398,9 @@ enum TN_RCode tn_task_create(
  * is in the `WAIT` state, it is moved to the `WAITSUSP` state.
  * (waiting + suspended)
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param task    Task to suspend
  *
  * @see enum TN_TaskState
@@ -407,6 +412,9 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task);
  * state, it is moved to `RUNNABLE` state; afterwards it has the lowest
  * precedence among runnable tasks with the same priority. If the task is in
  * `WAITSUSP` state, it is moved to `WAIT` state.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  *
  * @param task    Task to release from suspended state
  *
@@ -420,6 +428,10 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * runnable state. If the timeout value is `TN_WAIT_INFINITE` and the task was
  * not suspended during the sleep, the task will sleep until another function
  * call (like `tn_task_wakeup()` or similar) will make it runnable.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param timeout
  *    Refer to `TN_Timeout`
@@ -443,6 +455,9 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout);
  *
  * After this call, `tn_task_sleep()` returns `TN_RC_OK`.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @return
  *    * `TN_RC_OK` if successful
  *    * `TN_RC_WSTATE` task is not sleeping, or it is sleeping for
@@ -453,6 +468,9 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task);
 
 /**
  * The same as `tn_task_wakeup()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
@@ -463,12 +481,18 @@ enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
  *
  * Task is moved from `DORMANT` state to the `RUNNABLE` state.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @see TN_TaskState
  */
 enum TN_RCode tn_task_activate(struct TN_Task *task);
 
 /**
  * The same as `tn_task_activate()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_task_iactivate(struct TN_Task *task);
 
@@ -480,12 +504,18 @@ enum TN_RCode tn_task_iactivate(struct TN_Task *task);
  *
  * `TERR_FORCED` is returned to the waiting task.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @see TN_TaskState
  */
 enum TN_RCode tn_task_release_wait(struct TN_Task *task);
 
 /**
  * The same as `tn_task_release_wait()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
 
@@ -502,6 +532,9 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  * If this function is invoked with `TN_TASK_EXIT_OPT_DELETE` option set,
  * the task will be deleted after termination and cannot be reactivated (needs
  * recreation).
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  * 
  * This function cannot be invoked from interrupts.
  *
@@ -523,6 +556,9 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
  * from beginning (as after creation/activation).  The task will have the
  * lowest precedence among all tasks with the same priority in the `RUNNABLE`
  * state.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task);
 
@@ -534,13 +570,15 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task);
  * removes the task from the system tasks list. The task can not be
  * reactivated after this function call (the task must be recreated).
  *
- * This function cannot be invoked from interrupts.
+ * $(TN_CALL_FROM_TASK)
  */
 enum TN_RCode tn_task_delete(struct TN_Task *task);
 
 /**
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
+ *
+ * $(TN_CALL_FROM_TASK)
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority);
 

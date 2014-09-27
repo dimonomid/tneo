@@ -1,0 +1,8 @@
+
+/* align images to the left */
+.image
+{
+   text-align: left;
+   display: inline-block;
+}
+

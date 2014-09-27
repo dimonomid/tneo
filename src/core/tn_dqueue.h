@@ -136,6 +136,9 @@ struct TN_DQueueTaskWait {
  * Construct data queue. `id_dque` member should not contain `TN_ID_DATAQUEUE`,
  * otherwise, `TN_RC_WPARAM` is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ *
  * @param dque       pointer to already allocated struct TN_DQueue.
  * @param data_fifo  pointer to already allocated array of `void *` to store
  *                   data queue items. Can be NULL.
@@ -156,6 +159,9 @@ enum TN_RCode tn_queue_create(
  * All tasks that wait for writing to or reading from the queue become
  * runnable with `TN_RC_DELETED` code returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param dque       pointer to data queue to be deleted
  */
 enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
@@ -173,6 +179,10 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  * If there are no tasks in the data queue's `wait_receive` list, parameter
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
  * behavior depends on the `timeout` value: refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
@@ -193,6 +203,9 @@ enum TN_RCode tn_queue_send(
 
 /**
  * The same as `tn_queue_send()` with zero timeout
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_queue_send_polling(
       struct TN_DQueue *dque,
@@ -201,6 +214,9 @@ enum TN_RCode tn_queue_send_polling(
 
 /**
  * The same as `tn_queue_send()` with zero timeout, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_queue_isend_polling(
       struct TN_DQueue *dque,
@@ -218,6 +234,10 @@ enum TN_RCode tn_queue_isend_polling(
  * data entry, stored in this task, to the tail of data FIFO.  If there are no
  * entries in the data FIFO and there are no tasks in the wait_send list,
  * behavior depends on the `timeout` value: refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
@@ -238,6 +258,10 @@ enum TN_RCode tn_queue_receive(
 
 /**
  * The same as `tn_queue_receive()` with zero timeout
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  */
 enum TN_RCode tn_queue_receive_polling(
       struct TN_DQueue *dque,
@@ -246,6 +270,9 @@ enum TN_RCode tn_queue_receive_polling(
 
 /**
  * The same as `tn_queue_receive()` with zero timeout, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_queue_ireceive_polling(
       struct TN_DQueue *dque,

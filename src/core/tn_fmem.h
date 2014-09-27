@@ -157,6 +157,9 @@ struct TN_FMemTaskWait {
  * If given `start_addr` and/or `block_size` aren't aligned properly,
  * `TN_RC_WPARAM` is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ *
  * @param fmem       pointer to already allocated `struct TN_FMem`.
  * @param start_addr pointer to start of the array; should be aligned properly,
  *                   see example above
@@ -179,6 +182,9 @@ enum TN_RCode tn_fmem_create(
  * All tasks that wait for free memory block become runnable with
  * `TN_RC_DELETED` code returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param fmem       pointer to memory pool to be deleted
  */
 enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
@@ -188,6 +194,10 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  * through the `p_data` argument. The content of memory block is undefined.
  * If there is no free block in the pool, behavior depends on `timeout` value:
  * refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param fmem
  *    Pointer to memory pool
@@ -211,11 +221,17 @@ enum TN_RCode tn_fmem_get(
 
 /**
  * The same as `tn_fmem_get()` with zero timeout
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem, void **p_data);
 
 /**
  * The same as `tn_fmem_get()` with zero timeout, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
 
@@ -226,6 +242,9 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
  * If all the memory blocks in the pool are free already, `TN_RC_OVERFLOW`
  * is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param fmem
  *    Pointer to memory pool.
  * @param p_data
@@ -235,6 +254,9 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
 
 /**
  * The same as `tn_fmem_get()`, but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
 

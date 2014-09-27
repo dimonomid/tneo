@@ -180,6 +180,9 @@ struct TN_Mutex {
  * Construct the mutex. The field `id_mutex` should not contain `TN_ID_MUTEX`, 
  * otherwise, `TN_RC_WPARAM` is returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ *
  * @param mutex
  *    Pointer to already allocated `struct TN_Mutex`
  * @param protocol
@@ -203,6 +206,9 @@ enum TN_RCode tn_mutex_create(
  * All tasks that wait for lock the mutex become runnable with
  * `TN_RC_DELETED` code returned.
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * @param mutex      mutex to destruct
  */
 enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
@@ -216,6 +222,10 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *      incremented and `TN_RC_OK` is returned immediately.
  *    * If the mutex is locked by different task, behavior depends on
  *      `timeout` value: refer to `TN_Timeout`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_CAN_SLEEP)
  *
  * @param mutex      mutex to lock
  * @param timeout    refer to `TN_Timeout`
@@ -241,10 +251,16 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout);
 
 /**
  * The same as `tn_mutex_lock()` with zero timeout
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
  */
 enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
 
 /**
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  * Unlock mutex.
  *
  *    * If mutex is not locked or locked by different task, `TN_RC_ILLEGAL_USE`

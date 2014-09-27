@@ -203,6 +203,8 @@ typedef void (TNCallbackDeadlock)(
  * Refer to the \ref starting_the_kernel "Starting the kernel" section for the
  * usage example and additional comments.
  *
+ * $(TN_CALL_FROM_MAIN)
+ *
  * @param   idle_task_stack      pointer to array for idle task stack. User must
  *                               allocate it as an array of `unsigned int`.
  * @param   idle_task_stack_size size of idle task stack, in `int`s.
@@ -232,11 +234,17 @@ void tn_sys_start(
  * (typically 1 ms, but user is free to set different value)
  *
  * For further information, refer to \ref quick_guide "Quick guide".
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ *
  */
 enum TN_RCode tn_tick_int_processing(void);
 
 /**
  * Set time slice ticks value for specified priority (round-robin scheduling).
+ *
+ * $(TN_CALL_FROM_TASK)
  * 
  * @param priority   priority of tasks for which time slice value should be set
  * @param value      time slice value. Set to `TN_NO_TIME_SLICE` for no
@@ -248,6 +256,9 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
 
 /**
  * Get current system ticks count.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  */
 unsigned int tn_sys_time_get(void);
 
@@ -258,6 +269,9 @@ unsigned int tn_sys_time_get(void);
  * `tn_sys_time_get()`.
  *
  * It is not used by TNeoKernel itself at all.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  */
 void tn_sys_time_set(unsigned int value);
 
@@ -267,6 +281,7 @@ void tn_sys_time_set(unsigned int value);
  * becomes inactive (say, if one of tasks involved in the deadlock was released
  * from wait because of timeout)
  *
+ * $(TN_CALL_FROM_MAIN)
  *
  * **Note:** this function should be called before `tn_sys_start()`
  *
@@ -277,11 +292,18 @@ void tn_callback_deadlock_set(TNCallbackDeadlock *cb);
 
 /**
  * Returns current system state flags
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void);
 
 /**
  * Returns system context: task or ISR.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
  *
  * @see `enum TN_Context`
  */
@@ -289,6 +311,10 @@ enum TN_Context tn_sys_context_get(void);
 
 /**
  * Returns whether current system context is `TN_CONTEXT_TASK`
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
  *
  * @return `TRUE` if current system context is `TN_CONTEXT_TASK`,
  *         `FALSE` otherwise.
@@ -304,6 +330,10 @@ static inline BOOL tn_is_task_context(void)
 /**
  * Returns whether current system context is `TN_CONTEXT_ISR`
  *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
+ *
  * @return `TRUE` if current system context is `TN_CONTEXT_ISR`,
  *         `FALSE` otherwise.
  *
@@ -317,11 +347,17 @@ static inline BOOL tn_is_isr_context(void)
 
 /**
  * Returns pointer to the currently running task.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  */
 struct TN_Task *tn_cur_task_get(void);
 
 /**
  * Returns pointer to the body function of the currently running task.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  */
 TN_TaskBody *tn_cur_task_body_get(void);
 
