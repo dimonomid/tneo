@@ -62,14 +62,16 @@
  *
  * ---------------------------------------------------------------------------
  *
- * Mutex supports two approaches for avoiding the unbounded priority inversions
- * problem - the priority inheritance protocol and the priority ceiling
- * protocol. A discussion about strengths and weaknesses of each protocol as
- * well as priority inversions problem is beyond the scope of this document.
+ * Mutex features in TNeoKernel:
  *
- * A mutex uses the priority inheritance protocol when it has been created with
- * the `TN_MUTEX_PROT_INHERIT` attribute, and the priority ceiling protocol
- * when its attribute value is `TN_MUTEX_PROT_CEILING`.
+ *    - Recursive locking is supported (if option `TN_MUTEX_REC` is non-zero);
+ *    - Deadlock detection (if option `TN_MUTEX_DEADLOCK_DETECT` is non-zero);
+ *    - Two protocols available to avoid unbounded priority inversion: priority
+ *      inheritance and priority ceiling.
+ *
+ *
+ * A discussion about strengths and weaknesses of each protocol as
+ * well as priority inversions problem is beyond the scope of this document.
  *
  * The priority inheritance protocol solves the priority inversions problem but
  * doesn't prevents deadlocks, although the kernel can notify you if a deadlock
@@ -78,6 +80,8 @@
  * The priority ceiling protocol prevents deadlocks and chained blocking but it
  * is slower than the priority inheritance protocol.
  *
+ * @see `TN_USE_MUTEXES`
+ * @see `TN_MUTEX_REC`
  * @see `TN_MUTEX_DEADLOCK_DETECT`
  */
 

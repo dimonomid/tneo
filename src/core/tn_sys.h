@@ -230,6 +230,8 @@ void tn_sys_start(
  *
  * The period of this timer is determined by user 
  * (typically 1 ms, but user is free to set different value)
+ *
+ * For further information, refer to \ref quick_guide "Quick guide".
  */
 void tn_tick_int_processing(void);
 

@@ -1,0 +1,41 @@
+/**
+\page building Building the project
+
+Some notes on building the project
+
+\section configuration_file Configuration file
+
+This project is intended to be built as a library, separately from main
+project (although nothing prevents you from bundling things together, if you
+want to).
+
+There are various options available which affects API and behavior of the
+kernel. But these options are specific for particular project, and aren't
+related to the kernel itself, so we need to keep them separately.
+
+To this end, file `tn.h` (the main kernel header file) includes `tn_cfg.h`,
+which isn't included in the repository (even more, it is added to
+`.hgignore` list actually). Instead, default configuration file
+`tn_cfg_default.h` is provided, and when you just cloned the repository, you
+might want to copy it as `tn_cfg.h`. Or even better, if your filesystem
+supports symbolic links, copy it somewhere to your main project's directory
+(so that you can add it to your VCS there), and create symlink to it named
+`tn_cfg.h` in the TNeoKernel source directory, like this:
+
+    $ cd /path/to/tneokernel/src
+    $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
+    $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
+
+Default configuration file contains detailed comments, so you can read them
+and configure behavior as you like.
+
+\section building_pic32 PIC32 port: MPLABX project
+
+MPLABX project resides in the `src/arch/pic32/tneokernel.X` directory. This is
+a *library project* in terms of MPLABX, so if you use MPLABX you can easily add
+it to your main project by right-clicking `Libraries -> Add Library Project
+...`.  Alternatively, of course you can just build it and use resulting
+`tneokernel.X.a` file in whatever way you like.
+
+
+*/

@@ -1,0 +1,56 @@
+/**
+\page pic32_details PIC32 details
+
+PIC32 port implementation details
+
+\section pic32_context_switch Context switch
+The context switch is implemented using the core software 0 interrupt. It
+should be configured to use the lowest priority in the system:
+
+\code{.c}
+// set up the software interrupt 0 with a priority of 1, subpriority 0
+INTSetVectorPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_PRIORITY_LEVEL_1);
+INTSetVectorSubPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_SUB_PRIORITY_LEVEL_0);
+INTEnable(INT_CS0, INT_ENABLED);
+\endcode
+
+The interrupt priority level used by the context switch interrupt should not be
+configured to use shadow register sets.
+
+\attention if tneokernel is built as a separate library, then the file
+`src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included in the main project
+itself, in order to dispatch vector1 (core software interrupt 0) correctly.
+
+\section pic32_interrupts Interrupts
+
+PIC32 port supports nested interrupts. The kernel provides C-language
+macros for calling C-language interrupt service routines, which can use either
+MIPS32 or MIPS16e mode. Both software and shadow register interrupt context
+saving is supported. Usage is as follows:
+
+\code{.c}
+/* Timer 1 interrupt handler using software interrupt context saving */
+tn_soft_isr(_TIMER_1_VECTOR)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+
+/* High-priority UART interrupt handler using shadow register set */
+tn_srs_isr(_UART_1_VECTOR)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+\endcode
+
+\attention every ISR in your system should use kernel-provided macro, either
+`tn_soft_isr` or `tn_srs_isr`, instead of `__ISR` macro.
+
+\section pic32_interrupt_stack Interrupt stack
+
+PIC32 uses a separate stack for interrupt handlers. Switching stack pointers is
+done automatically in the ISR handler wrapper macros. User should allocate
+array for interrupt stack and pass it as an argument to `tn_sys_start()`.
+Refer to the \ref starting_the_kernel "Starting the kernel" section for the
+usage example and additional comments.
+
+*/
