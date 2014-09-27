@@ -107,19 +107,32 @@ enum TN_Context {
 
 /**
  * User-provided callback function that is called once from idle task when
- * system is just started.  User must initialize *system timer* here. (*system
- * timer* is some kind of hardware timer whose ISR calls
- * `tn_tick_int_processing()`) User may want to initialize other tasks and
- * kernel objects in this function. Make sure that idle task has enough stack
- * space to call this function (array for idle task stack is given to
- * tn_start_system()).
+ * system is just started. 
  *
- * **Note:** this function is called with interrupts disabled, in order to
- * guarantee that idle task won't be preempted by any other task until callback
- * function finishes its job. User should not enable interrupts there: they are
- * enabled by idle task when callback function returns.
+ * This function **must** do the following:
+ *
+ *    * Initialize *system timer* here. (*system timer* is some kind of
+ *      hardware timer whose ISR calls `tn_tick_int_processing()`)
+ *    * Create at least one (and typically just one) user task that will
+ *      perform all the rest system initialization.
+ *
+ * \attention 
+ *    * It is illegal to sleep here, because idle task (from which this
+ *      function is called) should always be runnable, by design. That's why
+ *      this function should perform only the minimum: init system timer
+ *      interrupts and create typically just one task, which **is** able to
+ *      sleep, and in which all the rest system initialization is typically
+ *      done. If `TN_DEBUG` option is set, then sleeping in idle task
+ *      is checked, so if you try to sleep here, `_TN_FATAL_ERROR()` macro
+ *      will be called.
+ *
+ *    * This function is called with interrupts disabled, in order to guarantee
+ *      that idle task won't be preempted by any other task until callback
+ *      function finishes its job. User should not enable interrupts there:
+ *      they are enabled by idle task when callback function returns.
  *
  * @see `tn_start_system()`
+ * @see `TN_DEBUG`
  */
 typedef void (TNCallbackApplInit)(void);
 
@@ -127,8 +140,11 @@ typedef void (TNCallbackApplInit)(void);
  * User-provided callback function that is called repeatedly from the idle task 
  * loop. Make sure that idle task has enough stack space to call this function.
  *
- * **This function should not sleep**, because idle task should always 
- * be runnable, by design. Sleeping in this function leads to instable system.
+ * \attention 
+ *    * It is illegal to sleep here, because idle task (from which this
+ *      function is called) should always be runnable, by design. If `TN_DEBUG`
+ *      option is set, then sleeping in idle task is checked, so if you try to
+ *      sleep here, `_TN_FATAL_ERROR()` macro will be called.
  *
  *
  * @see `tn_start_system()`

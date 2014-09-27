@@ -68,42 +68,23 @@
  *
  * Notice the `tn_soft_isr()` ISR wrapper macro we've used here.
  *
- * ## Round-robin scheduling
- *
- * TNKernel has the ability to make round robin scheduling for tasks with
- * identical priority.  By default, round robin scheduling is turned off for
- * all priorities. To enable round robin scheduling for tasks on certain
- * priority level and to set time slices for these priority, user must call the
- * `tn_sys_tslice_ticks()` function.  The time slice value is the same for all
- * tasks with identical priority but may be different for each priority level.
- * If the round robin scheduling is enabled, every system time tick interrupt
- * increments the currently running task time slice counter. When the time
- * slice interval is completed, the task is placed at the tail of the ready to
- * run queue of its priority level (this queue contains tasks in the
- * `TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then
- * the task may be preempted by tasks of higher or equal priority.
- *
- * In most cases, there is no reason to enable round robin scheduling. For
- * applications running multiple copies of the same code, however, (GUI
- * windows, etc), round robin scheduling is an acceptable solution.
- *
  * ## Starting the kernel
  *
  * ### Quick guide on startup process
  *
  * * You allocate arrays for idle task stack and interrupt stack. Typically,
- *   these are just static arrays of `int`.
+ *   these are just static arrays of `int`. It is good idea to consult the
+ *   `TN_MIN_STACK_SIZE` to determine stack sizes (see example below).
  * * You provide callback function like `void appl_init(void) { ... }`, in which
- *   all the peripheral and interrupts should be initialized. Note that
- *   this function runs with interrupts disabled, in order to make sure nobody 
- *   will preempt idle task until `appl_init` gets its job done.
- *   You shouldn't enable them.
+ *   *system timer* should be initialized, and at least one (and typically just 
+ *   one) user task is created, in which all the rest system initialization
+ *   should be done. See details in `TNCallbackApplInit()`, **read it
+ *   carefully, it is important**.
  * * You provide idle callback function to be called periodically from 
  *   idle task. It's quite fine to leave it empty.
  * * In the `main()`, you firstly perform some essential CPU settings, such as
  *   oscillator settings and similar things. Don't set up any peripheral and
- *   interrupts here, these things should be done in your callback
- *   `appl_init()`.
+ *   interrupts here, these things should be done later.
  * * You call `tn_start_system()` providing all necessary information:
  *   pointers to stacks, their sizes, and your callback functions.
  * * Kernel acts as follows:
@@ -116,7 +97,9 @@
  *   * calls your `appl_init()` function;
  *   * enables interrupts
  *
- * At this point, system is started and operates normally.
+ * At this point, system is started and operates normally: your own task
+ * created from `appl_init()` gets started, initializes your system, creates
+ * other tasks, and eventually performs any job it should perform.
  *
  * 
  *
@@ -125,10 +108,10 @@
  *     #define SYS_FREQ 80000000UL
  *
  *     //-- idle task stack size, in words
- *     #define IDLE_TASK_STACK_SIZE          64
+ *     #define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 32)
  *
  *     //-- interrupt stack size, in words
- *     #define INTERRUPT_STACK_SIZE          128
+ *     #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 128)
  *
  *     //-- allocate arrays for idle task and interrupt statically.
  *     //   notice special architecture-dependent macros we use here,
@@ -149,8 +132,9 @@
  *        //   interrupts are now disabled globally by idle task.
  *        //   TODO
  *
- *        //-- initialize user task(s) and probably other kernel objects
- *        my_tasks_create();
+ *        //-- initialize user task in which all the rest system initialization
+ *        //   will be done
+ *        my_first_task_create();
  *     }
  *
  *     static void _idle_task_callback(void)
@@ -183,6 +167,25 @@
  *        //-- unreachable
  *        return 0;
  *     }
+ *
+ * ## Round-robin scheduling
+ *
+ * TNKernel has the ability to make round robin scheduling for tasks with
+ * identical priority.  By default, round robin scheduling is turned off for
+ * all priorities. To enable round robin scheduling for tasks on certain
+ * priority level and to set time slices for these priority, user must call the
+ * `tn_sys_tslice_ticks()` function.  The time slice value is the same for all
+ * tasks with identical priority but may be different for each priority level.
+ * If the round robin scheduling is enabled, every system time tick interrupt
+ * increments the currently running task time slice counter. When the time
+ * slice interval is completed, the task is placed at the tail of the ready to
+ * run queue of its priority level (this queue contains tasks in the
+ * `TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then
+ * the task may be preempted by tasks of higher or equal priority.
+ *
+ * In most cases, there is no reason to enable round robin scheduling. For
+ * applications running multiple copies of the same code, however, (GUI
+ * windows, etc), round robin scheduling is an acceptable solution.
  *
  *   
  */

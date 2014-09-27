@@ -777,6 +777,11 @@ void _tn_task_clear_runnable(struct TN_Task *task)
    if (task->task_state != TN_TASK_STATE_RUNNABLE){
       _TN_FATAL_ERROR("");
    }
+
+   if (task == &tn_idle_task){
+      //-- idle task should always be runnable
+      _TN_FATAL_ERROR("idle task should always be runnable");
+   }
 #endif
 
    //BOOL ret = FALSE;

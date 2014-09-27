@@ -52,8 +52,9 @@
 #define  _TN_FFS(x) (32 - __builtin_clz((x) & (0 - (x))))
 
 /**
- * Used by the kernel as a signal that something really bad happened
- * (indicating a bug in the kernel)
+ * Used by the kernel as a signal that something really bad happened.
+ * Indicates TNeoKernel bugs as well as illegal kernel usage
+ * (e.g. sleeping in the idle task callback)
  *
  * Typically, set to assembler instruction that causes debugger to halt.
  */

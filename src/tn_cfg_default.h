@@ -82,7 +82,8 @@
 
 /**
  * Allows additional internal self-checking, useful to catch internal
- * TNeoKernel bugs. Produces a couple of extra instructions which usually just
+ * TNeoKernel bugs as well as illegal kernel usage (e.g. sleeping in the idle 
+ * task callback). Produces a couple of extra instructions which usually just
  * causes debugger to stop if something goes wrong.
  */
 #ifndef TN_DEBUG

@@ -121,6 +121,9 @@ extern void *tn_user_sp;
 /// interrupt stack to task stack.
 extern void *tn_int_sp;
 
+///
+/// idle task structure
+extern struct TN_Task tn_idle_task;
 
 
 /*******************************************************************************
