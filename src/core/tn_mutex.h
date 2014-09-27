@@ -182,6 +182,7 @@ struct TN_Mutex {
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param mutex
  *    Pointer to already allocated `struct TN_Mutex`
@@ -211,6 +212,7 @@ enum TN_RCode tn_mutex_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param mutex      mutex to destruct
  *
@@ -235,6 +237,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param mutex      mutex to lock
  * @param timeout    refer to `TN_Timeout`
@@ -266,6 +269,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
 
@@ -281,6 +285,7 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @return
  *    * `TN_RC_OK` if mutex is unlocked of if lock count was merely decremented

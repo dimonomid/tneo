@@ -157,6 +157,7 @@ struct TN_EGrpTaskWait {
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param eventgrp
  *    Pointer to already allocated struct TN_EventGrp
@@ -181,6 +182,7 @@ enum TN_RCode tn_eventgrp_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param eventgrp   Pointer to event groupt to be deleted.
  *
@@ -200,6 +202,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param eventgrp
  *    Pointer to event group to wait events from
@@ -241,6 +244,7 @@ enum TN_RCode tn_eventgrp_wait(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
@@ -254,6 +258,7 @@ enum TN_RCode tn_eventgrp_wait_polling(
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
@@ -268,6 +273,7 @@ enum TN_RCode tn_eventgrp_iwait_polling(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param eventgrp
  *    Pointer to event group to modify events in
@@ -296,6 +302,7 @@ enum TN_RCode tn_eventgrp_modify(
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,

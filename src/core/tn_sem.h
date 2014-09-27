@@ -119,6 +119,7 @@ struct TN_Sem {
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param sem
  *    Pointer to already allocated `struct TN_Sem`
@@ -148,6 +149,7 @@ enum TN_RCode tn_sem_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param sem     semaphore to destruct
  *
@@ -170,6 +172,7 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param sem     semaphore to signal
  * 
@@ -189,6 +192,7 @@ enum TN_RCode tn_sem_signal(struct TN_Sem *sem);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  */
 enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
@@ -203,6 +207,7 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param sem     semaphore to acquire
  * @param timeout refer to `TN_Timeout`
@@ -224,6 +229,7 @@ enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
 
@@ -232,6 +238,7 @@ enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem);
 

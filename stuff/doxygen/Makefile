@@ -27,11 +27,15 @@ TN_CAN_SLEEP          = \image html attr_timeout.png ${\n} \
                         \includegraphics{../../images/attr_timeout.png}    \
                         \endlatexonly \
 
+TN_LEGEND_LINK        = (refer to \ref legend for details)
+
 export TN_CALL_FROM_TASK
 export TN_CALL_FROM_ISR
 export TN_CALL_FROM_MAIN
 export TN_CAN_SWITCH_CONTEXT
 export TN_CAN_SLEEP
+
+export TN_LEGEND_LINK
 
 all: 
 	doxygen tn_doxyfile

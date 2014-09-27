@@ -138,6 +138,7 @@ struct TN_DQueueTaskWait {
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param dque       pointer to already allocated struct TN_DQueue.
  * @param data_fifo  pointer to already allocated array of `void *` to store
@@ -166,6 +167,7 @@ enum TN_RCode tn_queue_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param dque       pointer to data queue to be deleted
  *
@@ -194,6 +196,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
@@ -220,6 +223,7 @@ enum TN_RCode tn_queue_send(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_queue_send_polling(
       struct TN_DQueue *dque,
@@ -231,6 +235,7 @@ enum TN_RCode tn_queue_send_polling(
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_queue_isend_polling(
       struct TN_DQueue *dque,
@@ -252,6 +257,7 @@ enum TN_RCode tn_queue_isend_polling(
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
@@ -278,6 +284,7 @@ enum TN_RCode tn_queue_receive(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_queue_receive_polling(
       struct TN_DQueue *dque,
@@ -289,6 +296,7 @@ enum TN_RCode tn_queue_receive_polling(
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_queue_ireceive_polling(
       struct TN_DQueue *dque,

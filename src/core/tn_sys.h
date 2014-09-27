@@ -204,6 +204,7 @@ typedef void (TNCallbackDeadlock)(
  * usage example and additional comments.
  *
  * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
  *
  * @param   idle_task_stack      pointer to array for idle task stack. User must
  *                               allocate it as an array of `unsigned int`.
@@ -237,6 +238,7 @@ void tn_sys_start(
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @return
  *    * `TN_RC_OK` on success;
@@ -248,6 +250,7 @@ enum TN_RCode tn_tick_int_processing(void);
  * Set time slice ticks value for specified priority (round-robin scheduling).
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
  * 
  * @param priority   priority of tasks for which time slice value should be set
  * @param value      time slice value. Set to `TN_NO_TIME_SLICE` for no
@@ -268,6 +271,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @return
  *    Current system ticks count. Note that this value does **not** affect any
@@ -289,6 +293,7 @@ unsigned int tn_sys_time_get(void);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  */
 void tn_sys_time_set(unsigned int value);
 
@@ -299,6 +304,7 @@ void tn_sys_time_set(unsigned int value);
  * from wait because of timeout)
  *
  * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
  *
  * **Note:** this function should be called before `tn_sys_start()`
  *
@@ -315,6 +321,7 @@ void tn_callback_deadlock_set(TNCallbackDeadlock *cb);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void);
 
@@ -324,6 +331,7 @@ enum TN_StateFlag tn_sys_state_flags_get(void);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
  *
  * @see `enum TN_Context`
  */
@@ -335,6 +343,7 @@ enum TN_Context tn_sys_context_get(void);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
  *
  * @return `TRUE` if current system context is `TN_CONTEXT_TASK`,
  *         `FALSE` otherwise.
@@ -353,6 +362,7 @@ static inline BOOL tn_is_task_context(void)
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
  *
  * @return `TRUE` if current system context is `TN_CONTEXT_ISR`,
  *         `FALSE` otherwise.
@@ -370,6 +380,7 @@ static inline BOOL tn_is_isr_context(void)
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  */
 struct TN_Task *tn_cur_task_get(void);
 
@@ -378,6 +389,7 @@ struct TN_Task *tn_cur_task_get(void);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  */
 TN_TaskBody *tn_cur_task_body_get(void);
 

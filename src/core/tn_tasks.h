@@ -356,6 +356,7 @@ struct TN_Task {
  * \endcode
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
  *
  * @param task 
  *    Ready-allocated struct TN_Task structure. `id_task` member should not
@@ -405,6 +406,7 @@ enum TN_RCode tn_task_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    Task to suspend
  *
@@ -427,6 +429,7 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    Task to release from suspended state
  *
@@ -451,6 +454,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param timeout
  *    Refer to `TN_Timeout`
@@ -477,6 +481,7 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    sleeping task to wake up
  *
@@ -496,6 +501,7 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
@@ -508,6 +514,7 @@ enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    dormant task to activate
  *
@@ -527,6 +534,7 @@ enum TN_RCode tn_task_activate(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_task_iactivate(struct TN_Task *task);
 
@@ -540,6 +548,7 @@ enum TN_RCode tn_task_iactivate(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    task waiting for anything
  *
@@ -560,6 +569,7 @@ enum TN_RCode tn_task_release_wait(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
 
@@ -579,6 +589,7 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  * 
  * @return
  *    Returns if only called from wrong context. Normally, it never returns
@@ -605,6 +616,7 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    task to terminate
  *
@@ -626,6 +638,7 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task);
  * reactivated after this function call (the task must be recreated).
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
  *
  * @param task    dormant task to delete
  *
@@ -644,6 +657,7 @@ enum TN_RCode tn_task_delete(struct TN_Task *task);
  * If priority is 0, then task's base_priority is set.
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
  *
  * \attention this function is obsolete and will probably be removed
  */

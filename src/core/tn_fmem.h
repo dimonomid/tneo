@@ -159,6 +159,7 @@ struct TN_FMemTaskWait {
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param fmem       pointer to already allocated `struct TN_FMem`.
  * @param start_addr pointer to start of the array; should be aligned properly,
@@ -189,6 +190,7 @@ enum TN_RCode tn_fmem_create(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param fmem       pointer to memory pool to be deleted
  *
@@ -210,6 +212,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_CAN_SLEEP)
+ * $(TN_LEGEND_LINK)
  *
  * @param fmem
  *    Pointer to memory pool
@@ -239,6 +242,7 @@ enum TN_RCode tn_fmem_get(
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem, void **p_data);
 
@@ -247,6 +251,7 @@ enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem, void **p_data);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
 
@@ -259,6 +264,7 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  *
  * @param fmem
  *    Pointer to memory pool.
@@ -278,6 +284,7 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
 
