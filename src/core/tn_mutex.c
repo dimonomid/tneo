@@ -751,12 +751,11 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
       goto out_ei;
    }
 
-out:
-   return rc;
-
 out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
+
+out:
    return rc;
 
 }
