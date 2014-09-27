@@ -131,6 +131,7 @@ struct TN_FMemTaskWait {
  * Note that `start_addr` and `block_size` should be aligned by
  * `TN_MAKE_ALIG_SIZE()` macro. Typical buffer declaration is as follows:
  *
+ * \code{.c}
  *     #define MY_MEMORY_BUF_SIZE    8
  *
  *     struct MyMemoryItem {
@@ -142,13 +143,16 @@ struct TN_FMemTaskWait {
  *           * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))
  *           ];
  *     struct TN_Fmp my_fmp;
+ * \endcode
  *
  * And then, construct your `my_fmp` as follows:
  *
+ * \code{.c}
  *     tn_fmem_create( &my_fmp,
  *                     my_fmp_buf,
  *                     TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
  *                     MY_MEMORY_BUF_SIZE );
+ * \endcode
  *
  * If given `start_addr` and/or `block_size` aren't aligned properly,
  * `TN_RC_WPARAM` is returned.

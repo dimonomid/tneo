@@ -373,7 +373,7 @@ enum TN_RCode tn_task_create(
 
    context = tn_sys_context_get();
 
-   //-- Note: since `tn_task_create()` is called from `tn_start_system()`, it
+   //-- Note: since `tn_task_create()` is called from `tn_sys_start()`, it
    //   is allowed to have `TN_CONTEXT_NONE` here. In this case,
    //   interrupts aren't disabled/enabled.
    if (context != TN_CONTEXT_TASK && context != TN_CONTEXT_NONE){

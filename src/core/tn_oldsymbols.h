@@ -162,6 +162,7 @@ typedef struct TN_Sem         TN_SEM;
 
 #define  tn_queue_ireceive             tn_queue_ireceive_polling
 
+#define  tn_start_system               tn_sys_start
 
 
 #define  align_attr_start              TN_ARCH_STK_ATTR_BEFORE

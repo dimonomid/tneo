@@ -236,7 +236,7 @@ static inline enum TN_RCode _idle_task_create(unsigned int  *idle_task_stack,
 /*
  * See comments in the header file (tn_sys.h)
  */
-void tn_start_system(
+void tn_sys_start(
       unsigned int        *idle_task_stack,
       unsigned int         idle_task_stack_size,
       unsigned int        *int_stack,

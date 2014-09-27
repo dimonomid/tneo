@@ -310,6 +310,7 @@ struct TN_Task {
  *
  * Usage example:
  *
+ * \code{.c}
  *     #define MY_TASK_STACK_SIZE   256
  *     #define MY_TASK_PRIORITY     5
  *
@@ -352,6 +353,7 @@ struct TN_Task {
  *        }
  *        // ........
  *     }
+ * \endcode
  *
  * @param task 
  *    Ready-allocated struct TN_Task structure. `id_task` member should not

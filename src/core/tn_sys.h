@@ -131,7 +131,7 @@ enum TN_Context {
  *      function finishes its job. User should not enable interrupts there:
  *      they are enabled by idle task when callback function returns.
  *
- * @see `tn_start_system()`
+ * @see `tn_sys_start()`
  * @see `TN_DEBUG`
  */
 typedef void (TNCallbackApplInit)(void);
@@ -147,7 +147,7 @@ typedef void (TNCallbackApplInit)(void);
  *      sleep here, `_TN_FATAL_ERROR()` macro will be called.
  *
  *
- * @see `tn_start_system()`
+ * @see `tn_sys_start()`
  */
 typedef void (TNCallbackIdle)(void);
 
@@ -197,10 +197,11 @@ typedef void (TNCallbackDeadlock)(
  ******************************************************************************/
 
 /**
- * Initial TNeoKernel system start function, never returns.
- * Typically called from main().
- * See the section '**Starting the kernel**' above for the usage example and
- * additional comments.
+ * Initial TNeoKernel system start function, never returns. Typically called
+ * from main().
+ *
+ * Refer to the \ref starting_the_kernel
+ * "Starting the kernel" section for the usage example and additional comments.
  *
  * @param   idle_task_stack      pointer to array for idle task stack. User must
  *                               allocate it as an array of `unsigned int`.
@@ -214,7 +215,7 @@ typedef void (TNCallbackDeadlock)(
  * @param   cb_idle              callback function repeatedly called 
  *                               from idle task.
  */
-void tn_start_system(
+void tn_sys_start(
       unsigned int        *idle_task_stack,
       unsigned int         idle_task_stack_size,
       unsigned int        *int_stack,
@@ -265,7 +266,7 @@ void tn_sys_time_set(unsigned int value);
  * from wait because of timeout)
  *
  *
- * **Note:** this function should be called before `tn_start_system()`
+ * **Note:** this function should be called before `tn_sys_start()`
  *
  * @see `TN_MUTEX_DEADLOCK_DETECT`
  * @see `TNCallbackDeadlock` for callback function prototype

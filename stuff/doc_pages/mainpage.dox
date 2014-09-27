@@ -1,0 +1,16 @@
+/**
+\mainpage TNeoKernel overview
+
+TNeoKernel was born as a thorough review and re-implementation of
+TNKernel. The new kernel has well-formed code, inherited bugs are fixed
+as well as new features being added, and it is tested carefully with
+unit-tests.
+
+API is changed somewhat, so it's not 100% compatible with TNKernel,       
+hence the new name: TNeoKernel.
+                                                                          
+TNeoKernel is hosted at bitbucket: http://bitbucket.org/dfrank/tneokernel 
+
+For a quick overview on system startup and important implementation details, refer to the page \ref quick_guide "Quick guide".
+
+*/
