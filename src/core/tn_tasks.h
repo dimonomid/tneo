@@ -457,8 +457,8 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task);
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
 /**
- * Activate task that is in `DORMANT` state, i.e. it was either just created by
- * `tn_task_create()` without `TN_TASK_START_ON_CREATION` option, or 
+ * Activate task that is in `DORMANT` state, that is, it was either just
+ * created by `tn_task_create()` without `TN_TASK_START_ON_CREATION` option, or
  * terminated.
  *
  * Task is moved from `DORMANT` state to the `RUNNABLE` state.
