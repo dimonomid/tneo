@@ -192,7 +192,10 @@ static inline enum TN_RCode _task_job_perform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -201,6 +204,7 @@ static inline enum TN_RCode _task_job_perform(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
+out:
    return rc;
 }
 
@@ -219,7 +223,10 @@ static inline enum TN_RCode _task_job_iperform(
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_INT_CONTEXT;
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_IDIS_SAVE();
 
@@ -227,6 +234,7 @@ static inline enum TN_RCode _task_job_iperform(
 
    TN_INT_IRESTORE();
 
+out:
    return rc;
 }
 
@@ -438,13 +446,16 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
    if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
       rc = TN_RC_WSTATE;
-      goto out;
+      goto out_ei;
    }
 
    if (_tn_task_is_runnable(task)){
@@ -453,10 +464,11 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
 
    _tn_task_set_suspended(task);
 
-out:
+out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
+out:
    return rc;
 }
 
@@ -475,13 +487,16 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
    if (!_tn_task_is_suspended(task)){
       rc = TN_RC_WSTATE;
-      goto out;
+      goto out_ei;
    }
 
    _tn_task_clear_suspended(task);
@@ -492,9 +507,11 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
       _tn_task_set_runnable(task);
    }
 
-out:
+out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
+
+out:
    return rc;
 
 }
@@ -512,7 +529,10 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout)
       goto out;
    }
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -622,12 +642,12 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
-
-
-   //--------------------------------------------------
 
    rc = TN_RC_OK;
 
@@ -656,10 +676,10 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
       _task_terminate(task);
    }
 
-
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
+out:
    return rc;
 }
 
@@ -678,7 +698,10 @@ enum TN_RCode tn_task_delete(struct TN_Task *task)
       return TN_RC_INVALID_OBJ;
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -686,6 +709,7 @@ enum TN_RCode tn_task_delete(struct TN_Task *task)
 
    TN_INT_RESTORE();
 
+out:
    return rc;
 }
 
@@ -706,7 +730,10 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
       return TN_RC_WPARAM; //-- tried to set priority reverved by system
 #endif
 
-   TN_CHECK_NON_INT_CONTEXT;
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
 
    TN_INT_DIS_SAVE();
 
@@ -725,6 +752,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
 
+out:
    return rc;
 }
 
