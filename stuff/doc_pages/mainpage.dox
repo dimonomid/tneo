@@ -6,11 +6,27 @@ TNKernel. The new kernel has well-formed code, inherited bugs are fixed
 as well as new features being added, and it is tested carefully with
 unit-tests.
 
-API is changed somewhat, so it's not 100% compatible with TNKernel,       
+API is \ref tnkernel_diff "changed somewhat", so it's not 100% compatible with TNKernel,       
 hence the new name: TNeoKernel.
                                                                           
 TNeoKernel is hosted at bitbucket: http://bitbucket.org/dfrank/tneokernel 
 
-For a quick overview on system startup and important implementation details, refer to the page \ref quick_guide "Quick guide".
+Related pages:
+
+  - \ref building
+  - \ref quick_guide
+  - \ref pic32_details
+  - \ref tnkernel_diff
+
+API reference:
+
+  - \ref tn_sys.h "System services"
+  - \ref tn_tasks.h "Tasks"
+  - \ref tn_mutex.h "Mutexes"
+  - \ref tn_sem.h "Semaphores"
+  - \ref tn_fmem.h "Fixed-memory blocks pool"
+  - \ref tn_eventgrp.h "Event groups"
+  - \ref tn_dqueue.h "Data queues"
+
 
 */

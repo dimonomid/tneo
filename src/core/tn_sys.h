@@ -120,11 +120,11 @@ enum TN_Context {
  *    * It is illegal to sleep here, because idle task (from which this
  *      function is called) should always be runnable, by design. That's why
  *      this function should perform only the minimum: init system timer
- *      interrupts and create typically just one task, which **is** able to
- *      sleep, and in which all the rest system initialization is typically
- *      done. If `TN_DEBUG` option is set, then sleeping in idle task
- *      is checked, so if you try to sleep here, `_TN_FATAL_ERROR()` macro
- *      will be called.
+ *      interrupts and create typically just one user's task, which **is** able
+ *      to sleep, and in which all the rest system initialization is typically
+ *      done. If `TN_DEBUG` option is set, then sleeping in idle task is
+ *      checked, so if you try to sleep here, `_TN_FATAL_ERROR()` macro will be
+ *      called.
  *
  *    * This function is called with interrupts disabled, in order to guarantee
  *      that idle task won't be preempted by any other task until callback
@@ -200,8 +200,8 @@ typedef void (TNCallbackDeadlock)(
  * Initial TNeoKernel system start function, never returns. Typically called
  * from main().
  *
- * Refer to the \ref starting_the_kernel
- * "Starting the kernel" section for the usage example and additional comments.
+ * Refer to the \ref starting_the_kernel "Starting the kernel" section for the
+ * usage example and additional comments.
  *
  * @param   idle_task_stack      pointer to array for idle task stack. User must
  *                               allocate it as an array of `unsigned int`.
