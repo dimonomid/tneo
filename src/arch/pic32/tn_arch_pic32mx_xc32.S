@@ -206,10 +206,6 @@ cs0_int_handler:
     lw      $sp, 0($t1)                 /* get new task's sp */
     sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
-    mfc0    $k0, $13                    /* c0_cause */
-    ins     $k0, $zero, 8, 1            /* clear IP0 */
-    mtc0    $k0, $13
-
     lui     $k0, %hi(IFS0CLR)           /* clear cs0 pending bit */
     ori     $k1, $zero, 2
     sw      $k1, %lo(IFS0CLR)($k0)
