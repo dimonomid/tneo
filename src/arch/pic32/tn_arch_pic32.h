@@ -42,6 +42,9 @@
  *
  */
 
+//-- this include is needed to get build-time configuration
+//   (TN_DEBUG is used)
+#include "../../core/tn_common.h"
 
 #ifndef  _TN_ARCH_PIC32_H
 #define  _TN_ARCH_PIC32_H
@@ -52,6 +55,19 @@ extern "C"  {     /*}*/
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#define  _TN_PIC32_INTSAVE_DATA_INVALID   0xffffffff
+
+#if TN_DEBUG
+#  define   _TN_PIC32_INTSAVE_CHECK()  \
+{\
+   if (tn_save_status_reg == _TN_PIC32_INTSAVE_DATA_INVALID){\
+      _TN_FATAL_ERROR("");\
+   }\
+}
+#else
+#  define   _TN_PIC32_INTSAVE_CHECK()
+#endif
 
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
@@ -143,10 +159,16 @@ extern "C"  {     /*}*/
  * Declares variable that is used by macros `TN_INT_DIS_SAVE()` and
  * `TN_INT_RESTORE()` for storing status register value.
  *
+ * It is good idea to initially set it to some invalid value,
+ * and if TN_DEBUG is non-zero, check it in TN_INT_RESTORE().
+ * Then, we can catch bugs if someone tries to restore interrupts status
+ * without saving it first.
+ *
  * @see `TN_INT_DIS_SAVE()`
  * @see `TN_INT_RESTORE()`
  */
-#define  TN_INTSAVE_DATA            int tn_save_status_reg = 0;
+#define  TN_INTSAVE_DATA            \
+   int tn_save_status_reg = _TN_PIC32_INTSAVE_DATA_INVALID;
 
 /**
  * The same as `TN_INTSAVE_DATA` but for using in ISR together with
@@ -185,10 +207,10 @@ extern "C"  {     /*}*/
 
 #ifdef __mips16
 #  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
-#  define TN_INT_RESTORE()    tn_arch_sr_restore(tn_save_status_reg)
+#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK(); tn_arch_sr_restore(tn_save_status_reg)
 #else
 #  define TN_INT_DIS_SAVE()   __asm__ __volatile__("di %0; ehb" : "=d" (tn_save_status_reg))
-#  define TN_INT_RESTORE()    __builtin_mtc0(12, 0, tn_save_status_reg)
+#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK(); __builtin_mtc0(12, 0, tn_save_status_reg)
 #endif
 
 /**
