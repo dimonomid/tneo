@@ -134,7 +134,9 @@ enum TN_Context {
  * @see `tn_sys_start()`
  * @see `TN_DEBUG`
  */
-typedef void (TNCallbackApplInit)(void);
+//typedef void (TNCallbackApplInit)(void);
+
+typedef void (TN_CBUserTaskCreate)(void);
 
 /**
  * User-provided callback function that is called repeatedly from the idle task 
@@ -149,7 +151,7 @@ typedef void (TNCallbackApplInit)(void);
  *
  * @see `tn_sys_start()`
  */
-typedef void (TNCallbackIdle)(void);
+typedef void (TN_CBIdle)(void);
 
 /**
  * User-provided callback function that is called whenever 
@@ -166,7 +168,7 @@ typedef void (TNCallbackIdle)(void);
  *
  * @see `TN_MUTEX_DEADLOCK_DETECT`
  */
-typedef void (TNCallbackDeadlock)(
+typedef void (TN_CBDeadlock)(
       BOOL active,
       struct TN_Mutex *mutex,
       struct TN_Task *task
@@ -223,8 +225,8 @@ void tn_sys_start(
       unsigned int         idle_task_stack_size,
       unsigned int        *int_stack,
       unsigned int         int_stack_size,
-      TNCallbackApplInit  *cb_appl_init,
-      TNCallbackIdle      *cb_idle
+      TN_CBUserTaskCreate *cb_user_task_create,
+      TN_CBIdle           *cb_idle
       );
 
 /**
@@ -312,9 +314,9 @@ void tn_sys_time_set(unsigned int value);
  *    Pointer to user-provided callback function.
  *
  * @see `TN_MUTEX_DEADLOCK_DETECT`
- * @see `TNCallbackDeadlock` for callback function prototype
+ * @see `TN_CBDeadlock` for callback function prototype
  */
-void tn_callback_deadlock_set(TNCallbackDeadlock *cb);
+void tn_callback_deadlock_set(TN_CBDeadlock *cb);
 
 /**
  * Returns current system state flags

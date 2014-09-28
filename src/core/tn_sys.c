@@ -76,16 +76,16 @@ struct TN_Task * tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
 
-volatile unsigned int  tn_sys_time_count;
+volatile unsigned int tn_sys_time_count;
 
 volatile int tn_int_nest_count;
 
 #if TN_MUTEX_DEADLOCK_DETECT
-volatile int tn_deadlocks_cnt;
+volatile int tn_deadlocks_cnt = 0;
 #endif
 
-void * tn_user_sp;
-void * tn_int_sp;
+void *tn_user_sp;
+void *tn_int_sp;
 
 //-- System tasks
 
@@ -97,18 +97,18 @@ static void _idle_task_body(void * par);
 /** 
  * Pointer to user callback app init function
  */
-TNCallbackApplInit *tn_callback_appl_init = NULL;
+//TNCallbackApplInit *tn_callback_appl_init = NULL;
 
 /**
  * Pointer to user idle loop function
  */
-TNCallbackIdle *tn_callback_idle_hook = NULL;
+TN_CBIdle        *tn_callback_idle_hook = NULL;
 
 /**
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
  */
-TNCallbackDeadlock  *tn_callback_deadlock = NULL;
+TN_CBDeadlock    *tn_callback_deadlock = NULL;
 
 
 
@@ -121,6 +121,7 @@ TNCallbackDeadlock  *tn_callback_deadlock = NULL;
  */
 static void _idle_task_body(void *par)
 {
+#if 0
    TN_INTSAVE_DATA;
 
    //-- Make sure interrupts are disabled before calling application callback,
@@ -136,6 +137,7 @@ static void _idle_task_body(void *par)
    //-- Enable interrupt here ( including tick int)
    TN_INT_RESTORE();
 
+#endif
 
    //-- enter endless loop with calling user-provided hook function
    for(;;)
@@ -241,8 +243,8 @@ void tn_sys_start(
       unsigned int         idle_task_stack_size,
       unsigned int        *int_stack,
       unsigned int         int_stack_size,
-      TNCallbackApplInit  *cb_appl_init,
-      TNCallbackIdle      *cb_idle
+      TN_CBUserTaskCreate *cb_user_task_create,
+      TN_CBIdle           *cb_idle
       )
 {
    int i;
@@ -261,9 +263,15 @@ void tn_sys_start(
    tn_sys_state = (0);  //-- no flags set
 
    tn_ready_to_run_bmp = 0;
+   tn_sys_time_count = 0;
+   tn_int_nest_count = 0;
 
    tn_next_task_to_run = NULL;
    tn_curr_run_task    = NULL;
+
+   //-- remember user-provided callbacks
+   //tn_callback_appl_init = cb_appl_init;
+   tn_callback_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
    for (i = 0; i < int_stack_size; i++){
@@ -301,11 +309,12 @@ void tn_sys_start(
       _TN_FATAL_ERROR("failed to activate idle task");
    }
 
-   tn_curr_run_task = &tn_idle_task;  //-- otherwise it is NULL
+   //-- set tn_curr_run_task to idle task
+   tn_curr_run_task = &tn_idle_task;
 
-   //-- remember user-provided callbacks
-   tn_callback_appl_init = cb_appl_init;
-   tn_callback_idle_hook = cb_idle;
+   //-- now, we can create user's task(s)
+   //   (by user-provided callback)
+   cb_user_task_create();
 
    //-- Run OS - first context switch
    _tn_arch_system_start();
@@ -412,7 +421,7 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
 /*
  * See comment in tn_sys.h file
  */
-void tn_callback_deadlock_set(TNCallbackDeadlock *cb)
+void tn_callback_deadlock_set(TN_CBDeadlock *cb)
 {
    tn_callback_deadlock = cb;
 }
