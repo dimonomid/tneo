@@ -106,36 +106,39 @@ enum TN_Context {
 };
 
 /**
- * User-provided callback function that is called once from idle task when
- * system is just started. 
+ * User-provided callback function that is called directly from
+ * `tn_sys_start()` as a part of system startup routine; it should merely
+ * create at least one (and typically just one) user's task, in which system
+ * timer interrupt should be initialized.
  *
- * This function **must** do the following:
+ * When `TN_CBUserTaskCreate()` returned, the kernel performs first context
+ * switch to the task with highest priority. If there are several tasks with
+ * highest priority, context is switched to the first created one.
  *
- *    * Initialize *system timer* here. (*system timer* is some kind of
- *      hardware timer whose ISR calls `tn_tick_int_processing()`)
- *    * Create at least one (and typically just one) user task that will
- *      perform all the rest system initialization.
+ * Refer to the section \ref starting_the_kernel for details about system
+ * startup process on the whole.
+ *
+ * Although you're able to create more than one task here, it's usually not
+ * so good idea, because it just adds confusion for no good reason: say,
+ * you have several tasks, one of them has highest priority, and you've put
+ * system timer initialization there. One day you added new task with even
+ * higher priority, or probably changed priorities of existing tasks. Then,
+ * it's so easy to forget that you also should move system timer initialization
+ * to the new high-priority task. If you forgot, it leads to system crash and 
+ * useless time spent for debugging.
+ *
+ * It's usually much easier to maintain if we create just one task here, which
+ * initializes system timer interrupt, initializes any other hardware your
+ * application needs, creates the rest of your tasks, and then performs its
+ * main job (the job for which task was created at all)
  *
  * \attention 
- *    * It is illegal to sleep here, because idle task (from which this
- *      function is called) should always be runnable, by design. That's why
- *      this function should perform only the minimum: init system timer
- *      interrupts and create typically just one user's task, which **is** able
- *      to sleep, and in which all the rest system initialization is typically
- *      done. If `TN_DEBUG` option is set, then sleeping in idle task is
- *      checked, so if you try to sleep here, `_TN_FATAL_ERROR()` macro will be
- *      called.
+ *    * The only system service is allowed to call in this function is
+ *      `tn_task_create()`.
  *
- *    * This function is called with interrupts disabled, in order to guarantee
- *      that idle task won't be preempted by any other task until callback
- *      function finishes its job. User should not enable interrupts there:
- *      they are enabled by idle task when callback function returns.
- *
+ * @see \ref starting_the_kernel
  * @see `tn_sys_start()`
- * @see `TN_DEBUG`
  */
-//typedef void (TNCallbackApplInit)(void);
-
 typedef void (TN_CBUserTaskCreate)(void);
 
 /**
@@ -208,17 +211,20 @@ typedef void (TN_CBDeadlock)(
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @param   idle_task_stack      pointer to array for idle task stack. User must
- *                               allocate it as an array of `unsigned int`.
- * @param   idle_task_stack_size size of idle task stack, in `int`s.
- * @param   int_stack            pointer to array for interrupt stack. User must
- *                               allocate it as an array of `unsigned int`.
- * @param   int_stack_size       size of interrupt stack, in `int`s.
- * @param   cb_appl_init         callback function used for setup user tasks,
- *                               etc. Called from idle task, so, make sure
- *                               idle task has enough stack space for it.
- * @param   cb_idle              callback function repeatedly called 
- *                               from idle task.
+ * @param   idle_task_stack      
+ *    pointer to array for idle task stack. User must allocate it as an array of `unsigned int`.
+ * @param   idle_task_stack_size 
+ *    size of idle task stack, in `int`s.
+ * @param   int_stack            
+ *    pointer to array for interrupt stack. User must allocate it as an array
+ *    of `unsigned int`.
+ * @param   int_stack_size       
+ *    size of interrupt stack, in `int`s.
+ * @param   cb_user_task_create
+ *    callback function that should create initial user's task
+ *    (see \ref TN_CBUserTaskCreate)
+ * @param   cb_idle              
+ *    callback function repeatedly called from idle task.
  */
 void tn_sys_start(
       unsigned int        *idle_task_stack,

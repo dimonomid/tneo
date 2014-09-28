@@ -94,11 +94,6 @@ void *tn_int_sp;
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
 
-/** 
- * Pointer to user callback app init function
- */
-//TNCallbackApplInit *tn_callback_appl_init = NULL;
-
 /**
  * Pointer to user idle loop function
  */

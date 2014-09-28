@@ -166,7 +166,8 @@ void _tn_arch_context_switch(void);
 void _tn_arch_context_switch_exit(void);
 
 /**
- * Should perform first context switch (to idle task, but this doesn't matter).
+ * Should perform first context switch (to the task pointed to by 
+ * `tn_next_task_to_run`).
  *
  * **Preconditions:**
  *

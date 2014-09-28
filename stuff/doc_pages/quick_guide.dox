@@ -7,12 +7,13 @@ This page contains quick guide on system startup and important implementation de
 
 \section time_ticks Time ticks
 
-For the purpose of calculating timeouts, the kernel uses a time tick timer.  
-In TNeoKernel, this time tick timer must to be a some kind of hardware timer 
-that produces interrupt for time ticks processing. The period of this timer  
-is determined by user (typically 1 ms, but user is free to set different     
-value).  Within the time ticks interrupt processing, it is only necessary to 
-call the `tn_tick_int_processing()` function:
+For the purpose of calculating timeouts, the kernel uses a time tick timer.  In
+TNeoKernel, this time tick timer must to be a some kind of hardware timer that
+produces interrupt for time ticks processing. Throughout this text, this timer
+is referred to as *system timer*. The period of this timer  is determined by
+user (typically 1 ms, but user is free to set different value). In the ISR for
+this timer, it is only necessary to call the `tn_tick_int_processing()`
+function:
 
 \code{.c}
 //-- example for PIC32, hardware timer 5 interrupt:
@@ -30,35 +31,38 @@ tn_soft_isr(_TIMER_5_VECTOR)
   - You allocate arrays for idle task stack and interrupt stack. Typically,
     these are just static arrays of `int`. It is good idea to consult the
     `TN_MIN_STACK_SIZE` to determine stack sizes (see example below).
-  - You provide callback function like `void appl_init(void) { ... }`, in
-    which *system timer* should be initialized, and at least one (and typically
-    just one) user task is created, in which all the rest system initialization
-    should be done. See details in `TNCallbackApplInit()`, **read it carefully,
-    it is important**.
+  - You provide callback function like `void init_task_create(void) { ... }`, in
+    which at least one (and typically just one) your own task should be created
+    and activated. This task should first of all set up system timer interrupt.
+    See details in `TN_CBUserTaskCreate()`, **read it carefully, it is
+    important**
   - You provide idle callback function to be called periodically from 
     idle task. It's quite fine to leave it empty.
   - In the `main()`, you firstly perform some essential CPU settings, such as
     oscillator settings and similar things. Don't set up any peripheral and
-    interrupts here, these things should be done later.
+    interrupts here, these things should be done later in your initial task.
   - You call `tn_sys_start()` providing all necessary information:
     pointers to stacks, their sizes, and your callback functions.
   - Kernel acts as follows:
     - performs all necessary housekeeping;
     - creates idle task;
-    - performs first context switch (to idle task).
-  - Idle task acts as follows:
-    - disables interrupts to make sure nobody will preempt it until all the
-      job is done;
-    - calls your `appl_init()` function;
-    - enables interrupts
-
-At this point, system is started and operates normally: your own task
-created from `appl_init()` gets started, initializes your system, creates
-other tasks, and eventually performs any job it should perform.
-
-
+    - calls your `init_task_create()` callback, in which your initial task is
+      created;
+    - performs first context switch (to your task with highest priority).
+  - Your initial task gets executed and first of all, before calling any system
+    services, it should initialize *system timer* interrupt (see the 
+    \ref time_ticks section above). 
+  - At this point, system operates normally, and you're able to call
+    whatever system services you need. Typically, your initial task acts then as
+    follows:
+    - Perform initialization of whatever hardware your application needs;
+    - Create all the rest of your tasks;
+    - Eventually, perform its main job (the job for which task was created at
+      all).
 
 ### Basic example for PIC32
+
+TODO: this example is out of date now
 
 \code{.c}
 #define SYS_FREQ 80000000UL

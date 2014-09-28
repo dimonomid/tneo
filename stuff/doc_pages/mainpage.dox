@@ -13,8 +13,8 @@ TNeoKernel is hosted at bitbucket: http://bitbucket.org/dfrank/tneokernel
 
 Related pages:
 
-  - \ref building
   - \ref quick_guide
+  - \ref building
   - \ref pic32_details
   - \ref tnkernel_diff
 
