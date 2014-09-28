@@ -69,6 +69,9 @@ tn_soft_isr(_TIMER_5_VECTOR)
 This example project can be found in the TNeoKernel repository, in the
 `examples/pic32/basic` directory.
 
+\attention please read \ref building carefully: you need to copy configuration
+file in the tneokernel directory to build it.
+
 \include pic32/basic/src/tn_pic32_example_basic.c
 
 \section round_robin Round-robin scheduling
