@@ -1,0 +1,6 @@
+
+[tn_pic32_example_basic]
+option:ctags_params = "--langmap=c:.c.h --languages=c"
+
+$INDEXER_PROJECT_ROOT
+

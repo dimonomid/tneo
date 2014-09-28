@@ -33,101 +33,43 @@ tn_soft_isr(_TIMER_5_VECTOR)
     `TN_MIN_STACK_SIZE` to determine stack sizes (see example below).
   - You provide callback function like `void init_task_create(void) { ... }`,
     in which at least one (and typically just one) your own task should be
-    created and activated. This task should first of all set up system timer
-    interrupt.  See details in `TN_CBUserTaskCreate()`, **read it carefully, it
-    is important**.
+    created and activated. This task should perform application initialization
+    and create all the rest of tasks.  See details in `TN_CBUserTaskCreate()`.
   - You provide idle callback function to be called periodically from idle
     task. It's quite fine to leave it empty.
-  - In the `main()`, you firstly perform some essential CPU settings, such as
-    oscillator settings and similar things. Don't set up any peripheral and
-    interrupts here, these things should be done later in your initial task.
-  - You call `tn_sys_start()` providing all necessary information: pointers to
-    stacks, their sizes, and your callback functions.
+  - In the `main()` you should:
+    - disable interrupts globally by calling `tn_arch_int_dis()`;
+    - perform some essential CPU configuration, such as oscillator settings and
+      similar things. 
+    - setup *system timer* interrupt (from which `tn_tick_int_processing()`
+      gets called)
+    - perform any platform-dependent required actions (say, on PIC32 you should
+      enable core software interrupt 0 with the lowest priority)
+    - call `tn_sys_start()` providing all necessary information: pointers to
+      stacks, their sizes and your callback functions.
   - Kernel acts as follows:
     - performs all necessary housekeeping;
     - creates idle task;
     - calls your `init_task_create()` callback, in which your initial task is
-      created;
+      created with `TN_TASK_CREATE_OPT_START` option;
     - performs first context switch (to your task with highest priority).
-  - Your initial task gets executed and first of all, before calling any system
-    services, it should initialize *system timer* interrupt (see the \ref
-    time_ticks section above). 
-  - At this point, system operates normally, and you're able to call whatever
-    system services you need. Typically, your initial task acts then as
-    follows:
-    - Perform initialization of whatever hardware your application needs;
-    - Create all the rest of your tasks;
+  - At this point, system operates normally: your initial task gets executed
+    and you can call whatever system services you need. Typically, your initial
+    task acts then as follows:
+    - Perform initialization of various on-board peripherals (displays, flash
+      memory chips, or whatever);
+    - Initialize software modules used by application;
+    - Create all the rest of your tasks (since everything is initialized
+      already so that they can proceed with their job);
     - Eventually, perform its primary job (the job for which task was created
       at all).
 
 ### Basic example for PIC32
 
-TODO: this example is out of date now
+This example project can be found in the TNeoKernel repository, in the
+`examples/pic32/basic` directory.
 
-\code{.c}
-#define SYS_FREQ 80000000UL
-
-//-- idle task stack size, in words
-#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 32)
-
-//-- interrupt stack size, in words
-#define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 128)
-
-//-- allocate arrays for idle task and interrupt statically.
-//   notice special architecture-dependent macros we use here,
-//   they are needed to make sure that all requirements
-//   regarding to stack are met.
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int idle_task_stack[ IDLE_TASK_STACK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
-
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int interrupt_stack[ INTERRUPT_STACK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
-
-static void _appl_init(void)
-{
-   //-- initialize system timer, initialize and enable its interrupt
-   //   NOTE: ISR won't be called until _appl_init() returns because
-   //   interrupts are now disabled globally by idle task.
-   //   TODO
-
-   //-- initialize user task in which all the rest system initialization
-   //   will be done
-   my_first_task_create();
-}
-
-static void _idle_task_callback(void)
-{
-   //-- do nothing here
-}
-
-int main(void)
-{
-   
-   //-- some essential CPU initialization:
-   //   say, for PIC32, it might be something like:
-   SYSTEMConfig(SYS_FREQ, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE)
-
-   //-- NOTE: at this point, no interrupts were set up,
-   //   this is important. All interrupts should be set up in 
-   //   _appl_init() that is called from idle task, or later from 
-   //   other user tasks.
-
-   //-- call to tn_sys_start() never returns
-   tn_sys_start(
-      idle_task_stack,
-      IDLE_TASK_STACK_SIZE,
-      interrupt_stack,
-      INTERRUPT_STACK_SIZE,
-      _appl_init,
-      _idle_task_callback
-      );
-
-   //-- unreachable
-   return 0;
-}
-\endcode
+\include pic32/basic/src/tn_pic32_example_basic.c
 
 \section round_robin Round-robin scheduling
 

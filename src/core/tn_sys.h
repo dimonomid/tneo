@@ -108,8 +108,8 @@ enum TN_Context {
 /**
  * User-provided callback function that is called directly from
  * `tn_sys_start()` as a part of system startup routine; it should merely
- * create at least one (and typically just one) user's task, in which *system
- * timer* interrupt should be initialized.
+ * create at least one (and typically just one) user's task, which should
+ * perform all the rest application initialization.
  *
  * When `TN_CBUserTaskCreate()` returned, the kernel performs first context
  * switch to the task with highest priority. If there are several tasks with
@@ -118,19 +118,18 @@ enum TN_Context {
  * Refer to the section \ref starting_the_kernel for details about system
  * startup process on the whole.
  *
- * **Note:** Although you're able to create more than one task here, it's usually not
- * so good idea, because it just adds confusion for no good reason: say,
- * you have several tasks, one of them has highest priority, and you've put
- * *system timer* initialization there. One day you've added new task with even
- * higher priority, or probably changed priorities of existing tasks. Then,
- * it's so easy to forget that you also should move system timer initialization
- * to the new high-priority task. If you forgot, it leads to system crash and 
- * useless time spent for debugging.
+ * **Note:** Although you're able to create more than one task here, it's
+ * usually not so good idea, because many things typically should be done at
+ * startup before tasks can go on with their job: we need to initialize various
+ * on-board peripherals (displays, flash memory chips, or whatever) as well as
+ * initialize software modules used by application. So, if many tasks are
+ * created here, you have to provide some synchronization object so that tasks
+ * will wait until all the initialization is done.
  *
- * It's usually much easier to maintain if we create just one task here, which
- * initializes system timer interrupt, initializes any other hardware your
- * application needs, creates the rest of your tasks, and then performs its
- * primary job (the job for which task was created at all)
+ * It's usually easier to maintain if we create just one task here, which
+ * performs all the necessary initialization, creates the rest of your tasks,
+ * and then performs its primary job (the job for which task was created at
+ * all)
  *
  * \attention 
  *    * The only system service is allowed to call in this function is

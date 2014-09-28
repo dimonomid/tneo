@@ -11,6 +11,8 @@ vimprj[/\\]tags
 vimprj[/\\].+_tags
 [/\\]?tn_cfg\.h$
 
+.*\.map$
+.*\.elf$
 .*\.bin$
 \.disasm$
 \-build\-
