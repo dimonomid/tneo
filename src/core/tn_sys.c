@@ -247,7 +247,6 @@ void tn_sys_start(
    tn_curr_run_task    = NULL;
 
    //-- remember user-provided callbacks
-   //tn_callback_appl_init = cb_appl_init;
    tn_callback_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
