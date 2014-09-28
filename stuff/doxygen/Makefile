@@ -27,7 +27,7 @@ TN_CAN_SLEEP          = \image html attr_timeout.png ${\n} \
                         \includegraphics{../../images/attr_timeout.png}    \
                         \endlatexonly \
 
-TN_LEGEND_LINK        = (refer to \ref legend for details)
+TN_LEGEND_LINK        = <SMALL><I>(refer to \ref legend for details)</I></SMALL>
 
 export TN_CALL_FROM_TASK
 export TN_CALL_FROM_ISR
