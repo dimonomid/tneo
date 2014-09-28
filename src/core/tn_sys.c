@@ -116,24 +116,6 @@ TN_CBDeadlock    *tn_callback_deadlock = NULL;
  */
 static void _idle_task_body(void *par)
 {
-#if 0
-   TN_INTSAVE_DATA;
-
-   //-- Make sure interrupts are disabled before calling application callback,
-   //   so that this idle task is guaranteed to not be be preempted
-   //   until tn_callback_appl_init() finished its job.
-   TN_INT_DIS_SAVE();
-
-   //-- User application init - hardware initialization (among other things,
-   //   system hardware timer interrupt should be set up there), user's objects
-   //   (tasks etc.) initial creation
-   tn_callback_appl_init();
-
-   //-- Enable interrupt here ( including tick int)
-   TN_INT_RESTORE();
-
-#endif
-
    //-- enter endless loop with calling user-provided hook function
    for(;;)
    {
