@@ -157,7 +157,7 @@ In original TNKernel thare is a lot of inconsistency with naming stuff:
 
   - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling` (notice the `i` letter before `polling`)?
   - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
-  - A lot of macros doesn't have `TN_` prefix;
+  - A lot of macros don't have `TN_` prefix;
   - etc
 
 So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `TN_OLD_TNKERNEL_NAMES` option is non-zero.
