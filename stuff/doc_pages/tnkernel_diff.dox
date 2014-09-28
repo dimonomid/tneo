@@ -183,7 +183,11 @@ Look at what happens when timer interrupt is fired (assume we don't use shadow r
   - `CS0` ISR is immediately called, so full context of `tn_timer_task` gets saved in its stack, and then, after all, context of my own interrupted task gets restored and my task continues to run.
 
 I've measured with MPLABX's stopwatch how much time it takes: with just three tasks (idle task, timer task, my own task with priority 6), i.e. without any sleeping tasks, all this routine takes **682 cycles**.
-So I tried to get rid of `tn_timer_task` and perform its job right in the `tn_tick_int_processing()`. When system starts, application callback is therefore called from idle task. Now, the following steps are performed when timer interrupt is fired:
+So I tried to get rid of `tn_timer_task` and perform its job right in the `tn_tick_int_processing()`.
+
+Previously, application callback was called from timer task; since it is removed now, startup routine has changed, refer to \ref starting_the_kernel for details.
+
+Now, the following steps are performed when timer interrupt is fired:
 
   - Current context (23 words) is saved to the interrupt stack;
   - ISR called: particularly, `tn_tick_int_processing()` is called;
