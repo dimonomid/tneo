@@ -134,11 +134,9 @@ extern "C"  {     /*}*/
 #define  TN_ALIGN                   sizeof(void *)
 
 /**
- * Number of priorities available, this value usually matches `TN_INT_WIDTH`.
+ * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.
  * For compatibility with all platforms, it's recommended to use only values
  * from 1 to 14, inclusive.
- *
- * @see `TN_INT_WIDTH`
  */
 #define  TN_PRIORITIES_CNT          TN_INT_WIDTH
 
@@ -171,7 +169,7 @@ extern "C"  {     /*}*/
    int tn_save_status_reg = _TN_PIC32_INTSAVE_DATA_INVALID;
 
 /**
- * The same as `TN_INTSAVE_DATA` but for using in ISR together with
+ * The same as `#TN_INTSAVE_DATA` but for using in ISR together with
  * `TN_INT_IDIS_SAVE()`, `TN_INT_IRESTORE()`.
  *
  * @see `TN_INT_IDIS_SAVE()`
@@ -186,9 +184,9 @@ extern "C"  {     /*}*/
  * atomically. Similar `tn_arch_sr_save_int_dis()`, but implemented
  * as a macro, so it is potentially faster.
  *
- * Uses `TN_INTSAVE_DATA` as a temporary storage.
+ * Uses `#TN_INTSAVE_DATA` as a temporary storage.
  *
- * @see `TN_INTSAVE_DATA`
+ * @see `#TN_INTSAVE_DATA`
  * @see `tn_arch_sr_save_int_dis()`
  */
 
@@ -199,9 +197,9 @@ extern "C"  {     /*}*/
  * Similar to `tn_arch_sr_restore()`, but implemented as a macro,
  * so it is potentially faster.
  *
- * Uses `TN_INTSAVE_DATA` as a temporary storage.
+ * Uses `#TN_INTSAVE_DATA` as a temporary storage.
  *
- * @see `TN_INTSAVE_DATA`
+ * @see `#TN_INTSAVE_DATA`
  * @see `tn_arch_sr_save_int_dis()`
  */
 
@@ -216,18 +214,18 @@ extern "C"  {     /*}*/
 /**
  * The same as `TN_INT_DIS_SAVE()` but for using in ISR.
  *
- * Uses `TN_INTSAVE_DATA_INT` as a temporary storage.
+ * Uses `#TN_INTSAVE_DATA_INT` as a temporary storage.
  *
- * @see `TN_INTSAVE_DATA_INT`
+ * @see `#TN_INTSAVE_DATA_INT`
  */
 #define TN_INT_IDIS_SAVE()       TN_INT_DIS_SAVE()
 
 /**
  * The same as `TN_INT_RESTORE()` but for using in ISR.
  *
- * Uses `TN_INTSAVE_DATA_INT` as a temporary storage.
+ * Uses `#TN_INTSAVE_DATA_INT` as a temporary storage.
  *
- * @see `TN_INTSAVE_DATA_INT`
+ * @see `#TN_INTSAVE_DATA_INT`
  */
 #define TN_INT_IRESTORE()        TN_INT_RESTORE()
 

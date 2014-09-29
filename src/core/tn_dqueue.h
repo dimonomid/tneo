@@ -133,8 +133,8 @@ struct TN_DQueueTaskWait {
  ******************************************************************************/
 
 /**
- * Construct data queue. `id_dque` member should not contain `TN_ID_DATAQUEUE`,
- * otherwise, `TN_RC_WPARAM` is returned.
+ * Construct data queue. `id_dque` member should not contain `#TN_ID_DATAQUEUE`,
+ * otherwise, `#TN_RC_WPARAM` is returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
@@ -148,9 +148,9 @@ struct TN_DQueueTaskWait {
  *                   Can be 0.
  *
  * @return 
- *    * `TN_RC_OK` if queue was successfully created;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return code
- *      is available: `TN_RC_WPARAM`.
+ *    * `#TN_RC_OK` if queue was successfully created;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `#TN_RC_WPARAM`.
  */
 enum TN_RCode tn_queue_create(
       struct TN_DQueue *dque,
@@ -163,7 +163,7 @@ enum TN_RCode tn_queue_create(
  * Destruct data queue.
  *
  * All tasks that wait for writing to or reading from the queue become
- * runnable with `TN_RC_DELETED` code returned. TN_RCode, struct TN_Task.
+ * runnable with `#TN_RC_DELETED` code returned. TN_RCode, struct TN_Task.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -172,10 +172,10 @@ enum TN_RCode tn_queue_create(
  * @param dque       pointer to data queue to be deleted
  *
  * @return 
- *    * `TN_RC_OK` if queue was successfully deleted;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_OK` if queue was successfully deleted;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
 
@@ -191,7 +191,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * If there are no tasks in the data queue's `wait_receive` list, parameter
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
- * behavior depends on the `timeout` value: refer to `TN_Timeout`.
+ * behavior depends on the `timeout` value: refer to `#TN_Timeout`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -200,17 +200,17 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
- * @param timeout    refer to `TN_Timeout`
+ * @param timeout    refer to `#TN_Timeout`
  *
  * @return  
- *    * `TN_RC_OK`   if data was successfully sent;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `#TN_RC_OK`   if data was successfully sent;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `TN_Timeout`
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *      refer to `#TN_Timeout`
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
- * @see `TN_Timeout`
+ * @see `#TN_Timeout`
  */
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
@@ -252,7 +252,7 @@ enum TN_RCode tn_queue_isend_polling(
  * removed from the head of `wait_send` list, becomes runnable and puts the
  * data entry, stored in this task, to the tail of data FIFO.  If there are no
  * entries in the data FIFO and there are no tasks in the wait_send list,
- * behavior depends on the `timeout` value: refer to `TN_Timeout`.
+ * behavior depends on the `timeout` value: refer to `#TN_Timeout`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -261,17 +261,17 @@ enum TN_RCode tn_queue_isend_polling(
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
- * @param timeout    refer to `TN_Timeout`
+ * @param timeout    refer to `#TN_Timeout`
  *
  * @return  
- *    * `TN_RC_OK`   if data was successfully received;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `#TN_RC_OK`   if data was successfully received;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `TN_Timeout`
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *      refer to `#TN_Timeout`
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
- * @see `TN_Timeout`
+ * @see `#TN_Timeout`
  */
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,

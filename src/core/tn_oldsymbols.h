@@ -43,9 +43,9 @@
  * If you're porting your existing application written for TNKernel, it 
  * might be useful though.
  *
- * Included automatially if the option `TN_OLD_TNKERNEL_NAMES` is set.
+ * Included automatially if the option `#TN_OLD_TNKERNEL_NAMES` is set.
  *
- * @see `TN_OLD_TNKERNEL_NAMES`
+ * @see `#TN_OLD_TNKERNEL_NAMES`
  *
  */
 

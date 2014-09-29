@@ -115,7 +115,7 @@ struct TN_Sem {
 
 /**
  * Construct the semaphore. `id_sem` field should not contain
- * `TN_ID_SEMAPHORE`, otherwise, `TN_RC_WPARAM` is returned.
+ * `#TN_ID_SEMAPHORE`, otherwise, `#TN_RC_WPARAM` is returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
@@ -129,11 +129,9 @@ struct TN_Sem {
  *    Maximum counter value.
  *
  * @return 
- *    * `TN_RC_OK` if semaphore was successfully created;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return code
- *      is available: `TN_RC_WPARAM`.
- *
- * @see `TN_CHECK_PARAM`
+ *    * `#TN_RC_OK` if semaphore was successfully created;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `#TN_RC_WPARAM`.
  */
 enum TN_RCode tn_sem_create(
       struct TN_Sem *sem,
@@ -145,7 +143,7 @@ enum TN_RCode tn_sem_create(
  * Destruct the semaphore.
  *
  * All tasks that wait for acquire the semaphore become runnable with
- * `TN_RC_DELETED` code returned.
+ * `#TN_RC_DELETED` code returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -154,10 +152,10 @@ enum TN_RCode tn_sem_create(
  * @param sem     semaphore to destruct
  *
  * @return 
- *    * `TN_RC_OK` if semaphore was successfully deleted;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_OK` if semaphore was successfully deleted;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
 
@@ -165,7 +163,7 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
  * Signal the semaphore.
  *
  * If current semaphore counter (`count`) is less than `max_count`,
- * counter is incremented by one; otherwise, `TN_RC_OVERFLOW` is returned.
+ * counter is incremented by one; otherwise, `#TN_RC_OVERFLOW` is returned.
  *
  * If wait queue is not empty, the first task from the queue acquires the
  * semaphore.
@@ -177,13 +175,11 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
  * @param sem     semaphore to signal
  * 
  * @return
- *    * `TN_RC_OK` if successful
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * `TN_RC_OVERFLOW` if `count` is already at maximum value (`max_count`)
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
- *
- * @see `TN_CHECK_PARAM`
+ *    * `#TN_RC_OK` if successful
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * `#TN_RC_OVERFLOW` if `count` is already at maximum value (`max_count`)
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_sem_signal(struct TN_Sem *sem);
 
@@ -201,8 +197,8 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * Acquire the semaphore.
  *
  * If the current semaphore counter (`count`) is non-zero, it is decremented
- * and `TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
- * refer to `TN_Timeout`.
+ * and `#TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
+ * refer to `#TN_Timeout`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -210,17 +206,14 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * $(TN_LEGEND_LINK)
  *
  * @param sem     semaphore to acquire
- * @param timeout refer to `TN_Timeout`
+ * @param timeout refer to `#TN_Timeout`
  *
  * @return
- *    * `TN_RC_OK` if semaphore was successfully acquired
+ *    * `#TN_RC_OK` if semaphore was successfully acquired
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `TN_Timeout`
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
- *
- * @see `TN_Timeout`
- * @see `TN_CHECK_PARAM`
+ *      refer to `#TN_Timeout`
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout);
 

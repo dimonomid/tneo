@@ -176,11 +176,11 @@ void _tn_arch_context_switch_exit(void);
  *    
  * **Actions to perform:**
  *
- * * set `TN_STATE_FLAG__SYS_RUNNING` flag in the `tn_sys_state` variable;
+ * * set `#TN_STATE_FLAG__SYS_RUNNING` flag in the `tn_sys_state` variable;
  * * set `tn_curr_run_task` to `tn_next_task_to_run`;
  * * switch context to it.
  *
- * @see `TN_STATE_FLAG__SYS_RUNNING`
+ * @see `#TN_STATE_FLAG__SYS_RUNNING`
  * @see `tn_sys_state`
  * @see `tn_curr_run_task`
  * @see `tn_next_task_to_run`

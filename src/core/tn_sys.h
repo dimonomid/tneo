@@ -82,8 +82,8 @@ enum TN_StateFlag {
    TN_STATE_FLAG__SYS_RUNNING    = (1 << 0),
    ///
    /// deadlock is active
-   /// Note: this feature works if only `TN_MUTEX_DEADLOCK_DETECT` is non-zero.
-   /// @see `TN_MUTEX_DEADLOCK_DETECT`
+   /// Note: this feature works if only `#TN_MUTEX_DEADLOCK_DETECT` is non-zero.
+   /// @see `#TN_MUTEX_DEADLOCK_DETECT`
    TN_STATE_FLAG__DEADLOCK       = (1 << 1),
 };
 
@@ -95,7 +95,7 @@ enum TN_StateFlag {
 enum TN_Context {
    ///
    /// None: this code is possible if only system is not running
-   /// (flag (`TN_STATE_FLAG__SYS_RUNNING` is not set in the `tn_sys_state`))
+   /// (flag (`#TN_STATE_FLAG__SYS_RUNNING` is not set in the `tn_sys_state`))
    TN_CONTEXT_NONE,
    ///
    /// Task context
@@ -146,7 +146,7 @@ typedef void (TN_CBUserTaskCreate)(void);
  *
  * \attention 
  *    * It is illegal to sleep here, because idle task (from which this
- *      function is called) should always be runnable, by design. If `TN_DEBUG`
+ *      function is called) should always be runnable, by design. If `#TN_DEBUG`
  *      option is set, then sleeping in idle task is checked, so if you try to
  *      sleep here, `_TN_FATAL_ERROR()` macro will be called.
  *
@@ -158,7 +158,7 @@ typedef void (TN_CBIdle)(void);
 /**
  * User-provided callback function that is called whenever 
  * deadlock becomes active or inactive.
- * Note: this feature works if only `TN_MUTEX_DEADLOCK_DETECT` is non-zero.
+ * Note: this feature works if only `#TN_MUTEX_DEADLOCK_DETECT` is non-zero.
  *
  * @param active  if `TRUE`, deadlock becomes active, otherwise it becomes
  *                inactive (say, if task stopped waiting for mutex 
@@ -167,8 +167,6 @@ typedef void (TN_CBIdle)(void);
  *                mutexes involved by means of `mutex->deadlock_list`.
  * @param task    task that is involved in deadlock. You may find out other 
  *                tasks involved by means of `task->deadlock_list`.
- *
- * @see `TN_MUTEX_DEADLOCK_DETECT`
  */
 typedef void (TN_CBDeadlock)(
       BOOL active,
@@ -248,8 +246,8 @@ void tn_sys_start(
  * $(TN_LEGEND_LINK)
  *
  * @return
- *    * `TN_RC_OK` on success;
- *    * `TN_RC_WCONTEXT` if called from wrong context.
+ *    * `#TN_RC_OK` on success;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context.
  */
 enum TN_RCode tn_tick_int_processing(void);
 
@@ -260,16 +258,16 @@ enum TN_RCode tn_tick_int_processing(void);
  * $(TN_LEGEND_LINK)
  * 
  * @param priority   priority of tasks for which time slice value should be set
- * @param value      time slice value. Set to `TN_NO_TIME_SLICE` for no
+ * @param value      time slice value. Set to `#TN_NO_TIME_SLICE` for no
  *                   round-robin scheduling for given priority
  *                   (it's default value).
- *                   Value can't be higher than `TN_MAX_TIME_SLICE`.
+ *                   Value can't be higher than `#TN_MAX_TIME_SLICE`.
  *
  * @return
- *    * `TN_RC_OK` on success;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_OK` on success;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
 
@@ -318,8 +316,8 @@ void tn_sys_time_set(unsigned int value);
  * @param cb
  *    Pointer to user-provided callback function.
  *
- * @see `TN_MUTEX_DEADLOCK_DETECT`
- * @see `TN_CBDeadlock` for callback function prototype
+ * @see `#TN_MUTEX_DEADLOCK_DETECT`
+ * @see `#TN_CBDeadlock` for callback function prototype
  */
 void tn_callback_deadlock_set(TN_CBDeadlock *cb);
 
@@ -340,23 +338,23 @@ enum TN_StateFlag tn_sys_state_flags_get(void);
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @see `enum TN_Context`
+ * @see `enum #TN_Context`
  */
 enum TN_Context tn_sys_context_get(void);
 
 /**
- * Returns whether current system context is `TN_CONTEXT_TASK`
+ * Returns whether current system context is `#TN_CONTEXT_TASK`
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `TN_CONTEXT_TASK`,
+ * @return `TRUE` if current system context is `#TN_CONTEXT_TASK`,
  *         `FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
- * @see `enum TN_Context`
+ * @see `enum #TN_Context`
  */
 static inline BOOL tn_is_task_context(void)
 {
@@ -364,18 +362,18 @@ static inline BOOL tn_is_task_context(void)
 }
 
 /**
- * Returns whether current system context is `TN_CONTEXT_ISR`
+ * Returns whether current system context is `#TN_CONTEXT_ISR`
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `TN_CONTEXT_ISR`,
+ * @return `TRUE` if current system context is `#TN_CONTEXT_ISR`,
  *         `FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
- * @see `enum TN_Context`
+ * @see `enum #TN_Context`
  */
 static inline BOOL tn_is_isr_context(void)
 {

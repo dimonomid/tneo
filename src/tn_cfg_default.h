@@ -78,12 +78,12 @@
  * If it is set, most of the system functions are able to return two additional
  * codes:
  *
- *    * `TN_RC_WPARAM` if wrong params were given;
- *    * `TN_RC_INVALID_OBJ` if given pointer doesn't point to a valid object.
+ *    * `#TN_RC_WPARAM` if wrong params were given;
+ *    * `#TN_RC_INVALID_OBJ` if given pointer doesn't point to a valid object.
  *      Object validity is checked by means of the special ID field of type
- *      `enum TN_ObjId`.
+ *      `enum #TN_ObjId`.
  *
- * @see `enum TN_ObjId`
+ * @see `enum #TN_ObjId`
  */
 #ifndef TN_CHECK_PARAM
 #  define TN_CHECK_PARAM         1
@@ -148,13 +148,13 @@
  *
  * So, available options:
  *
- *  * `TN_API_MAKE_ALIG_ARG__TYPE`: 
+ *  * `#TN_API_MAKE_ALIG_ARG__TYPE`: 
  *             In this case, you should use macro like this: 
  *                `MAKE_ALIG(struct my_struct)`
  *             This way is used in the majority of TNKernel ports.
  *             (actually, in all ports except the one by AlexB)
  *
- *  * `TN_API_MAKE_ALIG_ARG__SIZE`:
+ *  * `#TN_API_MAKE_ALIG_ARG__SIZE`:
  *             In this case, you should use macro like this: 
  *                `MAKE_ALIG(sizeof(struct my_struct))`
  *             This way is stated in TNKernel docs

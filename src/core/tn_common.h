@@ -48,10 +48,19 @@
  ******************************************************************************/
 
 //-- Configuration constants
-#define  TN_API_MAKE_ALIG_ARG__TYPE       1     //-- this way is used in the majority of ports.
-#define  TN_API_MAKE_ALIG_ARG__SIZE       2     //-- this way is stated in TNKernel docs
-                                                //   and used in port by AlexB.
+/**
+ * In this case, you should use macro like this: `MAKE_ALIG(struct my_struct)`.
+ * This way is used in the majority of TNKernel ports. (actually, in all ports
+ * except the one by AlexB)
+ */
+#define  TN_API_MAKE_ALIG_ARG__TYPE       1
 
+/**
+ * In this case, you should use macro like this: `MAKE_ALIG(sizeof(struct
+ * my_struct))`. This way is stated in TNKernel docs and used in the port for
+ * dsPIC/PIC24/PIC32 by AlexB.
+ */
+#define  TN_API_MAKE_ALIG_ARG__SIZE       2
 
 //--- As a starting point, you might want to copy tn_cfg_default.h -> tn_cfg.h,
 //    and then edit it if you want to change default configuration.
@@ -76,13 +85,12 @@ extern "C"  {     /*}*/
  * Magic number for object validity verification
  */
 enum TN_ObjId {
-   TN_ID_TASK           = 0x47ABCF69,
-   TN_ID_SEMAPHORE      = 0x6FA173EB,
-   TN_ID_EVENTGRP       = 0x5E224F25,
-   TN_ID_DATAQUEUE      = 0x8C8A6C89,
-   TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,
-   TN_ID_MUTEX          = 0x17129E45,
-   TN_ID_RENDEZVOUS     = 0x74289EBD,
+   TN_ID_TASK           = 0x47ABCF69,  //!< id for tasks
+   TN_ID_SEMAPHORE      = 0x6FA173EB,  //!< id for semaphores
+   TN_ID_EVENTGRP       = 0x5E224F25,  //!< id for event groups
+   TN_ID_DATAQUEUE      = 0x8C8A6C89,  //!< id for data queues
+   TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,  //!< id for fixed memory pools
+   TN_ID_MUTEX          = 0x17129E45,  //!< id for mutexes
 };
 
 /**
@@ -93,8 +101,8 @@ enum TN_RCode {
    /// Successful operation
    TN_RC_OK                   =   0,
    ///
-   /// Timeout (consult `TN_Timeout` for details).
-   /// @see `TN_Timeout`
+   /// Timeout (consult `#TN_Timeout` for details).
+   /// @see `#TN_Timeout`
    TN_RC_TIMEOUT              =  -1,
    ///
    /// This code is returned in the following cases:
@@ -112,7 +120,7 @@ enum TN_RCode {
    ///   * $(TN_CALL_FROM_ISR) - function can be called from ISR.
    ///
    /// @see `tn_sys_context_get()`
-   /// @see `enum TN_Context`
+   /// @see `enum #TN_Context`
    TN_RC_WCONTEXT             =  -3,
    ///
    /// Wrong task state error: requested operation requires different 
@@ -121,8 +129,8 @@ enum TN_RCode {
    ///
    /// This code is returned by most of the kernel functions when 
    /// wrong params were given to function. This error code can be returned
-   /// if only build-time option `TN_CHECK_PARAM` is non-zero
-   /// @see `TN_CHECK_PARAM`
+   /// if only build-time option `#TN_CHECK_PARAM` is non-zero
+   /// @see `#TN_CHECK_PARAM`
    TN_RC_WPARAM               =  -5,
    ///
    /// Illegal usage. Returned in the following cases:
@@ -135,9 +143,9 @@ enum TN_RCode {
    ///
    /// Returned when user tries to perform some operation on invalid object
    /// (mutex, semaphore, etc).
-   /// Object validity is checked by comparing special `id_...` value with the
-   /// value from `enum TN_ObjId`
-   /// @see `TN_CHECK_PARAM`
+   /// Object validity is checked by comparing special `id_...` field value
+   /// with the value from `enum #TN_ObjId`
+   /// @see `#TN_CHECK_PARAM`
    TN_RC_INVALID_OBJ          =  -7,
    /// Object for whose event task was waiting is deleted.
    TN_RC_DELETED              =  -8,
@@ -159,9 +167,9 @@ enum TN_RCode {
  * values and appropriate behavior of the function:
  *
  *    * `timeout` is set to `0`: function doesn't wait at all, no context switch is performed,
- *      `TN_RC_TIMEOUT` is returned immediately.
- *    * `timeout` is set to `TN_WAIT_INFINITE`: function waits until it eventually **can** perform
- *      its job. Timeout is not taken in account, so `TN_RC_TIMEOUT`
+ *      `#TN_RC_TIMEOUT` is returned immediately.
+ *    * `timeout` is set to `#TN_WAIT_INFINITE`: function waits until it eventually **can** perform
+ *      its job. Timeout is not taken in account, so `#TN_RC_TIMEOUT`
  *      is never returned.
  *    * `timeout` is set to other value: function waits at most specified number of system ticks.
  *      Strictly speaking, it waits from `(timeout - 1)` to `timeout` ticks. So, if
@@ -179,10 +187,10 @@ enum TN_RCode {
  *
  *    * if task waits because of call to `tn_task_sleep()`, it may be woken up
  *      by some other task, by means of `tn_task_wakeup()`. In this case,
- *      `tn_task_sleep()` returns `TN_RC_OK`.  
+ *      `tn_task_sleep()` returns `#TN_RC_OK`.  
  *    * independently of the wait reason, task may be released from wait
  *      forcibly, by means of `tn_task_release_wait()`. It this case,
- *      `TN_RC_FORCED` is returned by the waiting function.
+ *      `#TN_RC_FORCED` is returned by the waiting function.
  *      (the usage of this function is discouraged)
  */
 typedef unsigned long TN_Timeout;
@@ -216,11 +224,11 @@ typedef unsigned long TN_Timeout;
 
 //-- TN_MAKE_ALIG() macro
 /**
- * Macro for making a number a multiple of `TN_ALIGN`, should be used with
+ * Macro for making a number a multiple of `#TN_ALIGN`, should be used with
  * fixed memory block pool.
  *
  * @see `tn_fmem_create()`
- * @see `TN_ALIGN`
+ * @see `#TN_ALIGN`
  */
 #define  TN_MAKE_ALIG_SIZE(a)  (((a) + (TN_ALIGN - 1)) & (~(TN_ALIGN - 1)))
 

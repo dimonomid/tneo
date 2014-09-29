@@ -76,7 +76,7 @@ struct TN_FMem {
    struct TN_ListItem   wait_queue;
 
    ///
-   /// block size (in bytes); note that it should be a multiple of `TN_ALIGN`,
+   /// block size (in bytes); note that it should be a multiple of `#TN_ALIGN`,
    /// use a macro `TN_MAKE_ALIG_SIZE()` for that.
    ///
    /// @see `TN_MAKE_ALIG_SIZE()`
@@ -89,7 +89,7 @@ struct TN_FMem {
    int                  free_blocks_cnt;
    ///
    /// memory pool start address; note that it should be a multiple of
-   /// `TN_ALIGN`.
+   /// `#TN_ALIGN`.
    void                *start_addr;
    ///
    /// ptr to free block list
@@ -126,7 +126,7 @@ struct TN_FMemTaskWait {
 
 /**
  * Construct fixed memory blocks pool. `id_fmp` field should not contain
- * `TN_ID_FSMEMORYPOOL`, otherwise, `TN_RC_WPARAM` is returned.
+ * `#TN_ID_FSMEMORYPOOL`, otherwise, `#TN_RC_WPARAM` is returned.
  *
  * Note that `start_addr` and `block_size` should be aligned by
  * `TN_MAKE_ALIG_SIZE()` macro. Typical buffer declaration is as follows:
@@ -155,7 +155,7 @@ struct TN_FMemTaskWait {
  * \endcode
  *
  * If given `start_addr` and/or `block_size` aren't aligned properly,
- * `TN_RC_WPARAM` is returned.
+ * `#TN_RC_WPARAM` is returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
@@ -164,14 +164,14 @@ struct TN_FMemTaskWait {
  * @param fmem       pointer to already allocated `struct TN_FMem`.
  * @param start_addr pointer to start of the array; should be aligned properly,
  *                   see example above
- * @param block_size size of memory block; should be a multiple of `TN_ALIGN`,
+ * @param block_size size of memory block; should be a multiple of `#TN_ALIGN`,
  *                   see example above
  * @param blocks_cnt capacity (total number of blocks in the memory pool)
  *
  * @return 
- *    * `TN_RC_OK` if memory pool was successfully created;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return code
- *      is available: `TN_RC_WPARAM`.
+ *    * `#TN_RC_OK` if memory pool was successfully created;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `#TN_RC_WPARAM`.
  *
  * @see TN_MAKE_ALIG_SIZE
  */
@@ -186,7 +186,7 @@ enum TN_RCode tn_fmem_create(
  * Destruct fixed memory blocks pool.
  *
  * All tasks that wait for free memory block become runnable with
- * `TN_RC_DELETED` code returned.
+ * `#TN_RC_DELETED` code returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -195,10 +195,10 @@ enum TN_RCode tn_fmem_create(
  * @param fmem       pointer to memory pool to be deleted
  *
  * @return
- *    * `TN_RC_OK` if memory pool is successfully deleted;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_OK` if memory pool is successfully deleted;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
  */
 enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
@@ -207,7 +207,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  * Get memory block from the pool. Start address of the memory block is returned
  * through the `p_data` argument. The content of memory block is undefined.
  * If there is no free block in the pool, behavior depends on `timeout` value:
- * refer to `TN_Timeout`.
+ * refer to `#TN_Timeout`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -219,17 +219,15 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
  * @param p_data
  *    Address of the `(void *)` to which received block address will be saved
  * @param timeout    
- *    Refer to `TN_Timeout`
+ *    Refer to `#TN_Timeout`
  *
  * @return
- *    * `TN_RC_OK` if block was successfully returned through `p_data`;
- *    * `TN_RC_WCONTEXT` if called from wrong context;
+ *    * `#TN_RC_OK` if block was successfully returned through `p_data`;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `TN_Timeout`
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
- *
- * @see `TN_Timeout`
+ *      refer to `#TN_Timeout`
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
@@ -259,7 +257,7 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
 /**
  * Release memory block back to the pool. The kernel does not check the 
  * validity of the membership of given block in the memory pool.
- * If all the memory blocks in the pool are free already, `TN_RC_OVERFLOW`
+ * If all the memory blocks in the pool are free already, `#TN_RC_OVERFLOW`
  * is returned.
  *
  * $(TN_CALL_FROM_TASK)
@@ -272,10 +270,10 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data);
  *    Address of the memory block to release.
  *
  * @return
- *    * `TN_RC_OK` on success
- *    * `TN_RC_WCONTEXT` if called from wrong context;
- *    * If `TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `TN_RC_WPARAM` and `TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_OK` on success
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
 
