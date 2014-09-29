@@ -1,0 +1,51 @@
+/**
+\page foreword Foreword
+
+This project was initially a fork of [PIC32 TNKernel
+port](https://github.com/andersm/TNKernel-PIC32) by Anders Montonen. I don't
+like several design decisions of original TNKernel, as well as **many** of the
+implementation details, but Anders wants to keep his port as close to original
+TNKernel as possible. So I decided to fork it and have fun implementing what I
+want.
+
+The more I get into how TNKernel works, the less I like its code. There is a
+lot of code duplication and a lot of inconsistency, all of this leads to bugs;
+so I decided to reimplement it almost completely. Refer to the page \ref 
+why_reimplement for details.
+
+I decided not to care much about compatibility with original TNKernel API
+because I really don't like several API decisions, so, I actually had to choose
+new name for this project, in order to avoid confusion, hence "TNeoKernel". 
+Refer to the \ref tnkernel_diff page for details.
+
+Together with almost totally re-writting TNKernel, I'm implementing detailed
+unit tests for it, to make sure I didn't break anything, and of course I've
+found several bugs in original TNKernel 2.7: refer to the section
+\ref why_reimplement__bugs.
+
+I've rewritten it in centralized and consistent way, and test it carefully by
+unit tests, which are, of course, must-have for project like this. It's so
+strange but original TNKernel seems untested.
+
+Note that PIC32-dependent routines (such as context switch and so on) are
+originally implemented by Anders Montonen; I examined them in detail and
+changed several things which I believe should be implemented differently.
+Anders, great thanks for sharing your job.
+
+Another existing PIC32 port, [the one by Alex
+Borisov](http://www.tnkernel.com/tn_port_pic24_dsPIC_PIC32.html), also affected
+my project. In fact, I used to use Alex's port for a long time, but it has
+several concepts that I don't like, so I had to move eventually. Nevertheless,
+Alex's port has several nice ideas and solutions, so I didn't hesitate to take
+what I like from his port. Alex, great thanks to you too.
+
+And, of course, great thanks to the author of original TNKernel, Yuri Tiomkin.
+Although the implementation of TNKernel is far from perfect in my opinion, the
+ideas behind the implementation are generally really nice (that's why I decided
+to reimplement it instead of starting from scratch), and it was great entry
+point to the real-time kernels for me.
+
+I would also like to thank my chiefs in the [ORION](http://orionspb.ru/) company,
+Alexey Morozov and Alexey Gromov, for being flexible about my time.
+
+*/

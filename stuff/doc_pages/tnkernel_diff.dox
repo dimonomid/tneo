@@ -1,5 +1,5 @@
 /**
-\page tnkernel_diff Differences from TNKernel
+\page tnkernel_diff Differences from TNKernel API
 
 \tableofcontents
 
@@ -59,13 +59,13 @@ By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, bu
 
 In original TNKernel, requesting non-sleeping task to wake up is quite legal and causes next call to `tn_task_sleep()` to not sleep. The same is with suspending/resuming tasks.
 
-So, if you call `tn_task_wakeup()` on non-sleeping task first time, `TERR_NO_ERR` is returned. If you call it second time, before target task called `tn_task_sleep()`, `TERR_OVERFLOW` is returned.
+So, if you call `tn_task_wakeup()` on non-sleeping task first time, `#TERR_NO_ERR` is returned. If you call it second time, before target task called `tn_task_sleep()`, `#TERR_OVERFLOW` is returned.
 
 All of this seems to me as a complete dirty hack, it probably might be used as a workaround to avoid race condition problems, or as a hacky replacement for semaphore.
 
 It just encourages programmer to go with hacky approach, instead of creating straightforward semaphore and provide proper synchronization.
 
-In TNeoKernel these "features" are removed, and if you try to wake up non-sleeping task, or try to resume non-suspended task, \ref TN_RC_WSTATE is returned.
+In TNeoKernel these "features" are removed, and if you try to wake up non-sleeping task, or try to resume non-suspended task, `#TN_RC_WSTATE` is returned.
 
 By the way, `suspend_count` is present in `TCB` structure, but is never used, so, it is just removed. And comments for `wakeup_count`, `activate_count`, `suspend_count` suggested that these fields are used for statistics, which is clearly not true. 
 
@@ -76,7 +76,7 @@ In original TNKernel it's illegal to pass `block_size` that is less than `sizeof
 
 Why I don't like it: firstly, silent behavior like this is generally bad practice that leads to hard-to-catch bugs. Secondly, it is inconsistency again: why is it legal for `block_size` not to be multiple of `sizeof(int)`, but it is illegal for it to be less than `sizeof(int)`? After all, the latter is the partucular case of the former.
 
-So, TNeoKernel returns \ref TN_RC_WPARAM in these cases. User must provide `start_addr` and `block_size` that are properly aligned. As a generic rule, it is good practice to declare buffers for fmp like this:
+So, TNeoKernel returns `#TN_RC_WPARAM` in these cases. User must provide `start_addr` and `block_size` that are properly aligned. As a generic rule, it is good practice to declare buffers for fmp like this:
 
 \code{.c}
     #define MY_MEMORY_BUF_SIZE    8
@@ -104,7 +104,7 @@ And then, construct your `my_fmp` as follows:
 
 \subsection tnkernel_diff_task_retval Task service return values cleaned
 
-In original TNKernel, `TERR_WCONTEXT` is returned in the following cases:
+In original TNKernel, `#TERR_WCONTEXT` is returned in the following cases:
 
   - call to `tn_task_terminate()` for already terminated task;
   - call to `tn_task_delete()` for non-terminated task;
@@ -112,15 +112,15 @@ In original TNKernel, `TERR_WCONTEXT` is returned in the following cases:
   - call to `tn_task_wakeup()`/`tn_task_iwakeup()` for terminated task;
   - call to `tn_task_release_wait()`/`tn_task_irelease_wait()` for terminated task.
 
-The actual error is, of course, wrong state, not wrong context; so, TNeoKernel returns \ref TN_RC_WSTATE in these cases.
+The actual error is, of course, wrong state, not wrong context; so, TNeoKernel returns `#TN_RC_WSTATE` in these cases.
 
 \subsection tnkernel_diff_release_wait Force task releasing from wait
 
-In original TNKernel, a call to `tn_task_release_wait()` / `tn_task_irelease_wait()` causes waiting task to wake up, regardless of wait reason, and `TERR_NO_ERR` is returned as a wait result. Actually I believe it is bad idea to ever use `tn_task_release_wait()`, but if we have this service, error code surely should be distinguishable from normal wait completion, so, new code is added: \ref TN_RC_FORCED, and it is returned when task wakes up because of `tn_task_release_wait()` call.
+In original TNKernel, a call to `tn_task_release_wait()` / `tn_task_irelease_wait()` causes waiting task to wake up, regardless of wait reason, and `#TERR_NO_ERR` is returned as a wait result. Actually I believe it is bad idea to ever use `tn_task_release_wait()`, but if we have this service, error code surely should be distinguishable from normal wait completion, so, new code is added: `#TN_RC_FORCED`, and it is returned when task wakes up because of `tn_task_release_wait()` call.
 
 \subsection tnkernel_diff_task_sleep Return code of tn_task_sleep()
 
-In original TNKernel, `tn_task_sleep()` always returns `TERR_NO_ERR`, independently of what actually happened. In TNeoKernel, there are three possible return codes:
+In original TNKernel, `tn_task_sleep()` always returns `#TERR_NO_ERR`, independently of what actually happened. In TNeoKernel, there are three possible return codes:
 
   - `#TN_RC_TIMEOUT` if timeout is actually in effect;
   - `#TN_RC_OK` if task was woken up by some other task with `tn_task_wakeup()`;
@@ -146,7 +146,7 @@ Sometimes they are really useful though (say, if you want to use some third-part
 
 \subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
 
-In original TNKernel, system functions returned `TERR_WRONG_PARAM` if `timeout` is 0, but it is actually not convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
+In original TNKernel, system functions returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually not convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
 
 \subsection tnkernel_diff_api_rename Things renamed
 

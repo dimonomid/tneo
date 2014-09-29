@@ -1,0 +1,240 @@
+/**
+\page why_reimplement Why reimplement TNKernel?
+
+Very brief explanation of the essential things I don't like in the TNKernel code.
+
+\tableofcontents
+
+\section why_reimplement__one_exit_point One entry point, one exit point
+
+The most common example that happens across all TNKernel sources is code like
+the following:
+
+\code{.c}
+int my_function(void)
+{
+   tn_disable_interrupt();
+   //-- do something
+
+   if (error()){
+      //-- do something
+
+      tn_enable_interrupt();
+      return ERROR;
+   }
+   //-- do something
+
+   tn_enable_interrupt();
+   return SUCCESS;
+}
+\endcode
+
+The code above is simplified; in the real TNKernel code, things are usually
+more complicated.
+
+If you have multiple `return` statements or, even more, if you have to perform
+some action before return (`tn_enable_interrupt()` in the example above), it's
+great job for `goto`:
+
+\code{.c}
+int my_function(void)
+{
+   int ret = SUCCESS;
+   tn_disable_interrupt();
+   //-- do something
+
+   if (error()){
+      //-- do something
+      ret = ERROR;
+      goto out;
+   }
+   //-- do something
+
+out:
+   tn_enable_interrupt();
+   return ret;
+}
+\endcode
+
+I understand there are a lot of people that don't agree with me on this (mostly
+because they religiously believe that `goto` is unconditionally evil), but
+anyway I decided to explain it. And yeah, original TNKernel code contains zero
+`goto` statement occurrences, but a lot of code like the one in first example
+above.
+
+Needless to say, I already found such bug in original TNKernel 2.7 code. The
+function `tn_sys_tslice_ticks()` looks as follows:
+
+\code{.c}
+int tn_sys_tslice_ticks(int priority,int value)
+{
+   TN_INTSAVE_DATA
+
+   TN_CHECK_NON_INT_CONTEXT
+
+   tn_disable_interrupt();
+
+   if(priority <= 0 || priority >= TN_NUM_PRIORITY-1 ||
+                                value < 0 || value > MAX_TIME_SLICE)
+      return TERR_WRONG_PARAM;
+
+   tn_tslice_ticks[priority] = value;
+
+   tn_enable_interrupt();
+   return TERR_NO_ERR;
+}
+\endcode
+
+If you look closely, you can see that if wrong params were given,
+`#TERR_WRONG_PARAM` is returned, and **interrupts remain disabled**. If we
+follow the *one entry point, one exit point* rule, this bug is much less
+likely to happen.
+
+\section why_reimplement__dont_repeat_yourself Don't repeat yourself
+
+Original TNKernel 2.7 code has **a lot** of code duplication.
+So many similar things are done in several places just by copy-pasting the
+code. 
+
+  - If we have similar functions (like, `tn_queue_send()`,
+    `tn_queue_send_polling()` and `tn_queue_isend_polling()`), the
+    implementation is just copy-pasted, there's no effort to generalize things.
+  - Mutexes have complicated algorithms for task priorities. It is implemented
+    in inconsistent, messy manner, which leads to bugs (refer to \ref
+    why_reimplement__bugs)
+  - Transitions between task states are done, again, in inconsistent copy-pasting
+    manner. When we need to move task from, say, $(TN_TASK_STATE_RUNNABLE) state
+    to the $(TN_TASK_STATE_WAIT) state, it's not enough to just clear one flag
+    and set another one: we also need to remove it from whatever run queue the
+    task is contained, probably find next task to run, then set reason of
+    waiting, probably add to wait queue, set up timeout if specified, etc.  In
+    original TNKernel 2.7, there's no general mechanism to do this.
+    
+    Meanwhile, the correct way is to create three functions for each state:
+
+    - to set the state;
+    - to clear the state;
+    - to test if the state active.
+
+    And then, when we need to move task from one state to another, we typically
+    should just call two functions: one for clearing current state, and one
+    for settine a new one. It **is** consistent, and of course this approach
+    is used in TNeoKernel.
+
+As a result, when we need to change something, we need to change it in
+several places. Needless to say, it is very error-prone practice, and of course
+there are bugs in original TNKernel because of that (refer to \ref
+why_reimplement__bugs).
+
+\section why_reimplement__returning_macro Macros that return from function
+
+TNKernel uses architecture-depended macros like `TN_CHECK_NON_INT_CONTEXT`.
+This macro checks the current context (task or ISR), and if it is ISR, it
+returns `TERR_WRONG_PARAM`.
+
+It isn't obvious to the reader of the code, but things like returning from
+function **must** be as obvious as possible.
+
+It is better to invent some function that tests current context, and return
+the value explicitly:
+
+\code{.c}
+enum TN_RCode my_function(void)
+   enum TN_RCode rc = TN_RC_OK;
+
+   // ...
+
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   // ...
+
+out:
+   return rc
+}
+\endcode
+
+\section why_reimplement__linked_lists Code for doubly-linked lists
+
+
+TNKernel uses doubly-linked lists heavily, which is very good. I must admit
+that I really like the way data is organized in TNKernel. But, unfortunately,
+code that manages data is far from perfect, as I already mentioned.
+
+So, let's get to the lists. I won't paste all the macros here, just make some
+overview. If we have a list, it's very common task to iterate through it.
+Typical snippet in TNKernel looks like this:
+
+\code{.c}
+CDLL_QUEUE * curr_que;
+TN_MUTEX * tmp_mutex;
+
+curr_que = tn_curr_run_task->mutex_queue.next;
+while(curr_que != &(tn_curr_run_task->mutex_queue))
+{
+   tmp_mutex = get_mutex_by_mutex_queque(curr_que);
+
+   /* now, tmp_mutex points to the next object, so,
+      we can do something useful with it */
+
+   curr_que = curr_que->next;
+}
+\endcode
+
+This code is neither easy to read nor elegant. It's much better to use special
+macro for that (actually, similar macros are used across the whole Linux kernel
+code) :
+
+\code{.c}
+TN_MUTEX * tmp_mutex;
+
+tn_list_for_each_entry(tmp_mutex, &(tn_curr_run_task->mutex_queue), mutex_queue){
+   /* now, tmp_mutex points to the next object, so,
+      we can do something useful with it */
+}
+\endcode
+
+Much shorter and intuitive, isn't it? We even don't have to keep special
+`curr_que`.
+
+\section why_reimplement__bugs Bugs of TNKernel 2.7
+
+TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed.
+
+  - We have two tasks: low-priority one `task_low` and high-priority `task_high`.
+    They use mutex `M1` with priority inheritance.
+    - `task_low` locks `M1`
+    - `task_high` tries to lock mutex `M1` and gets blocked -> priority of
+      `task_low` elevates to the priority of `task_high`
+    - `task_high` stops waiting for mutex by timeout -> priority of `task_low`
+      remains elevated. The same happens if `task_high` is terminated by
+      `tn_task_terminate()`.
+
+  - We have three tasks: two low-priority task `task_low1` and `task_low2`, and
+    high-priority `task_high`.  They use mutex `M1` with priority inheritance.
+
+     - `task_low1` locks `M1`
+     - `task_low2` tries to lock `M1` and gets blocked
+     - `task_high` tries to lock `M1` and gets blocked -> priority if
+       `task_low1` is elevated
+     - `task_low1` unlocks `M1` -> 
+       - priority of `task_low1` returns to base value
+       - `task_low2` locks `M1` because it's the next task in the mutex queue
+       - now, priority of `task_low2` should be elevated, but it doesn't
+         happen.
+  - `tn_mutex_delete()` : if mutex is not locked, `#TERR_ILUSE` is returned.
+    Actually, task should be able to delete non-locked mutex;
+  - If task that waits for mutex is in $(TN_TASK_STATE_WAITSUSP) state, and
+    mutex is deleted, `#TERR_NO_ERR` is returned after returning from
+    $(TN_TASK_STATE_SUSPEND) state, instead of `#TERR_DLT`
+  - `tn_sys_tclice_ticks()` : if wrong param is given, `TERR_WRONG_PARAM` is
+    returned and interrupts remain disabled.
+  - Probably not a "bug", but issue in the data queue: actual capacity of the
+    buffer is less by 1 than user has specified and allocated
+
+Bugs with mutexes are the direct result of the inconsistency and copy-pasting
+the code, as well as lack of unit tests.
+
+*/
