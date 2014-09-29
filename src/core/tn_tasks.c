@@ -61,6 +61,28 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_generic(
+      struct TN_Task *task
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (task == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (task->id_task != TN_ID_TASK){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+#else
+#  define _check_param_generic(task)            (TN_RC_OK)
+#endif
+// }}}
+
 //-- Private utilities {{{
 
 #if TN_USE_MUTEXES
@@ -185,12 +207,10 @@ static inline enum TN_RCode _task_job_perform(
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -216,12 +236,10 @@ static inline enum TN_RCode _task_job_iperform(
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
@@ -351,7 +369,7 @@ enum TN_RCode tn_task_create(
    enum TN_RCode rc;
    enum TN_Context context;
 
-   unsigned int * ptr_stack;
+   unsigned int *ptr_stack;
    int i;
 
    //-- Lightweight checking of system tasks recreation
@@ -393,7 +411,6 @@ enum TN_RCode tn_task_create(
    }
 
    //--- Init task TCB
-
    task->task_func_addr  = task_func;
    task->task_func_param = param;
    task->stk_start       = _tn_arch_stack_start_get(
@@ -405,8 +422,7 @@ enum TN_RCode tn_task_create(
    task->task_state      = TN_TASK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
 
-   //-- Fill all task stack space by TN_FILL_STACK_VAL - only inside create_task
-
+   //-- fill all task stack space by #TN_FILL_STACK_VAL
    for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
       *ptr_stack-- = TN_FILL_STACK_VAL;
    }
@@ -414,7 +430,6 @@ enum TN_RCode tn_task_create(
    _tn_task_set_dormant(task);
 
    //-- Add task to created task queue
-
    tn_list_add_tail(&tn_create_queue, &(task->create_queue));
    tn_created_tasks_cnt++;
 
@@ -439,12 +454,10 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -480,12 +493,10 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -640,12 +651,10 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
 
    enum TN_RCode rc;
 	 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return  TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -696,12 +705,10 @@ enum TN_RCode tn_task_delete(struct TN_Task *task)
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
-#if TN_CHECK_PARAM
-   if(task == NULL)
-      return TN_RC_WPARAM;
-   if(task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -726,14 +733,15 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if (task == NULL)
-      return  TN_RC_WPARAM;
-   if (task->id_task != TN_ID_TASK)
-      return TN_RC_INVALID_OBJ;
-   if (new_priority < 0 || new_priority >= (TN_PRIORITIES_CNT - 1))
-      return TN_RC_WPARAM; //-- tried to set priority reverved by system
-#endif
+   rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (new_priority < 0 || new_priority >= (TN_PRIORITIES_CNT - 1)){
+      rc = TN_RC_WPARAM;
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
