@@ -78,6 +78,60 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_generic(
+      struct TN_Mutex *mutex
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (mutex == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (mutex->id_mutex != TN_ID_MUTEX){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_create(
+      struct TN_Mutex        *mutex,
+      enum TN_MutexProtocol   protocol,
+      int                     ceil_priority
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (mutex == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (mutex->id_mutex == TN_ID_MUTEX){
+      rc = TN_RC_WPARAM;
+   } else if (    protocol != TN_MUTEX_PROT_CEILING 
+               && protocol != TN_MUTEX_PROT_INHERIT)
+   {
+      rc = TN_RC_WPARAM;
+   } else if (1
+         && protocol == TN_MUTEX_PROT_CEILING 
+         && (0
+            || ceil_priority < 1
+            || ceil_priority > (TN_PRIORITIES_CNT - 2)
+            )
+         )
+   {
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+#else
+#  define _check_param_generic(mutex)                             (TN_RC_OK)
+#  define _check_param_create(mutex, protocol, ceil_priority)     (TN_RC_OK)
+#endif
+// }}}
+
+
 /**
  * Iterate through all the tasks that wait for locked mutex,
  * checking if task's priority is higher than ref_priority.
@@ -508,18 +562,12 @@ enum TN_RCode tn_mutex_create(
       int                     ceil_priority
       )
 {
+   enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(mutex == NULL)
-      return TN_RC_WPARAM;
-   if(mutex->id_mutex != 0) //-- no recreation
-      return TN_RC_WPARAM;
-   if(protocol != TN_MUTEX_PROT_CEILING && protocol != TN_MUTEX_PROT_INHERIT)
-      return TN_RC_WPARAM;
-   if(protocol == TN_MUTEX_PROT_CEILING &&
-         (ceil_priority < 1 || ceil_priority > TN_PRIORITIES_CNT - 2))
-      return TN_RC_WPARAM;
-#endif
+   rc = _check_param_create(mutex, protocol, ceil_priority);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    tn_list_reset(&(mutex->wait_queue));
    tn_list_reset(&(mutex->mutex_queue));
@@ -533,7 +581,8 @@ enum TN_RCode tn_mutex_create(
    mutex->cnt           = 0;
    mutex->id_mutex      = TN_ID_MUTEX;
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 /*
@@ -545,12 +594,10 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(mutex == NULL)
-      return TN_RC_WPARAM;
-   if(mutex->id_mutex != TN_ID_MUTEX)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(mutex);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -603,16 +650,10 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
    enum TN_RCode rc = TN_RC_OK;
    BOOL waited_for_mutex = FALSE;
 
-#if TN_CHECK_PARAM
-   if (mutex == NULL){
-      rc = TN_RC_WPARAM;
+   rc = _check_param_generic(mutex);
+   if (rc != TN_RC_OK){
       goto out;
    }
-   if (mutex->id_mutex != TN_ID_MUTEX){
-      rc = TN_RC_INVALID_OBJ;
-      goto out;
-   }
-#endif
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -711,16 +752,10 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 
    TN_INTSAVE_DATA;
 
-#if TN_CHECK_PARAM
-   if(mutex == NULL){
-      rc = TN_RC_WPARAM;
+   rc = _check_param_generic(mutex);
+   if (rc != TN_RC_OK){
       goto out;
    }
-   if(mutex->id_mutex != TN_ID_MUTEX){
-      rc = TN_RC_INVALID_OBJ;
-      goto out;
-   }
-#endif
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
