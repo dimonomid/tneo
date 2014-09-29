@@ -47,11 +47,11 @@ By the way, additional strange thing: why doesn't this macro have any prefix lik
 
 TNeoKernel provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
 
-But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `TN_API_MAKE_ALIG_ARG` with two possible values;
+But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `#TN_API_MAKE_ALIG_ARG` with two possible values;
 
-  - `TN_API_MAKE_ALIG_ARG__SIZE` - default value, use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
+  - `#TN_API_MAKE_ALIG_ARG__SIZE` - default value, use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
 
-  - `TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
+  - `#TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
 
 By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
 
@@ -116,15 +116,15 @@ The actual error is, of course, wrong state, not wrong context; so, TNeoKernel r
 
 \subsection tnkernel_diff_release_wait Force task releasing from wait
 
-In original TNKernel, a call to `tn_task_(i)release_wait()` causes waiting task to wake up, regardless of wait reason, and `TERR_NO_ERR` is returned as a wait result. Actually I believe it is bad idea to ever use `tn_task_release_wait()`, but if we have this service, error code surely should be distinguishable from normal wait completion, so, new code is added: \ref TN_RC_FORCED, and it is returned when task wakes up because of `tn_task_release_wait()` call.
+In original TNKernel, a call to `tn_task_release_wait()` / `tn_task_irelease_wait()` causes waiting task to wake up, regardless of wait reason, and `TERR_NO_ERR` is returned as a wait result. Actually I believe it is bad idea to ever use `tn_task_release_wait()`, but if we have this service, error code surely should be distinguishable from normal wait completion, so, new code is added: \ref TN_RC_FORCED, and it is returned when task wakes up because of `tn_task_release_wait()` call.
 
 \subsection tnkernel_diff_task_sleep Return code of tn_task_sleep()
 
 In original TNKernel, `tn_task_sleep()` always returns `TERR_NO_ERR`, independently of what actually happened. In TNeoKernel, there are three possible return codes:
 
-  - `TN_RC_TIMEOUT` if timeout is actually in effect;
-  - `TN_RC_OK` if task was woken up by some other task with `tn_task_wakeup()`;
-  - `TN_RC_FORCED` if task was woken up forcibly by some other task with `tn_task_release_wait()`;
+  - `#TN_RC_TIMEOUT` if timeout is actually in effect;
+  - `#TN_RC_OK` if task was woken up by some other task with `tn_task_wakeup()`;
+  - `#TN_RC_FORCED` if task was woken up forcibly by some other task with `tn_task_release_wait()`;
 
 \subsection tnkernel_diff_event Events API is changed almost completely
 
@@ -142,10 +142,7 @@ For detailed API reference, refer to the `tn_eventgrp.h`.
 
 Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
 
-Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
-
-@see `TN_MUTEX_REC`
-@see `TN_RC_ILLEGAL_USE`
+Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
 
 \subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
 
@@ -155,14 +152,12 @@ In original TNKernel, system functions returned `TERR_WRONG_PARAM` if `timeout` 
 
 In original TNKernel thare is a lot of inconsistency with naming stuff: 
 
-  - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling` (notice the `i` letter before `polling`)?
+  - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling()` (notice the `i` letter before `polling`)?
   - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
   - A lot of macros don't have `TN_` prefix;
   - etc
 
-So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `TN_OLD_TNKERNEL_NAMES` option is non-zero.
-
-@see `TN_OLD_TNKERNEL_NAMES` 
+So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
 
 \section tnkernel_diff_other Changes that do not affect API directly
 

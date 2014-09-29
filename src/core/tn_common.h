@@ -49,14 +49,14 @@
 
 //-- Configuration constants
 /**
- * In this case, you should use macro like this: `MAKE_ALIG(struct my_struct)`.
+ * In this case, you should use macro like this: `#TN_MAKE_ALIG(struct my_struct)`.
  * This way is used in the majority of TNKernel ports. (actually, in all ports
  * except the one by AlexB)
  */
 #define  TN_API_MAKE_ALIG_ARG__TYPE       1
 
 /**
- * In this case, you should use macro like this: `MAKE_ALIG(sizeof(struct
+ * In this case, you should use macro like this: `#TN_MAKE_ALIG(sizeof(struct
  * my_struct))`. This way is stated in TNKernel docs and used in the port for
  * dsPIC/PIC24/PIC32 by AlexB.
  */
@@ -250,7 +250,7 @@ typedef unsigned long TN_Timeout;
  * The same as `#TN_MAKE_ALIG_SIZE` but its behavior depends on the option
  * `#TN_API_MAKE_ALIG_ARG`
  *
- * \attention it is better to use `#TN_MAKE_ALIG_SIZE` macro instead
+ * \attention it is recommended to use `#TN_MAKE_ALIG_SIZE` macro instead
  * of this one, in order to avoid confusion caused by various
  * TNKernel ports: refer to the section \ref tnkernel_diff_make_alig for details.
  */

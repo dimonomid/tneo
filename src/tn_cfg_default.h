@@ -150,13 +150,13 @@
  *
  *  * `#TN_API_MAKE_ALIG_ARG__TYPE`: 
  *             In this case, you should use macro like this: 
- *                `MAKE_ALIG(struct my_struct)`
+ *                `TN_MAKE_ALIG(struct my_struct)`
  *             This way is used in the majority of TNKernel ports.
  *             (actually, in all ports except the one by AlexB)
  *
  *  * `#TN_API_MAKE_ALIG_ARG__SIZE`:
  *             In this case, you should use macro like this: 
- *                `MAKE_ALIG(sizeof(struct my_struct))`
+ *                `TN_MAKE_ALIG(sizeof(struct my_struct))`
  *             This way is stated in TNKernel docs
  *             and used in the port for dsPIC/PIC24/PIC32 by AlexB.
  */

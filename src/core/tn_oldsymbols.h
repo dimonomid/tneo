@@ -136,7 +136,7 @@ typedef struct TN_Sem         TN_SEM;
 
 /// old TNKernel name of `#TN_MAKE_ALIG` macro
 ///
-/// \attention it is better to use `#TN_MAKE_ALIG_SIZE` macro instead
+/// \attention it is recommended to use `#TN_MAKE_ALIG_SIZE` macro instead
 /// of this one, in order to avoid confusion caused by various
 /// TNKernel ports: refer to the section \ref tnkernel_diff_make_alig for details.
 #define  MAKE_ALIG                     TN_MAKE_ALIG
