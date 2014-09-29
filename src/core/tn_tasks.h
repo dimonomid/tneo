@@ -305,8 +305,8 @@ struct TN_Task {
 
 /**
  * Construct task and probably start it (depends on options, see below).
- * `id_task` member should not contain `#TN_ID_TASK`, otherwise, `#TN_RC_WPARAM`
- * is returned.
+ * `id_task` member should not contain `#TN_ID_TASK`, otherwise,
+ * `#TN_RC_WPARAM` is returned.
  *
  * Usage example:
  *
@@ -399,10 +399,10 @@ enum TN_RCode tn_task_create(
 
 
 /**
- * If the task is $(TN_TASK_STATE_RUNNABLE), it is moved
- * to the $(TN_TASK_STATE_SUSPEND) state. If the task
- * is in the $(TN_TASK_STATE_WAIT) state, it is moved to the $(TN_TASK_STATE_WAITSUSP) state.
- * (waiting + suspended)
+ * If the task is $(TN_TASK_STATE_RUNNABLE), it is moved to the
+ * $(TN_TASK_STATE_SUSPEND) state. If the task is in the $(TN_TASK_STATE_WAIT)
+ * state, it is moved to the $(TN_TASK_STATE_WAITSUSP) state.  (waiting +
+ * suspended)
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -422,10 +422,11 @@ enum TN_RCode tn_task_create(
 enum TN_RCode tn_task_suspend(struct TN_Task *task);
 
 /**
- * Release task from $(TN_TASK_STATE_SUSPEND) state. If the given task is in the $(TN_TASK_STATE_SUSPEND)
- * state, it is moved to $(TN_TASK_STATE_RUNNABLE) state; afterwards it has the lowest
- * precedence among runnable tasks with the same priority. If the task is in
- * $(TN_TASK_STATE_WAITSUSP) state, it is moved to $(TN_TASK_STATE_WAIT) state.
+ * Release task from $(TN_TASK_STATE_SUSPEND) state. If the given task is in
+ * the $(TN_TASK_STATE_SUSPEND) state, it is moved to $(TN_TASK_STATE_RUNNABLE)
+ * state; afterwards it has the lowest precedence among runnable tasks with the
+ * same priority. If the task is in $(TN_TASK_STATE_WAITSUSP) state, it is
+ * moved to $(TN_TASK_STATE_WAIT) state.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -506,11 +507,12 @@ enum TN_RCode tn_task_wakeup(struct TN_Task *task);
 enum TN_RCode tn_task_iwakeup(struct TN_Task *task);
 
 /**
- * Activate task that is in $(TN_TASK_STATE_DORMANT) state, that is, it was either just
- * created by `tn_task_create()` without `#TN_TASK_CREATE_OPT_START` option, or
- * terminated.
+ * Activate task that is in $(TN_TASK_STATE_DORMANT) state, that is, it was
+ * either just created by `tn_task_create()` without
+ * `#TN_TASK_CREATE_OPT_START` option, or terminated.
  *
- * Task is moved from $(TN_TASK_STATE_DORMANT) state to the $(TN_TASK_STATE_RUNNABLE) state.
+ * Task is moved from $(TN_TASK_STATE_DORMANT) state to the
+ * $(TN_TASK_STATE_RUNNABLE) state.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -539,10 +541,12 @@ enum TN_RCode tn_task_activate(struct TN_Task *task);
 enum TN_RCode tn_task_iactivate(struct TN_Task *task);
 
 /**
- * Release task from $(TN_TASK_STATE_WAIT) state, independently of the reason of waiting.
+ * Release task from $(TN_TASK_STATE_WAIT) state, independently of the reason
+ * of waiting.
  *
- * If task is in $(TN_TASK_STATE_WAIT) state, it is moved to $(TN_TASK_STATE_RUNNABLE) state.
- * If task is in $(TN_TASK_STATE_WAITSUSP) state, it is moved to $(TN_TASK_STATE_SUSPEND) state.
+ * If task is in $(TN_TASK_STATE_WAIT) state, it is moved to
+ * $(TN_TASK_STATE_RUNNABLE) state.  If task is in $(TN_TASK_STATE_WAITSUSP)
+ * state, it is moved to $(TN_TASK_STATE_SUSPEND) state.
  *
  * `TERR_FORCED` is returned to the waiting task.
  *
@@ -581,10 +585,11 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  * function call or reactivated by the `tn_task_activate()` /
  * `tn_task_iactivate()` function call. In this case task starts execution from
  * beginning (as after creation/activation).  The task will have the lowest
- * precedence among all tasks with the same priority in the $(TN_TASK_STATE_RUNNABLE) state.
+ * precedence among all tasks with the same priority in the
+ * $(TN_TASK_STATE_RUNNABLE) state.
  *
- * If this function is invoked with `#TN_TASK_EXIT_OPT_DELETE` option set,
- * the task will be deleted after termination and cannot be reactivated (needs
+ * If this function is invoked with `#TN_TASK_EXIT_OPT_DELETE` option set, the
+ * task will be deleted after termination and cannot be reactivated (needs
  * recreation).
  *
  * $(TN_CALL_FROM_TASK)
@@ -611,8 +616,8 @@ void tn_task_exit(enum TN_TaskExitOpt opts);
  * `tn_task_delete()` function call or reactivated by the `tn_task_activate()`
  * / `tn_task_iactivate()` function call. In this case task starts execution
  * from beginning (as after creation/activation).  The task will have the
- * lowest precedence among all tasks with the same priority in the $(TN_TASK_STATE_RUNNABLE)
- * state.
+ * lowest precedence among all tasks with the same priority in the
+ * $(TN_TASK_STATE_RUNNABLE) state.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -631,11 +636,12 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task);
 
 /**
  * This function deletes the task specified by the task. The task must be in
- * the $(TN_TASK_STATE_DORMANT) state, otherwise `#TN_RC_WCONTEXT` will be returned.
+ * the $(TN_TASK_STATE_DORMANT) state, otherwise `#TN_RC_WCONTEXT` will be
+ * returned.
  *
  * This function resets the `id_task` field in the task structure to 0 and
- * removes the task from the system tasks list. The task can not be
- * reactivated after this function call (the task must be recreated).
+ * removes the task from the system tasks list. The task can not be reactivated
+ * after this function call (the task must be recreated).
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_LEGEND_LINK)
