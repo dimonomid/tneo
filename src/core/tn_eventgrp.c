@@ -58,6 +58,58 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_generic(
+      struct TN_EventGrp  *eventgrp
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (eventgrp == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (eventgrp->id_event != TN_ID_EVENTGRP){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_job_perform(
+      struct TN_EventGrp  *eventgrp,
+      unsigned int         pattern
+      )
+{
+   enum TN_RCode rc = _check_param_generic(eventgrp);
+
+   if (pattern == 0){
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_create(
+      struct TN_EventGrp  *eventgrp
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (eventgrp == NULL || eventgrp->id_event == TN_ID_EVENTGRP){
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+#else
+#  define _check_param_generic(event)                 (TN_RC_OK)
+#  define _check_param_job_perform(event, pattern)    (TN_RC_OK)
+#  define _check_param_create(event)                  (TN_RC_OK)
+#endif
+// }}}
+
+
 static BOOL _cond_check(
       struct TN_EventGrp *eventgrp,
       enum TN_EGrpWaitMode wait_mode,
@@ -137,15 +189,10 @@ static enum TN_RCode _eventgrp_wait(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if (eventgrp->id_event != TN_ID_EVENTGRP){
-      rc = TN_RC_INVALID_OBJ;
-      goto out;
-   } else if (wait_pattern == 0){
-      rc = TN_RC_WPARAM;
+   rc = _check_param_job_perform(eventgrp, wait_pattern);
+   if (rc != TN_RC_OK){
       goto out;
    }
-#endif
 
    //-- Check release condition
 
@@ -171,15 +218,10 @@ static enum TN_RCode _eventgrp_modify(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if (eventgrp->id_event != TN_ID_EVENTGRP){
-      rc = TN_RC_INVALID_OBJ;
-      goto out;
-   } else if (pattern == 0){
-      rc = TN_RC_WPARAM;
+   rc = _check_param_job_perform(eventgrp, pattern);
+   if (rc != TN_RC_OK){
       goto out;
    }
-#endif
 
    switch (operation){
       case TN_EVENTGRP_OP_CLEAR:
@@ -218,23 +260,20 @@ enum TN_RCode tn_eventgrp_create(
       unsigned int initial_pattern //-- initial value of the pattern
       )  
 {
+   enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if (eventgrp == NULL){
-      return TN_RC_WPARAM;
+   rc = _check_param_create(eventgrp);
+   if (rc != TN_RC_OK){
+      goto out;
    }
-
-   if (eventgrp->id_event == TN_ID_EVENTGRP){
-      return TN_RC_WPARAM;
-   }
-#endif
 
    tn_list_reset(&(eventgrp->wait_queue));
 
-   eventgrp->pattern = initial_pattern;
-   eventgrp->id_event = TN_ID_EVENTGRP;
+   eventgrp->pattern    = initial_pattern;
+   eventgrp->id_event   = TN_ID_EVENTGRP;
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 
@@ -246,12 +285,10 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
    enum TN_RCode rc = TN_RC_OK;
    TN_INTSAVE_DATA;
 
-#if TN_CHECK_PARAM
-   if(eventgrp == NULL)
-      return TN_RC_WPARAM;
-   if(eventgrp->id_event != TN_ID_EVENTGRP)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(eventgrp);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;

@@ -63,6 +63,56 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (fmem == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (fmem->id_fmp == TN_ID_FSMEMORYPOOL){
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (fmem == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_job_perform(
+      struct TN_FMem *fmem,
+      void *p_data
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (fmem == NULL || p_data == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+#else
+#  define _check_param_fmem_create(fmem)               (TN_RC_OK)
+#  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
+#  define _check_param_job_perform(fmem, p_data)       (TN_RC_OK)
+#endif
+// }}}
+
 static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
@@ -120,71 +170,6 @@ static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 }
 
 
-
-#if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (fmem == NULL){
-      rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp == TN_ID_FSMEMORYPOOL){
-      rc = TN_RC_WPARAM;
-   }
-
-   return rc;
-}
-
-static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (fmem == NULL){
-      rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
-      rc = TN_RC_INVALID_OBJ;
-   }
-
-   return rc;
-}
-
-static inline enum TN_RCode _check_param_fmem_get(
-      struct TN_FMem *fmem,
-      void **p_data
-      )
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (fmem == NULL || p_data == NULL){
-      rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
-      rc = TN_RC_INVALID_OBJ;
-   }
-
-   return rc;
-}
-
-static inline enum TN_RCode _check_param_fmem_release(
-      struct TN_FMem *fmem,
-      void *p_data
-      )
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (fmem == NULL || p_data == NULL){
-      rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
-      rc = TN_RC_INVALID_OBJ;
-   }
-
-   return rc;
-}
-#else
-#  define _check_param_fmem_create(fmem)               (TN_RC_OK)
-#  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
-#  define _check_param_fmem_get(fmem, p_data)          (TN_RC_OK)
-#  define _check_param_fmem_release(fmem, p_data)      (TN_RC_OK)
-#endif
 
 
 
@@ -279,7 +264,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 {
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
-   
+
    rc = _check_param_fmem_delete(fmem);
    if (rc != TN_RC_OK){
       goto out;
@@ -320,8 +305,8 @@ enum TN_RCode tn_fmem_get(
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
    BOOL waited_for_data = FALSE;
-   
-   rc = _check_param_fmem_get(fmem, p_data);
+
+   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -367,7 +352,7 @@ enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem,void **p_data)
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_get(fmem, p_data);
+   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -396,7 +381,7 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data)
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_get(fmem, p_data);
+   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -425,7 +410,7 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data)
    TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
-   rc = _check_param_fmem_release(fmem, p_data);
+   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }
@@ -454,8 +439,8 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
 {
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc;
-   
-   rc = _check_param_fmem_release(fmem, p_data);
+
+   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
       goto out;
    }

@@ -65,18 +65,59 @@ enum _JobType {
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_generic(
+      struct TN_DQueue *dque
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (dque == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (dque->id_dque != TN_ID_DATAQUEUE){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_create(
+      struct TN_DQueue *dque,
+      void **data_fifo,
+      int items_cnt
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (dque == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE){
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_read(
+      void **pp_data
+      )
+{
+   return (pp_data == NULL) ? TN_RC_WPARAM : TN_RC_OK;
+}
+
+#else
+#  define _check_param_generic(dque)                        (TN_RC_OK)
+#  define _check_param_create(dque, data_fifo, items_cnt)   (TN_RC_OK)
+#  define _check_param_read(pp_data)                        (TN_RC_OK)
+#endif
+// }}}
+
 //-- Data queue storage FIFO processing {{{
 
 static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
-
-#if TN_CHECK_PARAM
-   if (dque == NULL){
-      rc = TN_RC_WPARAM;
-      goto out;
-   }
-#endif
 
    if (dque->filled_items_cnt >= dque->items_cnt){
       //-- no space for new data
@@ -100,12 +141,11 @@ out:
 static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
 {
    enum TN_RCode rc = TN_RC_OK;
-#if TN_CHECK_PARAM
-   if (dque == NULL || pp_data == NULL){
-      rc = TN_RC_WPARAM;
+
+   rc = _check_param_read(pp_data);
+   if (rc != TN_RC_OK){
       goto out;
    }
-#endif
 
    if (dque->filled_items_cnt == 0){
       //-- nothing to read
@@ -231,12 +271,10 @@ static enum TN_RCode _dqueue_job_perform(
    BOOL waited = FALSE;
    void **pp_data = (void **)p_data;
 
-#if TN_CHECK_PARAM
-   if(dque == NULL)
-      return  TN_RC_WPARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(dque);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -315,12 +353,10 @@ static enum TN_RCode _dqueue_job_iperform(
    enum TN_RCode rc = TN_RC_OK;
    void **pp_data = (void **)p_data;
 
-#if TN_CHECK_PARAM
-   if(dque == NULL)
-      return  TN_RC_WPARAM;
-   if(dque->id_dque != TN_ID_DATAQUEUE)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(dque);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
@@ -361,14 +397,12 @@ enum TN_RCode tn_queue_create(
       int items_cnt
       )
 {
-#if TN_CHECK_PARAM
-   if (dque == NULL){
-      return TN_RC_WPARAM;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_create(dque, data_fifo, items_cnt);
+   if (rc != TN_RC_OK){
+      goto out;
    }
-   if (items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE){
-      return TN_RC_WPARAM;
-   }
-#endif
 
    tn_list_reset(&(dque->wait_send_list));
    tn_list_reset(&(dque->wait_receive_list));
@@ -385,7 +419,8 @@ enum TN_RCode tn_queue_create(
 
    dque->id_dque = TN_ID_DATAQUEUE;
 
-   return TN_RC_OK;
+out:
+   return rc;
 }
 
 
@@ -397,14 +432,10 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if (dque == NULL){
-      return TN_RC_WPARAM;
+   rc = _check_param_generic(dque);
+   if (rc != TN_RC_OK){
+      goto out;
    }
-   if (dque->id_dque != TN_ID_DATAQUEUE){
-      return TN_RC_INVALID_OBJ;
-   }
-#endif
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
