@@ -57,6 +57,53 @@
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+//-- Additional param checking {{{
+#if TN_CHECK_PARAM
+static inline enum TN_RCode _check_param_generic(
+      struct TN_Sem *sem
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (sem == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (sem->id_sem != TN_ID_SEMAPHORE){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
+
+static inline enum TN_RCode _check_param_create(
+      struct TN_Sem *sem,
+      int start_count,
+      int max_count
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (sem == NULL){
+      rc = TN_RC_WPARAM;
+   } else if (0
+         || sem->id_sem == TN_ID_SEMAPHORE
+         || max_count <= 0
+         || start_count < 0
+         || start_count > max_count
+         )
+   {
+      rc = TN_RC_WPARAM;
+   }
+
+   return rc;
+}
+
+#else
+#  define _check_param_generic(sem)                            (TN_RC_OK)
+#  define _check_param_create(sem, start_count, max_count)     (TN_RC_OK)
+#endif
+// }}}
+
+
 static inline enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem),
@@ -67,14 +114,10 @@ static inline enum TN_RCode _sem_job_perform(
    enum TN_RCode rc = TN_RC_OK;
    BOOL waited_for_sem = FALSE;
 
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TN_RC_WPARAM;
-   if(sem->max_count == 0)
-      return  TN_RC_WPARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(sem);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -118,14 +161,10 @@ static inline enum TN_RCode _sem_job_iperform(
    TN_INTSAVE_DATA_INT;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TN_RC_WPARAM;
-   if(sem->max_count == 0)
-      return  TN_RC_WPARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(sem);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
@@ -195,22 +234,18 @@ static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_create(struct TN_Sem * sem,
-                  int start_count,
-                  int max_count)
+enum TN_RCode tn_sem_create(
+      struct TN_Sem *sem,
+      int start_count,
+      int max_count
+      )
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return  TN_RC_WPARAM;
-   if(max_count <= 0 || start_count < 0 ||
-         start_count > max_count || sem->id_sem != 0) //-- no recreation
-   {
-      sem->max_count = 0;
-      return  TN_RC_WPARAM;
+   rc = _check_param_create(sem, start_count, max_count);
+   if (rc != TN_RC_OK){
+      goto out;
    }
-#endif
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
@@ -235,12 +270,10 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
    TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_CHECK_PARAM
-   if(sem == NULL)
-      return TN_RC_WPARAM;
-   if(sem->id_sem != TN_ID_SEMAPHORE)
-      return TN_RC_INVALID_OBJ;
-#endif
+   rc = _check_param_generic(sem);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
