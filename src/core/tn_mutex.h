@@ -158,18 +158,6 @@ struct TN_Mutex {
  *    DEFINITIONS
  ******************************************************************************/
 
-#define get_mutex_by_mutex_queque(que)              \
-   (que ? container_of(que, struct TN_Mutex, mutex_queue) : 0)
-
-#define get_mutex_by_wait_queque(que)               \
-   (que ? container_of(que, struct TN_Mutex, wait_queue) : 0)
-
-#define get_mutex_by_lock_mutex_queque(que) \
-   (que ? container_of(que, struct TN_Mutex, mutex_queue) : 0)
-
-
-
-
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

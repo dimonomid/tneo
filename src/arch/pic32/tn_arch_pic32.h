@@ -42,12 +42,12 @@
  *
  */
 
+#ifndef  _TN_ARCH_PIC32_H
+#define  _TN_ARCH_PIC32_H
+
 //-- this include is needed to get build-time configuration
 //   (TN_DEBUG is used)
 #include "../../core/tn_common.h"
-
-#ifndef  _TN_ARCH_PIC32_H
-#define  _TN_ARCH_PIC32_H
 
 
 #ifdef __cplusplus

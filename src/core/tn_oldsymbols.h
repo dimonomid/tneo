@@ -75,12 +75,24 @@ extern "C"  {     /*}*/
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/// old TNKernel name of `TN_ListItem`
 typedef struct TN_ListItem    CDLL_QUEUE;
+
+/// old TNKernel name of `#TN_Mutex`
 typedef struct TN_Mutex       TN_MUTEX;
+
+/// old TNKernel name of `#TN_DQueue`
 typedef struct TN_DQueue      TN_DQUE;
+
+/// old TNKernel name of `#TN_Task` 
 typedef struct TN_Task        TN_TCB;
+
+/// old TNKernel name of `#TN_FMem` 
 typedef struct TN_FMem        TN_FMP;
+
+/// old TNKernel name of `#TN_Sem`
 typedef struct TN_Sem         TN_SEM;
+
 
 //there's no compatibility with TNKernel's event object,
 //so, this one is commented
@@ -100,90 +112,205 @@ typedef struct TN_Sem         TN_SEM;
 /*
  * compatibility with old struct names
  */
+/// old TNKernel struct name of `TN_ListItem`
 #define  _CDLL_QUEUE    TN_ListItem
+
+/// old TNKernel struct name of `#TN_Mutex`
 #define  _TN_MUTEX      TN_Mutex
+
+/// old TNKernel struct name of `#TN_DQueue`
 #define  _TN_DQUE       TN_DQueue
+
+/// old TNKernel struct name of `#TN_Task`
 #define  _TN_TCB        TN_Task
+
+/// old TNKernel struct name of `#TN_FMem`
 #define  _TN_FMP        TN_FMem
+
+/// old TNKernel struct name of `#TN_Sem`
 #define  _TN_SEM        TN_Sem
 
 //there's no compatibility with TNKernel's event object,
 //so, this one is commented
 //#define  _TN_EVENT      TN_EventGrp
 
-#define  MAKE_ALIG      TN_MAKE_ALIG
+/// old TNKernel name of `#TN_MAKE_ALIG` macro
+///
+/// \attention it is better to use `#TN_MAKE_ALIG_SIZE` macro instead
+/// of this one, in order to avoid confusion caused by various
+/// TNKernel ports: refer to the section \ref tnkernel_diff_make_alig for details.
+#define  MAKE_ALIG                     TN_MAKE_ALIG
 
 
+/// old TNKernel name of `#TN_TASK_STATE_RUNNABLE`
 #define  TSK_STATE_RUNNABLE            TN_TASK_STATE_RUNNABLE
+
+/// old TNKernel name of `#TN_TASK_STATE_WAIT`
 #define  TSK_STATE_WAIT                TN_TASK_STATE_WAIT
+
+/// old TNKernel name of `#TN_TASK_STATE_SUSPEND`
 #define  TSK_STATE_SUSPEND             TN_TASK_STATE_SUSPEND
+
+/// old TNKernel name of `#TN_TASK_STATE_WAITSUSP`
 #define  TSK_STATE_WAITSUSP            TN_TASK_STATE_WAITSUSP
+
+/// old TNKernel name of `#TN_TASK_STATE_DORMANT`
 #define  TSK_STATE_DORMANT             TN_TASK_STATE_DORMANT
 
+/// old TNKernel name of `#TN_TASK_CREATE_OPT_START`
 #define  TN_TASK_START_ON_CREATION     TN_TASK_CREATE_OPT_START
+
+/// old TNKernel name of `#TN_TASK_EXIT_OPT_DELETE`
 #define  TN_EXIT_AND_DELETE_TASK       TN_TASK_EXIT_OPT_DELETE
 
+
+
+/// old TNKernel name of `#TN_EVENTGRP_WMODE_AND`
 #define  TN_EVENT_WCOND_AND            TN_EVENTGRP_WMODE_AND
+
+/// old TNKernel name of `#TN_EVENTGRP_WMODE_OR`
 #define  TN_EVENT_WCOND_OR             TN_EVENTGRP_WMODE_OR
 
+
+/// old TNKernel name of `#TN_WAIT_REASON_NONE`
 #define  TSK_WAIT_REASON_NONE          TN_WAIT_REASON_NONE
+
+/// old TNKernel name of `#TN_WAIT_REASON_SLEEP`
 #define  TSK_WAIT_REASON_SLEEP         TN_WAIT_REASON_SLEEP
+
+/// old TNKernel name of `#TN_WAIT_REASON_SEM`
 #define  TSK_WAIT_REASON_SEM           TN_WAIT_REASON_SEM
+
+/// old TNKernel name of `#TN_WAIT_REASON_EVENT`
 #define  TSK_WAIT_REASON_EVENT         TN_WAIT_REASON_EVENT
+
+/// old TNKernel name of `#TN_WAIT_REASON_DQUE_WSEND`
 #define  TSK_WAIT_REASON_DQUE_WSEND    TN_WAIT_REASON_DQUE_WSEND
+
+/// old TNKernel name of `#TN_WAIT_REASON_DQUE_WRECEIVE`
 #define  TSK_WAIT_REASON_DQUE_WRECEIVE TN_WAIT_REASON_DQUE_WRECEIVE
+
+/// old TNKernel name of `#TN_WAIT_REASON_MUTEX_C`
 #define  TSK_WAIT_REASON_MUTEX_C       TN_WAIT_REASON_MUTEX_C
+
+/// old TNKernel name of `#TN_WAIT_REASON_MUTEX_I`
 #define  TSK_WAIT_REASON_MUTEX_I       TN_WAIT_REASON_MUTEX_I
+
+/// old TNKernel name of `#TN_WAIT_REASON_WFIXMEM`
 #define  TSK_WAIT_REASON_WFIXMEM       TN_WAIT_REASON_WFIXMEM
 
 
+
+/// old TNKernel name of `#TN_RC_OK`
 #define  TERR_NO_ERR                   TN_RC_OK
+
+/// old TNKernel name of `#TN_RC_OVERFLOW`
 #define  TERR_OVERFLOW                 TN_RC_OVERFLOW
+
+/// old TNKernel name of `#TN_RC_WCONTEXT`
 #define  TERR_WCONTEXT                 TN_RC_WCONTEXT
+
+/// old TNKernel name of `#TN_RC_WSTATE`
 #define  TERR_WSTATE                   TN_RC_WSTATE
+
+/// old TNKernel name of `#TN_RC_TIMEOUT`
 #define  TERR_TIMEOUT                  TN_RC_TIMEOUT
+
+/// old TNKernel name of `#TN_RC_WPARAM`
 #define  TERR_WRONG_PARAM              TN_RC_WPARAM
+
+/// old TNKernel name of `#TN_RC_ILLEGAL_USE`
 #define  TERR_ILUSE                    TN_RC_ILLEGAL_USE
+
+/// old TNKernel name of `#TN_RC_INVALID_OBJ`
 #define  TERR_NOEXS                    TN_RC_INVALID_OBJ
+
+/// old TNKernel name of `#TN_RC_DELETED`
 #define  TERR_DLT                      TN_RC_DELETED
+
+/// old TNKernel name of `#TN_RC_FORCED`
 #define  TERR_FORCED                   TN_RC_FORCED
+
+/// old TNKernel name of `#TN_RC_INTERNAL`
 #define  TERR_INTERNAL                 TN_RC_INTERNAL
 
 
+
+/// old TNKernel name of `#TN_MUTEX_PROT_CEILING`
 #define  TN_MUTEX_ATTR_CEILING         TN_MUTEX_PROT_CEILING
+
+/// old TNKernel name of `#TN_MUTEX_PROT_INHERIT`
 #define  TN_MUTEX_ATTR_INHERIT         TN_MUTEX_PROT_INHERIT
 
 
 
+
+/// old TNKernel name of `#tn_sem_acquire_polling`
 #define  tn_sem_polling                tn_sem_acquire_polling
+
+/// old TNKernel name of `#tn_sem_iacquire_polling`
 #define  tn_sem_ipolling               tn_sem_iacquire_polling
 
+
+/// old TNKernel name of `#tn_fmem_iget_polling`
 #define  tn_fmem_get_ipolling          tn_fmem_iget_polling
 
+
+/// old TNKernel name of `#tn_queue_ireceive_polling`
 #define  tn_queue_ireceive             tn_queue_ireceive_polling
 
+
+/// old TNKernel name of `#tn_sys_start`
 #define  tn_start_system               tn_sys_start
 
 
+
+/// old TNKernel name of `#TN_ARCH_STK_ATTR_BEFORE`
 #define  align_attr_start              TN_ARCH_STK_ATTR_BEFORE
+
+/// old TNKernel name of `#TN_ARCH_STK_ATTR_AFTER`
 #define  align_attr_end                TN_ARCH_STK_ATTR_AFTER
 
+
+/// old TNKernel name of `#tn_arch_int_dis`
 #define  tn_cpu_int_disable            tn_arch_int_dis
+
+/// old TNKernel name of `#tn_arch_int_en`
 #define  tn_cpu_int_enable             tn_arch_int_en
 
+
+/// old TNKernel name of `#tn_arch_sr_save_int_dis`
 #define  tn_cpu_save_sr                tn_arch_sr_save_int_dis
+
+/// old TNKernel name of `#tn_arch_sr_restore`
 #define  tn_cpu_restore_sr             tn_arch_sr_restore
 
+
+/// old TNKernel name of `#TN_INT_DIS_SAVE`
 #define  tn_disable_interrupt          TN_INT_DIS_SAVE
+
+/// old TNKernel name of `#TN_INT_RESTORE`
 #define  tn_enable_interrupt           TN_INT_RESTORE
 
+
+/// old TNKernel name of `#TN_INT_IDIS_SAVE`
 #define  tn_idisable_interrupt         TN_INT_IDIS_SAVE
+
+/// old TNKernel name of `#TN_INT_IRESTORE`
 #define  tn_ienable_interrupt          TN_INT_IRESTORE
 
+
+/// old TNKernel name of `#TN_IS_INT_DISABLED`
 #define  tn_chk_irq_disabled           TN_IS_INT_DISABLED
+
+/// old TNKernel name of `#TN_PRIORITIES_CNT`
 #define  TN_NUM_PRIORITY               TN_PRIORITIES_CNT
+
+/// old TNKernel name of `#TN_INT_WIDTH`
 #define  _TN_BITS_IN_INT                TN_INT_WIDTH
 
+
+/// old TNKernel name of `#TN_ALIGN`
 #define  TN_ALIG                       TN_ALIGN
 
 /*******************************************************************************

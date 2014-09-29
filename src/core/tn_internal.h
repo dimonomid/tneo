@@ -325,6 +325,13 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
 
 
 
+
+
+#define _tn_get_task_by_tsk_queue(que)                                   \
+   (que ? container_of(que, struct TN_Task, task_queue) : 0)
+
+
+
 /*******************************************************************************
  *    tn_mutex.c
  ******************************************************************************/

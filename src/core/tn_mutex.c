@@ -58,6 +58,12 @@
  *    DEFINITIONS
  ******************************************************************************/
 
+#define _get_mutex_by_wait_queque(que)               \
+   (que ? container_of(que, struct TN_Mutex, wait_queue) : 0)
+
+
+
+
 #if TN_MUTEX_REC
 //-- recursive locking enabled
 #  define __mutex_lock_cnt_change(mutex, value)  { (mutex)->cnt += (value); }
@@ -269,11 +275,11 @@ in:
          //   we have to use goto explicitly.
          //
          //_task_priority_elevate(
-         //      get_mutex_by_wait_queque(task->pwait_queue)->holder,
+         //      _get_mutex_by_wait_queque(task->pwait_queue)->holder,
          //      priority
          //      );
 
-         task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
+         task = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
          goto in;
       }
    }
@@ -318,7 +324,7 @@ in:
       _TN_FATAL_ERROR();
    }
 
-   struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
+   struct TN_Mutex *mutex2 = _get_mutex_by_wait_queque(holder->pwait_queue);
 
    //-- link two tasks together
    tn_list_add_tail(&task->deadlock_list, &holder->deadlock_list); 
@@ -389,11 +395,11 @@ in:
       //   Otherwise, get holder of mutex2 and call this function
       //   again, recursively.
 
-      struct TN_Mutex *mutex2 = get_mutex_by_wait_queque(holder->pwait_queue);
+      struct TN_Mutex *mutex2 = _get_mutex_by_wait_queque(holder->pwait_queue);
       if (_tn_is_mutex_locked_by_task(task, mutex2)){
          //-- link all mutexes and all tasks involved in the deadlock
          _link_deadlock_lists(
-               get_mutex_by_wait_queque(task->pwait_queue),
+               _get_mutex_by_wait_queque(task->pwait_queue),
                task
                );
 
@@ -844,7 +850,7 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
    } else {
 
 in:
-      task = get_mutex_by_wait_queque(task->pwait_queue)->holder;
+      task = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
 
       _update_task_priority(task);
 
@@ -879,7 +885,7 @@ void _tn_mutex_on_task_wait_complete(struct TN_Task *task)
    //   it means that deadlock becomes inactive. So, notify user about it
    //   and unlink deadlock lists (for mutexes and tasks involved)
    _cry_deadlock_inactive(
-         get_mutex_by_wait_queque(task->pwait_queue),
+         _get_mutex_by_wait_queque(task->pwait_queue),
          task
          );
 }

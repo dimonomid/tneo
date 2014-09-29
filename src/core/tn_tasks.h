@@ -287,18 +287,6 @@ struct TN_Task {
  ******************************************************************************/
 
 
-#define get_task_by_tsk_queue(que)                                   \
-   (que ? container_of(que, struct TN_Task, task_queue) : 0)
-
-#define get_task_by_timer_queque(que)                                \
-   (que ? container_of(que, struct TN_Task, timer_queue) : 0)
-
-#define get_task_by_block_queque(que)                                \
-   (que ? container_of(que, struct TN_Task, block_queue) : 0)
-
-
-
-
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

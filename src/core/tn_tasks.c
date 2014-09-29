@@ -137,7 +137,7 @@ static void _find_next_task_to_run(void)
    }
 #endif
 
-   tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
+   tn_next_task_to_run = _tn_get_task_by_tsk_queue(tn_ready_list[priority].next);
 }
 
 // }}}
@@ -847,7 +847,7 @@ void _tn_task_clear_runnable(struct TN_Task *task)
       if (tn_next_task_to_run == task){
          //-- the task that just became non-runnable was the "next task to run",
          //   so we should select new next task to run
-         tn_next_task_to_run = get_task_by_tsk_queue(tn_ready_list[priority].next);
+         tn_next_task_to_run = _tn_get_task_by_tsk_queue(tn_ready_list[priority].next);
 
          //-- tn_next_task_to_run was just altered, so, we should return TRUE
       }

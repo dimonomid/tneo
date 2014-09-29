@@ -205,18 +205,22 @@ typedef unsigned long TN_Timeout;
  ******************************************************************************/
 
 
+/// NULL pointer definition
 #ifndef NULL
 #  define NULL       ((void *)0)
 #endif
 
+/// boolean type definition
 #ifndef BOOL
 #  define BOOL       int
 #endif
 
+/// `true` value definition for type `#BOOL`
 #ifndef TRUE
 #  define TRUE       (1 == 1)
 #endif
 
+/// `false` value definition for type `#BOOL`
 #ifndef FALSE
 #  define FALSE      (1 == 0)
 #endif
@@ -242,6 +246,14 @@ typedef unsigned long TN_Timeout;
 #endif
 
 //-- define MAKE_ALIG accordingly to config
+/**
+ * The same as `#TN_MAKE_ALIG_SIZE` but its behavior depends on the option
+ * `#TN_API_MAKE_ALIG_ARG`
+ *
+ * \attention it is better to use `#TN_MAKE_ALIG_SIZE` macro instead
+ * of this one, in order to avoid confusion caused by various
+ * TNKernel ports: refer to the section \ref tnkernel_diff_make_alig for details.
+ */
 #if (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__TYPE)
 #  define  TN_MAKE_ALIG(a)  TN_MAKE_ALIG_SIZE(sizeof(a))
 #elif (TN_API_MAKE_ALIG_ARG == TN_API_MAKE_ALIG_ARG__SIZE)
