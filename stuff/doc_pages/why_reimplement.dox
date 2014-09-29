@@ -121,10 +121,10 @@ code.
     for settine a new one. It **is** consistent, and of course this approach
     is used in TNeoKernel.
 
-As a result, when we need to change something, we need to change it in
-several places. Needless to say, it is very error-prone practice, and of course
-there are bugs in original TNKernel because of that (refer to \ref
-why_reimplement__bugs).
+As a result of the violation of the rule *Don't repeat yourself*, when we need
+to change something, we need to change it in several places. Needless to say,
+it is very error-prone practice, and of course there are bugs in original
+TNKernel because of that (refer to \ref why_reimplement__bugs).
 
 \section why_reimplement__returning_macro Macros that return from function
 
