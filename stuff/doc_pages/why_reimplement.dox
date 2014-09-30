@@ -203,8 +203,8 @@ Much shorter and intuitive, isn't it? We even don't have to keep special
 
 TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed.
 
-  - We have two tasks: low-priority one `task_low` and high-priority `task_high`.
-    They use mutex `M1` with priority inheritance.
+  - We have two tasks: low-priority one `task_low` and high-priority one
+    `task_high`. They use mutex `M1` with priority inheritance.
     - `task_low` locks `M1`
     - `task_high` tries to lock mutex `M1` and gets blocked -> priority of
       `task_low` elevates to the priority of `task_high`
@@ -212,8 +212,9 @@ TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed
       remains elevated. The same happens if `task_high` is terminated by
       `tn_task_terminate()`.
 
-  - We have three tasks: two low-priority task `task_low1` and `task_low2`, and
-    high-priority `task_high`.  They use mutex `M1` with priority inheritance.
+  - We have three tasks: two low-priority tasks `task_low1` and `task_low2`,
+    and high-priority one `task_high`. They use mutex `M1` with priority
+    inheritance.
 
      - `task_low1` locks `M1`
      - `task_low2` tries to lock `M1` and gets blocked
@@ -223,16 +224,16 @@ TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed
        - priority of `task_low1` returns to base value
        - `task_low2` locks `M1` because it's the next task in the mutex queue
        - now, priority of `task_low2` should be elevated, but it doesn't
-         happen.
+         happen. Priority inversion is in effect.
   - `tn_mutex_delete()` : if mutex is not locked, `#TERR_ILUSE` is returned.
-    Actually, task should be able to delete non-locked mutex;
+    Of course, task should be able to delete non-locked mutex;
   - If task that waits for mutex is in $(TN_TASK_STATE_WAITSUSP) state, and
     mutex is deleted, `#TERR_NO_ERR` is returned after returning from
     $(TN_TASK_STATE_SUSPEND) state, instead of `#TERR_DLT`
-  - `tn_sys_tclice_ticks()` : if wrong param is given, `TERR_WRONG_PARAM` is
+  - `tn_sys_tslice_ticks()` : if wrong params are given, `#TERR_WRONG_PARAM` is
     returned and interrupts remain disabled.
-  - Probably not a "bug", but issue in the data queue: actual capacity of the
-    buffer is less by 1 than user has specified and allocated
+  - Probably not a "bug", but an issue in the data queue: actual capacity of
+    the buffer is less by 1 than user has specified and allocated
 
 Bugs with mutexes are the direct result of the inconsistency and copy-pasting
 the code, as well as lack of unit tests.
