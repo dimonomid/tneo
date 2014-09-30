@@ -120,6 +120,27 @@ struct TN_FMemTaskWait {
  *    DEFINITIONS
  ******************************************************************************/
 
+/**
+ * Convenience macro for the definition of buffer for memory pool. See
+ * `tn_fmem_create()` for usage example.
+ *
+ * @param name
+ *    C variable name of the buffer array (this name should be given 
+ *    to the `tn_fmem_create()` function as the `start_addr` argument)
+ * @param item_type
+ *    Type of item in the memory pool, like `struct MyMemoryItem`.
+ * @param size
+ *    Number of items in the memory pool.
+ */
+#define TN_FMEM_BUF_DEF(name, item_type, size)                    \
+   TN_Word name[                                                  \
+        (size)                                                    \
+      * (TN_MAKE_ALIG_SIZE(sizeof(item_type)) / sizeof(TN_Word))  \
+      ];
+
+
+
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
@@ -128,30 +149,39 @@ struct TN_FMemTaskWait {
  * Construct fixed memory blocks pool. `id_fmp` field should not contain
  * `#TN_ID_FSMEMORYPOOL`, otherwise, `#TN_RC_WPARAM` is returned.
  *
- * Note that `start_addr` and `block_size` should be aligned by
- * `TN_MAKE_ALIG_SIZE()` macro. Typical buffer declaration is as follows:
+ * Note that `start_addr` and `block_size` should be a multiple of `TN_Word`.
+ * For the definition of buffer, convenience macro `TN_FMEM_BUF_DEF()` was
+ * invented.
+ *
+ * Typical definition looks as follows:
  *
  * \code{.c}
+ *     //-- number of blocks in the pool
  *     #define MY_MEMORY_BUF_SIZE    8
  *
+ *     //-- type for memory block
  *     struct MyMemoryItem {
  *        // ... arbitrary fields ...
  *     };
  *     
- *     int my_fmp_buf[
- *             MY_MEMORY_BUF_SIZE 
- *           * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))
- *           ];
- *     struct TN_Fmp my_fmp;
+ *     //-- define buffer for memory pool
+ *     TN_FMEM_BUF_DEF(my_fmem_buf, struct MyMemoryItem, MY_MEMORY_BUF_SIZE);
+ *
+ *     //-- define memory pool structure
+ *     struct TN_FMem my_fmem;
  * \endcode
  *
- * And then, construct your `my_fmp` as follows:
+ * And then, construct your `my_fmem` as follows:
  *
  * \code{.c}
- *     tn_fmem_create( &my_fmp,
- *                     my_fmp_buf,
- *                     TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
- *                     MY_MEMORY_BUF_SIZE );
+ *     enum TN_RCode rc;
+ *     rc = tn_fmem_create( &my_fmem,
+ *                          my_fmem_buf,
+ *                          TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
+ *                          MY_MEMORY_BUF_SIZE );
+ *     if (rc != TN_RC_OK){
+ *        //-- handle error
+ *     }
  * \endcode
  *
  * If given `start_addr` and/or `block_size` aren't aligned properly,

@@ -231,14 +231,14 @@ typedef unsigned long TN_Timeout;
 #  define FALSE      (1 == 0)
 #endif
 
+/**
+ * Size of the CPU register.
+ */
+#define  TN_ALIGN    sizeof(TN_Word)
 
-//-- TN_MAKE_ALIG() macro
 /**
  * Macro for making a number a multiple of `#TN_ALIGN`, should be used with
- * fixed memory block pool.
- *
- * @see `tn_fmem_create()`
- * @see `#TN_ALIGN`
+ * fixed memory block pool. See `tn_fmem_create()` for usage example.
  */
 #define  TN_MAKE_ALIG_SIZE(a)  (((a) + (TN_ALIGN - 1)) & (~(TN_ALIGN - 1)))
 

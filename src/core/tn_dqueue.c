@@ -256,7 +256,7 @@ static enum TN_RCode _queue_receive(
    }
 
    return rc;
-}
+    }
 
 
 static enum TN_RCode _dqueue_job_perform(

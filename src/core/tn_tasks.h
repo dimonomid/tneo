@@ -283,7 +283,7 @@ struct TN_Task {
  ******************************************************************************/
 
 /**
- * Macro for the definition of stack array.
+ * Convenience macro for the definition of stack array.
  *
  * @param name 
  *    C variable name of the array

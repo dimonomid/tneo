@@ -97,11 +97,6 @@
 #define  TN_INT_WIDTH               32
 
 /**
- * Size of CPU register. Usually it's `sizeof(int)` or `sizeof(void *)`
- */
-#define  TN_ALIGN                   sizeof(void *)
-
-/**
  * Type whose size is equal to the size of CPU register. Typically it's `int`.
  */
 typedef  int                        TN_Word;
