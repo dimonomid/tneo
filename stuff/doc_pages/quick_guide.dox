@@ -51,8 +51,8 @@ tn_soft_isr(_TIMER_5_VECTOR)
   - Kernel acts as follows:
     - performs all necessary housekeeping;
     - creates idle task;
-    - calls your `init_task_create()` callback, in which your initial task is
-      created with `TN_TASK_CREATE_OPT_START` option;
+    - calls your `TN_CBUserTaskCreate()` callback, in which your initial task
+      is created with `#TN_TASK_CREATE_OPT_START` option;
     - performs first context switch (to your task with highest priority).
   - At this point, system operates normally: your initial task gets executed
     and you can call whatever system services you need. Typically, your initial
@@ -90,7 +90,7 @@ If the round robin scheduling is enabled, every system time tick interrupt
 increments the currently running task time slice counter. When the time
 slice interval is completed, the task is placed at the tail of the ready to
 run queue of its priority level (this queue contains tasks in the
-`TN_TASK_STATE_RUNNABLE` state) and the time slice counter is cleared. Then
+$(TN_TASK_STATE_RUNNABLE) state) and the time slice counter is cleared. Then
 the task may be preempted by tasks of higher or equal priority.
 
 In most cases, there is no reason to enable round robin scheduling. For
