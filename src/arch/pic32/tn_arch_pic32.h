@@ -129,9 +129,11 @@ extern "C"  {     /*}*/
 #define  TN_INT_WIDTH               32
 
 /**
- * Type whose size is equal to the size of CPU register. Typically it's `int`.
+ * Unsigned integer type whose size is equal to the size of CPU register.
+ * Typically it's plain `unsigned int`.
  */
 typedef  unsigned int               TN_UWord;
+
 
 /**
  * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.

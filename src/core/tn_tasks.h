@@ -310,7 +310,7 @@ struct TN_Task {
  * Usage example:
  *
  * \code{.c}
- *     #define MY_TASK_STACK_SIZE   256
+ *     #define MY_TASK_STACK_SIZE   (TN_MIN_STACK_SIZE + 200)
  *     #define MY_TASK_PRIORITY     5
  *
  *     struct TN_Task my_task;
@@ -335,23 +335,19 @@ struct TN_Task {
  * And then, somewhere from other task or from the callback 
  * `#TN_CBUserTaskCreate` given to `tn_sys_start()` :
  * \code{.c}
- *     void some_different_task_body(void *param)
- *     {
- *        // ........
- *        enum TN_RCode rc = tn_task_create(
- *              &my_task,
- *              my_task_body,
- *              MY_TASK_PRIORITY,
- *              my_task_stack,
- *              MY_TASK_STACK_SIZE,
- *              NULL,                     //-- parameter isn't used
- *              TN_TASK_CREATE_OPT_START  //-- start task on creation
- *              );
- *        if (rc != TN_RC_OK){
- *           //-- handle error
- *        }
- *        // ........
- *     }
+ *    enum TN_RCode rc = tn_task_create(
+ *          &my_task,
+ *          my_task_body,
+ *          MY_TASK_PRIORITY,
+ *          my_task_stack,
+ *          MY_TASK_STACK_SIZE,
+ *          NULL,                     //-- parameter isn't used
+ *          TN_TASK_CREATE_OPT_START  //-- start task on creation
+ *          );
+ *
+ *    if (rc != TN_RC_OK){
+ *       //-- handle error
+ *    }
  * \endcode
  *
  * $(TN_CALL_FROM_TASK)
