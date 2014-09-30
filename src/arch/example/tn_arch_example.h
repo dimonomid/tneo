@@ -99,7 +99,7 @@
 /**
  * Type whose size is equal to the size of CPU register. Typically it's `int`.
  */
-typedef  int                        TN_Word;
+typedef  unsigned int               TN_UWord;
 
 /**
  * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.

@@ -211,17 +211,17 @@ typedef void (TN_CBDeadlock)(
  * @param   idle_task_stack      
  *    Pointer to array for idle task stack. 
  *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
- *    of stack array, or allocate it manually as an array of `#TN_Word` with
+ *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param   idle_task_stack_size 
- *    Size of idle task stack, in words (`#TN_Word`)
+ *    Size of idle task stack, in words (`#TN_UWord`)
  * @param   int_stack            
  *    Pointer to array for interrupt stack.
  *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
- *    of stack array, or allocate it manually as an array of `#TN_Word` with
+ *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param   int_stack_size       
- *    Size of interrupt stack, in words (`#TN_Word`)
+ *    Size of interrupt stack, in words (`#TN_UWord`)
  * @param   cb_user_task_create
  *    Callback function that should create initial user's task
  *    (see \ref TN_CBUserTaskCreate)
@@ -229,9 +229,9 @@ typedef void (TN_CBDeadlock)(
  *    Callback function repeatedly called from idle task.
  */
 void tn_sys_start(
-      TN_Word             *idle_task_stack,
+      TN_UWord            *idle_task_stack,
       unsigned int         idle_task_stack_size,
-      TN_Word             *int_stack,
+      TN_UWord            *int_stack,
       unsigned int         int_stack_size,
       TN_CBUserTaskCreate *cb_user_task_create,
       TN_CBIdle           *cb_idle

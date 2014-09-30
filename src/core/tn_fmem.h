@@ -133,9 +133,9 @@ struct TN_FMemTaskWait {
  *    Number of items in the memory pool.
  */
 #define TN_FMEM_BUF_DEF(name, item_type, size)                    \
-   TN_Word name[                                                  \
+   TN_UWord name[                                                 \
         (size)                                                    \
-      * (TN_MAKE_ALIG_SIZE(sizeof(item_type)) / sizeof(TN_Word))  \
+      * (TN_MAKE_ALIG_SIZE(sizeof(item_type)) / sizeof(TN_UWord)) \
       ];
 
 
@@ -149,7 +149,7 @@ struct TN_FMemTaskWait {
  * Construct fixed memory blocks pool. `id_fmp` field should not contain
  * `#TN_ID_FSMEMORYPOOL`, otherwise, `#TN_RC_WPARAM` is returned.
  *
- * Note that `start_addr` and `block_size` should be a multiple of `TN_Word`.
+ * Note that `start_addr` and `block_size` should be a multiple of `TN_UWord`.
  * For the definition of buffer, convenience macro `TN_FMEM_BUF_DEF()` was
  * invented.
  *

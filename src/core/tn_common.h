@@ -197,7 +197,8 @@ typedef void (TN_TaskBody)(void *param);
  *    * independently of the wait reason, task may be released from wait
  *      forcibly, by means of `tn_task_release_wait()`. It this case,
  *      `#TN_RC_FORCED` is returned by the waiting function.
- *      (the usage of this function is discouraged)
+ *      (the usage of the `tn_task_release_wait()` function is discouraged
+ *      though)
  */
 typedef unsigned long TN_Timeout;
 
@@ -234,7 +235,7 @@ typedef unsigned long TN_Timeout;
 /**
  * Size of the CPU register.
  */
-#define  TN_ALIGN    sizeof(TN_Word)
+#define  TN_ALIGN    sizeof(TN_UWord)
 
 /**
  * Macro for making a number a multiple of `#TN_ALIGN`, should be used with

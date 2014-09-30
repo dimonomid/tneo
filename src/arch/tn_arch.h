@@ -111,8 +111,8 @@ void tn_arch_sr_restore(unsigned int sr);
  * @param   stack_low_address    start address of the stack array.
  * @param   stack_size           size of the stack in `int`-s, not in bytes.
  */
-TN_Word *_tn_arch_stack_start_get(
-      TN_Word *stack_low_address,
+TN_UWord *_tn_arch_stack_start_get(
+      TN_UWord *stack_low_address,
       int stack_size
       );
 
@@ -130,7 +130,7 @@ TN_Word *_tn_arch_stack_start_get(
  */
 unsigned int *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_Word       *stack_start,
+      TN_UWord      *stack_start,
       void          *param
       );
 

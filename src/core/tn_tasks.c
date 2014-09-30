@@ -359,7 +359,7 @@ enum TN_RCode tn_task_create(
       struct TN_Task         *task,
       TN_TaskBody            *task_func,
       int                     priority,
-      TN_Word              *task_stack_low_addr,
+      TN_UWord               *task_stack_low_addr,
       int                     task_stack_size,
       void                   *param,
       enum TN_TaskCreateOpt   opts
@@ -369,7 +369,7 @@ enum TN_RCode tn_task_create(
    enum TN_RCode rc;
    enum TN_Context context;
 
-   TN_Word *ptr_stack;
+   TN_UWord *ptr_stack;
    int i;
 
    //-- Lightweight checking of system tasks recreation

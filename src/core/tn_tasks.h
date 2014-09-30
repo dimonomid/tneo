@@ -205,7 +205,7 @@ struct TN_Task {
 #endif
 
    /// base address of task's stack space
-   TN_Word *stk_start;
+   TN_UWord *stk_start;
    ///
    /// size of task's stack (in `sizeof(unsigned int)`, not bytes)
    int stk_size;
@@ -283,16 +283,17 @@ struct TN_Task {
  ******************************************************************************/
 
 /**
- * Convenience macro for the definition of stack array.
+ * Convenience macro for the definition of stack array. See 
+ * `tn_task_create()` for the usage example.
  *
  * @param name 
  *    C variable name of the array
  * @param size
- *    size of the stack array in words (`#TN_Word`), not in bytes.
+ *    size of the stack array in words (`#TN_UWord`), not in bytes.
  */
 #define  TN_TASK_STACK_DEF(name, size)       \
    TN_ARCH_STK_ATTR_BEFORE                   \
-   TN_Word name[ (size) ]                    \
+   TN_UWord name[ (size) ]                   \
    TN_ARCH_STK_ATTR_AFTER;
 
 
@@ -332,7 +333,7 @@ struct TN_Task {
  *
  *
  * And then, somewhere from other task or from the callback 
- * `#TN_CBUserTaskCreate` given to `tn_sys_start()`
+ * `#TN_CBUserTaskCreate` given to `tn_sys_start()` :
  * \code{.c}
  *     void some_different_task_body(void *param)
  *     {
@@ -367,10 +368,10 @@ struct TN_Task {
  * @param task_stack_low_addr    
  *    Pointer to the stack for task.
  *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
- *    of stack array, or allocate it manually as an array of `#TN_Word` with
+ *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param task_stack_size 
- *    Size of task stack array, in words (`#TN_Word`), not in bytes.
+ *    Size of task stack array, in words (`#TN_UWord`), not in bytes.
  * @param param 
  *    Parameter that is passed to `task_func`.
  * @param opts 
@@ -388,7 +389,7 @@ enum TN_RCode tn_task_create(
       struct TN_Task         *task,
       TN_TaskBody            *task_func,
       int                     priority,
-      TN_Word                *task_stack_low_addr,
+      TN_UWord               *task_stack_low_addr,
       int                     task_stack_size,
       void                   *param,
       enum TN_TaskCreateOpt   opts
@@ -545,11 +546,14 @@ enum TN_RCode tn_task_iactivate(struct TN_Task *task);
  * $(TN_TASK_STATE_RUNNABLE) state.  If task is in $(TN_TASK_STATE_WAITSUSP)
  * state, it is moved to $(TN_TASK_STATE_SUSPEND) state.
  *
- * `TERR_FORCED` is returned to the waiting task.
+ * `#TN_RC_FORCED` is returned to the waiting task.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_LEGEND_LINK)
+ *
+ * \attention Usage of this function is discouraged, since the need for
+ * it indicates bad software design
  *
  * @param task    task waiting for anything
  *
