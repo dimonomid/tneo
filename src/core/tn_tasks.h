@@ -294,7 +294,7 @@ struct TN_Task {
 #define  TN_TASK_STACK_DEF(name, size)       \
    TN_ARCH_STK_ATTR_BEFORE                   \
    TN_UWord name[ (size) ]                   \
-   TN_ARCH_STK_ATTR_AFTER;
+   TN_ARCH_STK_ATTR_AFTER
 
 
 

@@ -136,7 +136,7 @@ struct TN_FMemTaskWait {
    TN_UWord name[                                                 \
         (size)                                                    \
       * (TN_MAKE_ALIG_SIZE(sizeof(item_type)) / sizeof(TN_UWord)) \
-      ];
+      ]
 
 
 
