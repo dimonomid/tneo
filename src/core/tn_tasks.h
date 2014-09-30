@@ -314,12 +314,9 @@ struct TN_Task {
  *
  *     struct TN_Task my_task;
  *
- *     //-- notice special architecture-dependent macros we use here,
- *     //   they are needed to make sure that all requirements
- *     //   regarding to stack are met.
- *     TN_ARCH_STK_ATTR_BEFORE
- *     int my_task_stack[ MY_TASK_STACK_SIZE ]
- *     TN_ARCH_STK_ATTR_AFTER;
+ *     //-- define stack array, we use convenience macro TN_TASK_STACK_DEF()
+ *     //   for that
+ *     TN_TASK_STACK_DEF(my_task_stack, MY_TASK_STACK_SIZE);
  *
  *     void my_task_body(void *param)
  *     {
@@ -330,10 +327,13 @@ struct TN_Task {
  *           //-- probably do something useful
  *        }
  *     }
+ * \endcode
  *
  *
  *
- *     // ... and then, somewhere from other task:
+ * And then, somewhere from other task or from the callback 
+ * `#TN_CBUserTaskCreate` given to `tn_sys_start()`
+ * \code{.c}
  *     void some_different_task_body(void *param)
  *     {
  *        // ........

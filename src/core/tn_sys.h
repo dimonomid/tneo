@@ -127,15 +127,15 @@ enum TN_Context {
  * will wait until all the initialization is done.
  *
  * It's usually easier to maintain if we create just one task here, which
- * performs all the necessary initialization, creates the rest of your tasks,
- * and then performs its primary job (the job for which task was created at
- * all)
+ * firstly performs all the necessary initialization, **then** creates the rest
+ * of your tasks, and eventually gets to its primary job (the job for which
+ * task was created at all). For the usage example, refer to the page \ref
+ * starting_the_kernel.
  *
  * \attention 
  *    * The only system service is allowed to call in this function is
  *      `tn_task_create()`.
  *
- * @see \ref starting_the_kernel
  * @see `tn_sys_start()`
  */
 typedef void (TN_CBUserTaskCreate)(void);

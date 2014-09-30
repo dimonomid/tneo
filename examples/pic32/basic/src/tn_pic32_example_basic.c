@@ -88,31 +88,18 @@
  *    DATA
  ******************************************************************************/
 
-//-- allocate arrays for stacks.
+//-- Allocate arrays for stacks: stack for idle task
+//   and for interrupts are the requirement of the kernel;
+//   others are application-dependent.
 //
-//   notice special architecture-dependent macros we use here,
-//   they are needed to make sure that all requirements
-//   regarding to stack are met.
+//   We use convenience macro TN_TASK_STACK_DEF() for that.
 
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int idle_task_stack[ IDLE_TASK_STACK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
+TN_TASK_STACK_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
+TN_TASK_STACK_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
 
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int interrupt_stack[ INTERRUPT_STACK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
-
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int task_a_stack[ TASK_A_STK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
-
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int task_b_stack[ TASK_B_STK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
-
-TN_ARCH_STK_ATTR_BEFORE
-unsigned int task_c_stack[ TASK_C_STK_SIZE ]
-TN_ARCH_STK_ATTR_AFTER;
+TN_TASK_STACK_DEF(task_a_stack, TASK_A_STK_SIZE);
+TN_TASK_STACK_DEF(task_b_stack, TASK_B_STK_SIZE);
+TN_TASK_STACK_DEF(task_c_stack, TASK_C_STK_SIZE);
 
 
 
