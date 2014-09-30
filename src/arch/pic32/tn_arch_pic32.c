@@ -75,8 +75,8 @@ extern unsigned long _gp;
 //      SP + 00 lo
 //----------------------------------------------------------------------------
 
-unsigned int *_tn_arch_stack_start_get(
-      unsigned int *stack_low_address,
+TN_Word *_tn_arch_stack_start_get(
+      TN_Word *stack_low_address,
       int stack_size
       )
 {
@@ -90,8 +90,8 @@ unsigned int *_tn_arch_stack_start_get(
 //   sizeof(void*) = sizeof(int)
 //----------------------------------------------------------------------------
 unsigned int *_tn_arch_stack_init(
-      void *task_func,
-      void *stack_start,
+      TN_TaskBody *task_func,
+      TN_Word *stack_start,
       void *param
       )
 {

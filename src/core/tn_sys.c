@@ -190,8 +190,10 @@ static inline void _round_robin_manage(void)
 /**
  * Create idle task, the task is NOT started after creation.
  */
-static inline enum TN_RCode _idle_task_create(unsigned int  *idle_task_stack,
-                                     unsigned int   idle_task_stack_size)
+static inline enum TN_RCode _idle_task_create(
+      TN_Word       *idle_task_stack,
+      unsigned int   idle_task_stack_size
+      )
 {
    return tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
@@ -216,9 +218,9 @@ static inline enum TN_RCode _idle_task_create(unsigned int  *idle_task_stack,
  * See comments in the header file (tn_sys.h)
  */
 void tn_sys_start(
-      unsigned int        *idle_task_stack,
+      TN_Word             *idle_task_stack,
       unsigned int         idle_task_stack_size,
-      unsigned int        *int_stack,
+      TN_Word             *int_stack,
       unsigned int         int_stack_size,
       TN_CBUserTaskCreate *cb_user_task_create,
       TN_CBIdle           *cb_idle

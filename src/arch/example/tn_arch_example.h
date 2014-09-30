@@ -102,6 +102,11 @@
 #define  TN_ALIGN                   sizeof(void *)
 
 /**
+ * Type whose size is equal to the size of CPU register. Typically it's `int`.
+ */
+typedef  int                        TN_Word;
+
+/**
  * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.
  * For compatibility with all platforms, it's recommended to use only values
  * from 1 to 14, inclusive.

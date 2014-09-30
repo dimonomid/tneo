@@ -49,7 +49,19 @@
  ******************************************************************************/
 
 #include "../core/tn_common.h"
-#include "../core/tn_tasks.h"
+
+
+
+/*******************************************************************************
+ *    ACTUAL PORT IMPLEMENTATION
+ ******************************************************************************/
+
+#if defined(__PIC32MX__)
+#include "pic32/tn_arch_pic32.h"
+#else
+#error "unknown platform"
+#endif
+
 
 
 #ifdef __cplusplus
@@ -99,8 +111,8 @@ void tn_arch_sr_restore(unsigned int sr);
  * @param   stack_low_address    start address of the stack array.
  * @param   stack_size           size of the stack in `int`-s, not in bytes.
  */
-unsigned int *_tn_arch_stack_start_get(
-      unsigned int *stack_low_address,
+TN_Word *_tn_arch_stack_start_get(
+      TN_Word *stack_low_address,
       int stack_size
       );
 
@@ -117,9 +129,9 @@ unsigned int *_tn_arch_stack_start_get(
  * @return current stack pointer (top of the stack)
  */
 unsigned int *_tn_arch_stack_init(
-      TN_TaskBody *task_func,
-      unsigned int *stack_start,
-      void *param
+      TN_TaskBody   *task_func,
+      TN_Word       *stack_start,
+      void          *param
       );
 
 /**
@@ -195,17 +207,6 @@ void _tn_arch_system_start(void);
 
 
 
-
-
-/*******************************************************************************
- *    ACTUAL PORT IMPLEMENTATION
- ******************************************************************************/
-
-#if defined(__PIC32MX__)
-    #include "pic32/tn_arch_pic32.h"
-#else
-    #error "unknown platform"
-#endif
 
 
 

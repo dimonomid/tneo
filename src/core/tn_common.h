@@ -158,6 +158,12 @@ enum TN_RCode {
 };
 
 /**
+ * Prototype for task body function.
+ */
+typedef void (TN_TaskBody)(void *param);
+
+
+/**
  * The value representing maximum number of system ticks to wait.
  *
  * Assume user called some system function, and it can't perform its job 

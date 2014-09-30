@@ -48,6 +48,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "tn_sys.h"
 #include "tn_list.h"
 #include "tn_common.h"
 
@@ -164,11 +165,6 @@ enum TN_TaskExitOpt {
    TN_TASK_EXIT_OPT_DELETE = (1 << 0),
 };
 
-/**
- * Prototype for task body function.
- */
-typedef void (TN_TaskBody)(void *param);
-
 
 /**
  * Task
@@ -209,7 +205,7 @@ struct TN_Task {
 #endif
 
    /// base address of task's stack space
-   unsigned int *stk_start;
+   TN_Word *stk_start;
    ///
    /// size of task's stack (in `sizeof(unsigned int)`, not bytes)
    int stk_size;
@@ -286,6 +282,20 @@ struct TN_Task {
  *    DEFINITIONS
  ******************************************************************************/
 
+/**
+ * Macro for the definition of stack array.
+ *
+ * @param name 
+ *    C variable name of the array
+ * @param size
+ *    size of the stack array in words (`#TN_Word`), not in bytes.
+ */
+#define  TN_TASK_STACK_DEF(name, size)       \
+   TN_ARCH_STK_ATTR_BEFORE                   \
+   TN_Word name[ (size) ]                    \
+   TN_ARCH_STK_ATTR_AFTER;
+
+
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
@@ -355,13 +365,12 @@ struct TN_Task {
  *    Priority for new task. **NOTE**: the lower value, the higher priority.
  *    Must be > `0` and < `(#TN_PRIORITIES_CNT - 1)`.
  * @param task_stack_low_addr    
- *    Pointer to the stack for task. A stack must be allocated as an array of
- *    `int`.  Actually, the size of stack array element must be identical to
- *    the processor register size (for most 32-bits and 16-bits processors a
- *    register size equals `sizeof(int)`).
+ *    Pointer to the stack for task.
+ *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
+ *    of stack array, or allocate it manually as an array of `#TN_Word` with
+ *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param task_stack_size 
- *    Size of task stack, in `int`-s, not in bytes. (i.e., size of array that
- *    is used for `task_stack_low_addr`).
+ *    Size of task stack array, in words (`#TN_Word`), not in bytes.
  * @param param 
  *    Parameter that is passed to `task_func`.
  * @param opts 
@@ -379,7 +388,7 @@ enum TN_RCode tn_task_create(
       struct TN_Task         *task,
       TN_TaskBody            *task_func,
       int                     priority,
-      unsigned int           *task_stack_low_addr,
+      TN_Word                *task_stack_low_addr,
       int                     task_stack_size,
       void                   *param,
       enum TN_TaskCreateOpt   opts
