@@ -7,9 +7,8 @@ Some notes on building the project
 
 \section configuration_file Configuration file
 
-This project is intended to be built as a library, separately from main
-project (although nothing prevents you from bundling things together, if you
-want to).
+TNeoKernel is intended to be built as a library, separately from main project
+(although nothing prevents you from bundling things together, if you want to).
 
 There are various options available which affects API and behavior of the
 kernel. But these options are specific for particular project, and aren't
