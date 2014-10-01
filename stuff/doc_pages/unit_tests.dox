@@ -144,6 +144,8 @@ Please note that code of unit tests project is not as polished as the code of
 the kernel itself. My open-source time is limited, and I prefer to invest it in
 the kernel as much as possible.
 
+Nevertheless, unit tests do their job efficiently, which is needed.
+
 There is an "environment" repository, which contains tests and all the
 necessary library subrepos: http://hg.dfrank.ru/tntest/_env
 
