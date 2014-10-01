@@ -36,6 +36,8 @@ TN_TASK_STATE_SUSPEND   = \link TN_TASK_STATE_SUSPEND <code>SUSPEND</code>\endli
 TN_TASK_STATE_WAITSUSP  = \link TN_TASK_STATE_WAITSUSP <code>WAIT+SUSPEND</code>\endlink
 TN_TASK_STATE_DORMANT   = \link TN_TASK_STATE_DORMANT <code>DORMANT</code>\endlink
 
+TN_VERSION              = `bash ./hg_ver_echo.sh`
+
 
 export TN_CALL_FROM_TASK
 export TN_CALL_FROM_ISR
@@ -52,5 +54,5 @@ export TN_TASK_STATE_WAITSUSP
 export TN_TASK_STATE_DORMANT
 
 all: 
-	doxygen tn_doxyfile
+	( cat tn_doxyfile ; echo "PROJECT_NUMBER=\"$(TN_VERSION)\"" ) | doxygen -
 
