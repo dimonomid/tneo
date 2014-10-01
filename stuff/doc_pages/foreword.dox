@@ -12,7 +12,8 @@ want.
 
 The more I get into how TNKernel works, the less I like its code. It appears as
 a very hastily-written project: there is a lot of code duplication and a lot of
-inconsistency, all of this leads to bugs; so I decided to reimplement it almost
+inconsistency, all of this leads to bugs. More, TNKernel is not documented well
+enough and there are no unit tests for it, so I decided to reimplement it almost
 completely. Refer to the page \ref why_reimplement for details.
 
 I decided not to care much about compatibility with original TNKernel API
