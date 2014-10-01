@@ -169,7 +169,8 @@ static inline void _round_robin_manage(void)
          tn_curr_run_task->tslice_count = 0;
 
          pri_queue = &(tn_ready_list[priority]);
-         //-- If ready queue is not empty and qty  of queue's tasks > 1
+         //-- If ready queue is not empty and there are more than 1 
+         //   task in the queue
          if (     !(tn_is_list_empty((struct TN_ListItem *)pri_queue))
                && pri_queue->next->next != pri_queue
             )
