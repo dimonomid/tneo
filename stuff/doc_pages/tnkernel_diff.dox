@@ -5,7 +5,7 @@
 
 If you have experience of using TNKernel, you really want to read this.
 
-\section tnkernel_diff_api Incompatible API differences
+\section tnkernel_diff_api Incompatible API changes
 
 \subsection tnkernel_diff_api_sys_start System startup
 
@@ -33,27 +33,7 @@ tn_task_create(/* ... several arguments omitted ... */
                /* ... several arguments omitted ... */);
 \endcode
 
-This port uses the second way (i.e. the way used in port by Alex Borisov)
-
-\subsection tnkernel_diff_make_alig Macro MAKE_ALIG()
-
-There is a terrible mess with `MAKE_ALIG()` macro: TNKernel docs specify that the argument of it should be the size to align, but almost all ports, including original one, defined it so that it takes type, not size.
-                                                                       
-But the port by AlexB implemented it differently (i.e. accordingly to the docs) : it takes size as an argument.
-
-When I was moving from the port by AlexB to another one, do you have any idea how much time it took me to figure out why do I have rare weird bug? :)
-
-By the way, additional strange thing: why doesn't this macro have any prefix like `TN_`?
-
-TNeoKernel provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
-
-But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `#TN_API_MAKE_ALIG_ARG` with two possible values;
-
-  - `#TN_API_MAKE_ALIG_ARG__SIZE` - default value, use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
-
-  - `#TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
-
-By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
+TNeoKernel uses the second way (i.e. the way used in port by Alex Borisov), and it does so independently of architecture.
 
 \subsection tnkernel_diff_wakeup_count Task wakeup count, activate count, suspend count
 
@@ -138,28 +118,37 @@ In TNeoKernel, there is no such *event* object. Instead, there is object *events
 
 For detailed API reference, refer to the `tn_eventgrp.h`.
 
+\subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
+
+In original TNKernel, system functions refused to perform job and returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually neither convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
+
+\section tnkernel_new_api Compatible API changes
+
+\subsection tnkernel_diff_make_alig Macro MAKE_ALIG()
+
+There is a terrible mess with `MAKE_ALIG()` macro: TNKernel docs specify that the argument of it should be the size to align, but almost all ports, including original one, defined it so that it takes type, not size.
+                                                                       
+But the port by AlexB implemented it differently (i.e. accordingly to the docs) : it takes size as an argument.
+
+When I was moving from the port by AlexB to another one, do you have any idea how much time it took me to figure out why do I have rare weird bug? :)
+
+By the way, additional strange thing: why doesn't this macro have any prefix like `TN_`?
+
+TNeoKernel provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
+
+But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `#TN_API_MAKE_ALIG_ARG` with two possible values;
+
+  - `#TN_API_MAKE_ALIG_ARG__SIZE` - default value, use macro like this: `MAKE_ALIG(sizeof(struct my_struct))`, like in the port by Alex.
+
+  - `#TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
+
+By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
+
 \subsection tnkernel_diff_mutex_rec Recursive mutexes
 
 Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
 
 Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
-
-\subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
-
-In original TNKernel, system functions returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually not convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
-
-\subsection tnkernel_diff_api_rename Things renamed
-
-In original TNKernel thare is a lot of inconsistency with naming stuff: 
-
-  - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling()` (notice the `i` letter before `polling`)?
-  - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
-  - A lot of macros don't have `TN_` prefix;
-  - etc
-
-So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
-
-\section tnkernel_new_api New API details
 
 \subsection tnkernel_new_api__convenience_macros_stack Convenience macros for stack arrays definition
 
@@ -176,6 +165,18 @@ Although it is recommended to use convenience macro for that: `TN_TASK_STACK_DEF
 \subsection tnkernel_new_api__convenience_macros_fmem Convenience macros for fixed memory block pool buffers definition
 
 Similarly to the previous section, you can still use "manual" definition of the buffer for fixed memory block pool, it is recommended to use convenience macro for that: `TN_FMEM_BUF_DEF()`. See `tn_fmem_create()` for usage example.
+
+\subsection tnkernel_diff_api_rename Things renamed
+
+In original TNKernel thare is a lot of inconsistency with naming stuff: 
+
+  - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling()` (notice the `i` letter before `polling`)?
+  - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
+  - A lot of macros don't have `TN_` prefix;
+  - etc
+
+So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
+
 
 \section tnkernel_diff_other Changes that do not affect API directly
 
