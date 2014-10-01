@@ -5,7 +5,7 @@
 
 If you have experience of using TNKernel, you really want to read this.
 
-\section tnkernel_diff_api API differences
+\section tnkernel_diff_api Incompatible API differences
 
 \subsection tnkernel_diff_api_sys_start System startup
 
@@ -158,6 +158,24 @@ In original TNKernel thare is a lot of inconsistency with naming stuff:
   - etc
 
 So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
+
+\section tnkernel_new_api New API details
+
+\subsection tnkernel_new_api__convenience_macros_stack Convenience macros for stack arrays definition
+
+You can still use "manual" definition of stack arrays, like that:
+
+\code{.c}
+   TN_ARCH_STK_ATTR_BEFORE
+   TN_UWord my_task_stack[ MY_TASK_STACK_SIZE ]
+   TN_ARCH_STK_ATTR_AFTER;
+\endcode
+
+Although it is recommended to use convenience macro for that: `TN_TASK_STACK_DEF()`. See `tn_task_create()` for the usage example.
+
+\subsection tnkernel_new_api__convenience_macros_fmem Convenience macros for fixed memory block pool buffers definition
+
+Similarly to the previous section, you can still use "manual" definition of the buffer for fixed memory block pool, it is recommended to use convenience macro for that: `TN_FMEM_BUF_DEF()`. See `tn_fmem_create()` for usage example.
 
 \section tnkernel_diff_other Changes that do not affect API directly
 
