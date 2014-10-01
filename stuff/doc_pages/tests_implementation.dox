@@ -126,9 +126,9 @@ And here is the appropriate part of log that is echoed to the UART:
 If something goes wrong, there would be no `"as expected"`, but error and
 explanation what we expected and what we have. Tests halted.
 
-I do my best to model nearly all the possible situations within the each
-single subsystem (such as mutexes, queues, etc), including various situations
-with suspended tasks, deleted tasks, deleted objects, and the like. It helps a
-lot to keep the kernel really stable.
+I do my best to model nearly all possible situations within the each single
+subsystem (such as mutexes, queues, etc), including various situations with
+suspended tasks, deleted tasks, deleted objects, and the like. It helps a lot
+to keep the kernel really stable.
 
 */
