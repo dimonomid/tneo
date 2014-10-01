@@ -1,0 +1,134 @@
+/**
+\page tests_implementation How tests are implemented
+
+Briefly: there is a high-priority task like "test director", which creates
+worker tasks as well as various kernel objects (queues, mutexes, etc), and then
+orders to workers, like:
+
+  - Task A, you lock the mutex M1
+  - Task B, you lock the mutex M1
+  - Task C, you lock the mutex M1
+  - Task A, you delete the mutex M1
+
+After each step it waits for workers to complete their job, and then checks if
+things are as expected: task states, task priorities, last return values of
+services, various properties of objects, etc.
+
+Detailed log is written to the UART. Typically, for each step, the following is
+written: 
+
+  - verbatim comment is written,
+  - director writes what does it do,
+  - each worker writes what does it do,
+  - director checks things and writes detailed report.
+
+Of course there is a mechanism for writing such scenarios.  Here is a part of
+code that specifies the sequence with locking and deleting mutex explained
+above:
+
+\code
+   TNT_TEST_COMMENT("A locks M1");
+   TNT_ITEM__SEND_CMD_MUTEX(TNT_TASK__A, MUTEX_LOCK, TNT_MUTEX__1);
+   TNT_ITEM__WAIT_AND_CHECK_DIFF(
+         TNT_CHECK__MUTEX(TNT_MUTEX__1, HOLDER, TNT_TASK__A);
+         TNT_CHECK__MUTEX(TNT_MUTEX__1, LOCK_CNT, 1);
+
+         TNT_CHECK__TASK(TNT_TASK__A, LAST_RETVAL, TN_RC_OK);
+         );
+
+   TNT_TEST_COMMENT("B tries to lock M1 -> B blocks, A has priority of B");
+   TNT_ITEM__SEND_CMD_MUTEX(TNT_TASK__B, MUTEX_LOCK, TNT_MUTEX__1);
+   TNT_ITEM__WAIT_AND_CHECK_DIFF(
+         TNT_CHECK__TASK(TNT_TASK__B, LAST_RETVAL, TWORKER_MAN__LAST_RETVAL__UNKNOWN);
+         TNT_CHECK__TASK(TNT_TASK__B, WAIT_REASON, TSK_WAIT_REASON_MUTEX_I);
+
+         TNT_CHECK__TASK(TNT_TASK__A, PRIORITY, priority_task_b);
+         );
+
+   TNT_TEST_COMMENT("C tries to lock M1 -> C blocks, A has priority of C");
+   TNT_ITEM__SEND_CMD_MUTEX(TNT_TASK__C, MUTEX_LOCK, TNT_MUTEX__1);
+   TNT_ITEM__WAIT_AND_CHECK_DIFF(
+         TNT_CHECK__TASK(TNT_TASK__C, LAST_RETVAL, TWORKER_MAN__LAST_RETVAL__UNKNOWN);
+         TNT_CHECK__TASK(TNT_TASK__C, WAIT_REASON, TSK_WAIT_REASON_MUTEX_I);
+
+         TNT_CHECK__TASK(TNT_TASK__A, PRIORITY, priority_task_c);
+         );
+
+   TNT_TEST_COMMENT("A deleted M1 -> B and C become runnable and have retval TN_RC_DELETED, A has its base priority");
+   TNT_ITEM__SEND_CMD_MUTEX(TNT_TASK__A, MUTEX_DELETE, TNT_MUTEX__1);
+   TNT_ITEM__WAIT_AND_CHECK_DIFF(
+         TNT_CHECK__TASK(TNT_TASK__B, LAST_RETVAL, TN_RC_DELETED);
+         TNT_CHECK__TASK(TNT_TASK__C, LAST_RETVAL, TN_RC_DELETED);
+         TNT_CHECK__TASK(TNT_TASK__B, WAIT_REASON, TSK_WAIT_REASON_DQUE_WRECEIVE);
+         TNT_CHECK__TASK(TNT_TASK__C, WAIT_REASON, TSK_WAIT_REASON_DQUE_WRECEIVE);
+
+         TNT_CHECK__TASK(TNT_TASK__A, PRIORITY, priority_task_a);
+
+         TNT_CHECK__MUTEX(TNT_MUTEX__1, HOLDER, TNT_TASK__NONE);
+         TNT_CHECK__MUTEX(TNT_MUTEX__1, LOCK_CNT, 0);
+         TNT_CHECK__MUTEX(TNT_MUTEX__1, EXISTS, 0);
+         );
+\endcode
+
+And here is the appropriate part of log that is echoed to the UART:
+
+\code
+//-- A locks M1 (line 404 in ../source/appl/appl_tntest/appl_tntest_mutex.c) 
+[I]: tnt_item_proceed():2101: ----- Command to task A: lock mutex M1 (0xa0004c40) 
+[I]: tnt_item_proceed():2160: Wait 80 ticks 
+[I]: [Task A]: locking mutex (0xa0004c40).. 
+[I]: [Task A]: mutex (0xa0004c40) locked 
+[I]: [Task A]: waiting for command.. 
+[I]: tnt_item_proceed():2178: Checking: 
+[I]: * Task A: priority=6 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_OK (as expected) 
+[I]: * Task B: priority=5 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Task C: priority=4 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Mutex M1: holder=A (as expected), lock_cnt=1 (as expected), exists=yes (as expected) 
+
+//-- B tries to lock M1 -> B blocks, A has priority of B (line 413 in ../source/appl/appl_tntest/appl_tntest_mutex.c) 
+[I]: tnt_item_proceed():2101: ----- Command to task B: lock mutex M1 (0xa0004c40) 
+[I]: tnt_item_proceed():2160: Wait 80 ticks 
+[I]: [Task B]: locking mutex (0xa0004c40).. 
+[I]: tnt_item_proceed():2178: Checking: 
+[I]: * Task A: priority=5 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_OK (as expected) 
+[I]: * Task B: priority=5 (as expected), wait_reason=MUTEX_I (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Task C: priority=4 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Mutex M1: holder=A (as expected), lock_cnt=1 (as expected), exists=yes (as expected) 
+
+//-- C tries to lock M1 -> B blocks, A has priority of C (line 422 in ../source/appl/appl_tntest/appl_tntest_mutex.c) 
+[I]: tnt_item_proceed():2101: ----- Command to task C: lock mutex M1 (0xa0004c40) 
+[I]: tnt_item_proceed():2160: Wait 80 ticks 
+[I]: [Task C]: locking mutex (0xa0004c40).. 
+[I]: tnt_item_proceed():2178: Checking: 
+[I]: * Task A: priority=4 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_OK (as expected) 
+[I]: * Task B: priority=5 (as expected), wait_reason=MUTEX_I (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Task C: priority=4 (as expected), wait_reason=MUTEX_I (as expected), last_retval=NOT-YET-RECEIVED (as expected) 
+[I]: * Mutex M1: holder=A (as expected), lock_cnt=1 (as expected), exists=yes (as expected) 
+
+//-- A deleted M1 -> B and C become runnable and have retval TN_RC_DELETED, A has its base priority (line 431 in ../source/appl/appl_tntest/appl_tntest_mutex.c) 
+[I]: tnt_item_proceed():2101: ----- Command to task A: delete mutex M1 (0xa0004c40) 
+[I]: tnt_item_proceed():2160: Wait 80 ticks 
+[I]: [Task A]: deleting mutex (0xa0004c40).. 
+[I]: [Task C]: mutex (0xa0004c40) locking failed with err=-8 
+[I]: [Task C]: waiting for command.. 
+[I]: [Task B]: mutex (0xa0004c40) locking failed with err=-8 
+[I]: [Task B]: waiting for command.. 
+[I]: [Task A]: mutex (0xa0004c40) deleted 
+[I]: [Task A]: waiting for command.. 
+[I]: tnt_item_proceed():2178: Checking: 
+[I]: * Task A: priority=6 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_OK (as expected) 
+[I]: * Task B: priority=5 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_DELETED (as expected) 
+[I]: * Task C: priority=4 (as expected), wait_reason=DQUE_WRECEIVE (as expected), last_retval=TN_RC_DELETED (as expected) 
+[I]: * Mutex M1: holder=NONE (as expected), lock_cnt=0 (as expected), exists=no (as expected) 
+
+\endcode
+
+If something goes wrong, there would be no `"as expected"`, but error and
+explanation what we expected and what we have. Tests halted.
+
+I do my best to model nearly all the possible situations within the each
+single subsystem (such as mutexes, queues, etc), including various situations
+with suspended tasks, deleted tasks, deleted objects, and the like. It helps a
+lot to keep the kernel really stable.
+
+*/
