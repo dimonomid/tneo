@@ -76,8 +76,8 @@ struct TN_FMem {
    struct TN_ListItem   wait_queue;
 
    ///
-   /// block size (in bytes); note that it should be a multiple of `#TN_ALIGN`,
-   /// use a macro `TN_MAKE_ALIG_SIZE()` for that.
+   /// block size (in bytes); note that it should be a multiple of
+   /// `sizeof(#TN_UWord})`, use a macro `TN_MAKE_ALIG_SIZE()` for that.
    ///
    /// @see `TN_MAKE_ALIG_SIZE()`
    unsigned int         block_size;
@@ -89,7 +89,7 @@ struct TN_FMem {
    int                  free_blocks_cnt;
    ///
    /// memory pool start address; note that it should be a multiple of
-   /// `#TN_ALIGN`.
+   /// `sizeof(#TN_UWord)`.
    void                *start_addr;
    ///
    /// ptr to free block list
@@ -149,7 +149,9 @@ struct TN_FMemTaskWait {
  * Construct fixed memory blocks pool. `id_fmp` field should not contain
  * `#TN_ID_FSMEMORYPOOL`, otherwise, `#TN_RC_WPARAM` is returned.
  *
- * Note that `start_addr` and `block_size` should be a multiple of `TN_UWord`.
+ * Note that `start_addr` and `block_size` should be a multiple of
+ * `sizeof(#TN_UWord)`.
+ *
  * For the definition of buffer, convenience macro `TN_FMEM_BUF_DEF()` was
  * invented.
  *
@@ -194,8 +196,8 @@ struct TN_FMemTaskWait {
  * @param fmem       pointer to already allocated `struct TN_FMem`.
  * @param start_addr pointer to start of the array; should be aligned properly,
  *                   see example above
- * @param block_size size of memory block; should be a multiple of `#TN_ALIGN`,
- *                   see example above
+ * @param block_size size of memory block; should be a multiple of 
+ *                   `sizeof(#TN_UWord)`, see example above
  * @param blocks_cnt capacity (total number of blocks in the memory pool)
  *
  * @return 

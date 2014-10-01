@@ -310,8 +310,8 @@ typedef struct TN_Sem         TN_SEM;
 #define  _TN_BITS_IN_INT                TN_INT_WIDTH
 
 
-/// old TNKernel name of `#TN_ALIGN`
-#define  TN_ALIG                       TN_ALIGN
+/// old TNKernel name for `sizeof(#TN_UWord)`
+#define  TN_ALIG                       sizeof(TN_UWord)
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
