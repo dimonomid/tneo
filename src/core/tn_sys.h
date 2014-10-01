@@ -182,7 +182,7 @@ typedef void (TN_CBDeadlock)(
  ******************************************************************************/
 
 /**
- * Value to pass to `tn_sys_tslice_ticks()` to turn round-robin off.
+ * Value to pass to `tn_sys_tslice_set()` to turn round-robin off.
  */
 #define  TN_NO_TIME_SLICE              0
 
@@ -257,24 +257,24 @@ void tn_sys_start(
 enum TN_RCode tn_tick_int_processing(void);
 
 /**
- * Set time slice ticks value for specified priority (round-robin scheduling).
+ * Set time slice ticks value for specified priority (see \ref round_robin).
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_LEGEND_LINK)
  * 
- * @param priority   priority of tasks for which time slice value should be set
- * @param value      time slice value. Set to `#TN_NO_TIME_SLICE` for no
- *                   round-robin scheduling for given priority
- *                   (it's default value).
- *                   Value can't be higher than `#TN_MAX_TIME_SLICE`.
+ * @param priority
+ *    Priority of tasks for which time slice value should be set
+ * @param ticks
+ *    Time slice value, in ticks. Set to `#TN_NO_TIME_SLICE` for no round-robin
+ *    scheduling for given priority (it's default value). Value can't be
+ *    higher than `#TN_MAX_TIME_SLICE`.
  *
  * @return
  *    * `#TN_RC_OK` on success;
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
- *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
- *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
+ *    * `#TN_RC_WPARAM` if given `priority` or `ticks` are invalid.
  */
-enum TN_RCode tn_sys_tslice_ticks(int priority, int value);
+enum TN_RCode tn_sys_tslice_set(int priority, int ticks);
 
 /**
  * Get current system ticks count.

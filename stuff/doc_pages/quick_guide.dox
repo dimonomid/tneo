@@ -84,7 +84,7 @@ TNKernel has the ability to make round robin scheduling for tasks with
 identical priority.  By default, round robin scheduling is turned off for
 all priorities. To enable round robin scheduling for tasks on certain
 priority level and to set time slices for these priority, user must call the
-`tn_sys_tslice_ticks()` function.  The time slice value is the same for all
+`tn_sys_tslice_set()` function.  The time slice value is the same for all
 tasks with identical priority but may be different for each priority level.
 If the round robin scheduling is enabled, every system time tick interrupt
 increments the currently running task time slice counter. When the time

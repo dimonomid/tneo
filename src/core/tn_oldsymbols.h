@@ -263,6 +263,9 @@ typedef struct TN_Sem         TN_SEM;
 /// old TNKernel name of `#tn_sys_start`
 #define  tn_start_system               tn_sys_start
 
+/// old TNKernel name of `#tn_sys_tslice_set`
+#define  tn_sys_tslice_ticks           tn_sys_tslice_set
+
 
 
 /// old TNKernel name of `#TN_ARCH_STK_ATTR_BEFORE`

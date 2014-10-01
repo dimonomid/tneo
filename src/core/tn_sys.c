@@ -334,7 +334,7 @@ out:
 /*
  * See comments in the header file (tn_sys.h)
  */
-enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
+enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -345,7 +345,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
    }
 
    if (     priority <= 0 || priority >= (TN_PRIORITIES_CNT - 1)
-         || value    <  0 || value    >   TN_MAX_TIME_SLICE)
+         || ticks    <  0 || ticks    >   TN_MAX_TIME_SLICE)
    {
       rc = TN_RC_WPARAM;
       goto out;
@@ -353,7 +353,7 @@ enum TN_RCode tn_sys_tslice_ticks(int priority, int value)
 
    TN_INT_DIS_SAVE();
 
-   tn_tslice_ticks[priority] = value;
+   tn_tslice_ticks[priority] = ticks;
 
    TN_INT_RESTORE();
 
