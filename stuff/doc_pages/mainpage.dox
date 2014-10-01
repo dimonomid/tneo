@@ -26,7 +26,7 @@ Related pages:
   - \ref pic32_details
   - \ref why_reimplement
   - \ref tnkernel_diff
-  - \ref tests_implementation
+  - \ref unit_tests
   - \ref legend
 
 API reference:

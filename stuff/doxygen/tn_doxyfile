@@ -767,7 +767,7 @@ INPUT                  =   ../../src                                       \
                            ../../stuff/doc_pages/pic32_details.dox         \
                            ../../stuff/doc_pages/why_reimplement.dox       \
                            ../../stuff/doc_pages/tnkernel_diff.dox         \
-                           ../../stuff/doc_pages/tests_implementation.dox  \
+                           ../../stuff/doc_pages/unit_tests.dox            \
                            ../../stuff/doc_pages/legend.dox
 
 # This tag can be used to specify the character encoding of the source files
