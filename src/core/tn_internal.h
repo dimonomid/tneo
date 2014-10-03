@@ -314,6 +314,15 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority);
  */
 void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
+#if 0
+#define _tn_task_set_last_rc(rc)  { tn_curr_run_task = (rc); }
+
+/**
+ * If given return code is not `#TN_RC_OK`, save it in the task's structure
+ */
+void _tn_task_set_last_rc_if_error(enum TN_RCode rc);
+#endif
+
 #if TN_USE_MUTEXES
 /**
  * Check if mutex is locked by task.

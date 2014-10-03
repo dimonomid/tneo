@@ -728,6 +728,36 @@ out:
 /*
  * See comments in the header file (tn_tasks.h)
  */
+enum TN_RCode tn_task_state_get(
+      struct TN_Task *task,
+      enum TN_TaskState *p_state
+      )
+{
+   enum TN_RCode rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   TN_INTSAVE_DATA;
+
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_DIS_SAVE();
+
+   *p_state = task->task_state;
+
+   TN_INT_RESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_tasks.h)
+ */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
    TN_INTSAVE_DATA;
@@ -1074,6 +1104,22 @@ void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 
    _find_next_task_to_run();
 }
+
+#if 0
+/**
+ * See comment in the tn_internal.h file
+ */
+void _tn_task_set_last_rc_if_error(enum TN_RCode rc)
+{
+   if (rc != TN_RC_OK){
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      tn_curr_run_task->last_rc = rc;
+      TN_INT_RESTORE();
+   }
+}
+#endif
 
 #if TN_USE_MUTEXES
 /**
