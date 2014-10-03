@@ -161,6 +161,13 @@ static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
          fmem->free_list = p_data;
          fmem->free_blocks_cnt++;
       } else {
+#if TN_DEBUG
+         if (fmem->free_blocks_cnt > fmem->blocks_cnt){
+            _TN_FATAL_ERROR(
+                  "free_blocks_cnt should never be more than blocks_cnt"
+                  );
+         }
+#endif
          //-- the memory pool already has all the blocks free
          rc = TN_RC_OVERFLOW;
       }
