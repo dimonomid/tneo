@@ -65,7 +65,8 @@ hg addremove
 hg ci -m"$new_commit_message"
 
 # push it
-hg push
+# COMMENTED to be more safe
+# hg push
 
 # go back
 cd ../../..
