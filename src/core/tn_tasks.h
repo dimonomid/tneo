@@ -273,6 +273,12 @@ struct TN_Task {
    /// function `_mutex_do_unlock()`.
    unsigned          priority_already_updated : 1;
 
+   /// Flag indicates that task waited for something
+   /// This flag is set automatially in `_tn_task_set_waiting()`
+   /// Must be cleared manually before calling any service that could sleep,
+   /// if the caller is interested in the relevant value of this flag.
+   unsigned          waited : 1;
+
 
 // Other implementation specific fields may be added below
 

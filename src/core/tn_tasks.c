@@ -906,6 +906,8 @@ void _tn_task_set_waiting(
    task->task_wait_reason = wait_reason;
    task->tick_count       = timeout;
 
+   task->waited           = TRUE;
+
    //--- Add to the wait queue  - FIFO
 
    if (wait_que != NULL){
