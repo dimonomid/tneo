@@ -208,9 +208,7 @@ static enum TN_RCode _queue_receive(
       //-- there are tasks that want to write data
 
       task = tn_list_first_entry(
-            &(dque->wait_send_list),
-            typeof(*task),
-            task_queue
+            &(dque->wait_send_list), typeof(*task), task_queue
             );
 
       switch (rc){

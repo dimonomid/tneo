@@ -185,19 +185,14 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!(tn_is_list_empty(&(sem->wait_queue)))){
-      struct TN_Task *task;
-      //-- there are tasks waiting for that semaphore,
-      //   so, wake up first one
-
-      //-- get first task from semaphore's wait_queue
-      task = tn_list_first_entry(
-            &(sem->wait_queue), typeof(*task), task_queue
-            );
-
-      //-- wake it up
-      _tn_task_wait_complete(task, TN_RC_OK);
-   } else {
+   if (  !_tn_task_first_wait_complete(
+            &sem->wait_queue,
+            TN_RC_OK,
+            NULL,
+            NULL
+            )
+      )
+   {
       //-- no tasks are waiting for that semaphore,
       //   so, just increase its count if possible.
       if (sem->count < sem->max_count){

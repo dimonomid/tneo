@@ -1071,6 +1071,39 @@ enum TN_RCode _tn_task_activate(struct TN_Task *task)
    return rc;
 }
 
+/**
+ * See comment in the tn_internal.h file
+ */
+BOOL _tn_task_first_wait_complete(
+      struct TN_ListItem           *wait_queue,
+      enum TN_RCode                 wait_rc,
+      _TN_CBBeforeTaskWaitComplete *callback,
+      void                         *user_data
+      )
+{
+   BOOL ret = FALSE;
+
+   if (!(tn_is_list_empty(wait_queue))){
+      struct TN_Task *task;
+      //-- there are tasks in the wait queue, so, wake up the first one
+
+      //-- get first task from the wait_queue
+      task = tn_list_first_entry(wait_queue, typeof(*task), task_queue);
+
+      //-- call provided callback (if any)
+      if (callback != NULL){
+         callback(task, user_data);
+      }
+
+      //-- wake task up
+      _tn_task_wait_complete(task, wait_rc);
+
+      //-- indicate that some task has been woken up
+      ret = TRUE;
+   }
+
+   return ret;
+}
 
 
 /**
