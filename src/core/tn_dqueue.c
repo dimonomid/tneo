@@ -203,60 +203,40 @@ static enum TN_RCode _queue_receive(
 
    rc = _fifo_read(dque, pp_data);
 
-   switch (rc){
-      case TN_RC_OK:
-         //-- data is successfully read from the queue.
-         //   Let's check whether there is some task that
-         //   wants to write more data, and waits for room
-         if (!tn_is_list_empty(&(dque->wait_send_list))){
-            struct TN_Task *task;
-            //-- there are tasks that want to write data
+   if (!tn_is_list_empty(&(dque->wait_send_list))){
+      struct TN_Task *task;
+      //-- there are tasks that want to write data
 
-            task = tn_list_first_entry(
-                  &(dque->wait_send_list),
-                  typeof(*task),
-                  task_queue
-                  );
+      task = tn_list_first_entry(
+            &(dque->wait_send_list),
+            typeof(*task),
+            task_queue
+            );
 
+      switch (rc){
+         case TN_RC_OK:
             rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); //-- Put to data FIFO
             if (rc != TN_RC_OK){
                _TN_FATAL_ERROR("rc should always be TN_RC_OK here");
             }
+            break;
 
-            _tn_task_wait_complete(task, TN_RC_OK);
-         }
-         break;
-      case TN_RC_TIMEOUT:
-         //-- data FIFO is empty, there's nothing to read.
-         //   let's check if some task waits to write
-         //   (that might happen if only dque->items_cnt is 0)
-         if (!tn_is_list_empty(&(dque->wait_send_list))){
-            struct TN_Task *task;
-            //-- there are tasks that want to write data
+         case TN_RC_TIMEOUT:
             //   (that might happen if only dque->items_cnt is 0)
-
-            task = tn_list_first_entry(
-                  &(dque->wait_send_list),
-                  typeof(*task),
-                  task_queue
-                  );
-
             *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
-            _tn_task_wait_complete(task, TN_RC_OK);
-
             rc = TN_RC_OK;
-         } else {
-            //-- wait_send_list is empty.
-         }
-         break;
-      default:
-         //-- there's some abnormal error, we should leave return code as is
-         break;
+            break;
 
+         default:
+            _TN_FATAL_ERROR("rc should be either TN_RC_OK or TN_RC_TIMEOUT here");
+            break;
+      }
+
+      _tn_task_wait_complete(task, TN_RC_OK);
    }
 
    return rc;
-    }
+}
 
 
 static enum TN_RCode _dqueue_job_perform(
