@@ -122,9 +122,7 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
       ptr = fmem->free_list;
       fmem->free_list = *(void **)fmem->free_list;   //-- ptr - to new free list
       fmem->free_blocks_cnt--;
-   }
 
-   if (ptr != NULL){
       *p_data = ptr;
       rc = TN_RC_OK;
    } else {

@@ -214,7 +214,7 @@ static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem->count >= 1){
+   if (sem->count > 0){
       sem->count--;
    } else {
       rc = TN_RC_TIMEOUT;
