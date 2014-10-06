@@ -186,10 +186,8 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    enum TN_RCode rc = TN_RC_OK;
 
    if (  !_tn_task_first_wait_complete(
-            &sem->wait_queue,
-            TN_RC_OK,
-            NULL,
-            NULL
+            &sem->wait_queue, TN_RC_OK,
+            NULL, NULL, NULL
             )
       )
    {

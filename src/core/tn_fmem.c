@@ -113,6 +113,15 @@ static inline enum TN_RCode _check_param_job_perform(
 #endif
 // }}}
 
+static void _cb_before_task_wait_complete(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      )
+{
+   task->subsys_wait.fmem.data_elem = user_data_1;
+}
+
 static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
@@ -134,22 +143,14 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 
 static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
-   struct TN_Task *task;
-
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!tn_is_list_empty(&(fmem->wait_queue))){
-      //-- there is task(s) that are waiting for free memory block,
-      //   so, pass given memory block to the first task in the queue.
-
-      task = tn_list_first_entry(
-            &(fmem->wait_queue), typeof(*task), task_queue
-            );
-
-      task->subsys_wait.fmem.data_elem = p_data;
-
-      _tn_task_wait_complete(task, TN_RC_OK);
-   } else {
+   if (  !_tn_task_first_wait_complete(
+            &fmem->wait_queue, TN_RC_OK,
+            _cb_before_task_wait_complete, p_data, NULL
+            )
+      )
+   {
       //-- no task is waiting for free memory block, so,
       //   insert in to the memory pool
 

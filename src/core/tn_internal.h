@@ -207,12 +207,15 @@ static inline void _tn_switch_context_if_needed(void)
  *
  * @param task
  *    Task that is going to be waken up
- * @param user_data
+ * @param user_data_1
+ *    Arbitrary user data given to `_tn_task_first_wait_complete()`
+ * @param user_data_2
  *    Arbitrary user data given to `_tn_task_first_wait_complete()`
  */
 typedef void (_TN_CBBeforeTaskWaitComplete)(
       struct TN_Task   *task,
-      void             *user_data
+      void             *user_data_1,
+      void             *user_data_2
       );
 
 
@@ -360,7 +363,9 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  * @param callback
  *    Callback function to call before wake task up, see 
  *    `#_TN_CBBeforeTaskWaitComplete`. Can be `NULL`.
- * @param user_data
+ * @param user_data_1
+ *    Arbitrary data that is passed to the callback
+ * @param user_data_2
  *    Arbitrary data that is passed to the callback
  *
  *
@@ -372,7 +377,8 @@ BOOL _tn_task_first_wait_complete(
       struct TN_ListItem           *wait_queue,
       enum TN_RCode                 wait_rc,
       _TN_CBBeforeTaskWaitComplete *callback,
-      void                         *user_data
+      void                         *user_data_1,
+      void                         *user_data_2
       );
 
 

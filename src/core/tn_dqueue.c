@@ -166,6 +166,45 @@ out:
 }
 // }}}
 
+static void _cb_before_task_wait_complete__send(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      )
+{
+   //-- before task is woken up, set data that it is waiting for
+   task->subsys_wait.dqueue.data_elem = user_data_1;
+}
+
+static void _cb_before_task_wait_complete__receive_ok(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      )
+{
+   struct TN_DQueue *dque = (struct TN_DQueue *)user_data_1;
+
+   //-- put to data FIFO
+   enum TN_RCode rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); 
+   if (rc != TN_RC_OK){
+      _TN_FATAL_ERROR("rc should always be TN_RC_OK here");
+   }
+}
+
+static void _cb_before_task_wait_complete__receive_timeout(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      )
+{
+   // (that might happen if only dque->items_cnt is 0)
+
+   void **pp_data = (void **)user_data_1;
+
+   *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
+}
+
+
 static enum TN_RCode _queue_send(
       struct TN_DQueue *dque,
       void *p_data
@@ -173,21 +212,13 @@ static enum TN_RCode _queue_send(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!tn_is_list_empty(&(dque->wait_receive_list))){
-      struct TN_Task *task;
-      //-- there are tasks waiting for message,
-      //   so, wake up first one
-
-      //-- get first task from wait_receive_list
-      task = tn_list_first_entry(
-            &(dque->wait_receive_list), typeof(*task), task_queue
-            );
-
-      task->subsys_wait.dqueue.data_elem = p_data;
-
-      _tn_task_wait_complete(task, TN_RC_OK);
-   } else {
-      //-- the data queue's  wait_receive list is empty
+   if (  !_tn_task_first_wait_complete(
+            &dque->wait_receive_list, TN_RC_OK,
+            _cb_before_task_wait_complete__send, p_data, NULL
+            )
+      )
+   {
+      //-- the data queue's wait_receive list is empty
       rc = _fifo_write(dque, p_data);
    }
 
@@ -203,34 +234,43 @@ static enum TN_RCode _queue_receive(
 
    rc = _fifo_read(dque, pp_data);
 
-   if (!tn_is_list_empty(&(dque->wait_send_list))){
-      struct TN_Task *task;
-      //-- there are tasks that want to write data
+   switch (rc){
+      case TN_RC_OK:
+         //-- successfully read item from the queue.
+         //   if there are tasks that wait to send data to the queue,
+         //   wake the first one up, since there is room now.
+         _tn_task_first_wait_complete(
+               &dque->wait_send_list, TN_RC_OK,
+               _cb_before_task_wait_complete__receive_ok, dque, NULL
+               );
+         break;
 
-      task = tn_list_first_entry(
-            &(dque->wait_send_list), typeof(*task), task_queue
-            );
-
-      switch (rc){
-         case TN_RC_OK:
-            rc = _fifo_write(dque, task->subsys_wait.dqueue.data_elem); //-- Put to data FIFO
-            if (rc != TN_RC_OK){
-               _TN_FATAL_ERROR("rc should always be TN_RC_OK here");
-            }
-            break;
-
-         case TN_RC_TIMEOUT:
-            //   (that might happen if only dque->items_cnt is 0)
-            *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
+      case TN_RC_TIMEOUT:
+         //-- nothing to read from the queue.
+         //   Let's check whether some task wants to send data
+         //   (that might happen if only dque->items_cnt is 0)
+         if (  _tn_task_first_wait_complete(
+                  &dque->wait_send_list, TN_RC_OK,
+                  _cb_before_task_wait_complete__receive_timeout, pp_data, NULL
+                  )
+            )
+         {
+            //-- that might happen if only dque->items_cnt is 0:
+            //   data was read to `pp_data` in the 
+            //   `_cb_before_task_wait_complete__receive_timeout()`
             rc = TN_RC_OK;
-            break;
+         }
+         break;
 
-         default:
-            _TN_FATAL_ERROR("rc should be either TN_RC_OK or TN_RC_TIMEOUT here");
-            break;
-      }
+      case TN_RC_WPARAM:
+         //-- do nothing, just return this error
+         break;
 
-      _tn_task_wait_complete(task, TN_RC_OK);
+      default:
+         _TN_FATAL_ERROR(
+               "rc should be TN_RC_OK, TN_RC_TIMEOUT or TN_RC_WPARAM here"
+               );
+         break;
    }
 
    return rc;

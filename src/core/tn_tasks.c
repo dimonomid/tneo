@@ -1078,7 +1078,8 @@ BOOL _tn_task_first_wait_complete(
       struct TN_ListItem           *wait_queue,
       enum TN_RCode                 wait_rc,
       _TN_CBBeforeTaskWaitComplete *callback,
-      void                         *user_data
+      void                         *user_data_1,
+      void                         *user_data_2
       )
 {
    BOOL ret = FALSE;
@@ -1092,7 +1093,7 @@ BOOL _tn_task_first_wait_complete(
 
       //-- call provided callback (if any)
       if (callback != NULL){
-         callback(task, user_data);
+         callback(task, user_data_1, user_data_2);
       }
 
       //-- wake task up
