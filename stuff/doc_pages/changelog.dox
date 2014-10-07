@@ -1,0 +1,23 @@
+/**
+\page changelog Changelog
+
+\tableofcontents
+
+Changelog
+
+\section changelog_current Current development version
+
+  - Added `tn_task_state_get()`
+  - **FIX:** `tn_queue_receive()` and `tn_fmem_get()` : if non-zero `timeout`
+    is in effect, then `#TN_RC_TIMEOUT` is returned, but user-provided pointer
+    is altered anyway (some garbage data is written there). This bug was
+    inherited from TNKernel.
+
+\section changelog_v1_0 v1.0
+
+  - Initial stable version of TNeoKernel. Lots of work done: thorough review
+    and re-implementation of TNKernel 2.7, implemented detailed unit tests, and
+    so on.
+
+*/
+

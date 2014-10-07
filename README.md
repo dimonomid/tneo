@@ -5,7 +5,7 @@ TNeoKernel is a compact and fast real-time kernel for the embedded 32/16 bits
 microprocessors. It performs a preemptive priority-based scheduling and a
 round-robin scheduling for the tasks with identical priority.
 
-TNeoKernel was born as a thorough review and re-implementation of TNKernel. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
+TNeoKernel was born as a thorough review and re-implementation of [TNKernel](http://tnkernel.com) v2.7. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
 
 Currently it is available for PIC32 only, but will probably be ported to other architectures. Tested on PIC32MX.
 
