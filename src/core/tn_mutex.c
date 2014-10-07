@@ -732,6 +732,7 @@ out_ei:
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_mutex){
+      //-- get wait result
       rc = tn_curr_run_task->task_wait_rc;
    }
 

@@ -344,15 +344,22 @@ static enum TN_RCode _dqueue_job_perform(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited){
+
+      //-- get wait result
+      rc = tn_curr_run_task->task_wait_rc;
+
       switch (job_type){
          case _JOB_TYPE__SEND:
-            rc = tn_curr_run_task->task_wait_rc;
+            //-- do nothing special
             break;
          case _JOB_TYPE__RECEIVE:
-            //-- dqueue.data_elem should contain valid value now,
-            //   return it to caller
-            *pp_data = tn_curr_run_task->subsys_wait.dqueue.data_elem;
-            rc = tn_curr_run_task->task_wait_rc;
+            //-- if wait result is TN_RC_OK, copy received pointer to the
+            //   user's location
+            if (rc == TN_RC_OK){
+               //-- dqueue.data_elem should contain valid value now,
+               //   return it to caller
+               *pp_data = tn_curr_run_task->subsys_wait.dqueue.data_elem;
+            }
             break;
       }
    }
