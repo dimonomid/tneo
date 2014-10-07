@@ -67,6 +67,11 @@ hg ci -m"$new_commit_message"
 # push it
 # COMMENTED to be more safe
 # hg push
+echo "--------------------------------------------------------------------------"
+echo "DON'T FORGET to push your changes now, if everything is ok:"
+echo "    $ cd dfrank.bitbucket.org"
+echo "    $ hg push"
+echo "--------------------------------------------------------------------------"
 
 # go back
 cd ../../..
