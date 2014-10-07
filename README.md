@@ -9,11 +9,11 @@ TNeoKernel was born as a thorough review and re-implementation of [TNKernel](htt
 
 Currently it is available for PIC32 only, but will probably be ported to other architectures. Tested on PIC32MX.
 
-Comprehensive documentation is available in two forms:
+Comprehensive documentation is available in two forms: html and pdf.
 
-  * [Latest stable TNeoKernel (html)](http://goo.gl/bwyAxZ)
-  * [Latest stable TNeoKernel (pdf)](http://goo.gl/d9W9HE)
-
+  * Latest stable TNeoKernel: [html](http://goo.gl/bwyAxZ), [pdf](http://goo.gl/d9W9HE)
+  * Current development TNeoKernel BETA: [html](http://goo.gl/6S6Lv6), [pdf](http://goo.gl/c2Fp6e)
+  * [Changelog](http://goo.gl/N9v65n)
 
 Index of all available docs can be found [here](http://goo.gl/HJFOqe).
 

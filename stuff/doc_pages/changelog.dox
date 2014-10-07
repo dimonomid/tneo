@@ -3,9 +3,9 @@
 
 \tableofcontents
 
-Changelog
+TNeoKernel changelog
 
-\section changelog_current Current development version
+\section changelog_current Current development version (BETA)
 
   - Added `tn_task_state_get()`
   - **FIX:** `tn_queue_receive()` and `tn_fmem_get()` : if non-zero `timeout`
