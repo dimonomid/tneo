@@ -232,6 +232,9 @@ TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed
     $(TN_TASK_STATE_SUSPEND) state, instead of `#TERR_DLT`
   - `tn_sys_tslice_ticks()` : if wrong params are given, `#TERR_WRONG_PARAM` is
     returned and interrupts remain disabled.
+  - `tn_queue_receive()` and `tn_fmem_get()` : if `timeout` is in effect, then
+    `#TN_RC_TIMEOUT` is returned, but user-provided pointer is altered anyway
+    (some garbage data is written there)
   - Probably not a "bug", but an issue in the data queue: actual capacity of
     the buffer is less by 1 than user has specified and allocated
 
