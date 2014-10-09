@@ -1,11 +1,26 @@
 /**
 \page why_reimplement Why reimplement TNKernel
 
-Very brief explanation of the essential things I don't like in the TNKernel code.
+Explanation of essential TNKernel problems as well as several examples of poor implementation.
 
 \tableofcontents
 
-\section why_reimplement__one_exit_point One entry point, one exit point
+\section why_reimplement__problems_of_tnkernel Essential problems of TNKernel
+
+- The most essential problem is that TNKernel is a very hastily-written project. Several concepts are just poorly thought out, others are poorly implemented: there is a lot of code duplication and inconsistency;
+
+- It is untested: there are no unit tests for the kernel, this is not acceptable for the project like real-time kernel;
+
+As a result of the two above, the kernel is buggy. And even more, the kernel is really **hard to maintain** because of inconsistency, so when we add new features or change something, we are likely to add new bugs as well.
+
+- It is unsupported. I've written to the Yuri Tiomkin about \ref tnkernel_diff_make_alig "troubles with MAKE_ALIG() macro" as well as about bugs in the kernel, my messages were just ignored;
+
+- Documentation is far from perfect and it lives separately of the project itself: latest kernel version at the moment is 2.7 (published at 2013), but latest documentation is for 2.3 (published at 2006).
+
+
+\section why_reimplement__tnkernel_impl_details Examples of poor implementation
+
+\subsection why_reimplement__one_exit_point One entry point, one exit point
 
 The most common example that happens across all TNKernel sources is code like
 the following:
@@ -90,7 +105,7 @@ If you look closely, you can see that if wrong params were given,
 follow the *one entry point, one exit point* rule, this bug is much less
 likely to happen.
 
-\section why_reimplement__dont_repeat_yourself Don't repeat yourself
+\subsection why_reimplement__dont_repeat_yourself Don't repeat yourself
 
 Original TNKernel 2.7 code has **a lot** of code duplication.
 So many similar things are done in several places just by copy-pasting the
@@ -126,7 +141,7 @@ to change something, we need to change it in several places. Needless to say,
 it is very error-prone practice, and of course there are bugs in original
 TNKernel because of that (refer to \ref why_reimplement__bugs).
 
-\section why_reimplement__returning_macro Macros that return from function
+\subsection why_reimplement__returning_macro Macros that return from function
 
 TNKernel uses architecture-depended macros like `TN_CHECK_NON_INT_CONTEXT`.
 This macro checks the current context (task or ISR), and if it is ISR, it
@@ -156,7 +171,7 @@ out:
 }
 \endcode
 
-\section why_reimplement__linked_lists Code for doubly-linked lists
+\subsection why_reimplement__linked_lists Code for doubly-linked lists
 
 
 TNKernel uses doubly-linked lists heavily, which is very good. I must admit
