@@ -7,6 +7,12 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
+  - *No changes yet*
+
+\section changelog_v1_01 v1.01
+
+Release date: 2014-10-09.
+
   - **FIX:** `tn_queue_receive()` and `tn_fmem_get()` : if non-zero `timeout`
     is in effect, then `#TN_RC_TIMEOUT` is returned, but user-provided pointer
     is altered anyway (some garbage data is written there). This bug was
