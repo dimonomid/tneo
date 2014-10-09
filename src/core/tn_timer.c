@@ -241,12 +241,13 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   //-- set timeout to zero (but this is actually not necessary)
+   //-- reset timeout to zero
    timer->timeout_cur = 0;
-   //timer->timeout_cur = 300;
 
    //-- remove entry from timer queue
    tn_list_remove_entry(&(timer->timer_queue));
+
+   //-- reset the list (but this is actually not necessary)
    tn_list_reset(&(timer->timer_queue));
 
    return rc;
@@ -273,7 +274,7 @@ enum TN_RCode _tn_timer_create(
 
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
-   return !tn_is_list_empty(&(timer->timer_queue));
+   return (timer->timeout_cur != 0);
 }
 
 
