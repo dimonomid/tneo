@@ -922,6 +922,8 @@ void _tn_task_set_waiting(
    //-- only SUSPEND bit is allowed here
    if (task->task_state & ~(TN_TASK_STATE_SUSPEND)){
       _TN_FATAL_ERROR("");
+   } else if (timeout == 0){
+      _TN_FATAL_ERROR("");
    }
 #endif
 
