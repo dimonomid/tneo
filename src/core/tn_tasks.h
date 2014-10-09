@@ -55,6 +55,7 @@
 #include "tn_eventgrp.h"
 #include "tn_dqueue.h"
 #include "tn_fmem.h"
+#include "tn_timer.h"
 
 
 
@@ -177,9 +178,12 @@ struct TN_Task {
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     
+   //
+   // queue is used to include task in timer list
+   //struct TN_ListItem timer_queue;
    ///
-   /// queue is used to include task in timer list
-   struct TN_ListItem timer_queue;
+   /// timer object to implement task waiting for timeout
+   struct TN_Timer timer;
    ///
    /// pointer to object's (semaphore, mutex, event, etc) wait list in which 
    /// task is included for waiting
@@ -235,9 +239,9 @@ struct TN_Task {
    ///
    /// waiting result code (reason why waiting finished)
    enum TN_RCode task_wait_rc;
-   ///
-   /// remaining time until timeout; may be `#TN_WAIT_INFINITE`.
-   unsigned long tick_count;
+   //
+   // remaining time until timeout; may be `#TN_WAIT_INFINITE`.
+   //TN_Timeout tick_count;
    ///
    /// time slice counter
    int tslice_count;

@@ -107,7 +107,7 @@ static inline enum TN_RCode _check_param_create(
 static inline enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem),
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    TN_INTSAVE_DATA;

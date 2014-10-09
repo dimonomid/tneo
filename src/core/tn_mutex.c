@@ -463,7 +463,7 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 
 static inline void _add_curr_task_to_mutex_wait_queue(
       struct TN_Mutex *mutex,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    enum TN_WaitReason wait_reason;

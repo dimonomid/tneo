@@ -281,7 +281,7 @@ static enum TN_RCode _dqueue_job_perform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    TN_INTSAVE_DATA;

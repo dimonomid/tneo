@@ -347,6 +347,15 @@ static void _task_terminate(struct TN_Task *task)
    _tn_task_set_dormant(task);
 }
 
+/**
+ * This function is called by timer
+ */
+static void _task_wait_timeout(void *p_user_data)
+{
+   struct TN_Task *task = (struct TN_Task *)p_user_data;
+
+   _tn_task_wait_complete(task, TN_RC_TIMEOUT);
+}
 
 /*******************************************************************************
  *    PUBLIC FUNCTIONS
@@ -426,6 +435,8 @@ enum TN_RCode tn_task_create(
    for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
       *ptr_stack-- = TN_FILL_STACK_VAL;
    }
+
+   _tn_timer_create(&task->timer, _task_wait_timeout, task);
 
    _tn_task_set_dormant(task);
 
@@ -892,7 +903,7 @@ void _tn_task_set_waiting(
       struct TN_Task *task,
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
 #if TN_DEBUG
@@ -904,7 +915,7 @@ void _tn_task_set_waiting(
 
    task->task_state       |= TN_TASK_STATE_WAIT;
    task->task_wait_reason = wait_reason;
-   task->tick_count       = timeout;
+   //task->tick_count       = timeout;
 
    task->waited           = TRUE;
 
@@ -921,7 +932,8 @@ void _tn_task_set_waiting(
    //--- Add to the timers queue
 
    if (timeout != TN_WAIT_INFINITE){
-      tn_list_add_tail(&tn_wait_timeout_list, &(task->timer_queue));
+      _tn_timer_start(&task->timer, timeout);
+      //tn_list_add_tail(&tn_wait_timeout_list, &(task->timer_queue));
    }
 }
 
@@ -966,12 +978,18 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
    task->pwait_queue  = NULL;
    task->task_wait_rc = wait_rc;
 
+#if 0
    //-- remove task from timer queue (if it is there)
    if (task->tick_count != TN_WAIT_INFINITE){
       tn_list_remove_entry(&(task->timer_queue));
    }
 
    task->tick_count = TN_WAIT_INFINITE;
+#endif
+
+   if (_tn_timer_is_active(&task->timer)){
+      _tn_timer_cancel(&task->timer);
+   }
 
    //-- remove WAIT state
    task->task_state &= ~TN_TASK_STATE_WAIT;
@@ -1019,19 +1037,19 @@ void _tn_task_set_dormant(struct TN_Task* task)
 #endif
 
    tn_list_reset(&(task->task_queue));
-   tn_list_reset(&(task->timer_queue));
+   //tn_list_reset(&(task->timer_queue));
 
    _init_mutex_queue(task);
    _init_deadlock_list(task);
 
    task->pwait_queue = NULL;
 
-   task->priority    = task->base_priority; //-- Task curr priority
+   task->priority    = task->base_priority;      //-- Task curr priority
    task->task_state  |= TN_TASK_STATE_DORMANT;   //-- Task state
-   task->task_wait_reason = 0;              //-- Reason for waiting
+   task->task_wait_reason = TN_WAIT_REASON_NONE; //-- Reason for waiting
    task->task_wait_rc = TN_RC_OK;
 
-   task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
+   //task->tick_count    = TN_WAIT_INFINITE;  //-- Remaining time until timeout
 
    task->tslice_count  = 0;
 }

@@ -68,6 +68,7 @@ extern "C"  {     /*}*/
 
 struct TN_Mutex;
 struct TN_ListItem;
+struct TN_Timer;
 
 
 
@@ -84,8 +85,12 @@ extern struct TN_ListItem tn_create_queue;
 /// count of created tasks
 extern volatile int tn_created_tasks_cnt;           
 
-/// list of all tasks that wait timeout expiration
-extern struct TN_ListItem tn_wait_timeout_list;             
+/// list of all tasks that wait timeout expiration 
+/// TODO: remove
+//extern struct TN_ListItem tn_wait_timeout_list;             
+
+/// list of all active timers, see tn_timer.h
+struct TN_ListItem tn_timer_list;
 
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
@@ -264,7 +269,7 @@ void _tn_task_set_waiting(
       struct TN_Task *task,
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout
+      TN_Timeout timeout
       );
 
 /**
@@ -308,7 +313,7 @@ static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wa
 static inline void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    _tn_task_clear_runnable(tn_curr_run_task);
@@ -418,6 +423,44 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
 #endif
 
 
+
+
+/*******************************************************************************
+ *    tn_timer.c
+ ******************************************************************************/
+
+/**
+ * Should be called from system timer interrupt for each timer
+ * in the timer queue.
+ *
+ * It decrements timer count, and if it reaches zero, timer is cancelled
+ * and function is called.
+ */
+void _tn_timer_tick_proceed(struct TN_Timer *timer);
+
+/**
+ * TODO
+ */
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+
+/**
+ * TODO
+ */
+enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer);
+
+/**
+ * TODO
+ */
+enum TN_RCode _tn_timer_create(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
+
+/**
+ * TODO
+ */
+BOOL _tn_timer_is_active(struct TN_Timer *timer);
 
 #ifdef __cplusplus
 }  /* extern "C" */

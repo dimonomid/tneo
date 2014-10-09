@@ -27,6 +27,7 @@
         <itemPath>../../../core/tn_list.c</itemPath>
         <itemPath>../../../core/tn_eventgrp.c</itemPath>
         <itemPath>../../../core/tn_fmem.c</itemPath>
+        <itemPath>../../../core/tn_timer.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
