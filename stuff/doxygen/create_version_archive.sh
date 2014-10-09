@@ -21,8 +21,11 @@ archive_name="tneokernel-$version_string"
 # get full path to output archive
 archive_full_name="/tmp/$archive_name"
 
+echo "target directory: \"$archive_full_name\""
+
 # remove all current doxygen output
 rm -r ./output
+
 
 # make doxygen output (html, latex)
 make
@@ -40,23 +43,29 @@ cd ../..
 # go to root of the repo
 pushd ../..
 
+# if target directory exists, remove it
+if test -d "$archive_full_name"; then
+   echo "target directory exists, removing.."
+   rm -r "$archive_full_name"
+fi
+
 # make directory that will be packed soon
-mkdir $archive_full_name
+mkdir "$archive_full_name"
 
 # copy data there
-rsync -av --exclude=".hg*" . $archive_full_name
+rsync -av --exclude=".hg*" --exclude=".vimprj" . "$archive_full_name"
 
 # cd to newly created directory (that will be packed soon)
-cd $archive_full_name
+cd "$archive_full_name"
 
 # remove tn_cfg.h
-rm $archive_full_name/src/tn_cfg.h
+rm "$archive_full_name/src/tn_cfg.h"
 
 # create doc dirs
-mkdir doc{html,pdf}
+mkdir -p doc/{html,pdf}
 
 # copy all html output as is
-cp -r stuff/doxygen/output/html/* doc
+cp -r stuff/doxygen/output/html/* doc/html
 
 # copy pdf
 cp stuff/doxygen/output/latex/tneokernel.pdf doc/pdf
@@ -64,13 +73,28 @@ cp stuff/doxygen/output/latex/tneokernel.pdf doc/pdf
 # delete doxygen output dir
 rm -r stuff/doxygen/output
 
+# remove dfrank.bitbucket.org repo
+if test -d "stuff/doxygen/dfrank.bitbucket.org"; then
+   echo "removing stuff/doxygen/dfrank.bitbucket.org.."
+   rm -r "stuff/doxygen/dfrank.bitbucket.org"
+fi
+
+# cd one dir back, in order to make paths in the resulting zip archive correct
+cd ..
+
+
+# if target archive exists, remove it
+if test -f "$archive_full_name.zip"; then
+   echo "target archve exists, removing.."
+   rm "$archive_full_name.zip"
+fi
+
 # pack dir
+zip -r "$archive_full_name.zip" "$archive_name"
 
 
 echo "--------------------------------------------------------------------------"
-echo "DON'T FORGET to push your changes now, if everything is ok:"
-echo "    $ cd dfrank.bitbucket.org"
-echo "    $ hg push"
+echo " resulting archive is saved as $archive_full_name.zip"
 echo "--------------------------------------------------------------------------"
 
 # go back
