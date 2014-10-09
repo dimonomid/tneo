@@ -185,6 +185,14 @@ In original TNKernel thare is a lot of inconsistency with naming stuff:
 
 So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
 
+\subsection tnkernel_diff_new_functions New system services added
+
+Several system services were added:
+
+  - `tn_cur_task_get()` : return a pointer to the `struct TN_Task` of the currently running task;
+  - `tn_cur_task_body_get()` : return pointer to the currently running task body function;
+  - `tn_task_state_get()` : get state of the task.
+
 
 \section tnkernel_diff_other Changes that do not affect API directly
 
