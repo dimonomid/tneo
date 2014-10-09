@@ -350,7 +350,7 @@ static void _task_terminate(struct TN_Task *task)
 /**
  * This function is called by timer
  */
-static void _task_wait_timeout(void *p_user_data)
+static void _task_wait_timeout(struct TN_Timer *timer, void *p_user_data)
 {
    struct TN_Task *task = (struct TN_Task *)p_user_data;
 

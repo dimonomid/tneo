@@ -218,7 +218,7 @@ void _tn_timer_tick_proceed(struct TN_Timer *timer)
       _tn_timer_cancel(timer);
       
       //-- call user function
-      timer->func(timer->p_user_data);
+      timer->func(timer, timer->p_user_data);
    }
 }
 

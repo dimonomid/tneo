@@ -61,7 +61,13 @@ extern "C"  {     /*}*/
  *    PUBLIC TYPES
  ******************************************************************************/
 
-typedef void (TN_TimerFunc)(void *p_user_data);
+struct TN_Timer;
+
+
+/**
+ * Prototype of the function that should be called by timer
+ */
+typedef void (TN_TimerFunc)(struct TN_Timer *timer, void *p_user_data);
 
 /**
  * Timer
