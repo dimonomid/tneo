@@ -56,29 +56,37 @@ In original TNKernel it's illegal to pass `block_size` that is less than `sizeof
 
 Why I don't like it: firstly, silent behavior like this is generally bad practice that leads to hard-to-catch bugs. Secondly, it is inconsistency again: why is it legal for `block_size` not to be multiple of `sizeof(int)`, but it is illegal for it to be less than `sizeof(int)`? After all, the latter is the partucular case of the former.
 
-So, TNeoKernel returns `#TN_RC_WPARAM` in these cases. User must provide `start_addr` and `block_size` that are properly aligned. As a generic rule, it is good practice to declare buffers for fmp like this:
+So, TNeoKernel returns `#TN_RC_WPARAM` in these cases. User must provide `start_addr` and `block_size` that are properly aligned. 
+
+TNeoKernel also provides convenience macro `TN_FMEM_BUF_DEF()` for buffer definition, so, as a generic rule, it is good practice to define buffers for memory pool like this:
 
 \code{.c}
-    #define MY_MEMORY_BUF_SIZE    8
+   //-- number of blocks in the pool
+   #define MY_MEMORY_BUF_SIZE    8
 
-    struct MyMemoryItem {
-       // ... arbitrary fields ...
-    };
-    
-    int my_fmp_buf[
-            MY_MEMORY_BUF_SIZE 
-          * (TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)) / sizeof(int))
-          ];
-    struct TN_Fmp my_fmp;
+   //-- type for memory block
+   struct MyMemoryItem {
+      // ... arbitrary fields ...
+   };
+   
+   //-- define buffer for memory pool
+   TN_FMEM_BUF_DEF(my_fmem_buf, struct MyMemoryItem, MY_MEMORY_BUF_SIZE);
+
+   //-- define memory pool structure
+   struct TN_FMem my_fmem;
 \endcode
 
-And then, construct your `my_fmp` as follows:
+And then, construct your `my_fmem` as follows:
 
 \code{.c}
-    tn_fmem_create( &my_fmp,
-                    my_fmp_buf,
-                    TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
-                    MY_MEMORY_BUF_SIZE );
+   enum TN_RCode rc;
+   rc = tn_fmem_create( &my_fmem,
+                        my_fmem_buf,
+                        TN_MAKE_ALIG_SIZE(sizeof(struct MyMemoryItem)),
+                        MY_MEMORY_BUF_SIZE );
+   if (rc != TN_RC_OK){
+      //-- handle error
+   }
 \endcode
 
 
@@ -168,7 +176,7 @@ Similarly to the previous section, you can still use "manual" definition of the 
 
 \subsection tnkernel_diff_api_rename Things renamed
 
-In original TNKernel thare is a lot of inconsistency with naming stuff: 
+There is a lot of inconsistency with naming stuff in original TNKernel: 
 
   - Why do we have `tn_queue_send_polling()` / `tn_queue_isend_polling()` (notice the `i` letter before the verb, not before `polling`), but `tn_fmem_get_polling()` / `tn_fmem_get_ipolling()` (notice the `i` letter before `polling`)?
   - All the system service names follow the naming scheme `tn_<noun>_<verb>[_<adjustment>]()`, but the `tn_start_system()` is special, for some strange reason. To make it consistent, it should be named `tn_system_start()` or `tn_sys_start()`;
@@ -176,6 +184,22 @@ In original TNKernel thare is a lot of inconsistency with naming stuff:
   - etc
 
 So, a lot of things (functions, macros, etc) has renamed. Old names are also available through `tn_oldsymbols.h`, which is included automatically if `#TN_OLD_TNKERNEL_NAMES` option is non-zero.
+
+\subsection tnkernel_diff_api_rename_sem We should wait for semaphore, not acquire it
+
+One of the renamings deserves special mentioning: `tn_sem_acquire()` and friends are renamed to `tn_sem_wait()` and friends. That's because names acquire/release are actually misleading for the semaphore: semaphore is a *signaling mechanism*, and **not** the locking mechanism.
+
+Actually, there's a lot of confusion about usage of mutexes/semaphores, so it's quite recommended to read small article by Michael Barr: [Mutexes and Semaphores Demystified](http://goo.gl/YprPBW).
+
+Old names (`tn_sem_acquire()` and friends) are still available through `tn_oldsymbols.h`.
+
+\subsection tnkernel_diff_new_functions New system services added
+
+Several system services were added:
+
+  - `tn_cur_task_get()` : return a pointer to the `struct TN_Task` of the currently running task;
+  - `tn_cur_task_body_get()` : return pointer to the currently running task body function;
+  - `tn_task_state_get()` : get state of the task.
 
 
 \section tnkernel_diff_other Changes that do not affect API directly

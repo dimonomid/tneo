@@ -241,6 +241,12 @@ struct TN_Task {
    ///
    /// time slice counter
    int tslice_count;
+#if 0
+   ///
+   /// last operation result code, might be used if some service
+   /// does not return that code directly
+   int last_rc;
+#endif
    ///
    /// subsystem-specific fields that are used while task waits for something.
    /// Do note that these fields are grouped by union, so, they must not
@@ -266,6 +272,12 @@ struct TN_Task {
    /// For the comments on it, see file tn_mutex.c,
    /// function `_mutex_do_unlock()`.
    unsigned          priority_already_updated : 1;
+
+   /// Flag indicates that task waited for something
+   /// This flag is set automatially in `_tn_task_set_waiting()`
+   /// Must be cleared manually before calling any service that could sleep,
+   /// if the caller is interested in the relevant value of this flag.
+   unsigned          waited : 1;
 
 
 // Other implementation specific fields may be added below
@@ -654,6 +666,33 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task);
  *
  */
 enum TN_RCode tn_task_delete(struct TN_Task *task);
+
+/**
+ * Get current state of the task; note that returned state is a bitmask,
+ * that is, states could be combined with each other.
+ *
+ * Currently, only $(TN_TASK_STATE_WAIT) and $(TN_TASK_STATE_SUSPEND) states 
+ * are allowed to be set together. Nevertheless, it would be probably good
+ * idea to test individual bits in the returned value instead of plain 
+ * comparing values.
+ *
+ * Note that if something goes wrong, variable pointed to by `p_state`
+ * isn't touched.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param task
+ *    task to get state of
+ * @param p_state 
+ *    pointer to the location where to store state of the task
+ *
+ * @return state of the task
+ */
+enum TN_RCode tn_task_state_get(
+      struct TN_Task *task,
+      enum TN_TaskState *p_state
+      );
 
 /**
  * Set new priority for task.

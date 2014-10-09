@@ -146,6 +146,7 @@ static inline enum TN_RCode _sem_job_perform(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_sem){
+      //-- get wait result
       rc = tn_curr_run_task->task_wait_rc;
    }
 
@@ -185,19 +186,12 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!(tn_is_list_empty(&(sem->wait_queue)))){
-      struct TN_Task *task;
-      //-- there are tasks waiting for that semaphore,
-      //   so, wake up first one
-
-      //-- get first task from semaphore's wait_queue
-      task = tn_list_first_entry(
-            &(sem->wait_queue), typeof(*task), task_queue
-            );
-
-      //-- wake it up
-      _tn_task_wait_complete(task, TN_RC_OK);
-   } else {
+   if (  !_tn_task_first_wait_complete(
+            &sem->wait_queue, TN_RC_OK,
+            NULL, NULL, NULL
+            )
+      )
+   {
       //-- no tasks are waiting for that semaphore,
       //   so, just increase its count if possible.
       if (sem->count < sem->max_count){
@@ -210,11 +204,11 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    return rc;
 }
 
-static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
+static inline enum TN_RCode _sem_wait(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem->count >= 1){
+   if (sem->count > 0){
       sem->count--;
    } else {
       rc = TN_RC_TIMEOUT;
@@ -315,25 +309,25 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout)
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout)
 {
-   return _sem_job_perform(sem, _sem_acquire, timeout);
+   return _sem_job_perform(sem, _sem_wait, timeout);
 }
 
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_wait_polling(struct TN_Sem *sem)
 {
-   return _sem_job_perform(sem, _sem_acquire, 0);
+   return _sem_job_perform(sem, _sem_wait, 0);
 }
 
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_iwait_polling(struct TN_Sem *sem)
 {
-   return _sem_job_iperform(sem, _sem_acquire);
+   return _sem_job_iperform(sem, _sem_wait);
 }
 
 

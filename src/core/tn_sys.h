@@ -223,10 +223,11 @@ typedef void (TN_CBDeadlock)(
  * @param   int_stack_size       
  *    Size of interrupt stack, in words (`#TN_UWord`)
  * @param   cb_user_task_create
- *    Callback function that should create initial user's task
- *    (see \ref TN_CBUserTaskCreate)
+ *    Callback function that should create initial user's task, see
+ *    `#TN_CBUserTaskCreate` for details.
  * @param   cb_idle              
- *    Callback function repeatedly called from idle task.
+ *    Callback function repeatedly called from idle task, see `#TN_CBIdle` for
+ *    details.
  */
 void tn_sys_start(
       TN_UWord            *idle_task_stack,

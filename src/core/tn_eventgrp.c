@@ -356,13 +356,15 @@ enum TN_RCode tn_eventgrp_wait(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_event){
-      if (     tn_curr_run_task->task_wait_rc == TN_RC_OK
-            && p_flags_pattern != NULL )
-      {
+      //-- get wait result
+      rc = tn_curr_run_task->task_wait_rc;
+
+      //-- if wait result is TN_RC_OK, and p_flags_pattern is provided,
+      //   copy actual_pattern there
+      if (rc == TN_RC_OK && p_flags_pattern != NULL ){
          *p_flags_pattern = 
             tn_curr_run_task->subsys_wait.eventgrp.actual_pattern;
       }
-      rc = tn_curr_run_task->task_wait_rc;
    }
 
 out:

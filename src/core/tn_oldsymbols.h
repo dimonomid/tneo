@@ -45,8 +45,6 @@
  *
  * Included automatially if the option `#TN_OLD_TNKERNEL_NAMES` is set.
  *
- * @see `#TN_OLD_TNKERNEL_NAMES`
- *
  */
 
 #ifndef _TN_OLDSYMBOLS_H
@@ -250,6 +248,17 @@ typedef struct TN_Sem         TN_SEM;
 
 /// old TNKernel name of `#tn_sem_iacquire_polling`
 #define  tn_sem_ipolling               tn_sem_iacquire_polling
+
+
+/// old name of `#tn_sem_wait`
+#define  tn_sem_acquire                tn_sem_wait
+
+/// old name of `#tn_sem_wait_polling`
+#define  tn_sem_acquire_polling        tn_sem_wait_polling
+
+/// old name of `#tn_sem_iwait_polling`
+#define  tn_sem_iacquire_polling       tn_sem_iwait_polling
+
 
 
 /// old TNKernel name of `#tn_fmem_iget_polling`

@@ -200,6 +200,25 @@ static inline void _tn_switch_context_if_needed(void)
  *    tn_tasks.c
  ******************************************************************************/
 
+/**
+ * Callback that is given to `_tn_task_first_wait_complete()`, may perform
+ * any needed actions before waking task up, e.g. set some data in the `struct
+ * TN_Task` that task is waiting for.
+ *
+ * @param task
+ *    Task that is going to be waken up
+ * @param user_data_1
+ *    Arbitrary user data given to `_tn_task_first_wait_complete()`
+ * @param user_data_2
+ *    Arbitrary user data given to `_tn_task_first_wait_complete()`
+ */
+typedef void (_TN_CBBeforeTaskWaitComplete)(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      );
+
+
 static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
@@ -314,6 +333,15 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority);
  */
 void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
+#if 0
+#define _tn_task_set_last_rc(rc)  { tn_curr_run_task = (rc); }
+
+/**
+ * If given return code is not `#TN_RC_OK`, save it in the task's structure
+ */
+void _tn_task_set_last_rc_if_error(enum TN_RCode rc);
+#endif
+
 #if TN_USE_MUTEXES
 /**
  * Check if mutex is locked by task.
@@ -323,6 +351,35 @@ void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
 #endif
 
+/**
+ * Wakes up first (if any) task from the queue, calling provided
+ * callback before.
+ *
+ * @param wait_queue
+ *    Wait queue to get first task from
+ * @param wait_rc
+ *    Code that will be returned to woken-up task as a result of waiting
+ *    (this code is just given to `_tn_task_wait_complete()` actually)
+ * @param callback
+ *    Callback function to call before wake task up, see 
+ *    `#_TN_CBBeforeTaskWaitComplete`. Can be `NULL`.
+ * @param user_data_1
+ *    Arbitrary data that is passed to the callback
+ * @param user_data_2
+ *    Arbitrary data that is passed to the callback
+ *
+ *
+ * @return
+ *    - `TRUE` if queue is not empty and task has woken up
+ *    - `FALSE` if queue is empty, so, no task to wake up
+ */
+BOOL _tn_task_first_wait_complete(
+      struct TN_ListItem           *wait_queue,
+      enum TN_RCode                 wait_rc,
+      _TN_CBBeforeTaskWaitComplete *callback,
+      void                         *user_data_1,
+      void                         *user_data_2
+      );
 
 
 

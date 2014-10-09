@@ -113,6 +113,15 @@ static inline enum TN_RCode _check_param_job_perform(
 #endif
 // }}}
 
+static void _cb_before_task_wait_complete(
+      struct TN_Task   *task,
+      void             *user_data_1,
+      void             *user_data_2
+      )
+{
+   task->subsys_wait.fmem.data_elem = user_data_1;
+}
+
 static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
@@ -122,9 +131,7 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
       ptr = fmem->free_list;
       fmem->free_list = *(void **)fmem->free_list;   //-- ptr - to new free list
       fmem->free_blocks_cnt--;
-   }
 
-   if (ptr != NULL){
       *p_data = ptr;
       rc = TN_RC_OK;
    } else {
@@ -136,22 +143,14 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 
 static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
-   struct TN_Task *task;
-
    enum TN_RCode rc = TN_RC_OK;
 
-   if (!tn_is_list_empty(&(fmem->wait_queue))){
-      //-- there is task(s) that are waiting for free memory block,
-      //   so, pass given memory block to the first task in the queue.
-
-      task = tn_list_first_entry(
-            &(fmem->wait_queue), typeof(*task), task_queue
-            );
-
-      task->subsys_wait.fmem.data_elem = p_data;
-
-      _tn_task_wait_complete(task, TN_RC_OK);
-   } else {
+   if (  !_tn_task_first_wait_complete(
+            &fmem->wait_queue, TN_RC_OK,
+            _cb_before_task_wait_complete, p_data, NULL
+            )
+      )
+   {
       //-- no task is waiting for free memory block, so,
       //   insert in to the memory pool
 
@@ -161,6 +160,13 @@ static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
          fmem->free_list = p_data;
          fmem->free_blocks_cnt++;
       } else {
+#if TN_DEBUG
+         if (fmem->free_blocks_cnt > fmem->blocks_cnt){
+            _TN_FATAL_ERROR(
+                  "free_blocks_cnt should never be more than blocks_cnt"
+                  );
+         }
+#endif
          //-- the memory pool already has all the blocks free
          rc = TN_RC_OVERFLOW;
       }
@@ -332,11 +338,16 @@ enum TN_RCode tn_fmem_get(
    TN_INT_RESTORE();
    _tn_switch_context_if_needed();
    if (waited_for_data){
-      //-- now, fmem.data_elem field should contain valid value, so,
-      //   return it to caller.
-      *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
 
+      //-- get wait result
       rc = tn_curr_run_task->task_wait_rc;
+
+      //-- if wait result is TN_RC_OK, copy memory block pointer to the
+      //   user's location
+      if (rc == TN_RC_OK){
+         *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
+      }
+
    }
 
 out:

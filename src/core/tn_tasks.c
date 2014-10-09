@@ -728,6 +728,36 @@ out:
 /*
  * See comments in the header file (tn_tasks.h)
  */
+enum TN_RCode tn_task_state_get(
+      struct TN_Task *task,
+      enum TN_TaskState *p_state
+      )
+{
+   enum TN_RCode rc = _check_param_generic(task);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   TN_INTSAVE_DATA;
+
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_DIS_SAVE();
+
+   *p_state = task->task_state;
+
+   TN_INT_RESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_tasks.h)
+ */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
    TN_INTSAVE_DATA;
@@ -875,6 +905,8 @@ void _tn_task_set_waiting(
    task->task_state       |= TN_TASK_STATE_WAIT;
    task->task_wait_reason = wait_reason;
    task->tick_count       = timeout;
+
+   task->waited           = TRUE;
 
    //--- Add to the wait queue  - FIFO
 
@@ -1041,6 +1073,40 @@ enum TN_RCode _tn_task_activate(struct TN_Task *task)
    return rc;
 }
 
+/**
+ * See comment in the tn_internal.h file
+ */
+BOOL _tn_task_first_wait_complete(
+      struct TN_ListItem           *wait_queue,
+      enum TN_RCode                 wait_rc,
+      _TN_CBBeforeTaskWaitComplete *callback,
+      void                         *user_data_1,
+      void                         *user_data_2
+      )
+{
+   BOOL ret = FALSE;
+
+   if (!(tn_is_list_empty(wait_queue))){
+      struct TN_Task *task;
+      //-- there are tasks in the wait queue, so, wake up the first one
+
+      //-- get first task from the wait_queue
+      task = tn_list_first_entry(wait_queue, typeof(*task), task_queue);
+
+      //-- call provided callback (if any)
+      if (callback != NULL){
+         callback(task, user_data_1, user_data_2);
+      }
+
+      //-- wake task up
+      _tn_task_wait_complete(task, wait_rc);
+
+      //-- indicate that some task has been woken up
+      ret = TRUE;
+   }
+
+   return ret;
+}
 
 
 /**
@@ -1074,6 +1140,22 @@ void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 
    _find_next_task_to_run();
 }
+
+#if 0
+/**
+ * See comment in the tn_internal.h file
+ */
+void _tn_task_set_last_rc_if_error(enum TN_RCode rc)
+{
+   if (rc != TN_RC_OK){
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      tn_curr_run_task->last_rc = rc;
+      TN_INT_RESTORE();
+   }
+}
+#endif
 
 #if TN_USE_MUTEXES
 /**

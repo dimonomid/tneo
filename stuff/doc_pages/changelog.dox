@@ -1,0 +1,34 @@
+/**
+\page changelog Changelog
+
+\tableofcontents
+
+TNeoKernel changelog
+
+\section changelog_current Current development version (BETA)
+
+  - *No changes yet*
+
+\section changelog_v1_01 v1.01
+
+Release date: 2014-10-09.
+
+  - **FIX:** `tn_queue_receive()` and `tn_fmem_get()` : if non-zero `timeout`
+    is in effect, then `#TN_RC_TIMEOUT` is returned, but user-provided pointer
+    is altered anyway (some garbage data is written there). This bug was
+    inherited from TNKernel.
+  - Added `tn_task_state_get()`
+  - `tn_sem_acquire()` and friends are renamed to `tn_sem_wait()` and friends.
+    More on this read \ref tnkernel_diff_api_rename_sem "here".
+    Old name is still available through `tn_oldsymbols.h`.
+
+\section changelog_v1_0 v1.0
+
+Release date: 2014-10-01.
+
+  - Initial stable version of TNeoKernel. Lots of work done: thorough review
+    and re-implementation of TNKernel 2.7, implemented detailed unit tests, and
+    so on.
+
+*/
+
