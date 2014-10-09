@@ -204,7 +204,7 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    return rc;
 }
 
-static inline enum TN_RCode _sem_acquire(struct TN_Sem *sem)
+static inline enum TN_RCode _sem_wait(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -309,25 +309,25 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout)
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout)
 {
-   return _sem_job_perform(sem, _sem_acquire, timeout);
+   return _sem_job_perform(sem, _sem_wait, timeout);
 }
 
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_wait_polling(struct TN_Sem *sem)
 {
-   return _sem_job_perform(sem, _sem_acquire, 0);
+   return _sem_job_perform(sem, _sem_wait, 0);
 }
 
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem)
+enum TN_RCode tn_sem_iwait_polling(struct TN_Sem *sem)
 {
-   return _sem_job_iperform(sem, _sem_acquire);
+   return _sem_job_iperform(sem, _sem_wait);
 }
 
 

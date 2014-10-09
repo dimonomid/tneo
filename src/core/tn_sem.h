@@ -53,7 +53,7 @@
  * a *locking mechanism*.
  *
  * Semaphore, on the other hand, is *signaling mechanism*. It's quite legal and
- * encouraged for semaphore to be acquired in the task A, and then signaled
+ * encouraged for semaphore to be waited for in the task A, and then signaled
  * from task B or even from ISR. It may be used in situations like "producer
  * and consumer", etc.
  *
@@ -87,7 +87,7 @@ extern "C"  {     /*}*/
  */
 struct TN_Sem {
    ///
-   /// List of tasks that wait to acquire a semaphore
+   /// List of tasks that wait for the semaphore
    struct TN_ListItem wait_queue;
    ///
    /// Current semaphore counter value
@@ -142,7 +142,7 @@ enum TN_RCode tn_sem_create(
 /**
  * Destruct the semaphore.
  *
- * All tasks that wait for acquire the semaphore become runnable with
+ * All tasks that wait for the semaphore become runnable with
  * `#TN_RC_DELETED` code returned.
  *
  * $(TN_CALL_FROM_TASK)
@@ -165,8 +165,8 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
  * If current semaphore counter (`count`) is less than `max_count`,
  * counter is incremented by one; otherwise, `#TN_RC_OVERFLOW` is returned.
  *
- * If wait queue is not empty, the first task from the queue acquires the
- * semaphore.
+ * If wait queue is not empty, the first task from the queue becomes runnable
+ * with `#TN_RC_OK` returned from `tn_sem_wait()`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -194,7 +194,7 @@ enum TN_RCode tn_sem_signal(struct TN_Sem *sem);
 enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
 
 /**
- * Acquire the semaphore.
+ * Wait for the semaphore.
  *
  * If the current semaphore counter (`count`) is non-zero, it is decremented
  * and `#TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
@@ -205,35 +205,35 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * $(TN_CAN_SLEEP)
  * $(TN_LEGEND_LINK)
  *
- * @param sem     semaphore to acquire
+ * @param sem     semaphore to wait for
  * @param timeout refer to `#TN_Timeout`
  *
  * @return
- *    * `#TN_RC_OK` if semaphore was successfully acquired
+ *    * `#TN_RC_OK` if waiting was successfull
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `#TN_Timeout`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
-enum TN_RCode tn_sem_acquire(struct TN_Sem *sem, TN_Timeout timeout);
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout);
 
 /**
- * The same as `tn_sem_acquire()` with zero timeout.
+ * The same as `tn_sem_wait()` with zero timeout.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_LEGEND_LINK)
  */
-enum TN_RCode tn_sem_acquire_polling(struct TN_Sem *sem);
+enum TN_RCode tn_sem_wait_polling(struct TN_Sem *sem);
 
 /**
- * The same as `tn_sem_acquire()` with zero timeout, but for using in the ISR.
+ * The same as `tn_sem_wait()` with zero timeout, but for using in the ISR.
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_LEGEND_LINK)
  */
-enum TN_RCode tn_sem_iacquire_polling(struct TN_Sem *sem);
+enum TN_RCode tn_sem_iwait_polling(struct TN_Sem *sem);
 
 
 #ifdef __cplusplus
