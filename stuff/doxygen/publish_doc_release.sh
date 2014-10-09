@@ -61,7 +61,7 @@ mv refman.pdf tneokernel.pdf
 # go back
 cd ../..
 
-# go to dev documentation dir
+# go to latest stable documentation dir
 cd dfrank.bitbucket.org/tneokernel_api/latest
 
 # remove everything from there
