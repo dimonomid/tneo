@@ -108,12 +108,8 @@ extern struct TN_Task * tn_next_task_to_run;
 /// since this priority is used by idle task and it is always runnable.
 extern volatile unsigned int tn_ready_to_run_bmp;
 
-/// system time that is get/set by `tn_sys_time_get()`/`tn_sys_time_set()`,
+/// system time that is get/set by `tn_sys_time_get()`,
 /// respectively.
-///
-/// NOTE that these and only these TNeoKernel functions use this counter,
-/// it is not used for internal timeout calculation, or anything.
-/// Its usage completely depends on user.
 extern volatile unsigned int tn_sys_time_count;
 
 /// current interrupt nesting count. Used by macros

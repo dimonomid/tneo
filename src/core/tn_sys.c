@@ -353,25 +353,6 @@ unsigned int tn_sys_time_get(void)
 }
 
 /*
- * See comments in the header file (tn_sys.h)
- */
-void tn_sys_time_set(unsigned int value)
-{
-   if (_tn_arch_inside_isr()){
-      TN_INTSAVE_DATA_INT;
-      TN_INT_IDIS_SAVE();
-      tn_sys_time_count = value;
-      TN_INT_IRESTORE();
-   } else {
-      TN_INTSAVE_DATA;
-      TN_INT_DIS_SAVE();
-      tn_sys_time_count = value;
-      TN_INT_RESTORE();
-   }
-
-}
-
-/*
  * Returns current state flags (tn_sys_state)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void)
