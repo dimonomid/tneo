@@ -7,6 +7,10 @@
 
 == Routine ==
 
+   * [ ] Timer
+      * [ ] what if we manage timers from the function called by timer? The tn_timer_list is altered, so, things may be mixed up
+      * [ ] probably we should add flags like SINGLE_SHOT and CYCLIC.
+      * [ ] write 'detailed description' in the tn_timer.h
 
 == Plans ==
 

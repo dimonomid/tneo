@@ -156,7 +156,13 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
 
    TN_INT_DIS_SAVE();
 
-   timer->id_timer = 0; //-- Timer does not exist now
+   //-- if timer is active, cancel it first
+   if (_tn_timer_is_active(timer)){
+      rc = _tn_timer_cancel(timer);
+   }
+
+   //-- now, delete timer
+   timer->id_timer = 0;
 
    TN_INT_RESTORE();
 
@@ -187,6 +193,94 @@ enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    rc = _tn_timer_start(timer, timeout);
 
    TN_INT_RESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout)
+{
+   TN_INTSAVE_DATA_INT;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_generic(timer);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_IDIS_SAVE();
+
+   rc = _tn_timer_start(timer, timeout);
+
+   TN_INT_IRESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_cancel(struct TN_Timer *timer)
+{
+   TN_INTSAVE_DATA;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_generic(timer);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_DIS_SAVE();
+
+   if (_tn_timer_is_active(timer)){
+      rc = _tn_timer_cancel(timer);
+   }
+
+   TN_INT_RESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_icancel(struct TN_Timer *timer)
+{
+   TN_INTSAVE_DATA_INT;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_generic(timer);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_IDIS_SAVE();
+
+   if (_tn_timer_is_active(timer)){
+      rc = _tn_timer_cancel(timer);
+   }
+
+   TN_INT_IRESTORE();
 
 out:
    return rc;

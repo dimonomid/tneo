@@ -65,7 +65,20 @@ struct TN_Timer;
 
 
 /**
- * Prototype of the function that should be called by timer
+ * Prototype of the function that should be called by timer.
+ *
+ * When timer fires, function gets called by the kernel. Be aware of the
+ * following:
+ *    - Function is called from ISR context (namely, from *system timer* ISR);
+ *    - Function is called with global interrupts disabled;
+ *
+ * So, it's legal to call interrupt services from this function, and the
+ * function should be as fast as possible.
+ *
+ * @param timer
+ *    Timer that caused function to be called
+ * @param p_user_data
+ *    The user-provided pointer given to `tn_timer_create()`.
  */
 typedef void (TN_TimerFunc)(struct TN_Timer *timer, void *p_user_data);
 
@@ -117,7 +130,7 @@ struct TN_Timer {
  * @param timer
  *    Pointer to already allocated `struct TN_Timer`
  * @param func
- *    Function to be called by timer
+ *    Function to be called by timer. See `TN_TimerFunc()`
  * @param p_user_data
  *    User data pointer that is given to user-provided `func`.
  *
@@ -133,7 +146,7 @@ enum TN_RCode tn_timer_create(
       );
 
 /**
- * Destruct the timer. If the timer is running, it is cancelled first.
+ * Destruct the timer. If the timer is active, it is cancelled first.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_LEGEND_LINK)
@@ -148,6 +161,63 @@ enum TN_RCode tn_timer_create(
  */
 enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
 
+/**
+ * Start the timer, that is, schedule the timer's function (given to
+ * `tn_timer_create()`) to be called later by the kernel. See `TN_TimerFunc()`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param timer
+ *    Timer to start
+ * @param timeout
+ *    Number of system ticks after which timer should fire (i.e. function 
+ *    should be called). **Note** that `timeout` can't be `#TN_WAIT_INFINITE` or
+ *    `0`.
+ *
+ * @return 
+ *    * `#TN_RC_OK` if timer was successfully started;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * `#TN_RC_WPARAM` if wrong params were given: say, `timeout` is either 
+ *      `#TN_WAIT_INFINITE` or `0`.
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
+ *      is available: `#TN_RC_INVALID_OBJ`.
+ */
+enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+
+/**
+ * The same as `tn_timer_start()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout);
+
+/**
+ * If timer is active, cancel it. If timer is already inactive, nothing is
+ * changed.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param timer
+ *    Timer to cancel
+ *
+ * @return 
+ *    * `#TN_RC_OK` if timer was successfully cancelled;
+ *    * `#TN_RC_WCONTEXT` if called from wrong context;
+ *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
+ *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
+ */
+enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
+
+/**
+ * The same as `tn_timer_cancel()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_timer_icancel(struct TN_Timer *timer);
 
 #ifdef __cplusplus
 }  /* extern "C" */
