@@ -90,7 +90,9 @@ extern volatile int tn_created_tasks_cnt;
 //extern struct TN_ListItem tn_wait_timeout_list;             
 
 /// list of all active timers, see tn_timer.h
-struct TN_ListItem tn_timer_list;
+//extern struct TN_ListItem tn_timer_list;
+extern struct TN_ListItem tn_timer_list__gen;
+extern struct TN_ListItem tn_timer_list__dedicated[ TN_TIMERS_QUE_CNT ];
 
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
@@ -429,6 +431,7 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  *    tn_timer.c
  ******************************************************************************/
 
+#if 0
 /**
  * Should be called from $(TN_SYS_TIMER_LINK) interrupt for each timer
  * in the timer queue.
@@ -437,6 +440,8 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  * and function is called.
  */
 void _tn_timer_tick_proceed(struct TN_Timer *timer);
+#endif
+void _tn_timers_tick_proceed(void);
 
 /**
  * TODO

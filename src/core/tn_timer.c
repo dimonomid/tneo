@@ -53,6 +53,20 @@
 
 
 
+
+/*******************************************************************************
+ *    DEFINITIONS
+ ******************************************************************************/
+
+/**
+ * @param timeout    should be < TN_TIMERS_QUE_CNT
+ */
+#define _DEDICATED_LIST_INDEX(timeout)    \
+   ((tn_sys_time_count + timeout) & TN_TIMERS_QUE_MASK)
+
+
+
+
 /*******************************************************************************
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
@@ -99,9 +113,6 @@ static inline enum TN_RCode _check_param_create(
 #  define _check_param_create(timer, func)      (TN_RC_OK)
 #endif
 // }}}
-
-
-
 
 
 
@@ -293,6 +304,7 @@ out:
  *    PROTECTED FUNCTIONS
  ******************************************************************************/
 
+#if 0
 /**
  * See comments in the tn_internal.h file
  */
@@ -315,6 +327,74 @@ void _tn_timer_tick_proceed(struct TN_Timer *timer)
       timer->func(timer, timer->p_user_data);
    }
 }
+#endif
+
+/**
+ * See comments in the tn_internal.h file
+ */
+void _tn_timers_tick_proceed(void)
+{
+   struct TN_Timer *timer;
+   struct TN_Timer *tmp_timer;
+
+   int dedicated_list_index = _DEDICATED_LIST_INDEX(0);
+
+   if (dedicated_list_index == 0){
+      //-- handle generic timer list {{{
+      {
+         tn_list_for_each_entry_safe(
+               timer, tmp_timer, &tn_timer_list__gen, timer_queue
+               )
+         {
+#if TN_DEBUG
+            if (timer->timeout_cur == TN_WAIT_INFINITE || timer->timeout_cur < TN_TIMERS_QUE_CNT){
+               //-- should never be here
+               _TN_FATAL_ERROR();
+            }
+#endif
+            timer->timeout_cur -= TN_TIMERS_QUE_CNT;
+
+            if (timer->timeout_cur < TN_TIMERS_QUE_CNT){
+               //-- it's time to move this timer to the dedicated list
+               tn_list_remove_entry(&(timer->timer_queue));
+               tn_list_add_tail(
+                     &tn_timer_list__dedicated[ _DEDICATED_LIST_INDEX(timer->timeout_cur) ],
+                     &(timer->timer_queue)
+                     );
+            }
+         }
+      }
+      //}}}
+   }
+
+   //-- handle current dedicated timer list {{{
+   {
+      struct TN_ListItem *p_cur_timer_list = 
+         &tn_timer_list__dedicated[ dedicated_list_index ];
+
+      {
+         tn_list_for_each_entry_safe(
+               timer, tmp_timer, p_cur_timer_list, timer_queue
+               )
+         {
+            //-- first of all, cancel timer, so that 
+            //   function could start it again if it wants to.
+            _tn_timer_cancel(timer);
+
+            //-- call user function
+            timer->func(timer, timer->p_user_data);
+         }
+      }
+
+#if TN_DEBUG
+      //-- current dedicated list should be empty now
+      if (!tn_is_list_empty(p_cur_timer_list)){
+         _TN_FATAL_ERROR("");
+      }
+#endif
+   }
+   // }}}
+}
 
 enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
@@ -323,9 +403,17 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
    } else {
-      timer->timeout_cur = timeout;
+      timer->timeout_cur = timeout + _DEDICATED_LIST_INDEX(0);
+      //tn_list_add_tail(&tn_timer_list, &(timer->timer_queue));
 
-      tn_list_add_tail(&tn_timer_list, &(timer->timer_queue));
+      if (timeout < TN_TIMERS_QUE_CNT){
+         tn_list_add_tail(
+               &tn_timer_list__dedicated[ _DEDICATED_LIST_INDEX(timeout) ],
+               &(timer->timer_queue)
+               );
+      } else {
+         tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
+      }
    }
 
    return rc;
