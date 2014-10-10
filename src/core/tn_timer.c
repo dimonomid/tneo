@@ -34,7 +34,6 @@
  *
  ******************************************************************************/
 
-
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
@@ -58,11 +57,22 @@
  *    DEFINITIONS
  ******************************************************************************/
 
+#define TN_TICK_LISTS_MASK    (TN_TICK_LISTS_CNT - 1)
+
+//-- configuration check
+#if ((TN_TICK_LISTS_MASK & TN_TICK_LISTS_CNT) != 0)
+#  error TN_TICK_LISTS_CNT must be a power of two
+#endif
+
+#if (TN_TICK_LISTS_CNT < 2)
+#  error TN_TICK_LISTS_CNT must be >= 2
+#endif
+
 /**
- * @param timeout    should be < TN_TIMERS_QUE_CNT
+ * @param timeout    should be < TN_TICK_LISTS_CNT
  */
-#define _DEDICATED_LIST_INDEX(timeout)    \
-   ((tn_sys_time_count + timeout) & TN_TIMERS_QUE_MASK)
+#define _TICK_LIST_INDEX(timeout)    \
+   ((tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
 
 
 
@@ -304,61 +314,48 @@ out:
  *    PROTECTED FUNCTIONS
  ******************************************************************************/
 
-#if 0
 /**
- * See comments in the tn_internal.h file
- */
-void _tn_timer_tick_proceed(struct TN_Timer *timer)
-{
-   if (timer->timeout_cur == TN_WAIT_INFINITE || timer->timeout_cur == 0){
-      //-- should never be here
-      _TN_FATAL_ERROR();
-   }
-
-   timer->timeout_cur--;
-
-   if (timer->timeout_cur == 0){
-      //-- it's time to fire.
-      //-- first of all, cancel timer, so that 
-      //   function could start it again if it wants to.
-      _tn_timer_cancel(timer);
-      
-      //-- call user function
-      timer->func(timer, timer->p_user_data);
-   }
-}
-#endif
-
-/**
- * See comments in the tn_internal.h file
+ * See comments in the tn_internal.h file,
+ * see also \ref timers_implementation.
  */
 void _tn_timers_tick_proceed(void)
 {
    struct TN_Timer *timer;
    struct TN_Timer *tmp_timer;
 
-   int dedicated_list_index = _DEDICATED_LIST_INDEX(0);
+   int tick_list_index = _TICK_LIST_INDEX(0);
 
-   if (dedicated_list_index == 0){
-      //-- handle generic timer list {{{
+   if (tick_list_index == 0){
+      //-- it happens each TN_TICK_LISTS_CNT-th system tick:
+      //   now we should walk through all the timers in the "generic" timer
+      //   list, decrement the timeout of each one by TN_TICK_LISTS_CNT,
+      //   and if resulting timeout is less than TN_TICK_LISTS_CNT,
+      //   then move that timer to the appropriate "tick" timer list.
+
+      //-- handle "generic" timer list {{{
       {
          tn_list_for_each_entry_safe(
                timer, tmp_timer, &tn_timer_list__gen, timer_queue
                )
          {
 #if TN_DEBUG
-            if (timer->timeout_cur == TN_WAIT_INFINITE || timer->timeout_cur < TN_TIMERS_QUE_CNT){
-               //-- should never be here
+            if (     timer->timeout_cur == TN_WAIT_INFINITE 
+                  || timer->timeout_cur < TN_TICK_LISTS_CNT
+               )
+            {
+               //-- should never be here: timeout value should always
+               //   be >= TN_TICK_LISTS_CNT here.
+               //   And it should never be TN_WAIT_INFINITE.
                _TN_FATAL_ERROR();
             }
 #endif
-            timer->timeout_cur -= TN_TIMERS_QUE_CNT;
+            timer->timeout_cur -= TN_TICK_LISTS_CNT;
 
-            if (timer->timeout_cur < TN_TIMERS_QUE_CNT){
-               //-- it's time to move this timer to the dedicated list
+            if (timer->timeout_cur < TN_TICK_LISTS_CNT){
+               //-- it's time to move this timer to the "tick" list
                tn_list_remove_entry(&(timer->timer_queue));
                tn_list_add_tail(
-                     &tn_timer_list__dedicated[ _DEDICATED_LIST_INDEX(timer->timeout_cur) ],
+                     &tn_timer_list__tick[_TICK_LIST_INDEX(timer->timeout_cur)],
                      &(timer->timer_queue)
                      );
             }
@@ -367,10 +364,17 @@ void _tn_timers_tick_proceed(void)
       //}}}
    }
 
-   //-- handle current dedicated timer list {{{
+   //-- it happens every system tick:
+   //   we should walk through all the timers in the current "tick" timer list,
+   //   and fire them all, unconditionally.
+
+   //-- handle current "tick" timer list {{{
    {
       struct TN_ListItem *p_cur_timer_list = 
-         &tn_timer_list__dedicated[ dedicated_list_index ];
+         &tn_timer_list__tick[ tick_list_index ];
+
+      //-- now, p_cur_timer_list is a list of timers that we should
+      //   fire NOW, unconditionally.
 
       {
          tn_list_for_each_entry_safe(
@@ -387,7 +391,7 @@ void _tn_timers_tick_proceed(void)
       }
 
 #if TN_DEBUG
-      //-- current dedicated list should be empty now
+      //-- current "tick" list should be empty now
       if (!tn_is_list_empty(p_cur_timer_list)){
          _TN_FATAL_ERROR("");
       }
@@ -403,12 +407,11 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
    } else {
-      timer->timeout_cur = timeout + _DEDICATED_LIST_INDEX(0);
-      //tn_list_add_tail(&tn_timer_list, &(timer->timer_queue));
+      timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
 
-      if (timeout < TN_TIMERS_QUE_CNT){
+      if (timeout < TN_TICK_LISTS_CNT){
          tn_list_add_tail(
-               &tn_timer_list__dedicated[ _DEDICATED_LIST_INDEX(timeout) ],
+               &tn_timer_list__tick[ _TICK_LIST_INDEX(timeout) ],
                &(timer->timer_queue)
                );
       } else {

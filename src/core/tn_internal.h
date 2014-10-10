@@ -92,7 +92,7 @@ extern volatile int tn_created_tasks_cnt;
 /// list of all active timers, see tn_timer.h
 //extern struct TN_ListItem tn_timer_list;
 extern struct TN_ListItem tn_timer_list__gen;
-extern struct TN_ListItem tn_timer_list__dedicated[ TN_TIMERS_QUE_CNT ];
+extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
@@ -431,16 +431,10 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  *    tn_timer.c
  ******************************************************************************/
 
-#if 0
 /**
- * Should be called from $(TN_SYS_TIMER_LINK) interrupt for each timer
- * in the timer queue.
- *
- * It decrements timer count, and if it reaches zero, timer is cancelled
- * and function is called.
+ * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
+ * necessary timers housekeeping: moving them between lists, firing them, etc.
  */
-void _tn_timer_tick_proceed(struct TN_Timer *timer);
-#endif
 void _tn_timers_tick_proceed(void);
 
 /**

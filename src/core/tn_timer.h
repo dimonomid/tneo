@@ -39,7 +39,80 @@
  *
  * A timer
  *
+ * \section timers_implementation Implementation of timers
+ *
+ * You don't have to understand the implementation of timers to use them,
+ * but it is probably worth knowing if you want to understand better how the 
+ * kernel works and configure it appropriately for your particular application.
+ *
+ * The easiest implementation of timers could be something like this: we
+ * have just a single list with all active timers, and at every system tick
+ * we should walk through all the timers in this list, and do the following
+ * with each timer:
+ *
+ * - Decrement timeout by 1
+ * - If new timeout is 0, then remove that timer from the list (i.e. make timer
+ *   inactive), and fire the appropriate timer function.
+ *
+ * This approach has drawbacks:
+ *
+ * - We can't manage timers from the function called by timer. If we do so
+ *   (say, if we start new timer, or cancel one of the active timers), then the
+ *   timer list gets modified. But we are currently iterating through this
+ *   list, so, it's quite easy to mix things up.
+ * - It is inefficient on rather large amount of timers and/or with large
+ *   timeouts: we should iterate through all of them each system tick.
+ *
+ * The latter is probably not so critical in the embedded world since large
+ * amount of timers is unlikely there; whereas the the former is actually
+ * notable.
+ *
+ * So, different approach was applied. The main idea is taken from the mainline
+ * Linux kernel source, but the implementation was simplified much because (1)
+ * embedded systems have much less resources, and (2) the kernel doesn't need
+ * to scale as well as Linux does. You can read about Linux timers
+ * implementation in the book "Linux Device Drivers", 3rd edition:
+ *
+ * - Time, Delays, and Deferred Work
+ *   - Kernel Timers
+ *     - The Implementation of Kernel Timers
+ *
+ * This book is freely available at http://lwn.net/Kernel/LDD3/ .
+ *
+ * So, TNeoKernel's implementation:
+ *
+ * We have configurable value `N` that is a power of two, typical values are
+ * `4`, `8` or `16`.
+ *
+ * If the timer expires in the next `1` to `(N - 1)` system ticks, it is added
+ * to one of the `N` lists (the so-called "tick" lists) devoted to short-range
+ * timers using the least significant bits of the `timeout` value. If it
+ * expires farther in the future, it is added to the "generic" list.
+ *
+ * Each `N`-th system tick, all the timers from "generic" list are walked
+ * through, and the following is performed with each timer:
+ *
+ * - `timeout` value decremented by `N`
+ * - if resulting `timeout` is less than `N`, timer is moved to the appropriate
+ *   "tick" list.
+ *
+ * At *every* system tick, all the timers from current "tick" list are fired
+ * unconditionally. This is an efficient and nice solution.
+ *
+ * The attentive reader may want to ask why do we use `(N - 1)` "tick" lists if
+ * we actually have `N` lists. That's because, again, we want to be able to
+ * modify timers from the timer function. If we use `N` lists, and user wants
+ * to add new timer with `timeout` equal to `N`, then new timer will be added
+ * to the same list which is iterated through at the moment, and things will be
+ * mixed up.
+ *
+ * If we use `(N - 1)` lists, we are guaranteed that current "tick" list will
+ * stay untouched while we are iterating through it.
+ *
+ * The `N` in the TNeoKernel is configured by the compile-time option
+ * `#TN_TICK_LISTS_CNT`.
  */
+
 
 #ifndef _TN_TIMER_H
 #define _TN_TIMER_H

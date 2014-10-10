@@ -69,7 +69,7 @@ volatile int tn_created_tasks_cnt;
 
 //struct TN_ListItem tn_timer_list;
 struct TN_ListItem tn_timer_list__gen;
-struct TN_ListItem tn_timer_list__dedicated[ TN_TIMERS_QUE_CNT ];
+struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
@@ -126,50 +126,6 @@ static void _idle_task_body(void *par)
       tn_callback_idle_hook();
    }
 }
-
-#if 0
-/**
- * Manage tn_wait_timeout_list.
- * This job was previously done in tn_timer_task, but now it is preferred
- * to call it right from tn_tick_int_processing()
- */
-static inline void _wait_timeout_list_manage(void)
-{
-   volatile struct TN_Task *task;
-
-   tn_list_for_each_entry(task, &tn_wait_timeout_list, timer_queue){
-
-      if (task->tick_count == TN_WAIT_INFINITE){
-         //-- should never be here
-         _TN_FATAL_ERROR();
-      }
-
-      if (task->tick_count > 0) {
-         task->tick_count--;
-
-         if (task->tick_count == 0){
-            //-- Timeout expired
-            _tn_task_wait_complete((struct TN_Task *)task, TN_RC_TIMEOUT);
-         }
-      }
-   }
-}
-#endif
-
-#if 0
-/**
- * Manage timer queue.
- */
-static inline void _timer_queue_manage(void)
-{
-   struct TN_Timer *timer;
-   struct TN_Timer *tmp_timer;
-
-   tn_list_for_each_entry_safe(timer, tmp_timer, &tn_timer_list, timer_queue){
-      _tn_timer_tick_proceed(timer);
-   }
-}
-#endif
 
 /**
  * Manage round-robin (if used)
@@ -285,8 +241,8 @@ void tn_sys_start(
 
    //tn_list_reset(&tn_timer_list);
    tn_list_reset(&tn_timer_list__gen);
-   for (i = 0; i < TN_TIMERS_QUE_CNT; i++){
-      tn_list_reset(&tn_timer_list__dedicated[i]);
+   for (i = 0; i < TN_TICK_LISTS_CNT; i++){
+      tn_list_reset(&tn_timer_list__tick[i]);
    }
 
    /*
@@ -345,11 +301,8 @@ enum TN_RCode tn_tick_int_processing(void)
    //-- manage round-robin (if used)
    _round_robin_manage();
 
-   //-- manage tn_wait_timeout_list
-   //_wait_timeout_list_manage();
-
+   //-- manage timers
    _tn_timers_tick_proceed();
-   //_timer_queue_manage();
 
    //-- increment system timer
    tn_sys_time_count++;
