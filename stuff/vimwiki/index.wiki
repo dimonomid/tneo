@@ -1,91 +1,20 @@
 
-= tnkernel_df dev =
+= tneokernel dev =
 
-== mods that don't change API ==
+[[how_to_release]]
 
-   * [X] remove `typedef`s, use `struct TNCamelCase` instead.
-   * [X] `tn_common.h`: convert macros to enums.
-   * [X] rename queue_... functions to list_.. (because it is actually a list, not a queue)
-   * [X] rename `tn_list.h` to `tn_list.h` or something like that
-   * [X] probably add bool/true/false
-   * [X] Implement a kind of `list_for_each`
-   * [X] workaround for crappy compilers: instead of recursive function call, use `goto in`;
-   * [X] fix bug: if some task tried to lock mutex with priority inheritance, and some other task's priority was changed because of that, and then tasks stopped waiting by timeout, priority of mutex holder doesn't change back (remains elevated)
-   * [X] implement deadlock detection (probably, with user-provided callback that will be called if something bad happens. Probably use this callback instead of TN_FATAL_ERROR)
-   * [X] move _unlock_all_mutexes to tn_mutex.c, make _tn_mutex_do_unlock private
-   * [X] probably don't initialize stack in the `tn_task_exit()`, because it is tricky. Do it in `_task_activate` probably
-   * [X] make `_tn_task_set_runnable` and `_tn_task_clear_runnable` to return `void`, and use special function `_tn_switch_context_if_needed`.
-   * [X] probably _tn_task_wait_complete should take task_wait_rc as a parameter? Say, sometimes, TERR_DLT needs to be returned
-   * [ ] get rid of `enum TN_WComplFlags`, _tn_task_clear_waiting should always behave like `TN_WCOMPL__REMOVE_WQUEUE` is set. While we refactor events, dqueue, sem, mem, we should always specify this flag when calling _tn_task_wait_complete, so eventually there will be no calls to _tn_task_wait_complete without setting this flag. At this moment, we should get rid of it.
-   * [ ] probably add new return value, such as TERR_FORCE or TERR_RELEASED, and return it when task was released from waiting by tn_task_release_wait. Currently TERR_NO_ERR returned which is not correct
-   * [ ] implement timer object that would run user-provided function at some time in the future
-   * [ ] clear tn_sys c/h files up
-   * [ ] task tests
-      * [X] re-activate task after it is deleted (try both tn_task_exit and tn_task_terminate)
-   * [ ] mutex tests
-      * [X] tn_task_delete on task_high waiting for mutex locked by task_low -> task_low's priority should go back to its base_priority
-      * [X] test deletion of mutex (event, sem, queue) while waiting task is suspended; when it is resumed, TERR_DLT should be returned
-      * [ ] ceiling mutexes
-      * [X] this one, regarding to order:
-         * A l M1
-         * B l M1 - B blocks, A has priority of B
-         * C l M1 - C blocks, A has priority of C
-         * A u M1 - B unlocks, A has base priority
-         * B u M1 - C unlocks
-         * C u M1
 
-_tn_task_wait_complete
-_mutex_do_unlock
 
-== mods that DO change API ==
+== Routine ==
 
+
+== Plans ==
+
+   * [ ] Timer object
+   * [ ] Event group connection (at least, it would be useful to connect event group to queue)
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
-   * [ ] Should we actually allow to delete mutex while it's hold?
-   * [ ] Should we maintain wakeup_count, activate_count?
 
-
-== modifications of original TNKernel ==
-
-   * timer_task removed (huge performance boost: each timer tick time: ~700 ticks -> ~300 ticks)
-   * tn_mutex_lock() behaves just like tn_mutex_lock_polling() if zero timeout was given (instead of returning TERR_WRONG_PARAM)
-   * TN_USE_MUTEXES, TN_USE_EVENTS were checked by #ifdef, now they are checked by #if (actually there was an inconsistency: TN_CHECK_PARAM was always checked by #if)
-   * implemented deadlock detection (optionally)
-
-== bug fixes of original TNKernel ==
-
-   * fixed bug: low-priority task_low locks mutex M1 with priority inheritance, high-priority task_high tries to lock mutex M1 and gets blocked -> task_low's priority elevates to task_high's priority; then task_high stops waiting for mutex by timeout -> priority of task_low remains elevated, but it should be set back. The same happens if task_high is terminated by tn_task_terminate() while it was waiting for mutex. The same happens if mutex is deleted while task_high is waiting for it. The same happens if task was waken up by tn_task_wakeup().
-   * fixed bug: low-priority task A locks mutex M1 with priority inheritance, another task B with the same priority tries to lock M1 and gets blocked (priority of A = priority of B), then high-priority task C tries to lock M1 and gets blocked (priority of A = priority of C). Now, A unlocks M1 -> priority of A returns to base value, B locks M1 (because it is the next task in the mutex's queue), and its priority should be elevated to priority of C, but it doesn't happen.
-   * fixed bug in tn_sys_tslice_ticks() : if wrong params were given, interrupts remain disabled
-   * fixed bug in tn_mutex_delete() : if mutex is not locked, TERR_ILUSE is returned.
-   * fixed minor bug in _tn_task_wait_complete : we don't actually need to check TN_USE_MUTEXES there at all, it is even plain wrong. It doesn't break things because the condition was always false.
-   * fixed minor bug: when deleting mutex or semaphore, tn_switch_context was called for each non-suspended task that was waiting for that mutex/sepaphore. It's better to just make them runnable one-by-one without calling tn_switch_context after each one, and switch context just once after all (if needed).
-   * fixed bug: if task that waits for mutex was in WAITING_SUSPENDED state, and mutex is deleted, TERR_NO_ERR is returned instead of TERR_DLT. The same for queue deletion, semaphore deletion, event deletion.
-   * fixed bug: dqueue: actual capacity of buffer was less by 1 than user has specified (and allocated).
-   * found bug: event: if TN_EVENT_ATTR_CLR flag is set, and the task waiting for event is suspended, this flag TN_EVENT_ATTR_CLR is ignored (pattern is not reset). I can't say this bug is "fixed" because TNeoKernel has event groups instead of events, and there is no TN_EVENT_ATTR_CLR flag.
 
 
    
-== bad style of original TNKernel ==
-   
-   * A lot of #if...#endif in the code. examples:
-      * in tn_tasks.c, TN_USE_MUTEXES is checked. Now, _unlock_all_mutexes() was added instead
-      * #if TN_CHECK_PARAM ... #endif
-   * types: all tnkernel structures are hidden by typedef. It is not good idea. 
-   * macro TN_CHECK_NON_INT_CONTEXT that returns from the function
-   * types: typedef name was in CAPS, so, it looks like a macro.
-   * a lot of 'tn_disable_interrupt(); return;' snippets, instead of "one entry, one exit" rule with goto statements.
-   * a lot of code duplication. Same tasks are accomplished just by copy-paste, instead of creating function for that. Examples of what I've added instead:
-      * _add_entry_to_ready_queue() / _remove_entry_from_ready_queue()
-      * _unlock_all_mutexes()
-      * task/interrupt/polling versions of functions were implemented separately, instead of provide some kind of wrapper functions that eventually call real worker function. (in tn_tasks.c: tn_task_release_wait/tn_task_irelease_wait, etc)
-   * inconsistency in several things
-      * TN_CHECK_PARAM was checked by #if,  but TN_USE_MUTEXES, TN_USE_EVENTS were checked by #ifdef
-
-== bad things in TNKernel ==
-
-   * [ ] Is it really good idea that task does have wakeup_count, so you can call tn_task_wakeup before tn_task_sleep, and on the next tn_task_sleep call task won't go to sleep? It seems just like dirty hack to prevent race conditions. This dirty hack makes programmer able to not provide proper syncronization, this is really bad idea IMO. The same with activate_count and tn_task_terminate().
-   * [ ] Is it really good idea that we are able to suspend any non-current task? It should be totally up to the task itself when it should sleep and when it shouldn't. If we need to pause some task from outside, we should implement a message to this task, and then task should put itself to sleep.
-   * [ ] Even more, is it really good idea that we are able to terminate any task? More, tasks in TNKernel don't even have any callback like "destructor" that should be called when task is terminated. So any non-tnkernel resources (such as memory from heap) that might be held by task will leak.
-   * [ ] The rule "one entry point, one exit point" is violated constantly across the whole sources.
-   * [ ] Code organization in general is far from perfect: this is just one header file with lots of stuff, including some private-to-tnkernel definitions like task_to_runnable, task_wait_complete etc.
 
