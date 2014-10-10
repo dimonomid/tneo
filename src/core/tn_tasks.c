@@ -924,7 +924,10 @@ void _tn_task_set_waiting(
       _TN_FATAL_ERROR("");
    } else if (timeout == 0){
       _TN_FATAL_ERROR("");
+   } else if (_tn_timer_is_active(&task->timer)){
+      _TN_FATAL_ERROR("");
    }
+
 #endif
 
    task->task_state       |= TN_TASK_STATE_WAIT;
@@ -947,7 +950,6 @@ void _tn_task_set_waiting(
 
    if (timeout != TN_WAIT_INFINITE){
       _tn_timer_start(&task->timer, timeout);
-      //tn_list_add_tail(&tn_wait_timeout_list, &(task->timer_queue));
    }
 }
 
