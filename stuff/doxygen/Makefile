@@ -29,6 +29,8 @@ TN_CAN_SLEEP          = \image html attr_timeout.png ${\n} \
 
 TN_LEGEND_LINK        = <SMALL><I>(refer to \ref legend for details)</I></SMALL>
 
+TN_SYS_TIMER_LINK     = <I>\ref time_ticks "system timer"</I>
+
 
 TN_TASK_STATE_RUNNABLE  = \link TN_TASK_STATE_RUNNABLE <code>RUNNABLE</code>\endlink
 TN_TASK_STATE_WAIT      = \link TN_TASK_STATE_WAIT <code>WAIT</code>\endlink
@@ -46,6 +48,8 @@ export TN_CAN_SWITCH_CONTEXT
 export TN_CAN_SLEEP
 
 export TN_LEGEND_LINK
+
+export TN_SYS_TIMER_LINK
 
 export TN_TASK_STATE_RUNNABLE
 export TN_TASK_STATE_WAIT

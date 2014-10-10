@@ -69,7 +69,8 @@ struct TN_Timer;
  *
  * When timer fires, function gets called by the kernel. Be aware of the
  * following:
- *    - Function is called from ISR context (namely, from *system timer* ISR);
+ *    - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
+ *      ISR);
  *    - Function is called with global interrupts disabled;
  *
  * So, it's legal to call interrupt services from this function, and the
@@ -87,7 +88,7 @@ typedef void (TN_TimerFunc)(struct TN_Timer *timer, void *p_user_data);
  */
 struct TN_Timer {
    ///
-   /// A list item to be included in the system timer queue
+   /// A list item to be included in the $(TN_SYS_TIMER_LINK) queue
    struct TN_ListItem timer_queue;
    ///
    /// Function to be called by timer

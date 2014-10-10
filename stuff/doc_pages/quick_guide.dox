@@ -42,8 +42,8 @@ tn_soft_isr(_TIMER_5_VECTOR)
     - disable interrupts globally by calling `tn_arch_int_dis()`;
     - perform some essential CPU configuration, such as oscillator settings and
       similar things. 
-    - setup *system timer* interrupt (from which `tn_tick_int_processing()`
-      gets called)
+    - setup $(TN_SYS_TIMER_LINK) interrupt (from which
+      `tn_tick_int_processing()` gets called)
     - perform any platform-dependent required actions (say, on PIC32 you should
       enable core software interrupt 0 with the lowest priority)
     - call `tn_sys_start()` providing all necessary information: pointers to

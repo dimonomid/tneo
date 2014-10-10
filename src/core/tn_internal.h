@@ -430,7 +430,7 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  ******************************************************************************/
 
 /**
- * Should be called from system timer interrupt for each timer
+ * Should be called from $(TN_SYS_TIMER_LINK) interrupt for each timer
  * in the timer queue.
  *
  * It decrements timer count, and if it reaches zero, timer is cancelled
