@@ -187,9 +187,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
    TN_INT_DIS_SAVE();
 
    //-- if timer is active, cancel it first
-   if (_tn_timer_is_active(timer)){
-      rc = _tn_timer_cancel(timer);
-   }
+   rc = _tn_timer_cancel(timer);
 
    //-- now, delete timer
    timer->id_timer = 0;
@@ -276,9 +274,7 @@ enum TN_RCode tn_timer_cancel(struct TN_Timer *timer)
 
    TN_INT_DIS_SAVE();
 
-   if (_tn_timer_is_active(timer)){
-      rc = _tn_timer_cancel(timer);
-   }
+   rc = _tn_timer_cancel(timer);
 
    TN_INT_RESTORE();
 
@@ -306,9 +302,7 @@ enum TN_RCode tn_timer_icancel(struct TN_Timer *timer)
 
    TN_INT_IDIS_SAVE();
 
-   if (_tn_timer_is_active(timer)){
-      rc = _tn_timer_cancel(timer);
-   }
+   rc = _tn_timer_cancel(timer);
 
    TN_INT_IRESTORE();
 
@@ -444,9 +438,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    } else {
 
       //-- if timer is active, cancel it first
-      if (_tn_timer_is_active(timer)){
-         rc = _tn_timer_cancel(timer);
-      }
+      rc = _tn_timer_cancel(timer);
 
       if (timeout < TN_TICK_LISTS_CNT){
          //-- timer should be added to the one of "tick" lists.
@@ -479,14 +471,16 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
    }
 #endif
 
-   //-- reset timeout to zero (but this is actually not necessary)
-   timer->timeout_cur = 0;
+   if (_tn_timer_is_active(timer)){
+      //-- reset timeout to zero (but this is actually not necessary)
+      timer->timeout_cur = 0;
 
-   //-- remove entry from timer queue
-   tn_list_remove_entry(&(timer->timer_queue));
+      //-- remove entry from timer queue
+      tn_list_remove_entry(&(timer->timer_queue));
 
-   //-- reset the list
-   tn_list_reset(&(timer->timer_queue));
+      //-- reset the list
+      tn_list_reset(&(timer->timer_queue));
+   }
 
    return rc;
 }

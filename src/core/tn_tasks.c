@@ -996,9 +996,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
 
    //-- if timer is active (i.e. task waits for timeout),
    //   cancel that timer
-   if (_tn_timer_is_active(&task->timer)){
-      _tn_timer_cancel(&task->timer);
-   }
+   _tn_timer_cancel(&task->timer);
 
    //-- remove WAIT state
    task->task_state &= ~TN_TASK_STATE_WAIT;
