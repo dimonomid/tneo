@@ -2,6 +2,7 @@
 = tneokernel dev =
 
 [[how_to_release]]
+[[thoughts]]
 
 
 
@@ -18,6 +19,7 @@
 
    * [ ] Timer object
    * [ ] Event group connection (at least, it would be useful to connect event group to queue)
+   * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
    * [ ] Port to ARM
    * [ ] Probably port to PIC24/dsPIC

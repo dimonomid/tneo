@@ -1,0 +1,44 @@
+
+= tneokernel dev / thoughts=
+
+== waiting for multiple events ==
+
+By waiting for multiple events I mean waiting for, say, messages from multiple queues (really, feature that is sometimes needed), or things like that.
+
+=== by hand ===
+
+NOTE: this is buggy approach, see *cons* section below.
+
+We can just follow the convention: right after the producer puts new message to the queue, it sets particular flag. So, all the consumers need is to wait for that flag. We may want to set this flag to be auto-cleared (TODO: implement it in the eventgroup), so that just one task will be woken up when message comes
+
+==== cons ====
+
+   * what if consumer has no chance to receive the message before the second one comes? So, when first message is received, flag is cleared, but there is still some message in the queue. So, we can use it if only we have one element in the queue, but why do we need queue at all then?
+
+
+
+=== event connection ===
+
+We can implement event connection, so that queue will maintain particular flag(s) in the event group: when there are message(s) in the queue, flag is automatically set by the queue (and the flag keeps being set while at least one message is in the queue). When last message was read from the queue, flag is automatically cleared by the queue. Producer need not set the flag, consumer need not clear flag. Consumer(s) just need to wait for the flag.
+
+NOTE that we shouldn't set this flag as auto-cleared by event group, because it is already auto-cleared by the queue.
+
+==== pros ====
+
+   * relatively easy to implement
+
+==== cons ====
+
+   * if multiple tasks are waiting for the event, they all will become runnable, but we actually need to wake up just one of them. So, one of them should receive (polling) message from the queue, but others just notices that there are no messages, and go waiting for the flag again
+   * non universal way: we should implement event connection to all the possible events we want to be able to combine.
+
+
+==== dev notes ====
+
+   * we should NOT add the event into the same receive_queue together with tasks: then, when new message appears, queue will take first object from the queue (it is connected event group), and what if nobody waits for this event at the moment?
+
+=== EventCollector ===
+
+What about some object like EventCollector? (not sure how to implement it)
+
+
