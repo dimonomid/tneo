@@ -250,6 +250,9 @@ void tn_sys_start(
  * The period of this timer is determined by user 
  * (typically 1 ms, but user is free to set different value)
  *
+ * Among other things, expired \ref tn_timer.h "timers" are fired from this
+ * function.
+ *
  * For further information, refer to \ref quick_guide "Quick guide".
  *
  * $(TN_CALL_FROM_ISR)

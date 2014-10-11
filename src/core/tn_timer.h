@@ -48,14 +48,17 @@
  *
  * When timer fires, the user-provided function is called. Be aware of the
  * following:
- *    - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
- *      ISR, by the `tn_tick_int_processing()`);
- *    - Function is called with global interrupts disabled.
+ *
+ * - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
+ *   ISR, by the `tn_tick_int_processing()`);
+ * - Function is called with global interrupts disabled.
  *
  * Consequently:
  *
- *   - It's legal to call interrupt services from this function;
- *   - The function should be as fast as possible.
+ * - It's legal to call interrupt services from this function;
+ * - The function should be as fast as possible.
+ * - The function should not enable interrupts unconditionally. Consider using
+ *   `tn_arch_sr_save_int_dis()` and `tn_arch_sr_restore()` if you need.
  *
  * See `#TN_TimerFunc` for the prototype of the function that could be
  * scheduled.
@@ -64,7 +67,8 @@
  *
  * Although you don't have to understand the implementation of timers to use
  * them, it is probably worth knowing, particularly because the kernel have an
- * option to customize the balance between memory usage and performance.
+ * option `#TN_TICK_LISTS_CNT` to customize the balance between performance of
+ * `tn_tick_int_processing()` and memory occupied by timers.
  *
  * The easiest implementation of timers could be something like this: we
  * have just a single list with all active timers, and at every system tick
@@ -78,15 +82,14 @@
  * This approach has drawbacks:
  *
  * - We can't manage timers from the function called by timer. If we do so
- *   (say, if we start new timer, or cancel one of the active timers), then the
- *   timer list gets modified. But we are currently iterating through this
- *   list, so, it's quite easy to mix things up.
+ *   (say, if we start new timer), then the timer list gets modified. But we
+ *   are currently iterating through this list, so, it's quite easy to mix
+ *   things up.
  * - It is inefficient on rather large amount of timers and/or with large
  *   timeouts: we should iterate through all of them each system tick.
  *
  * The latter is probably not so critical in the embedded world since large
- * amount of timers is unlikely there; whereas the the former is actually
- * notable.
+ * amount of timers is unlikely there; whereas the former is actually notable.
  *
  * So, different approach was applied. The main idea is taken from the mainline
  * Linux kernel source, but the implementation was simplified much because (1)
@@ -257,7 +260,7 @@ enum TN_RCode tn_timer_create(
 enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
 
 /**
- * Start the timer: that is, schedule the timer's function (given to
+ * Start or restart the timer: that is, schedule the timer's function (given to
  * `tn_timer_create()`) to be called later by the kernel. See `TN_TimerFunc()`.
  *
  * It is legal to restart already active timer. In this case, the timer will be
@@ -284,7 +287,9 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
 enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
 
 /**
- * The same as `tn_timer_start()` but for using in the ISR.
+ * The same as `tn_timer_start()` but for using in the ISR. Can be used from
+ * the `#TN_TimerFunc` function called by a timer, to start or restart *any*
+ * timer.
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
@@ -310,7 +315,10 @@ enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout);
 enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
 
 /**
- * The same as `tn_timer_cancel()` but for using in the ISR.
+ * The same as `tn_timer_cancel()` but for using in the ISR. Can be used from
+ * the `#TN_TimerFunc` function called by a timer, to cancel *any* timer. Note
+ * that you don't need to cancel the timer that caused the function to be
+ * called, although nothing will break if you do so.
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
