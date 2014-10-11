@@ -116,11 +116,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (timer == NULL){
       rc = TN_RC_WPARAM;
-   } else if (0
-         || timer->id_timer == TN_ID_TIMER
-         || func == NULL
-         )
-   {
+   } else if (timer->id_timer == TN_ID_TIMER){
       rc = TN_RC_WPARAM;
    }
 
@@ -310,6 +306,71 @@ out:
    return rc;
 }
 
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      )
+{
+   TN_INTSAVE_DATA;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_generic(timer);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (!tn_is_task_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_DIS_SAVE();
+
+   rc = _tn_timer_set_func(timer, func, p_user_data);
+
+   TN_INT_RESTORE();
+
+out:
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_iset_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      )
+{
+   TN_INTSAVE_DATA_INT;
+   enum TN_RCode rc = TN_RC_OK;
+
+   rc = _check_param_generic(timer);
+   if (rc != TN_RC_OK){
+      goto out;
+   }
+
+   if (!tn_is_isr_context()){
+      rc = TN_RC_WCONTEXT;
+      goto out;
+   }
+
+   TN_INT_IDIS_SAVE();
+
+   rc = _tn_timer_set_func(timer, func, p_user_data);
+
+   TN_INT_IRESTORE();
+
+out:
+   return rc;
+}
+
+
 
 
 
@@ -492,15 +553,35 @@ enum TN_RCode _tn_timer_create(
       void             *p_user_data
       )
 {
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _tn_timer_set_func(timer, func, p_user_data);
+
+   if (rc != TN_RC_OK){
+      goto out;
+   }
 
    tn_list_reset(&(timer->timer_queue));
 
-   timer->func          = func;
-   timer->p_user_data   = p_user_data;
    timer->timeout_cur   = 0;
-
    timer->id_timer      = TN_ID_TIMER;
+
+out:
+   return rc;
+}
+
+enum TN_RCode _tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (func == NULL){
+      rc = TN_RC_WPARAM;
+   } else {
+      timer->func          = func;
+      timer->p_user_data   = p_user_data;
+   }
 
    return rc;
 }

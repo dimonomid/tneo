@@ -228,14 +228,13 @@ struct TN_Timer {
  * @param timer
  *    Pointer to already allocated `struct TN_Timer`
  * @param func
- *    Function to be called by timer. See `TN_TimerFunc()`
+ *    Function to be called by timer, can't be `NULL`. See `TN_TimerFunc()`
  * @param p_user_data
  *    User data pointer that is given to user-provided `func`.
  *
  * @return 
  *    * `#TN_RC_OK` if timer was successfully created;
- *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
- *      is available: `#TN_RC_WPARAM`.
+ *    * `#TN_RC_WPARAM` if wrong params were given.
  */
 enum TN_RCode tn_timer_create(
       struct TN_Timer  *timer,
@@ -289,7 +288,8 @@ enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
 /**
  * The same as `tn_timer_start()` but for using in the ISR. Can be used from
  * the `#TN_TimerFunc` function called by a timer, to start or restart *any*
- * timer.
+ * timer; typically used to start again the timer from the function called
+ * by the timer itself.
  *
  * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
@@ -324,6 +324,39 @@ enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
  * $(TN_LEGEND_LINK)
  */
 enum TN_RCode tn_timer_icancel(struct TN_Timer *timer);
+
+/**
+ * Set user-provided function and pointer to user data for the timer.
+ * Can be called if timer is either active or inactive.
+ *
+ * @param timer
+ *    Pointer to timer
+ * @param func
+ *    Function to be called by timer, can't be `NULL`. See `TN_TimerFunc()`
+ * @param p_user_data
+ *    User data pointer that is given to user-provided `func`.
+ *
+ * @return 
+ *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_WPARAM` if wrong params were given.
+ */
+enum TN_RCode tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
+
+/**
+ * The same as `tn_timer_set_func()` but for using in the ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_timer_iset_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
 
 #ifdef __cplusplus
 }  /* extern "C" */

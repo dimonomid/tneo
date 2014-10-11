@@ -459,6 +459,15 @@ enum TN_RCode _tn_timer_create(
 /**
  * TODO
  */
+enum TN_RCode _tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
+
+/**
+ * TODO
+ */
 BOOL _tn_timer_is_active(struct TN_Timer *timer);
 
 #ifdef __cplusplus
