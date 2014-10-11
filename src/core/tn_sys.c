@@ -67,10 +67,6 @@ struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 struct TN_ListItem tn_create_queue;
 volatile int tn_created_tasks_cnt;
 
-//struct TN_ListItem tn_timer_list;
-struct TN_ListItem tn_timer_list__gen;
-struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
-
 unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 volatile enum TN_StateFlag tn_sys_state;
@@ -236,14 +232,8 @@ void tn_sys_start(
    //-- Pre-decrement stack
    tn_int_sp = &(int_stack[int_stack_size]);
 
-   //-- reset wait queue
-   //tn_list_reset(&tn_wait_timeout_list);
-
-   //tn_list_reset(&tn_timer_list);
-   tn_list_reset(&tn_timer_list__gen);
-   for (i = 0; i < TN_TICK_LISTS_CNT; i++){
-      tn_list_reset(&tn_timer_list__tick[i]);
-   }
+   //-- init timers
+   _tn_timers_init();
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,

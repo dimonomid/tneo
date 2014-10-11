@@ -54,6 +54,15 @@
 
 
 /*******************************************************************************
+ *    PUBLIC DATA
+ ******************************************************************************/
+
+struct TN_ListItem tn_timer_list__gen;
+struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+
+
+
+/*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
 
@@ -492,6 +501,19 @@ enum TN_RCode _tn_timer_create(
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
    return (timer->timeout_cur != 0);
+}
+
+void _tn_timers_init(void)
+{
+   int i;
+
+   //-- reset "generic" timers list
+   tn_list_reset(&tn_timer_list__gen);
+
+   //-- reset all "tick" timer lists
+   for (i = 0; i < TN_TICK_LISTS_CNT; i++){
+      tn_list_reset(&tn_timer_list__tick[i]);
+   }
 }
 
 

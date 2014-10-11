@@ -85,15 +85,6 @@ extern struct TN_ListItem tn_create_queue;
 /// count of created tasks
 extern volatile int tn_created_tasks_cnt;           
 
-/// list of all tasks that wait timeout expiration 
-/// TODO: remove
-//extern struct TN_ListItem tn_wait_timeout_list;             
-
-/// list of all active timers, see tn_timer.h
-//extern struct TN_ListItem tn_timer_list;
-extern struct TN_ListItem tn_timer_list__gen;
-extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
-
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
 
@@ -427,11 +418,24 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  *    tn_timer.c
  ******************************************************************************/
 
+/// "generic" list of timers, for details, refer to \ref timers_implementation
+extern struct TN_ListItem tn_timer_list__gen;
+/// "tick" lists of timers, for details, refer to \ref timers_implementation
+extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+
+
+
+
 /**
  * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
  * necessary timers housekeeping: moving them between lists, firing them, etc.
  */
 void _tn_timers_tick_proceed(void);
+
+/**
+ * TODO
+ */
+void _tn_timers_init(void);
 
 /**
  * TODO
