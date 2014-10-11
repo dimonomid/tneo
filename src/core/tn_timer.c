@@ -336,9 +336,6 @@ void _tn_timers_tick_proceed(void)
    }
 #endif
 
-   struct TN_Timer *timer;
-   struct TN_Timer *tmp_timer;
-
    int tick_list_index = _TICK_LIST_INDEX(0);
 
    if (tick_list_index == 0){
@@ -350,6 +347,9 @@ void _tn_timers_tick_proceed(void)
 
       //-- handle "generic" timer list {{{
       {
+         struct TN_Timer *timer;
+         struct TN_Timer *tmp_timer;
+
          tn_list_for_each_entry_safe(
                timer, tmp_timer, &tn_timer_list__gen, timer_queue
                )
@@ -386,24 +386,36 @@ void _tn_timers_tick_proceed(void)
 
    //-- handle current "tick" timer list {{{
    {
+      struct TN_Timer *timer;
+
       struct TN_ListItem *p_cur_timer_list = 
          &tn_timer_list__tick[ tick_list_index ];
 
       //-- now, p_cur_timer_list is a list of timers that we should
       //   fire NOW, unconditionally.
 
-      {
-         tn_list_for_each_entry_safe(
-               timer, tmp_timer, p_cur_timer_list, timer_queue
-               )
-         {
-            //-- first of all, cancel timer, so that 
-            //   function could start it again if it wants to.
-            _tn_timer_cancel(timer);
+      //-- NOTE that we shouldn't use iterators like 
+      //   `tn_list_for_each_entry_safe()` here, because timers can be 
+      //   removed from the list while we are iterating through it: 
+      //   this may happen if user-provided function cancels timer which 
+      //   is in the same list.
+      //
+      //   Although timers could be removed from the list, note that
+      //   new timer can't be added to it
+      //   (because timeout 0 is disallowed, and timer with timeout
+      //   TN_TICK_LISTS_CNT is added to the "generic" list),
+      //   see implementation details in the tn_timer.h file
+      while (!tn_is_list_empty(p_cur_timer_list)){
+         timer = tn_list_first_entry_remove(
+               p_cur_timer_list, typeof(*timer), timer_queue
+               );
 
-            //-- call user function
-            timer->func(timer, timer->p_user_data);
-         }
+         //-- first of all, cancel timer, so that 
+         //   function could start it again if it wants to.
+         _tn_timer_cancel(timer);
+
+         //-- call user function
+         timer->func(timer, timer->p_user_data);
       }
 
 #if TN_DEBUG
@@ -467,13 +479,13 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
    }
 #endif
 
-   //-- reset timeout to zero
+   //-- reset timeout to zero (but this is actually not necessary)
    timer->timeout_cur = 0;
 
    //-- remove entry from timer queue
    tn_list_remove_entry(&(timer->timer_queue));
 
-   //-- reset the list (but this is actually not necessary)
+   //-- reset the list
    tn_list_reset(&(timer->timer_queue));
 
    return rc;
@@ -500,7 +512,7 @@ enum TN_RCode _tn_timer_create(
 
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
-   return (timer->timeout_cur != 0);
+   return (!tn_is_list_empty(&(timer->timer_queue)));
 }
 
 void _tn_timers_init(void)

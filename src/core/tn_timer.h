@@ -106,8 +106,9 @@
  * to the same list which is iterated through at the moment, and things will be
  * mixed up.
  *
- * If we use `(N - 1)` lists, we are guaranteed that current "tick" list will
- * stay untouched while we are iterating through it.
+ * If we use `(N - 1)` lists, we are guaranteed that new timers can't be added
+ * to the current "tick" list while we are iterating through it. 
+ * (although timer can be deleted from that list, but it's ok)
  *
  * The `N` in the TNeoKernel is configured by the compile-time option
  * `#TN_TICK_LISTS_CNT`.
