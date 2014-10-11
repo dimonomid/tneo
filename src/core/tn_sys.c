@@ -288,14 +288,14 @@ enum TN_RCode tn_tick_int_processing(void)
 
    TN_INT_IDIS_SAVE();
 
+   //-- increment system timer
+   tn_sys_time_count++;
+
    //-- manage round-robin (if used)
    _round_robin_manage();
 
    //-- manage timers
    _tn_timers_tick_proceed();
-
-   //-- increment system timer
-   tn_sys_time_count++;
 
    TN_INT_IRESTORE();
 
