@@ -400,7 +400,7 @@ void _tn_timers_tick_proceed(void)
       //   TN_TICK_LISTS_CNT is added to the "generic" list),
       //   see implementation details in the tn_timer.h file
       while (!tn_is_list_empty(p_cur_timer_list)){
-         timer = tn_list_first_entry_remove(
+         timer = tn_list_first_entry(
                p_cur_timer_list, typeof(*timer), timer_queue
                );
 
