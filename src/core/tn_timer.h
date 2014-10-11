@@ -44,7 +44,7 @@
  * In the spirit of TNeoKernel, timers are as lightweight as possible. That's
  * why there is only one type of timer: the single-shot timer. If you need your
  * timer to fire repeatedly, you can easily restart it from the timer function
- * by the `tn_timer_istart()`, so it's not a problem.
+ * by the `tn_timer_start()`, so it's not a problem.
  *
  * When timer fires, the user-provided function is called. Be aware of the
  * following:
@@ -246,6 +246,7 @@ enum TN_RCode tn_timer_create(
  * Destruct the timer. If the timer is active, it is cancelled first.
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
  *
  * @param timer     timer to destruct
@@ -266,6 +267,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
  * cancelled first.
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
  *
  * @param timer
@@ -286,21 +288,11 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
 enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
 
 /**
- * The same as `tn_timer_start()` but for using in the ISR. Can be used from
- * the `#TN_TimerFunc` function called by a timer, to start or restart *any*
- * timer; typically used to start again the timer from the function called
- * by the timer itself.
- *
- * $(TN_CALL_FROM_ISR)
- * $(TN_LEGEND_LINK)
- */
-enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout);
-
-/**
  * If timer is active, cancel it. If timer is already inactive, nothing is
  * changed.
  *
  * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
  *
  * @param timer
@@ -315,19 +307,12 @@ enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout);
 enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
 
 /**
- * The same as `tn_timer_cancel()` but for using in the ISR. Can be used from
- * the `#TN_TimerFunc` function called by a timer, to cancel *any* timer. Note
- * that you don't need to cancel the timer that caused the function to be
- * called, although nothing will break if you do so.
- *
- * $(TN_CALL_FROM_ISR)
- * $(TN_LEGEND_LINK)
- */
-enum TN_RCode tn_timer_icancel(struct TN_Timer *timer);
-
-/**
  * Set user-provided function and pointer to user data for the timer.
  * Can be called if timer is either active or inactive.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
  *
  * @param timer
  *    Pointer to timer
@@ -347,15 +332,44 @@ enum TN_RCode tn_timer_set_func(
       );
 
 /**
- * The same as `tn_timer_set_func()` but for using in the ISR.
+ * Returns whether given timer is active or inactive.
  *
+ * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
  * $(TN_LEGEND_LINK)
+ *
+ * @param timer
+ *    Pointer to timer
+ * @param p_is_active
+ *    Pointer to `#BOOL` variable in which resulting value should be stored
+ *
+ * @return
+ *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_WPARAM` if wrong params were given.
  */
-enum TN_RCode tn_timer_iset_func(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
+enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active);
+
+/**
+ * Returns how many $(TN_SYS_TIMER_LINK) ticks (at most) is left for the timer
+ * to expire. If timer is inactive, 0 is returned.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param timer
+ *    Pointer to timer
+ * @param p_time_left
+ *    Pointer to `#TN_Timeout` variable in which resulting value should be
+ *    stored
+ *
+ * @return
+ *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_WPARAM` if wrong params were given.
+ */
+enum TN_RCode tn_timer_time_left(
+      struct TN_Timer *timer,
+      TN_Timeout *p_time_left
       );
 
 #ifdef __cplusplus

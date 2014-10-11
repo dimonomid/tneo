@@ -207,10 +207,15 @@ typedef  unsigned int               TN_UWord;
 
 #ifdef __mips16
 #  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
-#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK(); tn_arch_sr_restore(tn_save_status_reg)
+#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK();                      \
+                              tn_arch_sr_restore(tn_save_status_reg)
 #else
-#  define TN_INT_DIS_SAVE()   __asm__ __volatile__("di %0; ehb" : "=d" (tn_save_status_reg))
-#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK(); __builtin_mtc0(12, 0, tn_save_status_reg)
+#  define TN_INT_DIS_SAVE()   __asm__ __volatile__(                           \
+                                    "di %0; ehb"                              \
+                                    : "=d" (tn_save_status_reg)               \
+                                    )
+#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK();                      \
+                              __builtin_mtc0(12, 0, tn_save_status_reg)
 #endif
 
 /**

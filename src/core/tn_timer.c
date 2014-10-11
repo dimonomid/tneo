@@ -151,11 +151,6 @@ enum TN_RCode tn_timer_create(
       goto out;
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
    rc = _tn_timer_create(timer, func, p_user_data);
 
 out:
@@ -167,30 +162,19 @@ out:
  */
 enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
 
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      //-- if timer is active, cancel it first
+      rc = _tn_timer_cancel(timer);
+
+      //-- now, delete timer
+      timer->id_timer = 0;
+      tn_arch_sr_restore(sr_saved);
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   //-- if timer is active, cancel it first
-   rc = _tn_timer_cancel(timer);
-
-   //-- now, delete timer
-   timer->id_timer = 0;
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
@@ -199,54 +183,15 @@ out:
  */
 enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
 
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_timer_start(timer, timeout);
+      tn_arch_sr_restore(sr_saved);
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   rc = _tn_timer_start(timer, timeout);
-
-   TN_INT_RESTORE();
-
-out:
-   return rc;
-}
-
-/*
- * See comments in the header file (tn_timer.h)
- */
-enum TN_RCode tn_timer_istart(struct TN_Timer *timer, TN_Timeout timeout)
-{
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
-
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = _tn_timer_start(timer, timeout);
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -255,54 +200,15 @@ out:
  */
 enum TN_RCode tn_timer_cancel(struct TN_Timer *timer)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
 
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_timer_cancel(timer);
+      tn_arch_sr_restore(sr_saved);
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   rc = _tn_timer_cancel(timer);
-
-   TN_INT_RESTORE();
-
-out:
-   return rc;
-}
-
-/*
- * See comments in the header file (tn_timer.h)
- */
-enum TN_RCode tn_timer_icancel(struct TN_Timer *timer)
-{
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
-
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = _tn_timer_cancel(timer);
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -315,58 +221,52 @@ enum TN_RCode tn_timer_set_func(
       void             *p_user_data
       )
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
 
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_timer_set_func(timer, func, p_user_data);
+      tn_arch_sr_restore(sr_saved);
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   rc = _tn_timer_set_func(timer, func, p_user_data);
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
 /*
  * See comments in the header file (tn_timer.h)
  */
-enum TN_RCode tn_timer_iset_func(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
+enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active)
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
+
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      *p_is_active = _tn_timer_is_active(timer);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_timer.h)
+ */
+enum TN_RCode tn_timer_time_left(
+      struct TN_Timer *timer,
+      TN_Timeout *p_time_left
       )
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(timer);
 
-   rc = _check_param_generic(timer);
-   if (rc != TN_RC_OK){
-      goto out;
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      *p_time_left = _tn_timer_time_left(timer);
+      tn_arch_sr_restore(sr_saved);
    }
 
-   if (!tn_is_isr_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = _tn_timer_set_func(timer, func, p_user_data);
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -588,6 +488,13 @@ enum TN_RCode _tn_timer_set_func(
 
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
    return (!tn_is_list_empty(&(timer->timer_queue)));
 }
 
@@ -602,6 +509,36 @@ void _tn_timers_init(void)
    for (i = 0; i < TN_TICK_LISTS_CNT; i++){
       tn_list_reset(&tn_timer_list__tick[i]);
    }
+}
+
+TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
+{
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
+   TN_Timeout time_left = 0;
+
+   if (_tn_timer_is_active(timer)){
+      int tick_list_index = _TICK_LIST_INDEX(0);
+
+      if (timer->timeout_cur > tick_list_index){
+         time_left = timer->timeout_cur - tick_list_index;
+      } else if (timer->timeout_cur < tick_list_index){
+         time_left = timer->timeout_cur + TN_TICK_LISTS_CNT - tick_list_index;
+      } else {
+#if TN_DEBUG
+         //-- timer->timeout_cur should never be equal to tick_list_index here
+         //   (if it is, timer is inactive, so, we don't get here)
+         _TN_FATAL_ERROR();
+#endif
+      }
+   }
+
+   return time_left;
 }
 
 

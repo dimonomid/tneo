@@ -432,43 +432,27 @@ extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
  */
 void _tn_timers_tick_proceed(void);
 
-/**
- * TODO
- */
 void _tn_timers_init(void);
 
-/**
- * TODO
- */
 enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
 
-/**
- * TODO
- */
 enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer);
 
-/**
- * TODO
- */
 enum TN_RCode _tn_timer_create(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
       void             *p_user_data
       );
 
-/**
- * TODO
- */
 enum TN_RCode _tn_timer_set_func(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
       void             *p_user_data
       );
 
-/**
- * TODO
- */
 BOOL _tn_timer_is_active(struct TN_Timer *timer);
+
+TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 
 #ifdef __cplusplus
 }  /* extern "C" */
