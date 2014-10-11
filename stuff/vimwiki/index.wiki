@@ -7,12 +7,12 @@
 
 == Routine ==
 
-   * [.] Timer
+   * [o] Timer
       * [X] tn_timer_start() should allow re-starting timer (that is, start timer again if it is already active)
-      * [ ] what if we manage timers from the function called by timer? The tn_timer_list is altered, so, things may be mixed up
+      * [X] what if we manage timers from the function called by timer? The tn_timer_list is altered, so, things may be mixed up
       * [ ] probably we should add flags like SINGLE_SHOT and CYCLIC.
       * [ ] write 'detailed description' in the tn_timer.h
-      * [ ] probably move definition of tn_timer_list__gen and tn_timer_list__tick to the `tn_timer.c`, add `_tn_timers_init()`. So that all the timer-related stuff is in the single file.
+      * [X] probably move definition of tn_timer_list__gen and tn_timer_list__tick to the `tn_timer.c`, add `_tn_timers_init()`. So that all the timer-related stuff is in the single file.
 
 == Plans ==
 
