@@ -39,6 +39,9 @@
  *
  * A timer
  *
+ * TODO: expain that we haven't 'cyclic' timer and why we haven't it.
+ * Provide usage example.
+ *
  * \section timers_implementation Implementation of timers
  *
  * You don't have to understand the implementation of timers to use them,

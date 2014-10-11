@@ -442,10 +442,11 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 
       if (timeout < TN_TICK_LISTS_CNT){
          //-- timer should be added to the one of "tick" lists.
-         //   Note that we shouldn't set timeout_cur here,
-         //   because it has no effect when timer is in "tick" list.
+         int tick_list_index = _TICK_LIST_INDEX(timeout);
+         timer->timeout_cur = tick_list_index;
+
          tn_list_add_tail(
-               &tn_timer_list__tick[ _TICK_LIST_INDEX(timeout) ],
+               &tn_timer_list__tick[ tick_list_index ],
                &(timer->timer_queue)
                );
       } else {
