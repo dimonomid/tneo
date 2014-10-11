@@ -241,11 +241,6 @@ enum TN_RCode tn_sem_create(
       goto out;
    }
 
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
    tn_list_reset(&(sem->wait_queue));
 
    sem->count     = start_count;
