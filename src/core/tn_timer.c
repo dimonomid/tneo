@@ -320,6 +320,13 @@ out:
  */
 void _tn_timers_tick_proceed(void)
 {
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
    struct TN_Timer *timer;
    struct TN_Timer *tmp_timer;
 
@@ -404,17 +411,35 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
 
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
    } else {
-      timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
+
+      //-- if timer is active, cancel it first
+      if (_tn_timer_is_active(timer)){
+         rc = _tn_timer_cancel(timer);
+      }
 
       if (timeout < TN_TICK_LISTS_CNT){
+         //-- timer should be added to the one of "tick" lists.
+         //   Note that we shouldn't set timeout_cur here,
+         //   because it has no effect when timer is in "tick" list.
          tn_list_add_tail(
                &tn_timer_list__tick[ _TICK_LIST_INDEX(timeout) ],
                &(timer->timer_queue)
                );
       } else {
+         //-- timer should be added to the "generic" list.
+         //   We should set timeout_cur adding current "tick" index to it.
+         timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
+
          tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
       }
    }
@@ -425,6 +450,13 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
    enum TN_RCode rc = TN_RC_OK;
+
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
 
    //-- reset timeout to zero
    timer->timeout_cur = 0;
