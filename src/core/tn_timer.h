@@ -37,16 +37,34 @@
 /**
  * \file
  *
- * A timer
+ * Timer: a kernel object that is used to ask the kernel to call some
+ * user-provided function at a particular time in the future, based on the 
+ * $(TN_SYS_TIMER_LINK) tick.
  *
- * TODO: expain that we haven't 'cyclic' timer and why we haven't it.
- * Provide usage example.
+ * In the spirit of TNeoKernel, timers are as lightweight as possible. That's
+ * why there is only one type of timer: the single-shot timer. If you need your
+ * timer to fire repeatedly, you can easily restart it from the timer function
+ * by the `tn_timer_istart()`, so it's not a problem.
+ *
+ * When timer fires, the user-provided function is called. Be aware of the
+ * following:
+ *    - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
+ *      ISR, by the `tn_tick_int_processing()`);
+ *    - Function is called with global interrupts disabled.
+ *
+ * Consequently:
+ *
+ *   - It's legal to call interrupt services from this function;
+ *   - The function should be as fast as possible.
+ *
+ * See `#TN_TimerFunc` for the prototype of the function that could be
+ * scheduled.
  *
  * \section timers_implementation Implementation of timers
  *
- * You don't have to understand the implementation of timers to use them,
- * but it is probably worth knowing if you want to understand better how the 
- * kernel works and configure it appropriately for your particular application.
+ * Although you don't have to understand the implementation of timers to use
+ * them, it is probably worth knowing, particularly because the kernel have an
+ * option to customize the balance between memory usage and performance.
  *
  * The easiest implementation of timers could be something like this: we
  * have just a single list with all active timers, and at every system tick
@@ -144,14 +162,16 @@ struct TN_Timer;
 /**
  * Prototype of the function that should be called by timer.
  *
- * When timer fires, function gets called by the kernel. Be aware of the
+ * When timer fires, the user-provided function is called. Be aware of the
  * following:
  *    - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
- *      ISR);
- *    - Function is called with global interrupts disabled;
+ *      ISR, by the `tn_tick_int_processing()`);
+ *    - Function is called with global interrupts disabled.
  *
- * So, it's legal to call interrupt services from this function, and the
- * function should be as fast as possible.
+ * Consequently:
+ *
+ *   - It's legal to call interrupt services from this function;
+ *   - The function should be as fast as possible.
  *
  * @param timer
  *    Timer that caused function to be called
@@ -173,9 +193,6 @@ struct TN_Timer {
    ///
    /// User data pointer that is given to user-provided `func`.
    void *p_user_data;
-   //
-   // Timeout value that is set by user
-   //TN_Timeout timeout_base;
    ///
    /// Current (left) timeout value
    TN_Timeout timeout_cur;
@@ -240,8 +257,11 @@ enum TN_RCode tn_timer_create(
 enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
 
 /**
- * Start the timer, that is, schedule the timer's function (given to
+ * Start the timer: that is, schedule the timer's function (given to
  * `tn_timer_create()`) to be called later by the kernel. See `TN_TimerFunc()`.
+ *
+ * It is legal to restart already active timer. In this case, the timer will be
+ * cancelled first.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_LEGEND_LINK)

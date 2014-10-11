@@ -33,7 +33,7 @@
         <targetDevice>PIC32MX440F512H</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit3PlatformTool</platformTool>
+        <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
         <languageToolchainVersion>1.21</languageToolchainVersion>
         <platform>2</platform>
