@@ -324,7 +324,7 @@ enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
  *    User data pointer that is given to user-provided `func`.
  *
  * @return 
- *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_OK` if operation was successfull;
  *    * `#TN_RC_WPARAM` if wrong params were given.
  */
 enum TN_RCode tn_timer_set_func(
@@ -346,7 +346,7 @@ enum TN_RCode tn_timer_set_func(
  *    Pointer to `#BOOL` variable in which resulting value should be stored
  *
  * @return
- *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_OK` if operation was successfull;
  *    * `#TN_RC_WPARAM` if wrong params were given.
  */
 enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active);
@@ -366,7 +366,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active);
  *    stored
  *
  * @return
- *    * `#TN_RC_OK` if timer was successfully created;
+ *    * `#TN_RC_OK` if operation was successfull;
  *    * `#TN_RC_WPARAM` if wrong params were given.
  */
 enum TN_RCode tn_timer_time_left(
