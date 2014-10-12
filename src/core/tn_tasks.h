@@ -208,11 +208,11 @@ struct TN_Task {
 #endif
 #endif
 
-   /// base address of task's stack space
-   TN_UWord *stk_start;
+   /// base top of the stack for this task
+   TN_UWord *base_stack_top;
    ///
-   /// size of task's stack (in `sizeof(unsigned int)`, not bytes)
-   int stk_size;
+   /// size of task's stack (in `sizeof(TN_UWord)`, not bytes)
+   int stack_size;
    ///
    /// pointer to task's body function given to `tn_task_create()`
    TN_TaskBody *task_func_addr;

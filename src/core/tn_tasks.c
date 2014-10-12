@@ -378,7 +378,6 @@ enum TN_RCode tn_task_create(
    enum TN_RCode rc;
    enum TN_Context context;
 
-   TN_UWord *ptr_stack;
    int i;
 
    //-- Lightweight checking of system tasks recreation
@@ -422,11 +421,11 @@ enum TN_RCode tn_task_create(
    //--- Init task TCB
    task->task_func_addr  = task_func;
    task->task_func_param = param;
-   task->stk_start       = _tn_arch_stack_start_get(
+   task->base_stack_top  = _tn_arch_stack_top_get(
          task_stack_low_addr,
          task_stack_size
          );
-   task->stk_size        = task_stack_size;
+   task->stack_size      = task_stack_size;
    task->base_priority   = priority;
    task->task_state      = TN_TASK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
@@ -437,8 +436,16 @@ enum TN_RCode tn_task_create(
    task->pwait_queue  = NULL;
 
    //-- fill all task stack space by #TN_FILL_STACK_VAL
-   for (ptr_stack = task->stk_start, i = 0; i < task->stk_size; i++){
-      *ptr_stack-- = TN_FILL_STACK_VAL;
+   {
+      TN_UWord *ptr_stack;
+      for (
+            i = 0, ptr_stack = task_stack_low_addr;
+            i < task_stack_size;
+            i++ 
+          )
+      {
+         *ptr_stack++ = TN_FILL_STACK_VAL;
+      }
    }
 
    //-- reset task_queue (the queue used to include task to runqueue or 
@@ -1066,7 +1073,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
    //    when not running
    task->task_stk = _tn_arch_stack_init(
          task->task_func_addr,
-         task->stk_start,
+         task->base_stack_top,
          task->task_func_param
          );
 

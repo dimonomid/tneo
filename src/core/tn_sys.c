@@ -202,22 +202,31 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
-   //-- Clear/set all globals (vars, lists, etc)
-
+   //-- for each priority: 
+   //   - reset list of runnable tasks with this priority
+   //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
       tn_list_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
+   //-- reset generic task queue and task count to 0
    tn_list_reset(&tn_create_queue);
    tn_created_tasks_cnt = 0;
 
-   tn_sys_state = (0);  //-- no flags set
+   //-- initial system flags: no flags set (see enum TN_StateFlag)
+   tn_sys_state = (0);  
 
+   //-- reset bitmask of prioritis with runnable tasks
    tn_ready_to_run_bmp = 0;
+
+   //-- reset system time
    tn_sys_time_count = 0;
+
+   //-- reset interrupt nesting count
    tn_int_nest_count = 0;
 
+   //-- reset pointers to currently running task and next task to run
    tn_next_task_to_run = NULL;
    tn_curr_run_task    = NULL;
 
@@ -229,8 +238,11 @@ void tn_sys_start(
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
-   //-- Pre-decrement stack
-   tn_int_sp = &(int_stack[int_stack_size]);
+   //-- pre-decrement stack
+   tn_int_sp = _tn_arch_stack_top_get(
+         int_stack,
+         int_stack_size
+         );
 
    //-- init timers
    _tn_timers_init();
