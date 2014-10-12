@@ -5,12 +5,6 @@
 
 I have plans to implement some goodies not yet present in the kernel.
 
-\section plans_timer Timer object
-
-It would be sometimes useful to have ability to ask the kernel to call custom function in the future, or even call it periodically. This is what Timer object is for. The overhead of it would be the same as if we put some task to wait for specified timeout, i.e. it's really little overhead.
-
-If we have no registered Timer objects, no extra overhead involved at all.
-
 \section plans_event_connect Event connecting
 
 Sometimes we need to wait, say, for messages from several queues simultaneously; currently, the kernel does not have built-in support of it. How I plan to implement it: there should be a way to *connect* an event group and custom events mask to the data queue. Then, data queue will maintain flag(s) specified by mask: when queue is non-empty, it will set flag(s) by mask, when queue becomes empty, it will clear these flag(s).

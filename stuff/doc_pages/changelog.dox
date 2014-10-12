@@ -7,10 +7,12 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
-  - Working on \ref tn_timer.h "timers"
+  - Added \ref tn_timer.h "timers": kernel objects that are used to ask the
+    kernel to call some user-provided function at a particular time in the
+    future;
   - Removed `tn_sys_time_set()` function, because now TNeoKernel uses internal
     system tick count for timers, and modifying system tick counter by user
-    is *really* bad idea.
+    is a *really* bad idea.
 
 
 \section changelog_v1_01 v1.01
