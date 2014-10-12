@@ -279,8 +279,23 @@ enum TN_RCode tn_timer_time_left(
  ******************************************************************************/
 
 /**
- * See comments in the tn_internal.h file,
- * see also \ref timers_implementation.
+ * See comments in the tn_internal.h file.
+ */
+void _tn_timers_init(void)
+{
+   int i;
+
+   //-- reset "generic" timers list
+   tn_list_reset(&tn_timer_list__gen);
+
+   //-- reset all "tick" timer lists
+   for (i = 0; i < TN_TICK_LISTS_CNT; i++){
+      tn_list_reset(&tn_timer_list__tick[i]);
+   }
+}
+
+/**
+ * See comments in the tn_internal.h file.
  */
 void _tn_timers_tick_proceed(void)
 {
@@ -383,6 +398,9 @@ void _tn_timers_tick_proceed(void)
    // }}}
 }
 
+/**
+ * See comments in the tn_internal.h file.
+ */
 enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -422,6 +440,9 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    return rc;
 }
 
+/**
+ * See comments in the tn_internal.h file.
+ */
 enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -447,6 +468,9 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
    return rc;
 }
 
+/**
+ * See comments in the tn_internal.h file.
+ */
 enum TN_RCode _tn_timer_create(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
@@ -468,6 +492,9 @@ out:
    return rc;
 }
 
+/**
+ * See comments in the tn_internal.h file.
+ */
 enum TN_RCode _tn_timer_set_func(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
@@ -486,6 +513,9 @@ enum TN_RCode _tn_timer_set_func(
    return rc;
 }
 
+/**
+ * See comments in the tn_internal.h file.
+ */
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
 #if TN_DEBUG
@@ -498,19 +528,9 @@ BOOL _tn_timer_is_active(struct TN_Timer *timer)
    return (!tn_is_list_empty(&(timer->timer_queue)));
 }
 
-void _tn_timers_init(void)
-{
-   int i;
-
-   //-- reset "generic" timers list
-   tn_list_reset(&tn_timer_list__gen);
-
-   //-- reset all "tick" timer lists
-   for (i = 0; i < TN_TICK_LISTS_CNT; i++){
-      tn_list_reset(&tn_timer_list__tick[i]);
-   }
-}
-
+/**
+ * See comments in the tn_internal.h file.
+ */
 TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
 #if TN_DEBUG

@@ -71,8 +71,8 @@ unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 volatile enum TN_StateFlag tn_sys_state;
 
-struct TN_Task * tn_next_task_to_run;
-struct TN_Task * tn_curr_run_task;
+struct TN_Task *tn_next_task_to_run;
+struct TN_Task *tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
 

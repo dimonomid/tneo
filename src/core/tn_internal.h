@@ -37,8 +37,7 @@
 /**
  * \file
  * 
- *    Internal TNeoKernel header
- *
+ * Internal TNeoKernel header, should not be included by the application.
  */
 
 
@@ -418,8 +417,10 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  *    tn_timer.c
  ******************************************************************************/
 
+///
 /// "generic" list of timers, for details, refer to \ref timers_implementation
 extern struct TN_ListItem tn_timer_list__gen;
+///
 /// "tick" lists of timers, for details, refer to \ref timers_implementation
 extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
@@ -427,31 +428,59 @@ extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 
 /**
+ * Should be called once at system startup (from `#tn_sys_start()`).
+ * It merely resets all timer lists.
+ */
+void _tn_timers_init(void);
+
+/**
  * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
  * necessary timers housekeeping: moving them between lists, firing them, etc.
+ *
+ * See \ref timers_implementation for details.
  */
 void _tn_timers_tick_proceed(void);
 
-void _tn_timers_init(void);
-
+/**
+ * Actual worker function that is called by `#tn_timer_start()`.
+ * Interrupts should be disabled when calling it.
+ */
 enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
 
+/**
+ * Actual worker function that is called by `#tn_timer_cancel()`.
+ * Interrupts should be disabled when calling it.
+ */
 enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer);
 
+/**
+ * Actual worker function that is called by `#tn_timer_create()`.
+ */
 enum TN_RCode _tn_timer_create(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
       void             *p_user_data
       );
 
+/**
+ * Actual worker function that is called by `#tn_timer_set_func()`.
+ */
 enum TN_RCode _tn_timer_set_func(
       struct TN_Timer  *timer,
       TN_TimerFunc     *func,
       void             *p_user_data
       );
 
+/**
+ * Actual worker function that is called by `#tn_timer_is_active()`.
+ * Interrupts should be disabled when calling it.
+ */
 BOOL _tn_timer_is_active(struct TN_Timer *timer);
 
+/**
+ * Actual worker function that is called by `#tn_timer_time_left()`.
+ * Interrupts should be disabled when calling it.
+ */
 TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 
 #ifdef __cplusplus
