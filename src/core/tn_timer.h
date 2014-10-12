@@ -56,7 +56,9 @@
  * Consequently:
  *
  * - It's legal to call interrupt services from this function;
- * - The function should be as fast as possible.
+ * - You should make sure that your interrupt stack is enough for this
+ *   function;
+ * - The function should be as fast as possible;
  * - The function should not enable interrupts unconditionally. Consider using
  *   `tn_arch_sr_save_int_dis()` and `tn_arch_sr_restore()` if you need.
  *
