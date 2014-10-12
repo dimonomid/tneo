@@ -41,4 +41,6 @@ NOTE that we shouldn't set this flag as auto-cleared by event group, because it 
 
 What about some object like EventCollector? (not sure how to implement it)
 
+Well, we want to be able to wait for multiple events atomically: say, we want to wait for message from the queue and for the semaphore. It seems really hard to do that in single call to something like `tn_collector_wait()`, because then `tn_collector_wait()` should take all the possible arguments for all possible waiting events: void *p_data for sending the data to queue, void **pp_data for receiving, the same for fmem, etc. So, "event connection" approach seems much better.
+
 

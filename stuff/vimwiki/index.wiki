@@ -8,16 +8,9 @@
 
 == Routine ==
 
-   * [o] Timer
-      * [X] tn_timer_start() should allow re-starting timer (that is, start timer again if it is already active)
-      * [X] what if we manage timers from the function called by timer? The tn_timer_list is altered, so, things may be mixed up
-      * [ ] probably we should add flags like SINGLE_SHOT and CYCLIC.
-      * [ ] write 'detailed description' in the tn_timer.h
-      * [X] probably move definition of tn_timer_list__gen and tn_timer_list__tick to the `tn_timer.c`, add `_tn_timers_init()`. So that all the timer-related stuff is in the single file.
 
 == Plans ==
 
-   * [ ] Timer object
    * [ ] Event group connection (at least, it would be useful to connect event group to queue)
    * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
