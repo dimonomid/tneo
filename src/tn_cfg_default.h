@@ -148,7 +148,7 @@
  * default value should work for you.
  */
 #ifndef TN_TICK_LISTS_CNT
-#  define TN_TICK_LISTS_CNT    4
+#  define TN_TICK_LISTS_CNT    8
 #endif
 
 
