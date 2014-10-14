@@ -5,7 +5,9 @@
 
 TNeoKernel changelog
 
-\section changelog_current Current development version (BETA)
+\section changelog_v1_02 v1.02
+
+Release date: 2014-10-14.
 
   - Added \ref tn_timer.h "timers": kernel objects that are used to ask the
     kernel to call some user-provided function at a particular time in the

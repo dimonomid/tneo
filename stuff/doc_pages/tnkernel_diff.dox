@@ -134,7 +134,7 @@ In original TNKernel, system functions refused to perform job and returned `#TER
 
 \subsection tnkernel_new_features__timer Timers
 
-Support of timers was added since TNeoKernel 1.02.
+Support of timers was added since TNeoKernel \ref changelog_v1_02.
 
 Timer is a kernel object that is used to ask the kernel to call some user-provided function at a particular time in the future, based on the $(TN_SYS_TIMER_LINK) tick.
 
