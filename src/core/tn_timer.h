@@ -37,7 +37,7 @@
 /**
  * \file
  *
- * Timer: a kernel object that is used to ask the kernel to call some
+ * Timer is a kernel object that is used to ask the kernel to call some
  * user-provided function at a particular time in the future, based on the
  * $(TN_SYS_TIMER_LINK) tick.
  *
