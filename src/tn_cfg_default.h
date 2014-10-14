@@ -134,6 +134,25 @@
 #endif
 
 /**
+ * Number of "tick" lists of timers, must be a power or two; minimum value:
+ * `2`; typical values: `4`, `8` or `16`.
+ *
+ * Refer to the \ref timers_implementation for details.
+ *
+ * Shortly: this value represents number of elements in the array of 
+ * `struct TN_ListItem`, on 32-bit system each element takes 8 bytes.
+ *
+ * The larger value, the more memory is needed, and the faster
+ * $(TN_SYS_TIMER_LINK) ISR works. If your application has a lot of timers
+ * and/or sleeping tasks, consider incrementing this value; otherwise,
+ * default value should work for you.
+ */
+#ifndef TN_TICK_LISTS_CNT
+#  define TN_TICK_LISTS_CNT    8
+#endif
+
+
+/**
  * API option for `MAKE_ALIG()` macro.
  *
  * There is a terrible mess with `MAKE_ALIG()` macro: original TNKernel docs

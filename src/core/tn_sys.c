@@ -51,6 +51,7 @@
 #include "tn_internal.h"
 
 #include "tn_tasks.h"
+#include "tn_timer.h"
 
 
 
@@ -65,14 +66,13 @@
 struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 struct TN_ListItem tn_create_queue;
 volatile int tn_created_tasks_cnt;
-struct TN_ListItem tn_wait_timeout_list;
 
 unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 volatile enum TN_StateFlag tn_sys_state;
 
-struct TN_Task * tn_next_task_to_run;
-struct TN_Task * tn_curr_run_task;
+struct TN_Task *tn_next_task_to_run;
+struct TN_Task *tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
 
@@ -120,34 +120,6 @@ static void _idle_task_body(void *par)
    for(;;)
    {
       tn_callback_idle_hook();
-   }
-}
-
-
-/**
- * Manage tn_wait_timeout_list.
- * This job was previously done in tn_timer_task, but now it is preferred
- * to call it right from tn_tick_int_processing()
- */
-static inline void _wait_timeout_list_manage(void)
-{
-   volatile struct TN_Task *task;
-
-   tn_list_for_each_entry(task, &tn_wait_timeout_list, timer_queue){
-
-      if (task->tick_count == TN_WAIT_INFINITE){
-         //-- should never be here
-         _TN_FATAL_ERROR();
-      }
-
-      if (task->tick_count > 0) {
-         task->tick_count--;
-
-         if (task->tick_count == 0){
-            //-- Timeout expired
-            _tn_task_wait_complete((struct TN_Task *)task, TN_RC_TIMEOUT);
-         }
-      }
    }
 }
 
@@ -230,22 +202,31 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
-   //-- Clear/set all globals (vars, lists, etc)
-
+   //-- for each priority: 
+   //   - reset list of runnable tasks with this priority
+   //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
       tn_list_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
+   //-- reset generic task queue and task count to 0
    tn_list_reset(&tn_create_queue);
    tn_created_tasks_cnt = 0;
 
-   tn_sys_state = (0);  //-- no flags set
+   //-- initial system flags: no flags set (see enum TN_StateFlag)
+   tn_sys_state = (0);  
 
+   //-- reset bitmask of prioritis with runnable tasks
    tn_ready_to_run_bmp = 0;
+
+   //-- reset system time
    tn_sys_time_count = 0;
+
+   //-- reset interrupt nesting count
    tn_int_nest_count = 0;
 
+   //-- reset pointers to currently running task and next task to run
    tn_next_task_to_run = NULL;
    tn_curr_run_task    = NULL;
 
@@ -257,11 +238,14 @@ void tn_sys_start(
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
-   //-- Pre-decrement stack
-   tn_int_sp = &(int_stack[int_stack_size]);
+   //-- pre-decrement stack
+   tn_int_sp = _tn_arch_stack_top_get(
+         int_stack,
+         int_stack_size
+         );
 
-   //-- reset wait queue
-   tn_list_reset(&tn_wait_timeout_list);
+   //-- init timers
+   _tn_timers_init();
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
@@ -316,14 +300,14 @@ enum TN_RCode tn_tick_int_processing(void)
 
    TN_INT_IDIS_SAVE();
 
+   //-- increment system timer
+   tn_sys_time_count++;
+
    //-- manage round-robin (if used)
    _round_robin_manage();
 
-   //-- manage tn_wait_timeout_list
-   _wait_timeout_list_manage();
-
-   //-- increment system timer
-   tn_sys_time_count++;
+   //-- manage timers
+   _tn_timers_tick_proceed();
 
    TN_INT_IRESTORE();
 
@@ -368,25 +352,6 @@ unsigned int tn_sys_time_get(void)
 {
    //-- NOTE: it works if only read access to unsigned int is atomic!
    return tn_sys_time_count;
-}
-
-/*
- * See comments in the header file (tn_sys.h)
- */
-void tn_sys_time_set(unsigned int value)
-{
-   if (_tn_arch_inside_isr()){
-      TN_INTSAVE_DATA_INT;
-      TN_INT_IDIS_SAVE();
-      tn_sys_time_count = value;
-      TN_INT_IRESTORE();
-   } else {
-      TN_INTSAVE_DATA;
-      TN_INT_DIS_SAVE();
-      tn_sys_time_count = value;
-      TN_INT_RESTORE();
-   }
-
 }
 
 /*

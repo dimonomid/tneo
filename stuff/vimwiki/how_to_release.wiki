@@ -1,0 +1,42 @@
+
+= tneokernel dev / how to release =
+
+  * modify changelog: move everything from "_current development version_" to the new release section, specify release date.
+  * make sure changelog does NOT containt "_current development version_", because it should not be present in the release documentation.
+  * from the repo:
+  {{{
+  
+  $ hg ci -m"changelog is updated for release vX.XX"
+  $ hg up stable
+  $ hg merge default
+  $ hg ci -m "merge default into stable for release vX.XX"
+  $ hg tag vX.XX
+  $ hg up default
+  $ hg merge stable
+  $ hg ci -m "merged stable vX.XX into default: ready for more development"
+  
+  }}}
+  
+  * add 'current development version' in the changelog back
+  * commit it:
+      `hg ci -m"changelog: added current development version section"`
+  
+  * publish release docs:
+      `$ bash ./publish_doc_release.sh vX.XX`
+ 
+  * publish dev docs:
+      `$ bash ./publish_doc_dev.sh`
+ 
+  * add link to docs index.html: 
+     * `$ cd dfrank.bitbucket.org/tneokernel_api`
+     * in the index.html, add link to new vX.XX dir docs
+     * `$ hg ci -m"index.html : added link to docs vX.XX"`
+ 
+  * push docs: `$ hg push`
+  * cd back to tneokernel repo: `$ cd ../..`
+  * create downloadable archive: `$ bash ./create_version_archive.sh vX.XX`
+  * go to https://bitbucket.org/dfrank/tneokernel/downloads and upload new archive there
+  * push repo to the bitbucket `$ hg push https://dfrank@bitbucket.org/dfrank/tneokernel`
+
+
+

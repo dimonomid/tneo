@@ -1659,7 +1659,11 @@ LATEX_FOOTER           =
 # markers available.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_EXTRA_FILES      =
+LATEX_EXTRA_FILES      = images/attr_call_task.png \
+                         images/attr_call_int.png \
+                         images/attr_call_ct_sw.png \
+                         images/attr_timeout.png
+
 
 # If the PDF_HYPERLINKS tag is set to YES, the LaTeX that is generated is
 # prepared for conversion to PDF (using ps2pdf or pdflatex). The PDF file will

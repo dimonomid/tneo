@@ -107,7 +107,7 @@ static inline enum TN_RCode _check_param_create(
 static inline enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem),
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    TN_INTSAVE_DATA;
@@ -238,11 +238,6 @@ enum TN_RCode tn_sem_create(
 
    rc = _check_param_create(sem, start_count, max_count);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
       goto out;
    }
 

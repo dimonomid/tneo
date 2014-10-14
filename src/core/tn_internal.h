@@ -37,8 +37,7 @@
 /**
  * \file
  * 
- *    Internal TNeoKernel header
- *
+ * Internal TNeoKernel header, should not be included by the application.
  */
 
 
@@ -68,6 +67,7 @@ extern "C"  {     /*}*/
 
 struct TN_Mutex;
 struct TN_ListItem;
+struct TN_Timer;
 
 
 
@@ -84,9 +84,6 @@ extern struct TN_ListItem tn_create_queue;
 /// count of created tasks
 extern volatile int tn_created_tasks_cnt;           
 
-/// list of all tasks that wait timeout expiration
-extern struct TN_ListItem tn_wait_timeout_list;             
-
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
 
@@ -101,12 +98,8 @@ extern struct TN_Task * tn_next_task_to_run;
 /// since this priority is used by idle task and it is always runnable.
 extern volatile unsigned int tn_ready_to_run_bmp;
 
-/// system time that is get/set by `tn_sys_time_get()`/`tn_sys_time_set()`,
+/// system time that is get/set by `tn_sys_time_get()`,
 /// respectively.
-///
-/// NOTE that these and only these TNeoKernel functions use this counter,
-/// it is not used for internal timeout calculation, or anything.
-/// Its usage completely depends on user.
 extern volatile unsigned int tn_sys_time_count;
 
 /// current interrupt nesting count. Used by macros
@@ -264,7 +257,7 @@ void _tn_task_set_waiting(
       struct TN_Task *task,
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout
+      TN_Timeout timeout
       );
 
 /**
@@ -308,7 +301,7 @@ static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wa
 static inline void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      unsigned long timeout
+      TN_Timeout timeout
       )
 {
    _tn_task_clear_runnable(tn_curr_run_task);
@@ -418,6 +411,77 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
 #endif
 
 
+
+
+/*******************************************************************************
+ *    tn_timer.c
+ ******************************************************************************/
+
+///
+/// "generic" list of timers, for details, refer to \ref timers_implementation
+extern struct TN_ListItem tn_timer_list__gen;
+///
+/// "tick" lists of timers, for details, refer to \ref timers_implementation
+extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+
+
+
+
+/**
+ * Should be called once at system startup (from `#tn_sys_start()`).
+ * It merely resets all timer lists.
+ */
+void _tn_timers_init(void);
+
+/**
+ * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
+ * necessary timers housekeeping: moving them between lists, firing them, etc.
+ *
+ * See \ref timers_implementation for details.
+ */
+void _tn_timers_tick_proceed(void);
+
+/**
+ * Actual worker function that is called by `#tn_timer_start()`.
+ * Interrupts should be disabled when calling it.
+ */
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+
+/**
+ * Actual worker function that is called by `#tn_timer_cancel()`.
+ * Interrupts should be disabled when calling it.
+ */
+enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer);
+
+/**
+ * Actual worker function that is called by `#tn_timer_create()`.
+ */
+enum TN_RCode _tn_timer_create(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
+
+/**
+ * Actual worker function that is called by `#tn_timer_set_func()`.
+ */
+enum TN_RCode _tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      );
+
+/**
+ * Actual worker function that is called by `#tn_timer_is_active()`.
+ * Interrupts should be disabled when calling it.
+ */
+BOOL _tn_timer_is_active(struct TN_Timer *timer);
+
+/**
+ * Actual worker function that is called by `#tn_timer_time_left()`.
+ * Interrupts should be disabled when calling it.
+ */
+TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 
 #ifdef __cplusplus
 }  /* extern "C" */

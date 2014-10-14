@@ -130,6 +130,38 @@ For detailed API reference, refer to the `tn_eventgrp.h`.
 
 In original TNKernel, system functions refused to perform job and returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually neither convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
 
+\section tnkernel_new_features New features
+
+\subsection tnkernel_new_features__timer Timers
+
+Support of timers was added since TNeoKernel \ref changelog_v1_02.
+
+Timer is a kernel object that is used to ask the kernel to call some user-provided function at a particular time in the future, based on the $(TN_SYS_TIMER_LINK) tick.
+
+If you need to repeatedly wake up particular task, you can create semaphore which you should \ref tn_sem_wait() "wait for" in the task, and \ref tn_sem_isignal() "signal" in the timer callback.
+
+If you need to perform rather fast action (such as toggle some pin, or the like), consider doing that right in the timer callback, in order to avoid context switch overhead.
+
+The timer callback approach provides ultimate flexibility.
+
+For details, refer to the \ref tn_timer.h "timers documentation".
+
+\subsection tnkernel_diff_mutex_rec Recursive mutexes
+
+Sometimes I feel lack of mutexes that allow recursive locking. I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
+
+Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
+
+\subsection tnkernel_diff_new_functions New system services added
+
+Several system services were added:
+
+  - `tn_cur_task_get()` : return a pointer to the `struct TN_Task` of the currently running task;
+  - `tn_cur_task_body_get()` : return pointer to the currently running task body function;
+  - `tn_task_state_get()` : get state of the task.
+
+
+
 \section tnkernel_new_api Compatible API changes
 
 \subsection tnkernel_diff_make_alig Macro MAKE_ALIG()
@@ -151,12 +183,6 @@ But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is 
   - `#TN_API_MAKE_ALIG_ARG__TYPE` - use macro like this: `MAKE_ALIG(struct my_struct)`, like in any other port.
 
 By the way, I wrote to the author of TNKernel (Yuri Tiomkin) about this mess, but he didn't answer anything. It's a pity of course, but we have what we have.
-
-\subsection tnkernel_diff_mutex_rec Recursive mutexes
-
-Sometimes I feel lack of mutexes that allow recursive locking. Yeah I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
-
-Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
 
 \subsection tnkernel_new_api__convenience_macros_stack Convenience macros for stack arrays definition
 
@@ -193,13 +219,6 @@ Actually, there's a lot of confusion about usage of mutexes/semaphores, so it's 
 
 Old names (`tn_sem_acquire()` and friends) are still available through `tn_oldsymbols.h`.
 
-\subsection tnkernel_diff_new_functions New system services added
-
-Several system services were added:
-
-  - `tn_cur_task_get()` : return a pointer to the `struct TN_Task` of the currently running task;
-  - `tn_cur_task_body_get()` : return pointer to the currently running task body function;
-  - `tn_task_state_get()` : get state of the task.
 
 
 \section tnkernel_diff_other Changes that do not affect API directly

@@ -70,6 +70,11 @@ struct TN_Mutex;
 
 
 /*******************************************************************************
+ *    DEFINITIONS
+ ******************************************************************************/
+
+
+/*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
 
@@ -245,6 +250,9 @@ void tn_sys_start(
  * The period of this timer is determined by user 
  * (typically 1 ms, but user is free to set different value)
  *
+ * Among other things, expired \ref tn_timer.h "timers" are fired from this
+ * function.
+ *
  * For further information, refer to \ref quick_guide "Quick guide".
  *
  * $(TN_CALL_FROM_ISR)
@@ -285,28 +293,9 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks);
  * $(TN_LEGEND_LINK)
  *
  * @return
- *    Current system ticks count. Note that this value does **not** affect any
- *    of the internal TNeoKernel routines, it is just incremented each system
- *    tick (i.e. in `tn_tick_int_processing()`) and is returned to user by
- *    `tn_sys_time_get()`.
- *
- *    It is not used by TNeoKernel itself at all.
+ *    Current system ticks count. 
  */
 unsigned int tn_sys_time_get(void);
-
-/**
- * Set system ticks count. Note that this value does **not** affect any of the
- * internal TNeoKernel routines, it is just incremented each system tick (i.e.
- * in `tn_tick_int_processing()`) and is returned to user by
- * `tn_sys_time_get()`.
- *
- * It is not used by TNeoKernel itself at all.
- *
- * $(TN_CALL_FROM_TASK)
- * $(TN_CALL_FROM_ISR)
- * $(TN_LEGEND_LINK)
- */
-void tn_sys_time_set(unsigned int value);
 
 
 /**

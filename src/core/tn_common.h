@@ -91,6 +91,7 @@ enum TN_ObjId {
    TN_ID_DATAQUEUE      = 0x8C8A6C89,  //!< id for data queues
    TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,  //!< id for fixed memory pools
    TN_ID_MUTEX          = 0x17129E45,  //!< id for mutexes
+   TN_ID_TIMER          = 0x9A937FBC,  //!< id for timers
 };
 
 /**
@@ -172,33 +173,32 @@ typedef void (TN_TaskBody)(void *param);
  * So, function can wait or return an error. There are possible `timeout`
  * values and appropriate behavior of the function:
  *
- *    * `timeout` is set to `0`: function doesn't wait at all, no context switch is performed,
- *      `#TN_RC_TIMEOUT` is returned immediately.
- *    * `timeout` is set to `#TN_WAIT_INFINITE`: function waits until it eventually **can** perform
- *      its job. Timeout is not taken in account, so `#TN_RC_TIMEOUT`
- *      is never returned.
- *    * `timeout` is set to other value: function waits at most specified number of system ticks.
- *      Strictly speaking, it waits from `(timeout - 1)` to `timeout` ticks. So, if
- *      you specify that timeout is 1, be aware that it might actually don't
- *      wait at all: if system timer interrupt happens just while function is
- *      putting task to wait (with interrupts disabled), then ISR will be
- *      executed right after function puts task to wait. Then
- *      `tn_tick_int_processing()` will immediately remove the task from wait
- *      queue and make it runnable again.
+ * - `timeout` is set to `0`: function doesn't wait at all, no context switch
+ *   is performed, `#TN_RC_TIMEOUT` is returned immediately.
+ * - `timeout` is set to `#TN_WAIT_INFINITE`: function waits until it
+ *   eventually **can** perform its job. Timeout is not taken in account, so
+ *   `#TN_RC_TIMEOUT` is never returned.
+ * - `timeout` is set to other value: function waits at most specified number
+ *   of system ticks.  Strictly speaking, it waits from `(timeout - 1)` to
+ *   `timeout` ticks. So, if you specify that timeout is 1, be aware that it
+ *   might actually don't wait at all: if $(TN_SYS_TIMER_LINK) interrupt
+ *   happens just while function is putting task to wait (with interrupts
+ *   disabled), then ISR will be executed right after function puts task to
+ *   wait. Then `tn_tick_int_processing()` will immediately remove the task
+ *   from wait queue and make it runnable again.
  *
- *      So, to guarantee that task waits *at least* 1 system tick,
- *      you should specify timeout value of `2`.
+ *      So, to guarantee that task waits *at least* 1 system tick, you should
+ *      specify timeout value of `2`.
  *
  * **Note** also that there are other possible ways to make task runnable:
  *
- *    * if task waits because of call to `tn_task_sleep()`, it may be woken up
- *      by some other task, by means of `tn_task_wakeup()`. In this case,
- *      `tn_task_sleep()` returns `#TN_RC_OK`.  
- *    * independently of the wait reason, task may be released from wait
- *      forcibly, by means of `tn_task_release_wait()`. It this case,
- *      `#TN_RC_FORCED` is returned by the waiting function.
- *      (the usage of the `tn_task_release_wait()` function is discouraged
- *      though)
+ * - if task waits because of call to `tn_task_sleep()`, it may be woken up by
+ *   some other task, by means of `tn_task_wakeup()`. In this case,
+ *   `tn_task_sleep()` returns `#TN_RC_OK`.  
+ * - independently of the wait reason, task may be released from wait forcibly,
+ *   by means of `tn_task_release_wait()`. It this case, `#TN_RC_FORCED` is
+ *   returned by the waiting function.  (the usage of the
+ *   `tn_task_release_wait()` function is discouraged though)
  */
 typedef unsigned long TN_Timeout;
 

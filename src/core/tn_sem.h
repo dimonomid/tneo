@@ -162,11 +162,13 @@ enum TN_RCode tn_sem_delete(struct TN_Sem *sem);
 /**
  * Signal the semaphore.
  *
- * If current semaphore counter (`count`) is less than `max_count`,
- * counter is incremented by one; otherwise, `#TN_RC_OVERFLOW` is returned.
+ * If current semaphore counter (`count`) is less than `max_count`, counter is
+ * incremented by one, and first task (if any) that \ref tn_sem_wait() "waits"
+ * for the semaphore becomes runnable with `#TN_RC_OK` returned from
+ * `tn_sem_wait()`.
  *
- * If wait queue is not empty, the first task from the queue becomes runnable
- * with `#TN_RC_OK` returned from `tn_sem_wait()`.
+ * if semaphore counter is already has its max value, no action performed and
+ * `#TN_RC_OVERFLOW` is returned
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -198,7 +200,9 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  *
  * If the current semaphore counter (`count`) is non-zero, it is decremented
  * and `#TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
- * refer to `#TN_Timeout`.
+ * task might switch to $(TN_TASK_STATE_WAIT) state until someone \ref
+ * tn_sem_signal "signaled" the semaphore or until the `timeout` expired. refer
+ * to `#TN_Timeout`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)

@@ -105,13 +105,22 @@ void tn_arch_sr_restore(unsigned int sr);
 
 
 /**
- * Should return start stack address, which may be either the lowest address of
- * the stack array or the highest one, depending on the architecture.
+ * Should return top of the stack, which may be either:
  *
- * @param   stack_low_address    start address of the stack array.
- * @param   stack_size           size of the stack in `int`-s, not in bytes.
+ * - `(stack_low_address - 1)`
+ * - `(stack_low_address + stack_size)`
+ *
+ * (depending on the architecture)
+ *
+ * **NOTE** that returned *top of the stack* is NOT the address which may be
+ * used for storing the new data. Instead, it is the *previous* address.
+ *
+ * @param   stack_low_address
+ *    start address of the stack array.
+ * @param   stack_size
+ *    size of the stack in `#TN_UWord`-s, not in bytes.
  */
-TN_UWord *_tn_arch_stack_start_get(
+TN_UWord *_tn_arch_stack_top_get(
       TN_UWord *stack_low_address,
       int stack_size
       );
@@ -121,8 +130,8 @@ TN_UWord *_tn_arch_stack_start_get(
  *
  * @param task_func
  *    Pointer to task body function.
- * @param stack_start
- *    Start address of the stack, returned by `_tn_arch_stack_start_get()`.
+ * @param stack_top
+ *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
  * @param param
  *    User-provided parameter for task body function.
  *
@@ -130,7 +139,7 @@ TN_UWord *_tn_arch_stack_start_get(
  */
 unsigned int *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_start,
+      TN_UWord      *stack_top,
       void          *param
       );
 
