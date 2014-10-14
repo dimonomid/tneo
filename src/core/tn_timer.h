@@ -38,8 +38,19 @@
  * \file
  *
  * Timer: a kernel object that is used to ask the kernel to call some
- * user-provided function at a particular time in the future, based on the 
+ * user-provided function at a particular time in the future, based on the
  * $(TN_SYS_TIMER_LINK) tick.
+ *
+ * If you need to repeatedly wake up particular task, you can create semaphore
+ * which you should \ref tn_sem_wait() "wait for" in the task, and \ref
+ * tn_sem_isignal() "signal" in the timer callback (remember that you should
+ * use `tn_sem_isignal()` in this callback, since it is called from an ISR).
+ *
+ * If you need to perform rather fast action (such as toggle some pin, or the
+ * like), consider doing that right in the timer callback, in order to avoid
+ * context switch overhead.
+ *
+ * The timer callback approach provides ultimate flexibility.
  *
  * In the spirit of TNeoKernel, timers are as lightweight as possible. That's
  * why there is only one type of timer: the single-shot timer. If you need your
@@ -49,7 +60,7 @@
  * When timer fires, the user-provided function is called. Be aware of the
  * following:
  *
- * - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
+ * - Function is called from an ISR context (namely, from $(TN_SYS_TIMER_LINK)
  *   ISR, by the `tn_tick_int_processing()`);
  * - Function is called with global interrupts disabled.
  *
