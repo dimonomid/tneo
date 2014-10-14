@@ -28,8 +28,9 @@
       `$ bash ./publish_doc_dev.sh`
  
   * add link to docs index.html: 
-     * `$ cd dfrank.bitbucket.org/tnkernel_api`
+     * `$ cd dfrank.bitbucket.org/tneokernel_api`
      * in the index.html, add link to new vX.XX dir docs
+     * `$ hg ci -m"index.html : added link to docs vX.XX"`
  
   * push docs: `$ hg push`
   * cd back to tneokernel repo: `$ cd ../..`

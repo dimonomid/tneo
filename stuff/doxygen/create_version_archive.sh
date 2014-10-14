@@ -9,7 +9,50 @@ if [[ "$target_tag_name" == "" ]]; then
    exit 0
 fi
 
-# update to this revision
+# go to root of the repo
+cd ../..
+
+# remember path to the repo
+repo_path="$(pwd)"
+
+# generate path to temp repo dir
+tmp_repo_path="/tmp/tneokernel_tmp_$target_tag_name"
+
+# remove it if it already exists
+if test -d "$tmp_repo_path"; then
+   echo "removing $tmp_repo_path.."
+   rm -r "$tmp_repo_path"
+fi
+
+# clone it from the current one
+hg clone $repo_path $tmp_repo_path
+
+# generate pic32 hex {{{
+
+pic32_bin="$tmp_repo_path/bin/pic32"
+
+pushd src/arch/pic32/tneokernel.X
+make
+
+# in the target temp dir, create "bin" dir
+mkdir -p "$pic32_bin"
+
+# copy hex there
+cp dist/default/production/tneokernel.X.a "$pic32_bin"
+
+# cd back
+popd
+
+# }}}
+
+
+# cd to temp dir
+cd $tmp_repo_path
+
+# cd to doxygen dir
+cd stuff/doxygen
+
+# update the needed revision
 hg up $target_tag_name
 
 # get version string
@@ -50,7 +93,7 @@ if test -d "$archive_full_name"; then
 fi
 
 # make directory that will be packed soon
-mkdir "$archive_full_name"
+mkdir -p "$archive_full_name"
 
 # copy data there
 rsync -av --exclude=".hg*" --exclude=".vimprj" . "$archive_full_name"
@@ -59,7 +102,8 @@ rsync -av --exclude=".hg*" --exclude=".vimprj" . "$archive_full_name"
 cd "$archive_full_name"
 
 # remove tn_cfg.h
-rm "$archive_full_name/src/tn_cfg.h"
+# COMMENTED because repo is now cloned, and there's no tn_cfg.h
+# rm "$archive_full_name/src/tn_cfg.h"
 
 # create doc dirs
 mkdir -p doc/{html,pdf}
@@ -98,9 +142,9 @@ echo " resulting archive is saved as $archive_full_name.zip"
 echo "--------------------------------------------------------------------------"
 
 # go back
-popd
+#popd
 
 # update repo to the tip
-hg up tip
+#hg up tip
 
 
