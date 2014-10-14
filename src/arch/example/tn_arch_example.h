@@ -46,6 +46,7 @@
 
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
+ * Say, for `0xa8` it should return `3`.
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
@@ -107,6 +108,9 @@ typedef  unsigned int               TN_UWord;
  * For compatibility with all platforms, it's recommended to use only values
  * from 1 to 14, inclusive.
  *
+ * TODO: rename to TN_PRIORITIES_MAX_CNT, and add configurable macro
+ *       TN_PRIORITIES_CNT.
+ *
  * @see `#TN_INT_WIDTH`
  */
 #define  TN_PRIORITIES_CNT          TN_INT_WIDTH
@@ -117,7 +121,7 @@ typedef  unsigned int               TN_UWord;
 #define  TN_WAIT_INFINITE           0xFFFFFFFF
 
 /**
- * Value for initializing the task's stack
+ * Value for initializing the unused space of task's stack
  */
 #define  TN_FILL_STACK_VAL          0xFEEDFACE
 
