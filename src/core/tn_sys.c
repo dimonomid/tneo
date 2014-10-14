@@ -238,7 +238,7 @@ void tn_sys_start(
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
-   //-- pre-decrement stack
+   //-- set interrupt's top of the stack
    tn_int_sp = _tn_arch_stack_top_get(
          int_stack,
          int_stack_size
@@ -279,8 +279,12 @@ void tn_sys_start(
    //   (by user-provided callback)
    cb_user_task_create();
 
+   //-- set flag that system is running
+   //   (well, it will be running soon actually)
+   tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
+
    //-- Run OS - first context switch
-   _tn_arch_system_start();
+   _tn_arch_context_switch_nosave();
 }
 
 

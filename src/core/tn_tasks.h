@@ -171,10 +171,10 @@ enum TN_TaskExitOpt {
  * Task
  */
 struct TN_Task {
-   /// pointer to task's current stack pointer;
+   /// pointer to task's current top of the stack;
    /// Note that this field **must** be a first field in the struct,
    /// this fact is exploited by platform-specific routines.
-   unsigned int *task_stk;   
+   TN_UWord *stack_top;   
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     

@@ -647,7 +647,7 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
    //-- it is here only for TN_INT_DIS_SAVE() normal operation,
    //   but actually we don't need to save current interrupt status:
    //   this function never returns, and interrupt status is restored
-   //   from different task's stack inside `_tn_arch_context_switch_exit()`
+   //   from different task's stack inside `_tn_arch_context_switch_nosave()`
    //   call.
    TN_INTSAVE_DATA;
 	 
@@ -666,8 +666,8 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
       _task_delete(task);
    }
 
-   //-- interrupts will be enabled inside _tn_arch_context_switch_exit()
-   _tn_arch_context_switch_exit();  
+   //-- interrupts will be enabled inside _tn_arch_context_switch_nosave()
+   _tn_arch_context_switch_nosave();  
 
 out:
    return;
@@ -1071,7 +1071,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 
    //--- Init task stack, save pointer to task top of stack,
    //    when not running
-   task->task_stk = _tn_arch_stack_init(
+   task->stack_top = _tn_arch_stack_init(
          task->task_func_addr,
          task->base_stack_top,
          task->task_func_param

@@ -89,10 +89,10 @@ TN_UWord *_tn_arch_stack_top_get(
 //
 //   sizeof(void*) = sizeof(int)
 //----------------------------------------------------------------------------
-unsigned int *_tn_arch_stack_init(
-      TN_TaskBody *task_func,
-      TN_UWord *stack_top,
-      void *param
+TN_UWord *_tn_arch_stack_init(
+      TN_TaskBody   *task_func,
+      TN_UWord      *stack_top,
+      void          *param
       )
 {
    //-- filling register's position in the stack - for debugging only
@@ -100,38 +100,38 @@ unsigned int *_tn_arch_stack_init(
    *(--stack_top) = 0;
    *(--stack_top) = 0;
    *(--stack_top) = 0;
-   *(--stack_top) = (unsigned int)task_func;    //-- EPC
-   *(--stack_top) = 3;                          //-- Status: EXL and IE bits are set
-   *(--stack_top) = (unsigned int)tn_task_exit; //-- ra
-   *(--stack_top) = 0x30303030L;                //-- fp
-   *(--stack_top) = (unsigned int)&_gp;         //-- gp - provided by linker
-   *(--stack_top) = 0x25252525L;                //-- t9
-   *(--stack_top) = 0x24242424L;                //-- t8
-   *(--stack_top) = 0x23232323L;                //-- s7
-   *(--stack_top) = 0x22222222L;                //-- s6
-   *(--stack_top) = 0x21212121L;                //-- s5
-   *(--stack_top) = 0x20202020L;                //-- s4
-   *(--stack_top) = 0x19191919L;                //-- s3
-   *(--stack_top) = 0x18181818L;                //-- s2
-   *(--stack_top) = 0x17171717L;                //-- s1
-   *(--stack_top) = 0x16161616L;                //-- s0
-   *(--stack_top) = 0x15151515L;                //-- t7
-   *(--stack_top) = 0x14141414L;                //-- t6
-   *(--stack_top) = 0x13131313L;                //-- t5
-   *(--stack_top) = 0x12121212L;                //-- t4
-   *(--stack_top) = 0x11111111L;                //-- t3
-   *(--stack_top) = 0x10101010L;                //-- t2
-   *(--stack_top) = 0x09090909L;                //-- t1
-   *(--stack_top) = 0x08080808L;                //-- t0
-   *(--stack_top) = 0x07070707L;                //-- a3
-   *(--stack_top) = 0x06060606L;                //-- a2
-   *(--stack_top) = 0x05050505L;                //-- a1
-   *(--stack_top) = (unsigned int)param;        //-- a0 - task's function argument
-   *(--stack_top) = 0x03030303L;                //-- v1
-   *(--stack_top) = 0x02020202L;                //-- v0
-   *(--stack_top) = 0x01010101L;                //-- at
-   *(--stack_top) = 0x33333333L;                //-- hi
-   *(--stack_top) = 0x32323232L;                //-- lo
+   *(--stack_top) = (TN_UWord)task_func;     //-- EPC
+   *(--stack_top) = 3;                       //-- Status: EXL and IE bits are set
+   *(--stack_top) = (TN_UWord)tn_task_exit;  //-- ra
+   *(--stack_top) = 0x30303030L;             //-- fp
+   *(--stack_top) = (TN_UWord)&_gp;          //-- gp - provided by linker
+   *(--stack_top) = 0x25252525L;             //-- t9
+   *(--stack_top) = 0x24242424L;             //-- t8
+   *(--stack_top) = 0x23232323L;             //-- s7
+   *(--stack_top) = 0x22222222L;             //-- s6
+   *(--stack_top) = 0x21212121L;             //-- s5
+   *(--stack_top) = 0x20202020L;             //-- s4
+   *(--stack_top) = 0x19191919L;             //-- s3
+   *(--stack_top) = 0x18181818L;             //-- s2
+   *(--stack_top) = 0x17171717L;             //-- s1
+   *(--stack_top) = 0x16161616L;             //-- s0
+   *(--stack_top) = 0x15151515L;             //-- t7
+   *(--stack_top) = 0x14141414L;             //-- t6
+   *(--stack_top) = 0x13131313L;             //-- t5
+   *(--stack_top) = 0x12121212L;             //-- t4
+   *(--stack_top) = 0x11111111L;             //-- t3
+   *(--stack_top) = 0x10101010L;             //-- t2
+   *(--stack_top) = 0x09090909L;             //-- t1
+   *(--stack_top) = 0x08080808L;             //-- t0
+   *(--stack_top) = 0x07070707L;             //-- a3
+   *(--stack_top) = 0x06060606L;             //-- a2
+   *(--stack_top) = 0x05050505L;             //-- a1
+   *(--stack_top) = (TN_UWord)param;         //-- a0 - task's function argument
+   *(--stack_top) = 0x03030303L;             //-- v1
+   *(--stack_top) = 0x02020202L;             //-- v0
+   *(--stack_top) = 0x01010101L;             //-- at
+   *(--stack_top) = 0x33333333L;             //-- hi
+   *(--stack_top) = 0x32323232L;             //-- lo
 
    return stack_top;
 }
