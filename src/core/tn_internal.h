@@ -148,7 +148,6 @@ extern struct TN_Task tn_idle_task;
 
 /**
  * Remove all tasks from wait queue, returning the TN_RC_DELETED code.
- * Note: this function might sleep.
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
 
