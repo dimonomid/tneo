@@ -7,6 +7,9 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
+  - Priority 0 is now allowed to use by application (in the original TNKernel,
+    it was reserved for the timer task, but TNeoKernel \ref
+    tnkernel_diff_timer_task "does not have timer task")
   - Application is now available to specify how many priority levels does it
     need for, it helps to save a bit of RAM. For details, refer to
     `#TN_PRIORITIES_CNT`.
