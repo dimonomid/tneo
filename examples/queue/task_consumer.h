@@ -37,13 +37,6 @@ enum E_TaskConsPin {
  *    DEFINITIONS
  ******************************************************************************/
 
-#define TASK_CONS_PIN_MASK (0             \
-      | (1 << TASK_CONS_PIN__0)           \
-      | (1 << TASK_CONS_PIN__1)           \
-      | (1 << TASK_CONS_PIN__2)           \
-      )
-
-
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

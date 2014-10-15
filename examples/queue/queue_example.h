@@ -77,7 +77,7 @@
 
 //-- include architecture-specific things,
 //   at least, there is SOFTWARE_BREAK macro
-#include "example_arch.h"
+#include "queue_example_arch.h"
 
 
 /*******************************************************************************

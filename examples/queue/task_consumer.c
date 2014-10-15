@@ -11,7 +11,6 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include <xc.h>
 #include "task_consumer.h"
 #include "task_producer.h"
 #include "queue_example.h"
@@ -34,23 +33,6 @@
 #define  WAIT_TIMEOUT         10
 
 
-
-
-
-//-- gpio register to work with, you might want to switch it to different port
-//   NOTE: in real programs, it's better to use some peripheral library.
-//   I strongly dislike plib as well as "brand new" Harmony by Microchip,
-//   I use my own peripheral library, but in order to write simple example,
-//   I decided to write it as simple as possible.
-#define  TRIS_REG          TRISE
-#define  TRIS_REG_CLR      TRISECLR
-#define  TRIS_REG_SET      TRISESET
-#define  TRIS_REG_INV      TRISEINV
-
-#define  PORT_REG          PORTE
-#define  PORT_REG_CLR      PORTECLR
-#define  PORT_REG_SET      PORTESET
-#define  PORT_REG_INV      PORTEINV
 
 
 
@@ -113,16 +95,7 @@ TN_FMEM_BUF_DEF(cons_fmem_buf, struct TaskConsumerMsg, CONS_QUE_BUF_SIZE);
 static void task_consumer_body(void *par)
 {
    //-- init things specific to consumer task
-
-   //-- configure LED port pins {{{
-   {
-      //-- set output for needed pins
-      TRIS_REG_CLR = TASK_CONS_PIN_MASK;
-
-      //-- clear current port value
-      PORT_REG_CLR = TASK_CONS_PIN_MASK;
-   }
-   // }}}
+   queue_example_arch_init();
 
    //-- create memory pool
    SYSRETVAL_CHECK(
@@ -167,7 +140,7 @@ static void task_consumer_body(void *par)
 
             case TASK_CONS_CMD__PIN_TOGGLE:
                //-- toggle specified bit
-               PORT_REG_INV = (1 << p_msg->pin_num);
+               queue_example_arch_pins_toggle(1 << p_msg->pin_num);
                break;
 
             default:

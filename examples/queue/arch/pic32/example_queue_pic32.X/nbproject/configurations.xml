@@ -15,6 +15,7 @@
       <logicalFolder name="f1" displayName="arch" projectFiles="true">
         <itemPath>../../pic32_arch.c</itemPath>
         <itemPath>../../../../../src/arch/pic32/tn_arch_pic32_int_vec1.S</itemPath>
+        <itemPath>../../queue_example_arch.c</itemPath>
       </logicalFolder>
       <itemPath>../../../queue_example.c</itemPath>
       <itemPath>../../../task_consumer.c</itemPath>
@@ -89,7 +90,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value="../../;../../../../common/queue;../../../../../src"/>
+                  value="../../;../../../;../../../../../src"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
@@ -224,7 +225,6 @@
         <property key="UART1" value="true"/>
         <property key="UART2" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
-        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>

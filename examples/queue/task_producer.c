@@ -8,7 +8,6 @@
  */
 
 
-#include <xc.h>
 #include "task_producer.h"
 #include "task_consumer.h"
 #include "queue_example.h"
