@@ -202,10 +202,6 @@ void hw_init(void)
    INTClearFlag(INT_CS0);
    INTEnable(INT_CS0, INT_ENABLED);
 
-   //-- configure LED port pins
-   mPORTESetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2);
-   mPORTEClearBits(BIT_0 | BIT_1 | BIT_2);
-
    //-- enable multi-vectored interrupt mode
    INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
 }
@@ -215,6 +211,10 @@ void hw_init(void)
  */
 void appl_init(void)
 {
+   //-- configure LED port pins
+   mPORTESetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2);
+   mPORTEClearBits(BIT_0 | BIT_1 | BIT_2);
+
    //-- initialize various on-board peripherals, such as
    //   flash memory, displays, etc.
    //   (in this sample project there's nothing to init)
