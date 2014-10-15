@@ -46,6 +46,9 @@
  *     objects are created: in this project, there's just a single 
  *     object: event group that is used to synchronize task
  *     initialization. See `enum E_QueExampleFlag`.
+ *   - `queue_example_arch_init()` is called, in which architecture
+ *     dependent things are initialized: at least, we need to setup
+ *     some GPIO pins so that consumer could use them.
  *   - create consumer task
  *   - wait until it is initialized (i.e. wait for the flag 
  *     QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT in the event group returned 

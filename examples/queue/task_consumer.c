@@ -95,7 +95,6 @@ TN_FMEM_BUF_DEF(cons_fmem_buf, struct TaskConsumerMsg, CONS_QUE_BUF_SIZE);
 static void task_consumer_body(void *par)
 {
    //-- init things specific to consumer task
-   queue_example_arch_init();
 
    //-- create memory pool
    SYSRETVAL_CHECK(

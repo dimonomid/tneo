@@ -51,6 +51,9 @@ static void appl_init(void)
    //-- init common application objects
    queue_example_init();
 
+   //-- init architecture-dependent stuff
+   queue_example_arch_init();
+
    //-- create all the rest application tasks:
 
    //-- create the consumer task {{{
