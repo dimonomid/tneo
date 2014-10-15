@@ -73,6 +73,22 @@ struct TN_Mutex;
  *    DEFINITIONS
  ******************************************************************************/
 
+/**
+ * Convenience macro for the definition of stack array. See 
+ * `tn_task_create()` for the usage example.
+ *
+ * @param name 
+ *    C variable name of the array
+ * @param size
+ *    size of the stack array in words (`#TN_UWord`), not in bytes.
+ */
+#define  TN_STACK_ARR_DEF(name, size)        \
+   TN_ARCH_STK_ATTR_BEFORE                   \
+   TN_UWord name[ (size) ]                   \
+   TN_ARCH_STK_ATTR_AFTER
+
+
+
 
 /*******************************************************************************
  *    PUBLIC TYPES
@@ -215,14 +231,14 @@ typedef void (TN_CBDeadlock)(
  *
  * @param   idle_task_stack      
  *    Pointer to array for idle task stack. 
- *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
+ *    User must either use the macro `TN_STACK_ARR_DEF()` for the definition
  *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param   idle_task_stack_size 
  *    Size of idle task stack, in words (`#TN_UWord`)
  * @param   int_stack            
  *    Pointer to array for interrupt stack.
- *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
+ *    User must either use the macro `TN_STACK_ARR_DEF()` for the definition
  *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param   int_stack_size       

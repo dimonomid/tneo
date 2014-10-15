@@ -92,14 +92,14 @@
 //   and for interrupts are the requirement of the kernel;
 //   others are application-dependent.
 //
-//   We use convenience macro TN_TASK_STACK_DEF() for that.
+//   We use convenience macro TN_STACK_ARR_DEF() for that.
 
-TN_TASK_STACK_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
-TN_TASK_STACK_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
+TN_STACK_ARR_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
+TN_STACK_ARR_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
 
-TN_TASK_STACK_DEF(task_a_stack, TASK_A_STK_SIZE);
-TN_TASK_STACK_DEF(task_b_stack, TASK_B_STK_SIZE);
-TN_TASK_STACK_DEF(task_c_stack, TASK_C_STK_SIZE);
+TN_STACK_ARR_DEF(task_a_stack, TASK_A_STK_SIZE);
+TN_STACK_ARR_DEF(task_b_stack, TASK_B_STK_SIZE);
+TN_STACK_ARR_DEF(task_c_stack, TASK_C_STK_SIZE);
 
 
 

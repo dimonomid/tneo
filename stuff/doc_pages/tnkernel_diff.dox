@@ -202,7 +202,7 @@ You can still use "manual" definition of stack arrays, like that:
    TN_ARCH_STK_ATTR_AFTER;
 \endcode
 
-Although it is recommended to use convenience macro for that: `TN_TASK_STACK_DEF()`. See `tn_task_create()` for the usage example.
+Although it is recommended to use convenience macro for that: `TN_STACK_ARR_DEF()`. See `tn_task_create()` for the usage example.
 
 \subsection tnkernel_new_api__convenience_macros_fmem Convenience macros for fixed memory block pool buffers definition
 

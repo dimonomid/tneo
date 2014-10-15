@@ -29,7 +29,7 @@ tn_soft_isr(_TIMER_5_VECTOR)
 ### Quick guide on startup process
 
   - You allocate arrays for idle task stack and interrupt stack, there is a
-    convenience macro `TN_TASK_STACK_DEF()` for that. It is good idea to
+    convenience macro `TN_STACK_ARR_DEF()` for that. It is good idea to
     consult the `#TN_MIN_STACK_SIZE` to determine stack sizes (see example
     below).
   - You provide callback function like `void init_task_create(void) { ... }`,
