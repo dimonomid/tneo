@@ -1,7 +1,17 @@
-/*******************************************************************************
- *   Description:   TODO
+/**
+ * \file
  *
- ******************************************************************************/
+ * When you need to build a queue of some data objects from one task to
+ * another, the common pattern in the TNeoKernel is to use fixed memory pool
+ * and queue together. Number of elements in the memory pool is equal to the
+ * number of elements in the queue. So when you need to send the message,
+ * you get block from the memory pool, fill it with data, and send pointer
+ * to it by means of the queue.
+ *
+ * When you receive the message, you handle the data, and free the memory
+ * back to the memory pool.
+ *
+ */
 
 #ifndef _QUEUE_EXAMPLE_H
 #define _QUEUE_EXAMPLE_H
@@ -10,17 +20,11 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+//-- include architecture-specific things,
+//   at least, there is SOFTWARE_BREAK macro
 #include "example_arch.h"
 
 
-
-/*******************************************************************************
- *    PUBLIC TYPES
- ******************************************************************************/
-
-/*******************************************************************************
- *    GLOBAL VARIABLES
- ******************************************************************************/
 
 /*******************************************************************************
  *    DEFINITIONS
@@ -63,8 +67,15 @@
  * \endcode
  * 
  */
-#define SYSRETVAL_CHECK_TO(x) \
-   ({int __rv = (x); if (__rv != TERR_NO_ERR && __rv != TERR_TIMEOUT){SOFTWARE_BREAK();} __rv;})
+#define SYSRETVAL_CHECK_TO(x)                                     \
+   ({                                                             \
+      int __rv = (x);                                             \
+      if (__rv != TN_RC_OK && __rv != TN_RC_TIMEOUT){             \
+         SOFTWARE_BREAK();                                        \
+      }                                                           \
+      /* like, return __rv */                                     \
+      __rv;                                                       \
+    })
 
 /**
  * The same as `SYSRETVAL_CHECK_TO()`, but it allows `#TN_RC_OK` only.
@@ -75,8 +86,15 @@
  *    SYSRETVAL_CHECK(tn_queue_send(&my_queue, p_data, MY_TIMEOUT));
  * \endcode
  */
-#define SYSRETVAL_CHECK(x) \
-   ({int __rv = (x); if (__rv != TERR_NO_ERR){SOFTWARE_BREAK();} __rv;})
+#define SYSRETVAL_CHECK(x)                                        \
+   ({                                                             \
+      int __rv = (x);                                             \
+      if (__rv != TN_RC_OK){                                      \
+         SOFTWARE_BREAK();                                        \
+      }                                                           \
+      /* like, return __rv */                                     \
+      __rv;                                                       \
+    })
 
 
 

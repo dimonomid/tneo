@@ -1,7 +1,12 @@
-/*******************************************************************************
- *   Description:   TODO
+/**
+ * \file
  *
- ******************************************************************************/
+ * Data queue usage example.
+ *
+ * For general information about the pattern, refer to the top of
+ * queue_example.h file
+ */
+
 
 #ifndef _TASK_PRODUCER_H
 #define _TASK_PRODUCER_H
@@ -26,6 +31,9 @@
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+/**
+ * Create producer task.
+ */
 void task_producer_create(void);
 
 #endif // _TASK_PRODUCER_H
