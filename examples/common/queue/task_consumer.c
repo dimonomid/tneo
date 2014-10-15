@@ -110,13 +110,9 @@ TN_FMEM_BUF_DEF(cons_fmem_buf, struct TaskConsumerMsg, CONS_QUE_BUF_SIZE);
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-/**
- * Application init: called from the first created application task
- */
-static void appl_init(void)
+static void task_consumer_body(void *par)
 {
-   //-- init common application objects
-   queue_example_init();
+   //-- init things specific to consumer task
 
    //-- configure LED port pins {{{
    {
@@ -124,40 +120,9 @@ static void appl_init(void)
       TRIS_REG_CLR = TASK_CONS_PIN_MASK;
 
       //-- clear current port value
-      PORT_REG    = TASK_CONS_PIN_MASK;
+      PORT_REG_CLR = TASK_CONS_PIN_MASK;
    }
    // }}}
-
-   //-- create all the rest application tasks:
-
-   //-- create the producer task {{{
-   {
-      task_producer_create();
-
-      //-- wait until producer task initialized
-      SYSRETVAL_CHECK(
-            tn_eventgrp_wait(
-               queue_example_eventgrp_get(),
-               QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT, 
-               TN_EVENTGRP_WMODE_AND,
-               NULL,
-               TN_WAIT_INFINITE
-               )
-            );
-   }
-   // }}}
-
-}
-
-static void task_consumer_body(void *par)
-{
-   //-- in this particular application, consumer task is the first application
-   //   task that is started, so, we should perform all the app initialization 
-   //   here, and then start other tasks. All of this is done in the appl_init().
-   appl_init();
-
-
-   //-- init things specific to consumer task
 
    //-- create memory pool
    SYSRETVAL_CHECK(

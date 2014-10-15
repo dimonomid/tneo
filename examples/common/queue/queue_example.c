@@ -39,7 +39,7 @@ static struct TN_EventGrp que_example_events;
  */
 void init_task_create(void)
 {
-   task_consumer_create();
+   task_producer_create();
 }
 
 

@@ -45,11 +45,43 @@ static struct TN_Task task_producer = {};
  ******************************************************************************/
 
 /**
+ * Application init: called from the first created application task
+ */
+static void appl_init(void)
+{
+   //-- init common application objects
+   queue_example_init();
+
+   //-- create all the rest application tasks:
+
+   //-- create the consumer task {{{
+   {
+      task_consumer_create();
+
+      //-- wait until producer task initialized
+      SYSRETVAL_CHECK(
+            tn_eventgrp_wait(
+               queue_example_eventgrp_get(),
+               QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT, 
+               TN_EVENTGRP_WMODE_AND,
+               NULL,
+               TN_WAIT_INFINITE
+               )
+            );
+   }
+   // }}}
+
+}
+
+/**
  * Body function for producer task
  */
 static void task_producer_body(void *par)
 {
-   //-- nothing special to initialize here
+   //-- in this particular application, producer task is the first application
+   //   task that is started, so, we should perform all the app initialization 
+   //   here, and then start other tasks. All of this is done in the appl_init().
+   appl_init();
 
    //-- cry that producer task has initialized
    SYSRETVAL_CHECK(
@@ -60,18 +92,9 @@ static void task_producer_body(void *par)
             )
          );
 
-   //-- wait until consumer task initialized, since we are about to
-   //   send messages to it
-   SYSRETVAL_CHECK(
-         tn_eventgrp_wait(
-            queue_example_eventgrp_get(),
-            QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT, 
-            TN_EVENTGRP_WMODE_AND,
-            NULL,
-            TN_WAIT_INFINITE
-            )
-         );
-
+   //-- at this point, application is completely initialized, and we can
+   //   get to business: enter endless loop and repeatedly send
+   //   messages to the consumer
    for (;;)
    {
       int i;
