@@ -62,9 +62,14 @@
  *    PRIVATE TYPES
  ******************************************************************************/
 
+/**
+ * Type of message that consumer receives.
+ */
 struct TaskConsumerMsg {
-   enum E_TaskConsCmd   cmd;
-   enum E_TaskConsPin   pin_num;
+   enum E_TaskConsCmd   cmd;        //-- command to perform
+                                    //   (well, now there's just one command)
+   enum E_TaskConsPin   pin_num;    //-- number of pin for which command
+                                    //   should be performed
 };
 
 
@@ -110,22 +115,36 @@ TN_FMEM_BUF_DEF(cons_fmem_buf, struct TaskConsumerMsg, CONS_QUE_BUF_SIZE);
  */
 static void appl_init(void)
 {
-   //-- configure LED port pins
+   //-- init common application objects
+   queue_example_init();
 
-   //-- set output for needed pins
-   TRIS_REG_CLR = TASK_CONS_PIN_MASK;
+   //-- configure LED port pins {{{
+   {
+      //-- set output for needed pins
+      TRIS_REG_CLR = TASK_CONS_PIN_MASK;
 
-   //-- clear current port value
-   PORT_REG    = TASK_CONS_PIN_MASK;
-
+      //-- clear current port value
+      PORT_REG    = TASK_CONS_PIN_MASK;
+   }
+   // }}}
 
    //-- create all the rest application tasks:
-   //
-   //   create the producer task
-   task_producer_create();
 
-   //TODO: use semaphore or event
-   SYSRETVAL_CHECK_TO( tn_task_sleep(100) );
+   //-- create the producer task {{{
+   {
+      task_producer_create();
+
+      //-- wait until producer task initialized
+      tn_eventgrp_wait(
+            queue_example_eventgrp_get(),
+            QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT, 
+            TN_EVENTGRP_WMODE_AND,
+            NULL,
+            TN_WAIT_INFINITE
+            );
+   }
+   // }}}
+
 }
 
 static void task_consumer_body(void *par)
@@ -152,6 +171,14 @@ static void task_consumer_body(void *par)
    SYSRETVAL_CHECK(
          tn_queue_create(&cons_que, (void *)cons_que_buf, CONS_QUE_BUF_SIZE)
          );
+
+   //-- cry that consumer task has initialized
+   tn_eventgrp_modify(
+         queue_example_eventgrp_get(),
+         TN_EVENTGRP_OP_SET,
+         QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT
+         );
+
 
    struct TaskConsumerMsg *p_msg;
 

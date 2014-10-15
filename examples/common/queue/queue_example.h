@@ -25,6 +25,22 @@
 #include "example_arch.h"
 
 
+/*******************************************************************************
+ *    EXTERN TYPES
+ ******************************************************************************/
+
+struct TN_EventGrp;
+
+/*******************************************************************************
+ *    PUBLIC TYPES
+ ******************************************************************************/
+
+enum E_QueExampleFlag {
+   QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT = (1 << 0),
+   QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT = (1 << 1),
+};
+
+
 
 /*******************************************************************************
  *    DEFINITIONS
@@ -107,6 +123,20 @@
  */
 void init_task_create(void);
 
+/**
+ * Initialization of application common objects, must be called once 
+ * from the initial application task (which is created in init_task_create())
+ */
+void queue_example_init(void);
+
+/**
+ * Returns pointer to the application event group.
+ * See `enum E_QueExampleFlag`
+ *
+ * Do note that you must call `queue_example_init()` before
+ * you can get eventgrp.
+ */
+struct TN_EventGrp *queue_example_eventgrp_get(void);
 
 #endif // _QUEUE_EXAMPLE_H
 
