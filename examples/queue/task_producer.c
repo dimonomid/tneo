@@ -1,10 +1,7 @@
 /**
  * \file
  *
- * Data queue usage example.
- *
- * For general information about the pattern, refer to the top of
- * queue_example.h file
+ * Example project that demonstrates usage of queues in TNeoKernel.
  */
 
 
