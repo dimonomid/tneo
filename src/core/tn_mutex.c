@@ -120,8 +120,8 @@ static inline enum TN_RCode _check_param_create(
    } else if (1
          && protocol == TN_MUTEX_PROT_CEILING 
          && (0
-            || ceil_priority < 1
-            || ceil_priority > (TN_PRIORITIES_CNT - 2)
+            || ceil_priority <  0
+            || ceil_priority >= (TN_PRIORITIES_CNT - 1)
             )
          )
    {

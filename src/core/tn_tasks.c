@@ -383,9 +383,6 @@ enum TN_RCode tn_task_create(
    //-- Lightweight checking of system tasks recreation
    if (0
          || (priority == (TN_PRIORITIES_CNT - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
-         || (priority == 0)   //-- there's no more timer task in the kernel,
-                              //   but for a kind of compatibility
-                              //   it's better to disallow tasks with priority 0
       )
    {
       return TN_RC_WPARAM;

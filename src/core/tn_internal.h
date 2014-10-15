@@ -88,10 +88,10 @@ extern volatile int tn_created_tasks_cnt;
 extern volatile enum TN_StateFlag tn_sys_state;
 
 /// task that runs now
-extern struct TN_Task * tn_curr_run_task;
+extern struct TN_Task *tn_curr_run_task;
 
 /// task that should run as soon as possible (after context switch)
-extern struct TN_Task * tn_next_task_to_run;
+extern struct TN_Task *tn_next_task_to_run;
 
 /// bitmask of priorities with runnable tasks.
 /// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,

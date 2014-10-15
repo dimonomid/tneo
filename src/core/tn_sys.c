@@ -89,7 +89,7 @@ void *tn_int_sp;
 
 //-- System tasks
 
-//-- idle task - priority (TN_PRIORITIES_CNT-1) - lowest
+//-- idle task - priority (TN_PRIORITIES_CNT - 1) - lowest
 
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
@@ -171,7 +171,7 @@ static inline enum TN_RCode _idle_task_create(
    return tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
-         TN_PRIORITIES_CNT - 1,             //-- task priority
+         TN_PRIORITIES_CNT - 1,           //-- task priority
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
@@ -217,7 +217,7 @@ void tn_sys_start(
    //-- initial system flags: no flags set (see enum TN_StateFlag)
    tn_sys_state = (0);  
 
-   //-- reset bitmask of prioritis with runnable tasks
+   //-- reset bitmask of priorities with runnable tasks
    tn_ready_to_run_bmp = 0;
 
    //-- reset system time
@@ -332,8 +332,8 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
       goto out;
    }
 
-   if (     priority <= 0 || priority >= (TN_PRIORITIES_CNT - 1)
-         || ticks    <  0 || ticks    >   TN_MAX_TIME_SLICE)
+   if (     priority < 0 || priority >= (TN_PRIORITIES_CNT - 1)
+         || ticks    < 0 || ticks    >   TN_MAX_TIME_SLICE)
    {
       rc = TN_RC_WPARAM;
       goto out;
