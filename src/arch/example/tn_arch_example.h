@@ -104,16 +104,12 @@
 typedef  unsigned int               TN_UWord;
 
 /**
- * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.
- * For compatibility with all platforms, it's recommended to use only values
- * from 1 to 14, inclusive.
+ * Maximum number of priorities available, this value usually matches
+ * `#TN_INT_WIDTH`.
  *
- * TODO: rename to TN_PRIORITIES_MAX_CNT, and add configurable macro
- *       TN_PRIORITIES_CNT.
- *
- * @see `#TN_INT_WIDTH`
+ * @see TN_PRIORITIES_CNT
  */
-#define  TN_PRIORITIES_CNT          TN_INT_WIDTH
+#define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
  * Value for infinite waiting, usually matches `UINT_MAX`

@@ -7,7 +7,9 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
-  - *No changes yet*
+  - Application is now available to specify how many priority levels does it
+    need for, it helps to save a bit of RAM. For details, refer to
+    `#TN_PRIORITIES_CNT`.
 
 \section changelog_v1_02 v1.02
 

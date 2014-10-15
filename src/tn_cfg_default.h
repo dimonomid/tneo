@@ -73,6 +73,28 @@
  ******************************************************************************/
 
 /**
+ * Number of priorities that can be used by application, plus one for idle task
+ * (which has the lowest priority). This value can't be higher than
+ * architecture-dependent value `#TN_PRIORITIES_MAX_CNT`, which typically
+ * equals to width of `int` type. So, for 32-bit systems, max number of
+ * priorities is 32.
+ *
+ * But usually, application needs much less: I can imagine **at most** 4-5
+ * different priorities, plus one for the idle task.
+ *
+ * Do note also that each possible priority level takes RAM: two pointers for
+ * linked list and one `short` for time slice value, so on 32-bit system it
+ * takes 10 bytes. So, with default value of 32 priorities available, it takes
+ * 320 bytes. If you set it, say, to 5, you save `270` bytes, which might be
+ * notable.
+ *
+ * Default: `#TN_PRIORITIES_MAX_CNT`.
+ */
+#ifndef TN_PRIORITIES_CNT
+#  define TN_PRIORITIES_CNT      TN_PRIORITIES_MAX_CNT
+#endif
+
+/**
  * Enables additional param checking for most of the system functions.
  * It's surely useful for debug, but probably better to remove in release.
  * If it is set, most of the system functions are able to return two additional
