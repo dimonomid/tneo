@@ -68,7 +68,7 @@ tn_soft_isr(_TIMER_5_VECTOR)
 ### Basic example for PIC32
 
 This example project can be found in the TNeoKernel repository, in the
-`examples/pic32/basic` directory.
+`examples/arch/pic32/basic` directory.
 
 \attention Before trying to build examples, please read \ref building page
 carefully: you need to copy configuration file in the tneokernel directory to
@@ -76,7 +76,7 @@ build it. Each example has `tn_cfg_appl.h` file, and you should either create
 a symbolic link to this file from `tneokernel/src/tn_cfg.h` or just copy
 this file as `tneokernel/src/tn_cfg.h`.
 
-\include pic32/basic/src/tn_pic32_example_basic.c
+\include arch/pic32/basic/src/tn_pic32_example_basic.c
 
 \section round_robin Round-robin scheduling
 

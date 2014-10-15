@@ -1,6 +1,8 @@
 /**
  * \file
  *
+ * This is an usage example of queues in TNeoKernel.
+ *
  * When you need to build a queue of some data objects from one task to
  * another, the common pattern in the TNeoKernel is to use fixed memory pool
  * and queue together. Number of elements in the memory pool is equal to the
