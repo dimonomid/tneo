@@ -9,7 +9,7 @@
  ******************************************************************************/
 
 //-- Include common pic32 header for all examples
-#include "../../arch/pic32/example_arch.h"
+#include "../../../common/arch/pic32/example_arch.h"
 
 /**
  * At least, we need to initialize GPIO pins here
