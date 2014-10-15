@@ -16,11 +16,9 @@
         <itemPath>../../pic32_arch.c</itemPath>
         <itemPath>../../../../../src/arch/pic32/tn_arch_pic32_int_vec1.S</itemPath>
       </logicalFolder>
-      <logicalFolder name="f2" displayName="common" projectFiles="true">
-        <itemPath>../../../../common/queue/queue_example.c</itemPath>
-        <itemPath>../../../../common/queue/task_consumer.c</itemPath>
-        <itemPath>../../../../common/queue/task_producer.c</itemPath>
-      </logicalFolder>
+      <itemPath>../../../queue_example.c</itemPath>
+      <itemPath>../../../task_consumer.c</itemPath>
+      <itemPath>../../../task_producer.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -29,9 +27,9 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../..</Elem>
     <Elem>../../../../common/queue</Elem>
     <Elem>../../../../../src/arch/pic32</Elem>
+    <Elem>../../..</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
