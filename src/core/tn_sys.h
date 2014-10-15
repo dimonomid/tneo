@@ -306,7 +306,8 @@ unsigned int tn_sys_time_get(void);
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * **Note:** this function should be called before `tn_sys_start()`
+ * **Note:** this function should be called from `main()`, before
+ * `tn_sys_start()`.
  *
  * @param cb
  *    Pointer to user-provided callback function.

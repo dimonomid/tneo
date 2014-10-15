@@ -152,6 +152,14 @@ Sometimes I feel lack of mutexes that allow recursive locking. I know there are 
 
 Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
 
+\subsection tnkernel_diff_mutex_deadlock Mutex deadlock detection
+
+TNeoKernel can notify you by calling your callback function if deadlock occurs. See:
+
+  - compile-time option `#TN_MUTEX_DEADLOCK_DETECT`,
+  - `tn_callback_deadlock_set()`, 
+  - `#TN_CBDeadlock`.
+
 \subsection tnkernel_diff_new_functions New system services added
 
 Several system services were added:
