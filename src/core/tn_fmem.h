@@ -45,6 +45,11 @@
  * no free memory blocks, a task trying to acquire a memory block will be
  * placed into the wait queue until a free memory block arrives (another task
  * returns it to the memory pool).
+ *
+ *   
+ * For the useful pattern on how to use fixed memory pool together with \ref
+ * tn_dqueue.h "queue", refer to the example: `examples/queue`. Be sure to
+ * examine the readme there.
  */
 
 #ifndef _TN_MEM_H

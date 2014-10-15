@@ -53,6 +53,9 @@
  * received can be interpreted as a pointer or an integer and may have value 0
  * (`NULL`). 
  *   
+ * For the useful pattern on how to use queue together with \ref tn_fmem.h 
+ * "fixed memory pool", refer to the example: `examples/queue`. Be sure
+ * to examine the readme there.
  */
 
 #ifndef _TN_DQUEUE_H
