@@ -52,20 +52,24 @@ static void task_producer_body(void *par)
    //-- nothing special to initialize here
 
    //-- cry that producer task has initialized
-   tn_eventgrp_modify(
-         queue_example_eventgrp_get(),
-         TN_EVENTGRP_OP_SET,
-         QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT
+   SYSRETVAL_CHECK(
+         tn_eventgrp_modify(
+            queue_example_eventgrp_get(),
+            TN_EVENTGRP_OP_SET,
+            QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT
+            )
          );
 
    //-- wait until consumer task initialized, since we are about to
    //   send messages to it
-   tn_eventgrp_wait(
-         queue_example_eventgrp_get(),
-         QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT, 
-         TN_EVENTGRP_WMODE_AND,
-         NULL,
-         TN_WAIT_INFINITE
+   SYSRETVAL_CHECK(
+         tn_eventgrp_wait(
+            queue_example_eventgrp_get(),
+            QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT, 
+            TN_EVENTGRP_WMODE_AND,
+            NULL,
+            TN_WAIT_INFINITE
+            )
          );
 
    for (;;)

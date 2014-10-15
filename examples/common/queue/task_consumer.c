@@ -135,12 +135,14 @@ static void appl_init(void)
       task_producer_create();
 
       //-- wait until producer task initialized
-      tn_eventgrp_wait(
-            queue_example_eventgrp_get(),
-            QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT, 
-            TN_EVENTGRP_WMODE_AND,
-            NULL,
-            TN_WAIT_INFINITE
+      SYSRETVAL_CHECK(
+            tn_eventgrp_wait(
+               queue_example_eventgrp_get(),
+               QUE_EXAMPLE_FLAG__TASK_PRODUCER_INIT, 
+               TN_EVENTGRP_WMODE_AND,
+               NULL,
+               TN_WAIT_INFINITE
+               )
             );
    }
    // }}}
@@ -173,10 +175,12 @@ static void task_consumer_body(void *par)
          );
 
    //-- cry that consumer task has initialized
-   tn_eventgrp_modify(
-         queue_example_eventgrp_get(),
-         TN_EVENTGRP_OP_SET,
-         QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT
+   SYSRETVAL_CHECK(
+         tn_eventgrp_modify(
+            queue_example_eventgrp_get(),
+            TN_EVENTGRP_OP_SET,
+            QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT
+            )
          );
 
 
