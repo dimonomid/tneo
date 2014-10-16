@@ -49,6 +49,37 @@
  * queue. An event group is a very suitable synchronization object for cases
  * where (for some reasons) one task has to wait for many tasks, or vice versa,
  * many tasks have to wait for one task.
+ *
+ * \section eventgrp_connect Connecting an event group to other system objects
+ *
+ * Sometimes task needs to wait for different system events: the most common
+ * example is to wait for messages from multiple queues.
+ *
+ * If the kernel doesn't offer a mechanism for that, programmer usually have to
+ * use polling services on these queues and sleep for a few system ticks.
+ * Obviously, this approach has serious drawbacks: we have a lot of useless
+ * context switches, and response for the message gets much slower. Actually,
+ * we lost the main goal of the preemtive kernel when we use polling services
+ * like that.
+ *
+ * TNeoKernel offers a solution: an event group can be connected to other
+ * kernel objects, and these objects will maintain certain flags inside that
+ * event group automatically.
+ *
+ * So, in case of multiple queues, we can act as follows (assume we have two
+ * queues: Q1 and Q2) :
+ * 
+ * - create event group EG;
+ * - connect EG with flag 1 to Q1;
+ * - connect EG with flag 2 to Q2;
+ * - when task needs to receive a message from either Q1 or Q2, it just waits
+ *   for the any of flags 1 or 2 in the EG, this is done in the single call 
+ *   to `tn_eventgrp_wait()`.
+ * - when that event happened, task checks which flag is set, and receive
+ *   message from the appropriate queue.
+ * 
+ * For the information on system services related to queue, refer to the \ref 
+ * tn_dqueue.h "queue reference".
  */
 
 #ifndef _TN_EVENTGRP_H
