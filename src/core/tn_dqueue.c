@@ -133,7 +133,7 @@ static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
       dque->head_idx = 0;
    }
 
-   //-- set flag in the connected event group (if any) 
+   //-- set flag in the connected event group (if any),
    //   indicating that there are messages in the queue
    _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
 
@@ -166,7 +166,7 @@ static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
    }
 
    if (dque->filled_items_cnt == 0){
-      //-- clear flag in the connected event group (if any) 
+      //-- clear flag in the connected event group (if any),
       //   indicating that there are no messages in the queue
       _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
    }
@@ -221,6 +221,15 @@ static enum TN_RCode _queue_send(
       )
 {
    enum TN_RCode rc = TN_RC_OK;
+
+   //-- first of all, we check whether there are task(s) that
+   //   waits for receive message from the queue.
+   //
+   //   If yes, we just pass new message to the first task
+   //   from the waiting tasks list, and don't modify messages
+   //   fifo at all.
+   //
+   //   Otherwise (no waiting tasks), we add new message to the fifo.
 
    if (  !_tn_task_first_wait_complete(
             &dque->wait_receive_list, TN_RC_OK,
