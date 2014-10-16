@@ -48,16 +48,13 @@ static void appl_init(void)
    //-- init common application objects
    queue_example_init();
 
-   //-- init architecture-dependent stuff
-   queue_example_arch_init();
-
    //-- create all the rest application tasks:
 
    //-- create the consumer task {{{
    {
       task_consumer_create();
 
-      //-- wait until producer task initialized
+      //-- wait until consumer task initialized
       SYSRETVAL_CHECK(
             tn_eventgrp_wait(
                queue_example_eventgrp_get(),

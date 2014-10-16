@@ -48,6 +48,9 @@ void queue_example_init(void)
    //-- create application events 
    //   (see enum E_QueExampleFlag in the header)
    SYSRETVAL_CHECK(tn_eventgrp_create(&que_example_events, (0)));
+
+   //-- init architecture-dependent stuff
+   queue_example_arch_init();
 }
 
 /**
