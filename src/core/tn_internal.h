@@ -140,6 +140,20 @@ extern struct TN_Task tn_idle_task;
 #endif
 
 
+#ifndef TN_DEBUG
+#  error TN_DEBUG is not defined
+#endif
+
+#if TN_DEBUG
+#define  _TN_BUG_ON(cond, ...){              \
+   if (cond){                                \
+      _TN_FATAL_ERROR(__VA_ARGS__);          \
+   }                                         \
+}
+#else
+#define  _TN_BUG_ON(cond)     /* nothing */
+#endif
+
 
 
 /*******************************************************************************
@@ -485,6 +499,33 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
+
+
+
+/*******************************************************************************
+ *    tn_eventgrp.c
+ ******************************************************************************/
+
+/**
+ * Establish link to the event group
+ */
+enum TN_RCode _tn_eventgrp_link_set(
+      struct TN_EGrpLink  *eventgrp_link,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      );
+
+/**
+ * Reset link to the event group (no matter whether it is already established)
+ */
+enum TN_RCode _tn_eventgrp_link_reset(
+      struct TN_EGrpLink  *eventgrp_link
+      );
+
+enum TN_RCode _tn_eventgrp_link_manage(
+      struct TN_EGrpLink  *eventgrp_link,
+      BOOL                 set
+      );
 
 #endif // _TN_INTERNAL_H
 

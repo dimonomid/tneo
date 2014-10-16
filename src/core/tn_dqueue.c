@@ -133,6 +133,10 @@ static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
       dque->head_idx = 0;
    }
 
+   //-- set flag in the connected event group (if any) 
+   //   indicating that there are messages in the queue
+   _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
+
 out:
    return rc;
 }
@@ -159,6 +163,12 @@ static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
    dque->tail_idx++;
    if (dque->tail_idx >= dque->items_cnt){
       dque->tail_idx = 0;
+   }
+
+   if (dque->filled_items_cnt == 0){
+      //-- clear flag in the connected event group (if any) 
+      //   indicating that there are no messages in the queue
+      _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
    }
 
 out:
@@ -434,6 +444,9 @@ enum TN_RCode tn_queue_create(
 
    dque->data_fifo         = data_fifo;
    dque->items_cnt         = items_cnt;
+
+   _tn_eventgrp_link_reset(&dque->eventgrp_link);
+
    if (dque->data_fifo == NULL){
       dque->items_cnt = 0;
    }
@@ -547,6 +560,46 @@ enum TN_RCode tn_queue_receive_polling(struct TN_DQueue *dque, void **pp_data)
 enum TN_RCode tn_queue_ireceive_polling(struct TN_DQueue *dque, void **pp_data)
 {
    return _dqueue_job_iperform(dque, _JOB_TYPE__RECEIVE, pp_data);
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_RCode tn_queue_eventgrp_connect(
+      struct TN_DQueue    *dque,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      )
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      _tn_eventgrp_link_set(&dque->eventgrp_link, eventgrp, pattern);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_RCode tn_queue_eventgrp_disconnect(
+      struct TN_DQueue    *dque
+      )
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      _tn_eventgrp_link_reset(&dque->eventgrp_link);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
 }
 
 

@@ -77,7 +77,7 @@ static inline enum TN_RCode _check_param_generic(
 
 static inline enum TN_RCode _check_param_job_perform(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         pattern
+      TN_UWord             pattern
       )
 {
    enum TN_RCode rc = _check_param_generic(eventgrp);
@@ -111,11 +111,14 @@ static inline enum TN_RCode _check_param_create(
 
 
 static BOOL _cond_check(
-      struct TN_EventGrp *eventgrp,
+      struct TN_EventGrp  *eventgrp,
       enum TN_EGrpWaitMode wait_mode,
-      int wait_pattern
+      TN_UWord             wait_pattern
       )
 {
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
    BOOL cond = FALSE;
 
    switch (wait_mode){
@@ -140,7 +143,7 @@ static BOOL _cond_check(
 static void _clear_pattern_if_needed(
       struct TN_EventGrp     *eventgrp,
       enum TN_EGrpWaitMode    wait_mode,
-      unsigned int            pattern
+      TN_UWord                pattern
       )
 {
    //-- probably, we should add one more wait mode flag, like 
@@ -149,6 +152,9 @@ static void _clear_pattern_if_needed(
 
 static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 {
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
    struct TN_Task *task;
    struct TN_Task *tmp_task;
 
@@ -182,11 +188,14 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 
 static enum TN_RCode _eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       )
 {
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
    enum TN_RCode rc = TN_RC_OK;
 
    rc = _check_param_job_perform(eventgrp, wait_pattern);
@@ -213,9 +222,12 @@ out:
 static enum TN_RCode _eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       )
 {
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
    enum TN_RCode rc = TN_RC_OK;
 
    rc = _check_param_job_perform(eventgrp, pattern);
@@ -229,8 +241,10 @@ static enum TN_RCode _eventgrp_modify(
          break;
 
       case TN_EVENTGRP_OP_SET:
-         eventgrp->pattern |= pattern;
-         _scan_event_waitqueue(eventgrp);
+         if ((eventgrp->pattern & pattern) != pattern){
+            eventgrp->pattern |= pattern;
+            _scan_event_waitqueue(eventgrp);
+         }
          break;
 
       case TN_EVENTGRP_OP_TOGGLE:
@@ -256,8 +270,8 @@ out:
  * See comments in the header file (tn_eventgrp.h)
  */
 enum TN_RCode tn_eventgrp_create(
-      struct TN_EventGrp *eventgrp,
-      unsigned int initial_pattern //-- initial value of the pattern
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             initial_pattern //-- initial value of the pattern
       )  
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -317,9 +331,9 @@ out:
  */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern,
+      TN_UWord            *p_flags_pattern,
       TN_Timeout           timeout
       )
 {
@@ -377,9 +391,9 @@ out:
  */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       )
 {
    TN_INTSAVE_DATA;
@@ -406,9 +420,9 @@ out:
  */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       )
 {
    TN_INTSAVE_DATA_INT;
@@ -436,7 +450,7 @@ out:
 enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       )
 {
    TN_INTSAVE_DATA;
@@ -465,7 +479,7 @@ out:
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       )
 {
    TN_INTSAVE_DATA_INT;
@@ -483,6 +497,78 @@ enum TN_RCode tn_eventgrp_imodify(
    TN_INT_IRESTORE();
 
 out:
+   return rc;
+}
+
+
+
+
+/*******************************************************************************
+ *    PROTECTED FUNCTIONS
+ ******************************************************************************/
+
+/**
+ * See comments in the file tn_internal.h
+ */
+enum TN_RCode _tn_eventgrp_link_set(
+      struct TN_EGrpLink  *eventgrp_link,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      )
+{
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (eventgrp == NULL || pattern == (0)){
+      rc = TN_RC_WPARAM;
+   } else {
+      eventgrp_link->eventgrp = eventgrp;
+      eventgrp_link->pattern  = pattern;
+   }
+
+   return rc;
+}
+
+
+/**
+ * See comments in the file tn_internal.h
+ */
+enum TN_RCode _tn_eventgrp_link_reset(
+      struct TN_EGrpLink  *eventgrp_link
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   eventgrp_link->eventgrp = NULL;
+   eventgrp_link->pattern  = (0);
+
+   return rc;
+}
+
+
+/**
+ * See comments in the file tn_internal.h
+ */
+enum TN_RCode _tn_eventgrp_link_manage(
+      struct TN_EGrpLink  *eventgrp_link,
+      BOOL                 set
+      )
+{
+   //-- interrupts should be disabled here
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
+
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (eventgrp_link->eventgrp != NULL){
+      _eventgrp_modify(
+            eventgrp_link->eventgrp,
+            (set ? TN_EVENTGRP_OP_SET : TN_EVENTGRP_OP_CLEAR),
+            eventgrp_link->pattern
+            );
+   }
+
    return rc;
 }
 

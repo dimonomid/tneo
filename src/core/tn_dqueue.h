@@ -67,8 +67,13 @@
 
 #include "tn_list.h"
 #include "tn_common.h"
+#include "tn_eventgrp.h"
 
 
+
+/*******************************************************************************
+ *    EXTERN TYPES
+ ******************************************************************************/
 
 
 
@@ -109,6 +114,9 @@ struct TN_DQueue {
    ///
    /// id for object validity verification
    enum TN_ObjId  id_dque;
+   ///
+   /// connected event group
+   struct TN_EGrpLink eventgrp_link;
 };
 
 /**
@@ -307,6 +315,41 @@ enum TN_RCode tn_queue_ireceive_polling(
       );
 
 
+/**
+ * Connect an event group to the queue. TODO: explain it in detail.
+ *
+ * @param dque
+ *    queue to which event group should connected
+ * @param eventgrp 
+ *    event groupt to connect
+ * @param pattern
+ *    flags pattern that should be managed by the queue automatically
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_queue_eventgrp_connect(
+      struct TN_DQueue    *dque,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      );
+
+
+/**
+ * Disconnect a connected event group from the queue.
+ * If there is no event group connected, nothing is changed.
+ * TODO: explain it in detail.
+ *
+ * @param dque    queue from which event group should be disconnected
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_queue_eventgrp_disconnect(
+      struct TN_DQueue    *dque
+      );
 
 
 #ifdef __cplusplus

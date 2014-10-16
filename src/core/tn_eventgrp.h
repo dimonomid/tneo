@@ -39,7 +39,7 @@
  *
  * Event group.
  *
- * An event group has an internal variable (of type `unsigned int`), which is
+ * An event group has an internal variable (of type `TN_UWord`), which is
  * interpreted as a bit pattern where each bit represents an event. An event
  * group also has a wait queue for the tasks waiting on these events. A task
  * may set specified bits when an event occurs and may clear specified bits
@@ -60,6 +60,7 @@
 
 #include "tn_list.h"
 #include "tn_common.h"
+#include "tn_sys.h"
 
 
 
@@ -112,7 +113,7 @@ enum TN_EGrpOp {
  */
 struct TN_EventGrp {
    struct TN_ListItem   wait_queue; //!< task wait queue
-   unsigned int         pattern;    //!< current flags pattern
+   TN_UWord             pattern;    //!< current flags pattern
    enum TN_ObjId        id_event;   //!< id for object validity verification
 };
 
@@ -123,15 +124,27 @@ struct TN_EventGrp {
 struct TN_EGrpTaskWait {
    ///
    /// event wait pattern 
-   int  wait_pattern;
+   TN_UWord wait_pattern;
    ///
    /// event wait mode: `AND` or `OR`
    enum TN_EGrpWaitMode wait_mode;
    ///
    /// pattern that caused task to finish waiting
-   int  actual_pattern;
+   TN_UWord actual_pattern;
 };
 
+/**
+ * A link to event group: used when event group can be connected to 
+ * some kernel object, such as queue.
+ */
+struct TN_EGrpLink {
+   ///
+   /// event group whose event(s) should be managed by other kernel object
+   struct TN_EventGrp *eventgrp;
+   ///
+   /// event pattern to manage
+   TN_UWord pattern;
+};
 
 
 /*******************************************************************************
@@ -167,8 +180,8 @@ struct TN_EGrpTaskWait {
  *      is available: `#TN_RC_WPARAM`.
  */
 enum TN_RCode tn_eventgrp_create(
-      struct TN_EventGrp *eventgrp,
-      unsigned int initial_pattern
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             initial_pattern
       );
 
 /**
@@ -210,7 +223,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  *    `wait_pattern` to be set, or for just **any** of them 
  *    (see enum `#TN_EGrpWaitMode`)
  * @param p_flags_pattern
- *    Pointer to the `unsigned int` variable in which actual event pattern
+ *    Pointer to the `TN_UWord` variable in which actual event pattern
  *    that caused task to stop waiting will be stored.
  *    May be `NULL`.
  * @param timeout
@@ -227,9 +240,9 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern,
+      TN_UWord            *p_flags_pattern,
       TN_Timeout           timeout
       );
 
@@ -242,9 +255,9 @@ enum TN_RCode tn_eventgrp_wait(
  */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       );
 
 /**
@@ -256,9 +269,9 @@ enum TN_RCode tn_eventgrp_wait_polling(
  */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       );
 
 /**
@@ -286,7 +299,7 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       );
 
 /**
@@ -299,7 +312,7 @@ enum TN_RCode tn_eventgrp_modify(
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       );
 
 
