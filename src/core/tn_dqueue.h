@@ -319,7 +319,7 @@ enum TN_RCode tn_queue_ireceive_polling(
  * Connect an event group to the queue. TODO: explain it in detail.
  *
  * @param dque
- *    queue to which event group should connected
+ *    queue to which event group should be connected
  * @param eventgrp 
  *    event groupt to connect
  * @param pattern
