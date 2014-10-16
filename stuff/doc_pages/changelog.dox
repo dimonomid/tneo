@@ -7,6 +7,10 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
+  - Added a capability to connect an \ref tn_eventgrp.h "event group" to other
+    system objects, particularly to the \ref tn_dqueue.h "queue". This offers a
+    way to wait for messages from multiple queues with just a single system
+    call.  Refer to the section \ref eventgrp_connect for details.
   - Priority 0 is now allowed to use by application (in the original TNKernel,
     it was reserved for the timer task, but TNeoKernel \ref
     tnkernel_diff_timer_task "does not have timer task")
