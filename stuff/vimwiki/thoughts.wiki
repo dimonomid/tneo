@@ -44,3 +44,15 @@ What about some object like EventCollector? (not sure how to implement it)
 Well, we want to be able to wait for multiple events atomically: say, we want to wait for message from the queue and for the semaphore. It seems really hard to do that in single call to something like `tn_collector_wait()`, because then `tn_collector_wait()` should take all the possible arguments for all possible waiting events: void *p_data for sending the data to queue, void **pp_data for receiving, the same for fmem, etc. So, "event connection" approach seems much better.
 
 
+
+== interrupt context save: pre-push or post-push ==
+
+   * pre-push: save context on the interrupt stack
+   * post-push: save context on the interrupted task's stack
+
+PIC32 port of TNeoKernel uses pre-push. It doesn't allow us to immediately switch to another task after ISR returns, but instead we have the following advantages:
+
+   * we can use shadow register set
+   * even for ISRs that don't use shadow register set, the number of registers to save is less: we shouldn't save callee-saved registers `$s0 - $s9`
+   * we save 34 words of RAM for each task: interrupt can happen when scheduler is saving/restoring context, so, if we use post-push, context can be saved on the stack twice. 
+
