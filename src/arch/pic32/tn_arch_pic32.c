@@ -41,7 +41,8 @@ extern unsigned long _gp;
 /**
  * Self-check for the application that uses TNeoKernel:
  *
- * PIC32 application must include the file tn_arch_pic32_int_vec1.S
+ * PIC32 application must include the file 
+ * src/arch/pic32/tn_arch_pic32_int_vec1.S to the main project,
  * in order to dispatch vector_1 correctly, but if it is forgotten,
  * no error is generated at the build time: we just get to the 
  * _DefaultInterrupt when we should switch context.
@@ -114,8 +115,20 @@ TN_UWord *_tn_arch_stack_init(
       void          *param
       )
 {
-   //-- see comments of the following function for details:
+   //-- if you got "undefined reference" error here, it means that you
+   //   forgot to include the file 
+   //
+   //   <tneokernel_path>/src/arch/pic32/tn_arch_pic32_int_vec1.S
+   //
+   //   to the main project.
+   //   This requirement is stated in the documentation, here:
+   //
+   //   http://dfrank.bitbucket.org/tneokernel_api/latest/html/pic32_details.html
+   //
+   //-- see comments above of the following function for a bit more details:
    _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project();
+
+
 
    //-- filling register's position in the stack - for debugging only
    *(--stack_top) = 0;                          //-- ABI argument area
