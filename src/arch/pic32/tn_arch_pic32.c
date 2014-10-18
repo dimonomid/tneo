@@ -56,7 +56,7 @@ extern unsigned long _gp;
  * That function merely returns 0.
  */
 extern int 
-_you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project(void);
+_you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project(void);
 
 
 //----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ TN_UWord *_tn_arch_stack_init(
    //   http://dfrank.bitbucket.org/tneokernel_api/latest/html/pic32_details.html
    //
    //-- see comments above of the following function for a bit more details:
-   _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project();
+   _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project();
 
 
 

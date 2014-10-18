@@ -63,15 +63,15 @@
  *
  * That function merely returns 0.
  */
-    .global  _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project
-    .ent _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project
-_you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project:
+    .global  _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
+    .ent _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
+_you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project:
 
     li      $v0, 0
     jr      $ra
     nop
 
-    .end _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project
+    .end _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
 
 
 
