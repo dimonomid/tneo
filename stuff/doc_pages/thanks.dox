@@ -10,10 +10,10 @@ ideas behind the implementation are generally really nice (that's why I decided
 to reimplement it instead of starting from scratch), and it was great entry
 point to the real-time kernels for me;
 - **Anders Montonen** - for original implementation of TNKernel-PIC32 port;
-- **Alex Borisov** - for his TNKernel port which I was using for a long time;
+- **Alex Borisov** - for TNKernel port which I was using for a long time;
 - **Alexey Morozov** and **Alexey Gromov**, my chiefs in the [ORION](http://orionspb.ru/)
 company, for being flexible about my time;
-- **Robert White** - for his nice ideas.
+- **Robert White** - for nice ideas.
 
 Thank you guys. TNeoKernel would never be what it is without you.
 
