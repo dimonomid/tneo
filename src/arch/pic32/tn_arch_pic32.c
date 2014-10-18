@@ -38,6 +38,26 @@
 
 extern unsigned long _gp;
 
+/**
+ * Self-check for the application that uses TNeoKernel:
+ *
+ * PIC32 application must include the file tn_arch_pic32_int_vec1.S
+ * in order to dispatch vector_1 correctly, but if it is forgotten,
+ * no error is generated at the build time: we just get to the 
+ * _DefaultInterrupt when we should switch context.
+ *
+ * Note that we can't include that file to the TNeoKernel library
+ * project: it doesn't work.
+ *
+ * So, dummy function was invented, and if we forgot to 
+ * include that file, we got an error at the link time.
+ *
+ * That function merely returns 0.
+ */
+extern int 
+_you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project(void);
+
+
 //----------------------------------------------------------------------------
 //  Context layout
 //
@@ -83,7 +103,6 @@ TN_UWord *_tn_arch_stack_top_get(
    return stack_low_address + stack_size;
 }
 
-
 //----------------------------------------------------------------------------
 //   Processor specific routine - here for MIPS4K
 //
@@ -95,6 +114,9 @@ TN_UWord *_tn_arch_stack_init(
       void          *param
       )
 {
+   //-- see comments of the following function for details:
+   _you_should_include_file___tn_arch_pic32_int_vec1_S___to_the_project();
+
    //-- filling register's position in the stack - for debugging only
    *(--stack_top) = 0;                          //-- ABI argument area
    *(--stack_top) = 0;
