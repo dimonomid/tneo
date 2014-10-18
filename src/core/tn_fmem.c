@@ -292,7 +292,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -336,7 +336,7 @@ enum TN_RCode tn_fmem_get(
    }
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
    if (waited_for_data){
 
       //-- get wait result
@@ -436,7 +436,7 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data)
    rc = _fmem_release(fmem, p_data);
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;

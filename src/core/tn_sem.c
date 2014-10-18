@@ -157,7 +157,7 @@ static inline enum TN_RCode _sem_job_perform(
 #endif
 
    TN_INT_RESTORE();       //-- restore previous interrupts state
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
    if (waited_for_sem){
       //-- get wait result
       rc = tn_curr_run_task->task_wait_rc;
@@ -305,7 +305,7 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;

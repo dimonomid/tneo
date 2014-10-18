@@ -284,7 +284,7 @@ void tn_sys_start(
    tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
 
    //-- Run OS - first context switch
-   _tn_arch_context_switch_nosave();
+   _tn_arch_context_switch_now_nosave();
 }
 
 

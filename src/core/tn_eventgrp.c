@@ -319,7 +319,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 
    //-- we might need to switch context if _tn_wait_queue_notify_deleted()
    //   has woken up some high-priority task
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -368,7 +368,7 @@ enum TN_RCode tn_eventgrp_wait(
 #endif
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
    if (waited_for_event){
       //-- get wait result
       rc = tn_curr_run_task->task_wait_rc;
@@ -466,7 +466,7 @@ enum TN_RCode tn_eventgrp_modify(
    rc = _eventgrp_modify(eventgrp, operation, pattern);
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;

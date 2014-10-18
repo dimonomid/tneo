@@ -47,8 +47,8 @@
 
     /* Public functions declared in this file */
 
-    .global  _tn_arch_context_switch_nosave
-    .global  _tn_arch_context_switch
+    .global  _tn_arch_context_switch_now_nosave
+    .global  _tn_arch_context_switch_pend
     .global  _tn_arch_inside_isr
     .global  tn_arch_sr_save_int_dis
     .global  tn_arch_sr_restore
@@ -66,9 +66,9 @@
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent _tn_arch_context_switch_nosave
+    .ent _tn_arch_context_switch_now_nosave
 
-_tn_arch_context_switch_nosave:
+_tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
@@ -80,16 +80,16 @@ _tn_arch_context_switch_nosave:
     sw      $t1, 0($t0)                /* *t0 = t1; */
                                        /* i.e. tn_curr_run_task = tn_next_task_to_run; */
 
-    .end _tn_arch_context_switch_nosave
+    .end _tn_arch_context_switch_now_nosave
 
 /*----------------------------------------------------------------------------
 *
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent _tn_arch_context_switch
+    .ent _tn_arch_context_switch_pend
 
-_tn_arch_context_switch:
+_tn_arch_context_switch_pend:
 
     /* pend CS0 interrupt */
     lui     $t0, %hi(IFS0SET)
@@ -100,7 +100,7 @@ _tn_arch_context_switch:
     jr      $ra
     nop
 
-    .end _tn_arch_context_switch
+    .end _tn_arch_context_switch_pend
 
 /*----------------------------------------------------------------------------
 *

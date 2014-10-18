@@ -191,10 +191,10 @@ static inline BOOL _tn_need_context_switch(void)
    return (tn_curr_run_task != tn_next_task_to_run);
 }
 
-static inline void _tn_switch_context_if_needed(void)
+static inline void _tn_context_switch_pend_if_needed(void)
 {
    if (_tn_need_context_switch()){
-      _tn_arch_context_switch();
+      _tn_arch_context_switch_pend();
    }
 }
 

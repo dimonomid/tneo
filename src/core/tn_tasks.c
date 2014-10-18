@@ -222,7 +222,7 @@ static inline enum TN_RCode _task_job_perform(
    rc = p_worker(task);
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -507,7 +507,7 @@ enum TN_RCode tn_task_suspend(struct TN_Task *task)
 
 out_ei:
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -548,7 +548,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
 
 out_ei:
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -578,7 +578,7 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout)
    _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
    rc = tn_curr_run_task->task_wait_rc;
 
 out:
@@ -644,8 +644,8 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
    //-- it is here only for TN_INT_DIS_SAVE() normal operation,
    //   but actually we don't need to save current interrupt status:
    //   this function never returns, and interrupt status is restored
-   //   from different task's stack inside `_tn_arch_context_switch_nosave()`
-   //   call.
+   //   from different task's stack inside 
+   //   `_tn_arch_context_switch_now_nosave()` call.
    TN_INTSAVE_DATA;
 	 
    if (!tn_is_task_context()){
@@ -663,8 +663,8 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
       _task_delete(task);
    }
 
-   //-- interrupts will be enabled inside _tn_arch_context_switch_nosave()
-   _tn_arch_context_switch_nosave();  
+   //-- interrupts will be enabled inside _tn_arch_context_switch_now_nosave()
+   _tn_arch_context_switch_now_nosave();  
 
 out:
    return;
@@ -719,7 +719,7 @@ enum TN_RCode tn_task_terminate(struct TN_Task *task)
    }
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;
@@ -821,7 +821,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
    }
 
    TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
+   _tn_context_switch_pend_if_needed();
 
 out:
    return rc;

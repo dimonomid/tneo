@@ -129,8 +129,9 @@ TN_UWord *_tn_arch_stack_top_get(
  * Should put initial CPU context to the provided stack pointer for new task
  * and return current stack pointer.
  *
- * When resulting context gets restored by `_tn_arch_context_switch_nosave()` 
- * or `_tn_arch_context_switch()`, the following conditions should be met:
+ * When resulting context gets restored by 
+ * `_tn_arch_context_switch_now_nosave()` or `_tn_arch_context_switch_pend()`,
+ * the following conditions should be met:
  *
  * - Interrupts are enabled;
  * - Return address is set to `tn_task_exit()`, so that when task body function
@@ -160,13 +161,21 @@ int _tn_arch_inside_isr(void);
 /**
  * Called whenever we need to switch context from one task to another.
  *
+ * This function typically does NOT switch context; it merely pends it,
+ * that is, it sets appropriate interrupt flag. If current level is an
+ * application level, interrupt is fired immediately, and context gets
+ * switched.
+ *
+ * But, if it's hard or impossible on particular platform to use dedicated 
+ * interrupt flag, this function may just switch the context on its own.
+ *
  * **Preconditions:**
  *
  * - interrupts are enabled;
  * - `tn_curr_run_task` points to currently running (preempted) task;
  * - `tn_next_task_to_run` points to new task to run.
  *    
- * **Actions to perform:**
+ * **Actions to perform in actual context switching routine:**
  *
  * - save context of the preempted task to its stack;
  * - set `tn_curr_run_task` to `tn_next_task_to_run`;
@@ -175,13 +184,15 @@ int _tn_arch_inside_isr(void);
  * @see `tn_curr_run_task`
  * @see `tn_next_task_to_run`
  */
-void _tn_arch_context_switch(void);
+void _tn_arch_context_switch_pend(void);
 
 /**
  * Called whenever we need to switch context to new task, but don't save
  * current context. This happens:
  * - At system start, inside `tn_sys_start()`;
  * - At task exit, inside `tn_task_exit()`
+ *
+ * This function doesn't pend context switch, it switches context immediately.
  *
  * **Preconditions:**
  *
@@ -196,7 +207,7 @@ void _tn_arch_context_switch(void);
  * @see `tn_curr_run_task`
  * @see `tn_next_task_to_run`
  */
-void _tn_arch_context_switch_nosave(void);
+void _tn_arch_context_switch_now_nosave(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */
