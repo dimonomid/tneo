@@ -419,6 +419,7 @@ static enum TN_RCode _dqueue_job_iperform(
    }
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

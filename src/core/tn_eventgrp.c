@@ -438,6 +438,7 @@ enum TN_RCode tn_eventgrp_iwait_polling(
    rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;
@@ -495,6 +496,7 @@ enum TN_RCode tn_eventgrp_imodify(
    rc = _eventgrp_modify(eventgrp, operation, pattern);
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

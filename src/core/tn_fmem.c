@@ -407,6 +407,7 @@ enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data)
    rc = _fmem_get(fmem, p_data);
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;
@@ -466,6 +467,7 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
    rc = _fmem_release(fmem, p_data);
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

@@ -314,6 +314,7 @@ enum TN_RCode tn_tick_int_processing(void)
    _tn_timers_tick_proceed();
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

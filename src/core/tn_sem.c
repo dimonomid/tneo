@@ -196,6 +196,7 @@ static inline enum TN_RCode _sem_job_iperform(
    TN_INT_IDIS_SAVE();     //-- disable interrupts
    rc = p_worker(sem);     //-- call actual worker function
    TN_INT_IRESTORE();      //-- restore previous interrupts state
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

@@ -251,6 +251,7 @@ static inline enum TN_RCode _task_job_iperform(
    rc = p_worker(task);
 
    TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 
 out:
    return rc;

@@ -189,6 +189,11 @@ typedef  unsigned int               TN_UWord;
  */
 #define TN_IS_INT_DISABLED()     ((__builtin_mfc0(12, 0) & 1) == 0)
 
+/**
+ * Pend context switch from interrupt.
+ */
+#define _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED()          \
+   _tn_context_switch_pend_if_needed()
 
 
 
