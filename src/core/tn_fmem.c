@@ -268,33 +268,29 @@ out:
  */
 enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_fmem_delete(fmem);
 
-   rc = _check_param_fmem_delete(fmem);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      //-- remove all tasks (if any) from fmem's wait queue
+      _tn_wait_queue_notify_deleted(&(fmem->wait_queue));
+
+      fmem->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
+
+      TN_INT_RESTORE();
+
+      //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+      //   has woken up some high-priority task
+      _tn_context_switch_pend_if_needed();
+
    }
-
-   TN_INT_DIS_SAVE();
-
-   //-- remove all tasks (if any) from fmem's wait queue
-   _tn_wait_queue_notify_deleted(&(fmem->wait_queue));
-
-   fmem->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
-
-   TN_INT_RESTORE();
-
-   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
-   //   has woken up some high-priority task
-   _tn_context_switch_pend_if_needed();
-
-out:
    return rc;
 }
 
@@ -308,49 +304,45 @@ enum TN_RCode tn_fmem_get(
       TN_Timeout timeout
       )
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
    BOOL waited_for_data = FALSE;
+   enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
-   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
+   } else {
+      TN_INTSAVE_DATA;
 
-   TN_INT_DIS_SAVE();
+      TN_INT_DIS_SAVE();
 
-   rc = _fmem_get(fmem, p_data);
+      rc = _fmem_get(fmem, p_data);
 
-   if (rc == TN_RC_TIMEOUT && timeout > 0){
-      _tn_task_curr_to_wait_action(
-            &(fmem->wait_queue),
-            TN_WAIT_REASON_WFIXMEM,
-            timeout
-            );
-      waited_for_data = TRUE;
-   }
+      if (rc == TN_RC_TIMEOUT && timeout > 0){
+         _tn_task_curr_to_wait_action(
+               &(fmem->wait_queue),
+               TN_WAIT_REASON_WFIXMEM,
+               timeout
+               );
+         waited_for_data = TRUE;
+      }
 
-   TN_INT_RESTORE();
-   _tn_context_switch_pend_if_needed();
-   if (waited_for_data){
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+      if (waited_for_data){
 
-      //-- get wait result
-      rc = tn_curr_run_task->task_wait_rc;
+         //-- get wait result
+         rc = tn_curr_run_task->task_wait_rc;
 
-      //-- if wait result is TN_RC_OK, copy memory block pointer to the
-      //   user's location
-      if (rc == TN_RC_OK){
-         *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
+         //-- if wait result is TN_RC_OK, copy memory block pointer to the
+         //   user's location
+         if (rc == TN_RC_OK){
+            *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
+         }
+
       }
 
    }
-
-out:
    return rc;
 }
 
@@ -360,26 +352,20 @@ out:
  */
 enum TN_RCode tn_fmem_get_polling(struct TN_FMem *fmem,void **p_data)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
-   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      rc = _fmem_get(fmem, p_data);
+      TN_INT_RESTORE();
    }
 
-   TN_INT_DIS_SAVE();
-
-   rc = _fmem_get(fmem, p_data);
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
@@ -389,27 +375,22 @@ out:
  */
 enum TN_RCode tn_fmem_iget_polling(struct TN_FMem *fmem, void **p_data)
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
-   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      rc = _fmem_get(fmem, p_data);
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
    }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = _fmem_get(fmem, p_data);
-
-   TN_INT_IRESTORE();
-   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-out:
    return rc;
 }
 
@@ -419,27 +400,22 @@ out:
  */
 enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
-   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      rc = _fmem_release(fmem, p_data);
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
    }
-
-   TN_INT_DIS_SAVE();
-
-   rc = _fmem_release(fmem, p_data);
-
-   TN_INT_RESTORE();
-   _tn_context_switch_pend_if_needed();
-
-out:
    return rc;
 }
 
@@ -449,27 +425,23 @@ out:
  */
 enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
-   rc = _check_param_job_perform(fmem, p_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      rc = _fmem_release(fmem, p_data);
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
    }
 
-   TN_INT_IDIS_SAVE();
-
-   rc = _fmem_release(fmem, p_data);
-
-   TN_INT_IRESTORE();
-   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-out:
    return rc;
 }
 
