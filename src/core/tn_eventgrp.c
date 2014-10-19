@@ -196,19 +196,26 @@ static enum TN_RCode _eventgrp_wait(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   //-- Check release condition
+   enum TN_RCode rc = TN_RC_OK;
 
-   if (_cond_check(eventgrp, wait_mode, wait_pattern)){
-      if (p_flags_pattern != NULL){
-         *p_flags_pattern = eventgrp->pattern;
-      }
-      _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
-      rc = TN_RC_OK;
+   if (rc != TN_RC_OK){
+      //-- just return rc as it is
    } else {
-      rc = TN_RC_TIMEOUT;
-   }
 
-   return TN_RC_OK;
+      //-- Check release condition
+
+      if (_cond_check(eventgrp, wait_mode, wait_pattern)){
+         if (p_flags_pattern != NULL){
+            *p_flags_pattern = eventgrp->pattern;
+         }
+         _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
+         rc = TN_RC_OK;
+      } else {
+         rc = TN_RC_TIMEOUT;
+      }
+
+   }
+   return rc;
 }
 
 static enum TN_RCode _eventgrp_modify(
