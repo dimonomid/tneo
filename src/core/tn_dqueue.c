@@ -122,56 +122,51 @@ static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
    if (dque->filled_items_cnt >= dque->items_cnt){
       //-- no space for new data
       rc = TN_RC_TIMEOUT;
-      goto out;
+   } else {
+
+      //-- write data
+      dque->data_fifo[dque->head_idx] = p_data;
+      dque->filled_items_cnt++;
+      dque->head_idx++;
+      if (dque->head_idx >= dque->items_cnt){
+         dque->head_idx = 0;
+      }
+
+      //-- set flag in the connected event group (if any),
+      //   indicating that there are messages in the queue
+      _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
    }
 
-   //-- write data
-   dque->data_fifo[dque->head_idx] = p_data;
-   dque->filled_items_cnt++;
-   dque->head_idx++;
-   if (dque->head_idx >= dque->items_cnt){
-      dque->head_idx = 0;
-   }
-
-   //-- set flag in the connected event group (if any),
-   //   indicating that there are messages in the queue
-   _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
-
-out:
    return rc;
 }
 
 
 static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
 {
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_read(pp_data);
 
-   rc = _check_param_read(pp_data);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (dque->filled_items_cnt == 0){
+      //-- just return rc as it is
+   } else if (dque->filled_items_cnt == 0){
       //-- nothing to read
       rc = TN_RC_TIMEOUT;
-      goto out;
+   } else {
+
+      //-- read data
+      *pp_data = dque->data_fifo[dque->tail_idx];
+      dque->filled_items_cnt--;
+      dque->tail_idx++;
+      if (dque->tail_idx >= dque->items_cnt){
+         dque->tail_idx = 0;
+      }
+
+      if (dque->filled_items_cnt == 0){
+         //-- clear flag in the connected event group (if any),
+         //   indicating that there are no messages in the queue
+         _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
+      }
    }
 
-   //-- read data
-   *pp_data = dque->data_fifo[dque->tail_idx];
-   dque->filled_items_cnt--;
-   dque->tail_idx++;
-   if (dque->tail_idx >= dque->items_cnt){
-      dque->tail_idx = 0;
-   }
-
-   if (dque->filled_items_cnt == 0){
-      //-- clear flag in the connected event group (if any),
-      //   indicating that there are no messages in the queue
-      _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
-   }
-
-out:
    return rc;
 }
 // }}}
@@ -303,87 +298,83 @@ static enum TN_RCode _dqueue_job_perform(
       TN_Timeout timeout
       )
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
    BOOL waited = FALSE;
    void **pp_data = (void **)p_data;
+   enum TN_RCode rc = _check_param_generic(dque);
 
-   rc = _check_param_generic(dque);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
+   } else {
+      TN_INTSAVE_DATA;
 
-   TN_INT_DIS_SAVE();
-
-   switch (job_type){
-      case _JOB_TYPE__SEND:
-         rc = _queue_send(dque, p_data);
-
-         if (rc == TN_RC_TIMEOUT && timeout != 0){
-            //-- save user-provided data in the dqueue.data_elem task field,
-            //   and put current task to wait until there's room in the queue.
-            tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
-            _tn_task_curr_to_wait_action(
-                  &(dque->wait_send_list),
-                  TN_WAIT_REASON_DQUE_WSEND,
-                  timeout
-                  );
-
-            waited = TRUE;
-         }
-
-         break;
-      case _JOB_TYPE__RECEIVE:
-         rc = _queue_receive(dque, pp_data);
-
-         if (rc == TN_RC_TIMEOUT && timeout != 0){
-            //-- put current task to wait until new data comes.
-            _tn_task_curr_to_wait_action(
-                  &(dque->wait_receive_list),
-                  TN_WAIT_REASON_DQUE_WRECEIVE,
-                  timeout
-                  );
-
-            waited = TRUE;
-         }
-         break;
-   }
-
-#if TN_DEBUG
-   if (!_tn_need_context_switch() && waited){
-      _TN_FATAL_ERROR("");
-   }
-#endif
-
-   TN_INT_RESTORE();
-   _tn_context_switch_pend_if_needed();
-   if (waited){
-
-      //-- get wait result
-      rc = tn_curr_run_task->task_wait_rc;
+      TN_INT_DIS_SAVE();
 
       switch (job_type){
          case _JOB_TYPE__SEND:
-            //-- do nothing special
+            rc = _queue_send(dque, p_data);
+
+            if (rc == TN_RC_TIMEOUT && timeout != 0){
+               //-- save user-provided data in the dqueue.data_elem task field,
+               //   and put current task to wait until there's room in the queue.
+               tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
+               _tn_task_curr_to_wait_action(
+                     &(dque->wait_send_list),
+                     TN_WAIT_REASON_DQUE_WSEND,
+                     timeout
+                     );
+
+               waited = TRUE;
+            }
+
             break;
          case _JOB_TYPE__RECEIVE:
-            //-- if wait result is TN_RC_OK, copy received pointer to the
-            //   user's location
-            if (rc == TN_RC_OK){
-               //-- dqueue.data_elem should contain valid value now,
-               //   return it to caller
-               *pp_data = tn_curr_run_task->subsys_wait.dqueue.data_elem;
+            rc = _queue_receive(dque, pp_data);
+
+            if (rc == TN_RC_TIMEOUT && timeout != 0){
+               //-- put current task to wait until new data comes.
+               _tn_task_curr_to_wait_action(
+                     &(dque->wait_receive_list),
+                     TN_WAIT_REASON_DQUE_WRECEIVE,
+                     timeout
+                     );
+
+               waited = TRUE;
             }
             break;
       }
-   }
 
-out:
+#if TN_DEBUG
+      if (!_tn_need_context_switch() && waited){
+         _TN_FATAL_ERROR("");
+      }
+#endif
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+      if (waited){
+
+         //-- get wait result
+         rc = tn_curr_run_task->task_wait_rc;
+
+         switch (job_type){
+            case _JOB_TYPE__SEND:
+               //-- do nothing special
+               break;
+            case _JOB_TYPE__RECEIVE:
+               //-- if wait result is TN_RC_OK, copy received pointer to the
+               //   user's location
+               if (rc == TN_RC_OK){
+                  //-- dqueue.data_elem should contain valid value now,
+                  //   return it to caller
+                  *pp_data = tn_curr_run_task->subsys_wait.dqueue.data_elem;
+               }
+               break;
+         }
+      }
+
+   }
    return rc;
 }
 
@@ -393,35 +384,31 @@ static enum TN_RCode _dqueue_job_iperform(
       void *p_data      //-- used for _JOB_TYPE__SEND
       )
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
    void **pp_data = (void **)p_data;
+   enum TN_RCode rc = _check_param_generic(dque);
 
-   rc = _check_param_generic(dque);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      switch (job_type){
+         case _JOB_TYPE__SEND:
+            rc = _queue_send(dque, p_data);
+            break;
+         case _JOB_TYPE__RECEIVE:
+            rc = _queue_receive(dque, pp_data);
+            break;
+      }
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
    }
 
-   TN_INT_IDIS_SAVE();
-
-   switch (job_type){
-      case _JOB_TYPE__SEND:
-         rc = _queue_send(dque, p_data);
-         break;
-      case _JOB_TYPE__RECEIVE:
-         rc = _queue_receive(dque, pp_data);
-         break;
-   }
-
-   TN_INT_IRESTORE();
-   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-out:
    return rc;
 }
 
@@ -446,28 +433,27 @@ enum TN_RCode tn_queue_create(
 
    rc = _check_param_create(dque, data_fifo, items_cnt);
    if (rc != TN_RC_OK){
-      goto out;
+      //-- just return rc as it is
+   } else {
+      tn_list_reset(&(dque->wait_send_list));
+      tn_list_reset(&(dque->wait_receive_list));
+
+      dque->data_fifo         = data_fifo;
+      dque->items_cnt         = items_cnt;
+
+      _tn_eventgrp_link_reset(&dque->eventgrp_link);
+
+      if (dque->data_fifo == NULL){
+         dque->items_cnt = 0;
+      }
+
+      dque->filled_items_cnt  = 0;
+      dque->tail_idx          = 0;
+      dque->head_idx          = 0;
+
+      dque->id_dque = TN_ID_DATAQUEUE;
    }
 
-   tn_list_reset(&(dque->wait_send_list));
-   tn_list_reset(&(dque->wait_receive_list));
-
-   dque->data_fifo         = data_fifo;
-   dque->items_cnt         = items_cnt;
-
-   _tn_eventgrp_link_reset(&dque->eventgrp_link);
-
-   if (dque->data_fifo == NULL){
-      dque->items_cnt = 0;
-   }
-
-   dque->filled_items_cnt  = 0;
-   dque->tail_idx          = 0;
-   dque->head_idx          = 0;
-
-   dque->id_dque = TN_ID_DATAQUEUE;
-
-out:
    return rc;
 }
 
@@ -477,35 +463,33 @@ out:
  */
 enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 {
-   TN_INTSAVE_DATA;
    enum TN_RCode rc = TN_RC_OK;
 
    rc = _check_param_generic(dque);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      //-- notify waiting tasks that the object is deleted
+      //   (TN_RC_DELETED is returned)
+      _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
+      _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
+
+      dque->id_dque = 0; //-- data queue does not exist now
+
+      TN_INT_RESTORE();
+
+      //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+      //   has woken up some high-priority task
+      _tn_context_switch_pend_if_needed();
+
    }
 
-   TN_INT_DIS_SAVE();
-
-   //-- notify waiting tasks that the object is deleted
-   //   (TN_RC_DELETED is returned)
-   _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
-   _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
-
-   dque->id_dque = 0; //-- data queue does not exist now
-
-   TN_INT_RESTORE();
-
-   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
-   //   has woken up some high-priority task
-   _tn_context_switch_pend_if_needed();
-
-out:
    return rc;
 
 }

@@ -229,7 +229,6 @@ static inline enum TN_RCode _task_job_iperform(
       int (p_worker)(struct TN_Task *task)
       )
 {
-   TN_INTSAVE_DATA_INT;
    enum TN_RCode rc = _check_param_generic(task);
 
    if (rc != TN_RC_OK){
@@ -237,6 +236,7 @@ static inline enum TN_RCode _task_job_iperform(
    } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
    } else {
+      TN_INTSAVE_DATA_INT;
 
       TN_INT_IDIS_SAVE();
 
