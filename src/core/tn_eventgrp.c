@@ -80,7 +80,7 @@ static inline enum TN_RCode _check_param_job_perform(
       TN_UWord             pattern
       )
 {
-   enum TN_RCode rc = _check_param_generic(eventgrp);
+   enum TN_RCode rc = TN_RC_OK;
 
    if (pattern == 0){
       rc = TN_RC_WPARAM;
@@ -196,7 +196,7 @@ static enum TN_RCode _eventgrp_wait(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_job_perform(eventgrp, wait_pattern);
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is

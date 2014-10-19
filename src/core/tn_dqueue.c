@@ -163,7 +163,7 @@ static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
       if (dque->filled_items_cnt == 0){
          //-- clear flag in the connected event group (if any),
          //   indicating that there are no messages in the queue
-         _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
+         _tn_eventgrp_link_manage(&dque->eventgrp_link, FALSE);
       }
    }
 
