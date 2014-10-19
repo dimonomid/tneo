@@ -595,8 +595,6 @@ enum TN_RCode tn_mutex_create(
  */
 enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 {
-   TN_INTSAVE_DATA;
-
    enum TN_RCode rc = _check_param_generic(mutex);
 
    if (rc != TN_RC_OK){
@@ -604,6 +602,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
    } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
    } else {
+      TN_INTSAVE_DATA;
 
       TN_INT_DIS_SAVE();
 
@@ -645,8 +644,6 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
  */
 enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 {
-   TN_INTSAVE_DATA;
-
    enum TN_RCode rc = _check_param_generic(mutex);
    BOOL waited_for_mutex = FALSE;
 
@@ -655,6 +652,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
    } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
    } else {
+      TN_INTSAVE_DATA;
 
       TN_INT_DIS_SAVE();
 
@@ -733,8 +731,6 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex)
  */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 {
-   TN_INTSAVE_DATA;
-
    enum TN_RCode rc = _check_param_generic(mutex);
 
    if (rc != TN_RC_OK){
@@ -742,6 +738,8 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
    } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
    } else {
+      TN_INTSAVE_DATA;
+
       TN_INT_DIS_SAVE();
 
       //-- unlocking is enabled only for the owner and already locked mutex
