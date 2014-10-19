@@ -196,26 +196,19 @@ static enum TN_RCode _eventgrp_wait(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   enum TN_RCode rc = _check_param_job_perform(eventgrp, wait_pattern);
+   //-- Check release condition
 
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else {
-
-      //-- Check release condition
-
-      if (_cond_check(eventgrp, wait_mode, wait_pattern)){
-         if (p_flags_pattern != NULL){
-            *p_flags_pattern = eventgrp->pattern;
-         }
-         _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
-         rc = TN_RC_OK;
-      } else {
-         rc = TN_RC_TIMEOUT;
+   if (_cond_check(eventgrp, wait_mode, wait_pattern)){
+      if (p_flags_pattern != NULL){
+         *p_flags_pattern = eventgrp->pattern;
       }
-
+      _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
+      rc = TN_RC_OK;
+   } else {
+      rc = TN_RC_TIMEOUT;
    }
-   return rc;
+
+   return TN_RC_OK;
 }
 
 static enum TN_RCode _eventgrp_modify(
@@ -227,32 +220,25 @@ static enum TN_RCode _eventgrp_modify(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   enum TN_RCode rc = _check_param_job_perform(eventgrp, pattern);
+   switch (operation){
+      case TN_EVENTGRP_OP_CLEAR:
+         eventgrp->pattern &= ~pattern;
+         break;
 
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else {
-
-      switch (operation){
-         case TN_EVENTGRP_OP_CLEAR:
-            eventgrp->pattern &= ~pattern;
-            break;
-
-         case TN_EVENTGRP_OP_SET:
-            if ((eventgrp->pattern & pattern) != pattern){
-               eventgrp->pattern |= pattern;
-               _scan_event_waitqueue(eventgrp);
-            }
-            break;
-
-         case TN_EVENTGRP_OP_TOGGLE:
-            eventgrp->pattern ^= pattern;
+      case TN_EVENTGRP_OP_SET:
+         if ((eventgrp->pattern & pattern) != pattern){
+            eventgrp->pattern |= pattern;
             _scan_event_waitqueue(eventgrp);
-            break;
-      }
+         }
+         break;
 
+      case TN_EVENTGRP_OP_TOGGLE:
+         eventgrp->pattern ^= pattern;
+         _scan_event_waitqueue(eventgrp);
+         break;
    }
-   return rc;
+
+   return TN_RC_OK;
 }
 
 
