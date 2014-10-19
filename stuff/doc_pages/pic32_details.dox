@@ -21,9 +21,22 @@ configured to use shadow register sets.
 
 \attention if tneokernel is built as a separate library, then the file
 `src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included in the main project
-itself, in order to dispatch vector1 (core software interrupt 0) correctly.
+itself, in order to dispatch vector1 (core software interrupt 0) correctly. Do
+note that if we include this file in the TNeoKernel library project, it doesn't
+work for vector, unfortunately.
+
+\attention If you forgot to include this file, you got an error on the link step,
+like this:
+\code
+undefined reference to `_you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project'
+\endcode
+Which is much more informative than if you just get to `_DefaultInterrupt` when 
+it's time to switch context.
 
 \section pic32_interrupts Interrupts
+
+For detailed information about interrupts in TNeoKernel, refer to the page \ref
+interrupts.
 
 PIC32 port supports nested interrupts. The kernel provides C-language
 macros for calling C-language interrupt service routines, which can use either
@@ -44,15 +57,17 @@ tn_srs_isr(_UART_1_VECTOR)
 }
 \endcode
 
-\attention every ISR in your system should use kernel-provided macro, either
-`tn_soft_isr` or `tn_srs_isr`, instead of `__ISR` macro.
+Alternatively, you can define your ISR in a standard way, like this:
 
-\section pic32_interrupt_stack Interrupt stack
+\code{.c}
+void __ISR(_TIMER_1_VECTOR) timer_1_isr(void)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+\endcode
 
-PIC32 uses a separate stack for interrupt handlers. Switching stack pointers is
-done automatically in the ISR handler wrapper macros. User should allocate
-array for interrupt stack and pass it as an argument to `tn_sys_start()`.
-Refer to the \ref starting_the_kernel "Starting the kernel" section for the
-usage example and additional comments.
+Then, context is saved on the task's stack instead of interrupt stack (and
+takes therefore much more RAM), but you save about 20 cycles for each
+interrupt. See the page \ref interrupts for details.
 
 */

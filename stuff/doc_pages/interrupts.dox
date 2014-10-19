@@ -1,0 +1,54 @@
+/**
+\page interrupts Interrupts
+
+\tableofcontents
+
+\section interrupt_stack Interrupt stack
+
+TNeoKernel provides a separate stack for interrupt handlers. This approach
+could save a lot of RAM: interrupt can happen at any moment of time, and if
+there's no separate interrupt stack, then each task should have enough stack
+space for the worse case of interrupt nesting.
+
+Assume application's ISRs take max 64 words (64 * 4 = 256 bytes on PIC32) and application has 4
+tasks (plus one idle task).  Then, each of 5 tasks must have 64 words for
+interrupts: 64 * 5 * 4 = 1280 bytes of RAM just for 64 words for ISR.
+
+With separate stack for interrupts, these 64 words should be allocated just once.
+Interrupt stack array should be given to `#tn_sys_start()`. For additional
+information, refer to the section \ref starting_the_kernel.
+
+In order to make particular ISR use separate interrupt stack, this ISR should
+be defined by kernel-provided macro, which is platform-dependent: see \ref
+pic32_details.
+
+In spite of the fact that the kernel provides separate stack for interrupt,
+this isn't a mandatory: you're able to define your ISR in a standard way,
+making it use stask of interrupted task and work a bit faster. There is always
+a tradeoff. There are **no additional constraints** on ISR defined without
+kernel-provided macro: in either ISR, you can call the same set of kernel
+services.
+
+When you make a decision on whether particular ISR should use separate stack,
+consider the following:
+
+- When ISR is defined in a standard way, and no function is called from that
+  ISR, only necessary registers are saved on stack. If you have such an ISR
+  (that doesn't call any function), and this ISR should work very fast,
+  consider using standard way instead of kernel-provided macro.
+- When ISR is defined in a standard way, but it calls any function and doesn't
+  use shadow register set, compiler saves (almost) full context **on the task's
+  stack**, because it doesn't know which registers are used inside the function.
+  In this case, it usually makes more sense to use kernel-provided macro (see
+  below).
+- Kernel-provided interrupt macros switch stack pointer between interrupt stack
+  and task stack automatically, it takes additional time: e.g. on PIC32 it's
+  about 20 cycles.
+- Kernel-provided interrupt macro that doesn't use shadow register set always
+  saves (almost) full context **on the interrupt stack**, independently of 
+  whether any function is called from an ISR.
+- Kernel-provided interrupt macro that uses shadow register set saves a little
+  amount of registers **on the interrupt stack**.
+
+
+*/

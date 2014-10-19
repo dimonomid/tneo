@@ -11,6 +11,13 @@ TNeoKernel changelog
     system objects, particularly to the \ref tn_dqueue.h "queue". This offers a
     way to wait for messages from multiple queues with just a single system
     call.  Refer to the section \ref eventgrp_connect for details.
+  - PIC32 Interrupts: this isn't a mandatory anymore to use kernel-provided macros
+	 `tn_soft_isr()` or `tn_srs_isr()`: interrupts can be defined with standard
+	 way too: this particular ISR will use task's stack instead of interrupt
+	 stack, therefore it takes much more RAM and works a bit faster. There are
+	 no additional constraints on ISR defined without kernel-provided macro: in
+	 either ISR, you can call the same set of kernel services. Refer
+	 to the page \ref interrupts for details.
   - Priority 0 is now allowed to use by application (in the original TNKernel,
     it was reserved for the timer task, but TNeoKernel \ref
     tnkernel_diff_timer_task "does not have timer task")
