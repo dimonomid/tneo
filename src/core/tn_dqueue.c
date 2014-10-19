@@ -570,7 +570,7 @@ enum TN_RCode tn_queue_eventgrp_connect(
 
    if (rc == TN_RC_OK){
       sr_saved = tn_arch_sr_save_int_dis();
-      _tn_eventgrp_link_set(&dque->eventgrp_link, eventgrp, pattern);
+      rc = _tn_eventgrp_link_set(&dque->eventgrp_link, eventgrp, pattern);
       tn_arch_sr_restore(sr_saved);
    }
 
@@ -589,7 +589,7 @@ enum TN_RCode tn_queue_eventgrp_disconnect(
 
    if (rc == TN_RC_OK){
       sr_saved = tn_arch_sr_save_int_dis();
-      _tn_eventgrp_link_reset(&dque->eventgrp_link);
+      rc = _tn_eventgrp_link_reset(&dque->eventgrp_link);
       tn_arch_sr_restore(sr_saved);
    }
 

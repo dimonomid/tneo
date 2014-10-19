@@ -508,9 +508,11 @@ enum TN_RCode _tn_eventgrp_link_set(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(eventgrp);
 
-   if (eventgrp == NULL || pattern == (0)){
+   if (rc != TN_RC_OK){
+      //-- just return rc as it is
+   } else if (pattern == (0)){
       rc = TN_RC_WPARAM;
    } else {
       eventgrp_link->eventgrp = eventgrp;
