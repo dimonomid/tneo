@@ -205,26 +205,23 @@ static inline enum TN_RCode _task_job_perform(
       )
 {
    TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      //-- proceed to real job
+
+      TN_INT_DIS_SAVE();
+
+      rc = p_worker(task);
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+
    }
-
-   TN_INT_DIS_SAVE();
-
-   rc = p_worker(task);
-
-   TN_INT_RESTORE();
-   _tn_context_switch_pend_if_needed();
-
-out:
    return rc;
 }
 
