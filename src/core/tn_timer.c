@@ -144,16 +144,14 @@ enum TN_RCode tn_timer_create(
       void             *p_user_data
       )
 {
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_create(timer, func);
 
-   rc = _check_param_create(timer, func);
    if (rc != TN_RC_OK){
-      goto out;
+      //-- just return rc as it is
+   } else {
+      rc = _tn_timer_create(timer, func, p_user_data);
    }
 
-   rc = _tn_timer_create(timer, func, p_user_data);
-
-out:
    return rc;
 }
 
@@ -480,15 +478,15 @@ enum TN_RCode _tn_timer_create(
    enum TN_RCode rc = _tn_timer_set_func(timer, func, p_user_data);
 
    if (rc != TN_RC_OK){
-      goto out;
+      //-- just return rc as it is
+   } else {
+
+      tn_list_reset(&(timer->timer_queue));
+
+      timer->timeout_cur   = 0;
+      timer->id_timer      = TN_ID_TIMER;
+
    }
-
-   tn_list_reset(&(timer->timer_queue));
-
-   timer->timeout_cur   = 0;
-   timer->id_timer      = TN_ID_TIMER;
-
-out:
    return rc;
 }
 

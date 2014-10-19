@@ -294,29 +294,28 @@ void tn_sys_start(
  */
 enum TN_RCode tn_tick_int_processing(void)
 {
-   TN_INTSAVE_DATA_INT;
    enum TN_RCode rc = TN_RC_OK;
 
    if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      //-- increment system timer
+      tn_sys_time_count++;
+
+      //-- manage round-robin (if used)
+      _round_robin_manage();
+
+      //-- manage timers
+      _tn_timers_tick_proceed();
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
+
    }
-
-   TN_INT_IDIS_SAVE();
-
-   //-- increment system timer
-   tn_sys_time_count++;
-
-   //-- manage round-robin (if used)
-   _round_robin_manage();
-
-   //-- manage timers
-   _tn_timers_tick_proceed();
-
-   TN_INT_IRESTORE();
-   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-out:
    return rc;
 }
 
@@ -327,26 +326,20 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   TN_INTSAVE_DATA;
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   if (     priority < 0 || priority >= (TN_PRIORITIES_CNT - 1)
+   } else if (0
+         || priority < 0 || priority >= (TN_PRIORITIES_CNT - 1)
          || ticks    < 0 || ticks    >   TN_MAX_TIME_SLICE)
    {
       rc = TN_RC_WPARAM;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      tn_tslice_ticks[priority] = ticks;
+      TN_INT_RESTORE();
    }
-
-   TN_INT_DIS_SAVE();
-
-   tn_tslice_ticks[priority] = ticks;
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
