@@ -5,7 +5,10 @@
 
 TNeoKernel changelog
 
-\section changelog_current Current development version (BETA)
+\section changelog_v1_03 v1.03
+
+Release date: 2014-10-20.
+
 
   - Added a capability to connect an \ref tn_eventgrp.h "event group" to other
     system objects, particularly to the \ref tn_dqueue.h "queue". This offers a
