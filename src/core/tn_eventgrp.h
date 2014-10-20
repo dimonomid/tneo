@@ -88,6 +88,11 @@
  * 
  * For the information on system services related to queue, refer to the \ref 
  * tn_dqueue.h "queue reference".
+ *
+ * There is an example project available that demonstrates event group
+ * connection technique: `examples/queue_eventgrp_conn`. Be sure to examine the
+ * readme there.
+ *
  */
 
 #ifndef _TN_EVENTGRP_H

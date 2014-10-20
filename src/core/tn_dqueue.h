@@ -66,6 +66,10 @@
  * - `tn_queue_eventgrp_connect()`
  * - `tn_queue_eventgrp_disconnect()`
  *
+ * There is an example project available that demonstrates event group
+ * connection technique: `examples/queue_eventgrp_conn`. Be sure to examine the
+ * readme there.
+ *
  */
 
 #ifndef _TN_DQUEUE_H
