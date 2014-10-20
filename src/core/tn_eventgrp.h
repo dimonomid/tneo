@@ -63,7 +63,7 @@
  * use polling services on these queues and sleep for a few system ticks.
  * Obviously, this approach has serious drawbacks: we have a lot of useless
  * context switches, and response for the message gets much slower. Actually,
- * we lost the main goal of the preemtive kernel when we use polling services
+ * we lost the main goal of the preemptive kernel when we use polling services
  * like that.
  *
  * TNeoKernel offers a solution: an event group can be connected to other
