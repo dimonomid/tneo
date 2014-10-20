@@ -52,8 +52,12 @@
  *
  * \section eventgrp_connect Connecting an event group to other system objects
  *
- * Sometimes task needs to wait for different system events: the most common
- * example is to wait for messages from multiple queues.
+ * Sometimes task needs to wait for different system events, the most common
+ * examples are:
+ *
+ * - wait for a message from the queue(s) plus wait for some
+ *   application-dependent event;
+ * - wait for messages from multiple queues.
  *
  * If the kernel doesn't offer a mechanism for that, programmer usually have to
  * use polling services on these queues and sleep for a few system ticks.
@@ -77,6 +81,10 @@
  *   to `tn_eventgrp_wait()`.
  * - when that event happened, task checks which flag is set, and receive
  *   message from the appropriate queue.
+ *
+ * Please note that task waiting for the event should **not** clear the flag
+ * manually: this flag is maintained completely by the queue. If the queue is
+ * non-empty, the flag is set. If the queue becomes empty, the flag is cleared.
  * 
  * For the information on system services related to queue, refer to the \ref 
  * tn_dqueue.h "queue reference".
