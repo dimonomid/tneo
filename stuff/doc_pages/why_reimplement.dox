@@ -44,9 +44,6 @@ int my_function(void)
 }
 \endcode
 
-The code above is simplified; in the real TNKernel code, things are usually
-more complicated.
-
 If you have multiple `return` statements or, even more, if you have to perform
 some action before return (`tn_enable_interrupt()` in the example above), it's
 great job for `goto`:
@@ -54,28 +51,97 @@ great job for `goto`:
 \code{.c}
 int my_function(void)
 {
-   int ret = SUCCESS;
+   int rc = SUCCESS;
    tn_disable_interrupt();
    //-- do something
 
    if (error()){
       //-- do something
-      ret = ERROR;
+      rc = ERROR;
       goto out;
    }
    //-- do something
 
 out:
    tn_enable_interrupt();
-   return ret;
+   return rc;
 }
 \endcode
 
 I understand there are a lot of people that don't agree with me on this (mostly
 because they religiously believe that `goto` is unconditionally evil), but
-anyway I decided to explain it. And yeah, original TNKernel code contains zero
-`goto` statement occurrences, but a lot of code like the one in first example
-above.
+anyway I decided to explain it. And, let's go further:
+
+While multiple `goto`-s to single label are better than multiple `return`
+statements, it becomes less useful as we get to something more complicated.
+Imagine we need to perform some checks *before* disabling interrupts, and
+perform some other checks *after* disabling them. Then, we have to create two
+labels, like that:
+
+\code{.c}
+int my_function(void)
+{
+   int rc = SUCCESS;
+
+   if (error1()){
+      rc = ERROR1;
+      goto out;
+   }
+
+   tn_disable_interrupt();
+
+   if (error2()){
+      rc = ERROR2;
+      goto out_ei;
+   }
+
+   if (error3()){
+      rc = ERROR3;
+      goto out_ei;
+   }
+
+   //-- perform job
+
+out_ei:
+   tn_enable_interrupt();
+
+out:
+   return rc;
+}
+\endcode
+
+For each error handling, we should specify the label explicitly, and it's easy
+to mix labels up, especially if we add some new case to check in the future.
+So, I believe this approach is a superior:
+
+\code{.c}
+int my_function(void)
+{
+   int rc = SUCCESS;
+
+   if (error1()){
+      rc = ERROR1;
+   } else {
+      tn_disable_interrupt();
+
+      if (error2()){
+         rc = ERROR2;
+      } else if (error3()){
+         rc = ERROR3;
+      } else {
+         //-- perform job
+      }
+
+      tn_enable_interrupt();
+   }
+
+   return rc;
+}
+\endcode
+
+Then, for each new error handling, we should just add new `else if` block, and
+there's no need to care where to go if error happened. Let the compiler do the
+branching job for you. More, this code looks more compact.
 
 Needless to say, I already found such bug in original TNKernel 2.7 code. The
 function `tn_sys_tslice_ticks()` looks as follows:
