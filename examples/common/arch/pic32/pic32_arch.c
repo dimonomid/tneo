@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "tn.h"
 
+#include "example_arch.h"
 
 
 
@@ -43,9 +44,6 @@
  *    MACROS
  ******************************************************************************/
 
-//-- instruction that causes debugger to halt
-#define PIC32_SOFTWARE_BREAK()  __asm__ volatile ("sdbbp 0")
-
 //-- system frequency
 #define SYS_FREQ           80000000UL
 
@@ -72,15 +70,14 @@
 //-- interrupt stack size, in words
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)
 
-//-- stack sizes of user tasks
-#define TASK_A_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
-#define TASK_B_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
-#define TASK_C_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
 
-//-- user task priorities
-#define TASK_A_PRIORITY    7
-#define TASK_B_PRIORITY    6
-#define TASK_C_PRIORITY    5
+
+/*******************************************************************************
+ *    EXTERN FUNCTION PROTOTYPE
+ ******************************************************************************/
+
+//-- defined by particular example: create first application task(s)
+extern void init_task_create(void);
 
 
 
@@ -92,22 +89,10 @@
 //   and for interrupts are the requirement of the kernel;
 //   others are application-dependent.
 //
-//   We use convenience macro TN_TASK_STACK_DEF() for that.
+//   We use convenience macro TN_STACK_ARR_DEF() for that.
 
-TN_TASK_STACK_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
-TN_TASK_STACK_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
-
-TN_TASK_STACK_DEF(task_a_stack, TASK_A_STK_SIZE);
-TN_TASK_STACK_DEF(task_b_stack, TASK_B_STK_SIZE);
-TN_TASK_STACK_DEF(task_c_stack, TASK_C_STK_SIZE);
-
-
-
-//-- task structures
-
-struct TN_Task task_a = {};
-struct TN_Task task_b = {};
-struct TN_Task task_c = {};
+TN_STACK_ARR_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
+TN_STACK_ARR_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
 
 
 
@@ -129,41 +114,6 @@ tn_soft_isr(_TIMER_5_VECTOR)
 /*******************************************************************************
  *    FUNCTIONS
  ******************************************************************************/
-
-void appl_init(void);
-
-void task_a_body(void *par)
-{
-   //-- this is a first created application task, so it needs to perform
-   //   all the application initialization.
-   appl_init();
-
-   //-- and then, let's get to the primary job of the task
-   //   (job for which task was created at all)
-   for(;;)
-   {
-      mPORTEToggleBits(BIT_0);
-      tn_task_sleep(500);
-   }
-}
-
-void task_b_body(void *par)
-{
-   for(;;)
-   {
-      mPORTEToggleBits(BIT_1);
-      tn_task_sleep(1000);
-   }
-}
-
-void task_c_body(void *par)
-{
-   for(;;)
-   {
-      mPORTEToggleBits(BIT_2);
-      tn_task_sleep(1500);
-   }
-}
 
 /**
  * Hardware init: called from main() with interrupts disabled
@@ -202,69 +152,13 @@ void hw_init(void)
    INTClearFlag(INT_CS0);
    INTEnable(INT_CS0, INT_ENABLED);
 
-   //-- configure LED port pins
-   mPORTESetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2);
-   mPORTEClearBits(BIT_0 | BIT_1 | BIT_2);
-
    //-- enable multi-vectored interrupt mode
    INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
-}
-
-/**
- * Application init: called from the first created application task
- */
-void appl_init(void)
-{
-   //-- initialize various on-board peripherals, such as
-   //   flash memory, displays, etc.
-   //   (in this sample project there's nothing to init)
-
-   //-- initialize various program modules
-   //   (in this sample project there's nothing to init)
-
-
-   //-- create all the rest application tasks
-   tn_task_create(
-         &task_b,
-         task_b_body,
-         TASK_B_PRIORITY,
-         task_b_stack,
-         TASK_B_STK_SIZE,
-         NULL,
-         (TN_TASK_CREATE_OPT_START)
-         );
-
-   tn_task_create(
-         &task_c,
-         task_c_body,
-         TASK_C_PRIORITY,
-         task_c_stack,
-         TASK_C_STK_SIZE,
-         NULL,
-         (TN_TASK_CREATE_OPT_START)
-         );
 }
 
 //-- idle callback that is called periodically from idle task
 void idle_task_callback (void)
 {
-}
-
-//-- create first application task(s)
-void init_task_create(void)
-{
-   //-- task A performs complete application initialization,
-   //   it's the first created application task
-   tn_task_create(
-         &task_a,                   //-- task structure
-         task_a_body,               //-- task body function
-         TASK_A_PRIORITY,           //-- task priority
-         task_a_stack,              //-- task stack
-         TASK_A_STK_SIZE,           //-- task stack size (in words)
-         NULL,                      //-- task function parameter
-         TN_TASK_CREATE_OPT_START   //-- creation option
-         );
-
 }
 
 int32_t main(void)
@@ -298,7 +192,7 @@ int32_t main(void)
 
 void __attribute__((naked, nomips16, noreturn)) _general_exception_handler(void)
 {
-   PIC32_SOFTWARE_BREAK();
+   SOFTWARE_BREAK();
    for (;;) ;
 }
 

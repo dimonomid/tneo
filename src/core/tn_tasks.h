@@ -171,10 +171,10 @@ enum TN_TaskExitOpt {
  * Task
  */
 struct TN_Task {
-   /// pointer to task's current stack pointer;
+   /// pointer to task's current top of the stack;
    /// Note that this field **must** be a first field in the struct,
    /// this fact is exploited by platform-specific routines.
-   unsigned int *task_stk;   
+   TN_UWord *stack_top;   
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     
@@ -298,19 +298,6 @@ struct TN_Task {
  *    DEFINITIONS
  ******************************************************************************/
 
-/**
- * Convenience macro for the definition of stack array. See 
- * `tn_task_create()` for the usage example.
- *
- * @param name 
- *    C variable name of the array
- * @param size
- *    size of the stack array in words (`#TN_UWord`), not in bytes.
- */
-#define  TN_TASK_STACK_DEF(name, size)       \
-   TN_ARCH_STK_ATTR_BEFORE                   \
-   TN_UWord name[ (size) ]                   \
-   TN_ARCH_STK_ATTR_AFTER
 
 
 
@@ -331,9 +318,9 @@ struct TN_Task {
  *
  *     struct TN_Task my_task;
  *
- *     //-- define stack array, we use convenience macro TN_TASK_STACK_DEF()
+ *     //-- define stack array, we use convenience macro TN_STACK_ARR_DEF()
  *     //   for that
- *     TN_TASK_STACK_DEF(my_task_stack, MY_TASK_STACK_SIZE);
+ *     TN_STACK_ARR_DEF(my_task_stack, MY_TASK_STACK_SIZE);
  *
  *     void my_task_body(void *param)
  *     {
@@ -379,7 +366,7 @@ struct TN_Task {
  *    Must be > `0` and < `(#TN_PRIORITIES_CNT - 1)`.
  * @param task_stack_low_addr    
  *    Pointer to the stack for task.
- *    User must either use the macro `TN_TASK_STACK_DEF()` for the definition
+ *    User must either use the macro `TN_STACK_ARR_DEF()` for the definition
  *    of stack array, or allocate it manually as an array of `#TN_UWord` with
  *    `#TN_ARCH_STK_ATTR_BEFORE` and `#TN_ARCH_STK_ATTR_AFTER` macros.
  * @param task_stack_size 

@@ -89,7 +89,7 @@ void *tn_int_sp;
 
 //-- System tasks
 
-//-- idle task - priority (TN_PRIORITIES_CNT-1) - lowest
+//-- idle task - priority (TN_PRIORITIES_CNT - 1) - lowest
 
 struct TN_Task  tn_idle_task;
 static void _idle_task_body(void * par);
@@ -171,7 +171,7 @@ static inline enum TN_RCode _idle_task_create(
    return tn_task_create(
          (struct TN_Task*)&tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
-         TN_PRIORITIES_CNT - 1,             //-- task priority
+         TN_PRIORITIES_CNT - 1,           //-- task priority
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
@@ -217,7 +217,7 @@ void tn_sys_start(
    //-- initial system flags: no flags set (see enum TN_StateFlag)
    tn_sys_state = (0);  
 
-   //-- reset bitmask of prioritis with runnable tasks
+   //-- reset bitmask of priorities with runnable tasks
    tn_ready_to_run_bmp = 0;
 
    //-- reset system time
@@ -238,7 +238,7 @@ void tn_sys_start(
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
-   //-- pre-decrement stack
+   //-- set interrupt's top of the stack
    tn_int_sp = _tn_arch_stack_top_get(
          int_stack,
          int_stack_size
@@ -279,8 +279,12 @@ void tn_sys_start(
    //   (by user-provided callback)
    cb_user_task_create();
 
+   //-- set flag that system is running
+   //   (well, it will be running soon actually)
+   tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
+
    //-- Run OS - first context switch
-   _tn_arch_system_start();
+   _tn_arch_context_switch_now_nosave();
 }
 
 
@@ -290,28 +294,28 @@ void tn_sys_start(
  */
 enum TN_RCode tn_tick_int_processing(void)
 {
-   TN_INTSAVE_DATA_INT;
    enum TN_RCode rc = TN_RC_OK;
 
    if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      //-- increment system timer
+      tn_sys_time_count++;
+
+      //-- manage round-robin (if used)
+      _round_robin_manage();
+
+      //-- manage timers
+      _tn_timers_tick_proceed();
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
+
    }
-
-   TN_INT_IDIS_SAVE();
-
-   //-- increment system timer
-   tn_sys_time_count++;
-
-   //-- manage round-robin (if used)
-   _round_robin_manage();
-
-   //-- manage timers
-   _tn_timers_tick_proceed();
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -322,26 +326,20 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   TN_INTSAVE_DATA;
    if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   if (     priority <= 0 || priority >= (TN_PRIORITIES_CNT - 1)
-         || ticks    <  0 || ticks    >   TN_MAX_TIME_SLICE)
+   } else if (0
+         || priority < 0 || priority >= (TN_PRIORITIES_CNT - 1)
+         || ticks    < 0 || ticks    >   TN_MAX_TIME_SLICE)
    {
       rc = TN_RC_WPARAM;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      tn_tslice_ticks[priority] = ticks;
+      TN_INT_RESTORE();
    }
-
-   TN_INT_DIS_SAVE();
-
-   tn_tslice_ticks[priority] = ticks;
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 

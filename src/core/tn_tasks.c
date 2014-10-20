@@ -204,27 +204,23 @@ static inline enum TN_RCode _task_job_perform(
       int (p_worker)(struct TN_Task *task)
       )
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      //-- proceed to real job
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      rc = p_worker(task);
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
    }
-
-   TN_INT_DIS_SAVE();
-
-   rc = p_worker(task);
-
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 
@@ -233,26 +229,23 @@ static inline enum TN_RCode _task_job_iperform(
       int (p_worker)(struct TN_Task *task)
       )
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();
+
+      rc = p_worker(task);
+
+      TN_INT_IRESTORE();
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
+
    }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = p_worker(task);
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -383,9 +376,6 @@ enum TN_RCode tn_task_create(
    //-- Lightweight checking of system tasks recreation
    if (0
          || (priority == (TN_PRIORITIES_CNT - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
-         || (priority == 0)   //-- there's no more timer task in the kernel,
-                              //   but for a kind of compatibility
-                              //   it's better to disallow tasks with priority 0
       )
    {
       return TN_RC_WPARAM;
@@ -482,37 +472,33 @@ enum TN_RCode tn_task_create(
  */
 enum TN_RCode tn_task_suspend(struct TN_Task *task)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
+         rc = TN_RC_WSTATE;
+      } else {
+
+         if (_tn_task_is_runnable(task)){
+            _tn_task_clear_runnable(task);
+         }
+
+         _tn_task_set_suspended(task);
+
+      }
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+
    }
-
-   TN_INT_DIS_SAVE();
-
-   if (_tn_task_is_suspended(task) || _tn_task_is_dormant(task)){
-      rc = TN_RC_WSTATE;
-      goto out_ei;
-   }
-
-   if (_tn_task_is_runnable(task)){
-      _tn_task_clear_runnable(task);
-   }
-
-   _tn_task_set_suspended(task);
-
-out_ei:
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 
@@ -521,39 +507,35 @@ out:
  */
 enum TN_RCode tn_task_resume(struct TN_Task *task)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      if (!_tn_task_is_suspended(task)){
+         rc = TN_RC_WSTATE;
+      } else {
+
+         _tn_task_clear_suspended(task);
+
+         if (!_tn_task_is_waiting(task)){
+            //-- The task is not in the WAIT-SUSPEND state,
+            //   so we need to make it runnable and probably switch context
+            _tn_task_set_runnable(task);
+         }
+
+      }
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+
    }
-
-   TN_INT_DIS_SAVE();
-
-   if (!_tn_task_is_suspended(task)){
-      rc = TN_RC_WSTATE;
-      goto out_ei;
-   }
-
-   _tn_task_clear_suspended(task);
-
-   if (!_tn_task_is_waiting(task)){
-      //-- The task is not in the WAIT-SUSPEND state,
-      //   so we need to make it runnable and probably switch context
-      _tn_task_set_runnable(task);
-   }
-
-out_ei:
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 
 }
@@ -563,30 +545,26 @@ out:
  */
 enum TN_RCode tn_task_sleep(TN_Timeout timeout)
 {
-   TN_INTSAVE_DATA;
    enum TN_RCode rc;
 
    if (timeout == 0){
       rc = TN_RC_TIMEOUT;
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+      rc = tn_curr_run_task->task_wait_rc;
+
    }
 
-   TN_INT_DIS_SAVE();
-
-   _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
-
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-   rc = tn_curr_run_task->task_wait_rc;
-
-out:
    return rc;
-
 }
 
 /*
@@ -643,33 +621,33 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task)
 void tn_task_exit(enum TN_TaskExitOpt opts)
 {
    struct TN_Task *task;
-
-   //-- it is here only for TN_INT_DIS_SAVE() normal operation,
-   //   but actually we don't need to save current interrupt status:
-   //   this function never returns, and interrupt status is restored
-   //   from different task's stack inside `_tn_arch_context_switch_exit()`
-   //   call.
-   TN_INTSAVE_DATA;
 	 
    if (!tn_is_task_context()){
-      goto out;
+      //-- do nothing, just return
+   } else {
+
+      //-- it is here only for TN_INT_DIS_SAVE() normal operation,
+      //   but actually we don't need to save current interrupt status:
+      //   this function never returns, and interrupt status is restored
+      //   from different task's stack inside 
+      //   `_tn_arch_context_switch_now_nosave()` call.
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      task = tn_curr_run_task;
+      _tn_task_clear_runnable(task);
+
+      _task_terminate(task);
+
+      if ((opts & TN_TASK_EXIT_OPT_DELETE)){
+         _task_delete(task);
+      }
+
+      //-- interrupts will be enabled inside _tn_arch_context_switch_now_nosave()
+      _tn_arch_context_switch_now_nosave();  
    }
 
-   TN_INT_DIS_SAVE();
-
-   task = tn_curr_run_task;
-   _tn_task_clear_runnable(task);
-
-   _task_terminate(task);
-
-   if ((opts & TN_TASK_EXIT_OPT_DELETE)){
-      _task_delete(task);
-   }
-
-   //-- interrupts will be enabled inside _tn_arch_context_switch_exit()
-   _tn_arch_context_switch_exit();  
-
-out:
    return;
 }
 
@@ -678,53 +656,46 @@ out:
  */
 enum TN_RCode tn_task_terminate(struct TN_Task *task)
 {
-   TN_INTSAVE_DATA;
-
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_generic(task);
 	 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   rc = TN_RC_OK;
-
-   if (_tn_task_is_dormant(task)){
-      //-- The task is already terminated
-      rc = TN_RC_WSTATE;
-   } else if (tn_curr_run_task == task){
-      //-- Cannot terminate currently running task
-      //   (use tn_task_exit() instead)
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
    } else {
+      TN_INTSAVE_DATA;
 
-      if (_tn_task_is_runnable(task)){
-         _tn_task_clear_runnable(task);
-      } else if (_tn_task_is_waiting(task)){
-         _tn_task_clear_waiting(
-               task,
-               TN_RC_OK    //-- doesn't matter: nobody will read it
-               );
+      TN_INT_DIS_SAVE();
+
+      if (_tn_task_is_dormant(task)){
+         //-- The task is already terminated
+         rc = TN_RC_WSTATE;
+      } else if (tn_curr_run_task == task){
+         //-- Cannot terminate currently running task
+         //   (use tn_task_exit() instead)
+         rc = TN_RC_WCONTEXT;
+      } else {
+
+         if (_tn_task_is_runnable(task)){
+            _tn_task_clear_runnable(task);
+         } else if (_tn_task_is_waiting(task)){
+            _tn_task_clear_waiting(
+                  task,
+                  TN_RC_OK    //-- doesn't matter: nobody will read it
+                  );
+         }
+
+         if (_tn_task_is_suspended(task)){
+            _tn_task_clear_suspended(task);
+         }
+
+         _task_terminate(task);
       }
 
-      if (_tn_task_is_suspended(task)){
-         _tn_task_clear_suspended(task);
-      }
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
 
-      _task_terminate(task);
    }
-
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 
@@ -733,26 +704,20 @@ out:
  */
 enum TN_RCode tn_task_delete(struct TN_Task *task)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      rc = _task_delete(task);
+      TN_INT_RESTORE();
+
    }
-
-   TN_INT_DIS_SAVE();
-
-   rc = _task_delete(task);
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
@@ -766,23 +731,16 @@ enum TN_RCode tn_task_state_get(
 {
    enum TN_RCode rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   TN_INTSAVE_DATA;
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+      *p_state = task->task_state;
+      TN_INT_RESTORE();
    }
-
-   TN_INT_DIS_SAVE();
-
-   *p_state = task->task_state;
-
-   TN_INT_RESTORE();
-
-out:
    return rc;
 }
 
@@ -791,42 +749,34 @@ out:
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(task);
 
-   rc = _check_param_generic(task);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (new_priority < 0 || new_priority >= (TN_PRIORITIES_CNT - 1)){
+      //-- just return rc as it is
+   } else if (new_priority < 0 || new_priority >= (TN_PRIORITIES_CNT - 1)){
       rc = TN_RC_WPARAM;
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   if(new_priority == 0){
-      new_priority = task->base_priority;
-   }
-
-   rc = TN_RC_OK;
-
-   if (_tn_task_is_dormant(task)){
-      rc = TN_RC_WSTATE;
    } else {
-      _tn_change_task_priority(task, new_priority);
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      if (new_priority == 0){
+         new_priority = task->base_priority;
+      }
+
+      rc = TN_RC_OK;
+
+      if (_tn_task_is_dormant(task)){
+         rc = TN_RC_WSTATE;
+      } else {
+         _tn_change_task_priority(task, new_priority);
+      }
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
    }
-
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 
@@ -1071,7 +1021,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 
    //--- Init task stack, save pointer to task top of stack,
    //    when not running
-   task->task_stk = _tn_arch_stack_init(
+   task->stack_top = _tn_arch_stack_init(
          task->task_func_addr,
          task->base_stack_top,
          task->task_func_param

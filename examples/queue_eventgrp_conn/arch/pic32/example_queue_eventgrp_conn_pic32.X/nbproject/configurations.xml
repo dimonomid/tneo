@@ -12,8 +12,14 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../../src/arch/pic32/tn_arch_pic32_int_vec1.S</itemPath>
-      <itemPath>../src/tn_pic32_example_basic.c</itemPath>
+      <logicalFolder name="f1" displayName="arch" projectFiles="true">
+        <itemPath>../pic32_arch.c</itemPath>
+        <itemPath>../queue_example_arch.c</itemPath>
+        <itemPath>../../../../../src/arch/pic32/tn_arch_pic32_int_vec1.S</itemPath>
+      </logicalFolder>
+      <itemPath>../../../queue_example.c</itemPath>
+      <itemPath>../../../task_consumer.c</itemPath>
+      <itemPath>../../../task_producer.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -22,8 +28,9 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../src</Elem>
-    <Elem>../../../../src/arch/pic32</Elem>
+    <Elem>../../../../common/queue</Elem>
+    <Elem>../../../../../src/arch/pic32</Elem>
+    <Elem>../../..</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -42,12 +49,12 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../src/arch/pic32/tneokernel.X"
+              <makeArtifact PL="../../../../../src/arch/pic32/tneokernel.X"
                             CT="3"
                             CN="default"
                             AC="true"
                             BL="true"
-                            WD="../../../../src/arch/pic32/tneokernel.X"
+                            WD="../../../../../src/arch/pic32/tneokernel.X"
                             BC="${MAKE}  -f Makefile CONF=default"
                             DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"
@@ -76,18 +83,19 @@
         <makeCustomizationNormalizeHexFile>false</makeCustomizationNormalizeHexFile>
       </makeCustomizationType>
       <C32>
-        <property key="additional-warnings" value="false"/>
+        <property key="additional-warnings" value="true"/>
         <property key="enable-app-io" value="false"/>
         <property key="enable-omit-frame-pointer" value="false"/>
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
-        <property key="extra-include-directories" value="../../../../src"/>
+        <property key="extra-include-directories"
+                  value="../;../../../;../../../../../src"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="false"/>
         <property key="make-warnings-into-errors" value="false"/>
-        <property key="optimization-level" value=""/>
+        <property key="optimization-level" value="-Os"/>
         <property key="place-data-into-section" value="false"/>
         <property key="post-instruction-scheduling" value="default"/>
         <property key="pre-instruction-scheduling" value="default"/>
@@ -182,7 +190,7 @@
         <property key="save-temps" value="false"/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
-      <PICkit3PlatformTool>
+      <ICD3PlatformTool>
         <property key="ADC 1" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="CHANGE NOTICE" value="true"/>
@@ -216,10 +224,11 @@
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
         <property key="UART1" value="true"/>
         <property key="UART2" value="true"/>
+        <property key="debugoptions.useswbreakpoints" value="false"/>
         <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
-        <property key="memories.bootflash" value="true"/>
+        <property key="memories.bootflash" value="false"/>
         <property key="memories.configurationmemory" value="true"/>
         <property key="memories.eeprom" value="true"/>
         <property key="memories.flashdata" value="true"/>
@@ -228,10 +237,8 @@
         <property key="memories.programmemory.end" value="0x1d07ffff"/>
         <property key="memories.programmemory.start" value="0x1d000000"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmertogo.imagename" value=""/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
-        <property key="programoptions.pgmspeed" value="2"/>
         <property key="programoptions.preserveeeprom" value="false"/>
         <property key="programoptions.preserveprogramrange" value="false"/>
         <property key="programoptions.preserveprogramrange.end" value="0x1d07ffff"/>
@@ -241,7 +248,7 @@
         <property key="programoptions.usehighvoltageonmclr" value="false"/>
         <property key="programoptions.uselvpprogramming" value="false"/>
         <property key="voltagevalue" value="3.25"/>
-      </PICkit3PlatformTool>
+      </ICD3PlatformTool>
     </conf>
   </confs>
 </configurationDescriptor>

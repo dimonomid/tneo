@@ -46,6 +46,7 @@
 
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
+ * Say, for `0xa8` it should return `3`.
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
@@ -103,13 +104,12 @@
 typedef  unsigned int               TN_UWord;
 
 /**
- * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.
- * For compatibility with all platforms, it's recommended to use only values
- * from 1 to 14, inclusive.
+ * Maximum number of priorities available, this value usually matches
+ * `#TN_INT_WIDTH`.
  *
- * @see `#TN_INT_WIDTH`
+ * @see TN_PRIORITIES_CNT
  */
-#define  TN_PRIORITIES_CNT          TN_INT_WIDTH
+#define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
  * Value for infinite waiting, usually matches `UINT_MAX`
@@ -117,7 +117,7 @@ typedef  unsigned int               TN_UWord;
 #define  TN_WAIT_INFINITE           0xFFFFFFFF
 
 /**
- * Value for initializing the task's stack
+ * Value for initializing the unused space of task's stack
  */
 #define  TN_FILL_STACK_VAL          0xFEEDFACE
 
@@ -189,6 +189,11 @@ typedef  unsigned int               TN_UWord;
  */
 #define TN_IS_INT_DISABLED()     ((__builtin_mfc0(12, 0) & 1) == 0)
 
+/**
+ * Pend context switch from interrupt.
+ */
+#define _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED()          \
+   _tn_context_switch_pend_if_needed()
 
 
 

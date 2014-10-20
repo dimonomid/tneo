@@ -34,6 +34,49 @@
  *
  ******************************************************************************/
 
+/**
+ * \file
+ *
+ * This file contains ISR for core software interrupt 0 (which is used by the
+ * kernel internally).
+ *
+ * **NOTE:** This file must be included in the main project itself, not in the
+ * library project.
+ *
+ */
+
+
+
+/*
+ * Self-check for the application that uses TNeoKernel:
+ *
+ *  PIC32 application must include the file tn_arch_pic32_int_vec1.S
+ * in order to dispatch vector_1 correctly, but if it is forgotten,
+ * no error is generated at the build time: we just get to the 
+ * _DefaultInterrupt when we should switch context.
+ *
+ * Note that we can't include that file to the TNeoKernel library
+ * project: it doesn't work.
+ *
+ * So, dummy function was invented, and if we forgot to 
+ * include that file, we got an error at the link time.
+ *
+ * That function merely returns 0.
+ */
+    .global  _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
+    .ent _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
+_you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project:
+
+    li      $v0, 0
+    jr      $ra
+    nop
+
+    .end _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project
+
+
+
+
+
     .section    .vector_1,code
     .align  2
     .set    nomips16
@@ -42,7 +85,10 @@
     .global __vector_dispatch_1
 
     .ent    __vector_dispatch_1
+
 __vector_dispatch_1:
-    j   cs0_int_handler
+
+    j       cs0_int_handler
     .end    __vector_dispatch_1
     .size   __vector_dispatch_1, .-__vector_dispatch_1
+

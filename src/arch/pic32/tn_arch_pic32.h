@@ -71,6 +71,7 @@ extern "C"  {     /*}*/
 
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
+ * Say, for `0xa8` it should return `3`.
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
@@ -136,11 +137,12 @@ typedef  unsigned int               TN_UWord;
 
 
 /**
- * Number of priorities available, this value usually matches `#TN_INT_WIDTH`.
- * For compatibility with all platforms, it's recommended to use only values
- * from 1 to 14, inclusive.
+ * Maximum number of priorities available, this value usually matches
+ * `#TN_INT_WIDTH`.
+ *
+ * @see TN_PRIORITIES_CNT
  */
-#define  TN_PRIORITIES_CNT          TN_INT_WIDTH
+#define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
  * Value for infinite waiting, usually matches `UINT_MAX`
@@ -240,6 +242,13 @@ typedef  unsigned int               TN_UWord;
  * Returns nonzero if interrupts are disabled, zero otherwise.
  */
 #define TN_IS_INT_DISABLED()     ((__builtin_mfc0(12, 0) & 1) == 0)
+
+/**
+ * Pend context switch from interrupt.
+ */
+#define _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED()          \
+   _tn_context_switch_pend_if_needed()
+
 
 
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
@@ -344,17 +353,6 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("jalr    $t0");                                                \
    asm volatile("sw      $v1, 0($sp)");                                        \
                                                                                \
-   /* Pend context switch if needed */                                         \
-   asm volatile("lw      $t0, tn_curr_run_task");                              \
-   asm volatile("lw      $t1, tn_next_task_to_run");                           \
-   asm volatile("lw      $t0, 0($t0)");                                        \
-   asm volatile("lw      $t1, 0($t1)");                                        \
-   asm volatile("lui     $t2, %hi(IFS0SET)");                                  \
-   asm volatile("beq     $t0, $t1, 1f");                                       \
-   asm volatile("ori     $t1, $zero, 2");                                      \
-   asm volatile("sw      $t1, %lo(IFS0SET)($t2)");                             \
-                                                                               \
-   asm volatile("1:");                                                         \
    /* Restore registers */                                                     \
    asm volatile("lw      $v1, 0($sp)");                                        \
    asm volatile("lw      $v0, 4($sp)");                                        \
@@ -486,17 +484,6 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("jalr    $t0");                                                \
    asm volatile("sw      $v1, 0($sp)");                                        \
                                                                                \
-   /* Pend context switch if needed */                                         \
-   asm volatile("lw      $t0, tn_curr_run_task");                              \
-   asm volatile("lw      $t1, tn_next_task_to_run");                           \
-   asm volatile("lw      $t0, 0($t0)");                                        \
-   asm volatile("lw      $t1, 0($t1)");                                        \
-   asm volatile("lui     $t2, %hi(IFS0SET)");                                  \
-   asm volatile("beq     $t0, $t1, 1f");                                       \
-   asm volatile("ori     $t1, $zero, 2");                                      \
-   asm volatile("sw      $t1, %lo(IFS0SET)($t2)");                             \
-                                                                               \
-   asm volatile("1:");                                                         \
    /* Restore registers */                                                     \
    asm volatile("lw      $v1, 0($sp)");                                        \
    asm volatile("lw      $v0, 4($sp)");                                        \

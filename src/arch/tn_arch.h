@@ -89,7 +89,7 @@ void tn_arch_int_en(void);
  *
  * @see `tn_arch_sr_restore()`
  */
-unsigned int tn_arch_sr_save_int_dis(void);
+TN_UWord tn_arch_sr_save_int_dis(void);
 
 /**
  * Restore previously saved status register
@@ -99,7 +99,7 @@ unsigned int tn_arch_sr_save_int_dis(void);
  *
  * @see `tn_arch_sr_save_int_dis()`
  */
-void tn_arch_sr_restore(unsigned int sr);
+void tn_arch_sr_restore(TN_UWord sr);
 
 
 
@@ -121,12 +121,22 @@ void tn_arch_sr_restore(unsigned int sr);
  *    size of the stack in `#TN_UWord`-s, not in bytes.
  */
 TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord *stack_low_address,
-      int stack_size
+      TN_UWord   *stack_low_address,
+      int         stack_size
       );
 
 /**
- * Should initialize stack for new task and return current stack pointer.
+ * Should put initial CPU context to the provided stack pointer for new task
+ * and return current stack pointer.
+ *
+ * When resulting context gets restored by 
+ * `_tn_arch_context_switch_now_nosave()` or `_tn_arch_context_switch_pend()`,
+ * the following conditions should be met:
+ *
+ * - Interrupts are enabled;
+ * - Return address is set to `tn_task_exit()`, so that when task body function
+ *   returns, `tn_task_exit()` gets automatially called;
+ * - Argument 0 contains `param` pointer
  *
  * @param task_func
  *    Pointer to task body function.
@@ -137,7 +147,7 @@ TN_UWord *_tn_arch_stack_top_get(
  *
  * @return current stack pointer (top of the stack)
  */
-unsigned int *_tn_arch_stack_init(
+TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
       TN_UWord      *stack_top,
       void          *param
@@ -149,64 +159,55 @@ unsigned int *_tn_arch_stack_init(
 int _tn_arch_inside_isr(void);
 
 /**
- * Called whenever we need to switch context to other task.
+ * Called whenever we need to switch context from one task to another.
+ *
+ * This function typically does NOT switch context; it merely pends it,
+ * that is, it sets appropriate interrupt flag. If current level is an
+ * application level, interrupt is fired immediately, and context gets
+ * switched.
+ *
+ * But, if it's hard or impossible on particular platform to use dedicated 
+ * interrupt flag, this function may just switch the context on its own.
  *
  * **Preconditions:**
  *
- * * interrupts are enabled;
- * * `tn_curr_run_task` points to currently running (preempted) task;
- * * `tn_next_task_to_run` points to new task to run.
+ * - interrupts are enabled;
+ * - `tn_curr_run_task` points to currently running (preempted) task;
+ * - `tn_next_task_to_run` points to new task to run.
  *    
- * **Actions to perform:**
+ * **Actions to perform in actual context switching routine:**
  *
- * * save context of the preempted task to its stack;
- * * set `tn_curr_run_task` to `tn_next_task_to_run`;
- * * switch context to it.
+ * - save context of the preempted task to its stack;
+ * - set `tn_curr_run_task` to `tn_next_task_to_run`;
+ * - restore context of the newly activated task from its stack.
  *
  * @see `tn_curr_run_task`
  * @see `tn_next_task_to_run`
  */
-void _tn_arch_context_switch(void);
+void _tn_arch_context_switch_pend(void);
 
 /**
- * Called when some task calls `tn_task_exit()`.
+ * Called whenever we need to switch context to new task, but don't save
+ * current context. This happens:
+ * - At system start, inside `tn_sys_start()`;
+ * - At task exit, inside `tn_task_exit()`
+ *
+ * This function doesn't pend context switch, it switches context immediately.
  *
  * **Preconditions:**
  *
- * * interrupts are disabled;
- * * `tn_next_task_to_run` is already set to other task.
+ * - interrupts are disabled;
+ * - `tn_next_task_to_run` is already set to needed task.
  *    
  * **Actions to perform:**
  *
- * * set `tn_curr_run_task` to `tn_next_task_to_run`;
- * * switch context to it.
+ * - set `tn_curr_run_task` to `tn_next_task_to_run`;
+ * - restore context of the newly activated task from its stack.
  *
  * @see `tn_curr_run_task`
  * @see `tn_next_task_to_run`
  */
-void _tn_arch_context_switch_exit(void);
-
-/**
- * Should perform first context switch (to the task pointed to by 
- * `tn_next_task_to_run`).
- *
- * **Preconditions:**
- *
- * * no interrupts are set up yet, so, it's like interrupts disabled
- * * `tn_next_task_to_run` is already set to idle task.
- *    
- * **Actions to perform:**
- *
- * * set `#TN_STATE_FLAG__SYS_RUNNING` flag in the `tn_sys_state` variable;
- * * set `tn_curr_run_task` to `tn_next_task_to_run`;
- * * switch context to it.
- *
- * @see `#TN_STATE_FLAG__SYS_RUNNING`
- * @see `tn_sys_state`
- * @see `tn_curr_run_task`
- * @see `tn_next_task_to_run`
- */
-void _tn_arch_system_start(void);
+void _tn_arch_context_switch_now_nosave(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */

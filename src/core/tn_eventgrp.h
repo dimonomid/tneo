@@ -39,7 +39,7 @@
  *
  * Event group.
  *
- * An event group has an internal variable (of type `unsigned int`), which is
+ * An event group has an internal variable (of type `TN_UWord`), which is
  * interpreted as a bit pattern where each bit represents an event. An event
  * group also has a wait queue for the tasks waiting on these events. A task
  * may set specified bits when an event occurs and may clear specified bits
@@ -49,6 +49,50 @@
  * queue. An event group is a very suitable synchronization object for cases
  * where (for some reasons) one task has to wait for many tasks, or vice versa,
  * many tasks have to wait for one task.
+ *
+ * \section eventgrp_connect Connecting an event group to other system objects
+ *
+ * Sometimes task needs to wait for different system events, the most common
+ * examples are:
+ *
+ * - wait for a message from the queue(s) plus wait for some
+ *   application-dependent event;
+ * - wait for messages from multiple queues.
+ *
+ * If the kernel doesn't offer a mechanism for that, programmer usually have to
+ * use polling services on these queues and sleep for a few system ticks.
+ * Obviously, this approach has serious drawbacks: we have a lot of useless
+ * context switches, and response for the message gets much slower. Actually,
+ * we lost the main goal of the preemtive kernel when we use polling services
+ * like that.
+ *
+ * TNeoKernel offers a solution: an event group can be connected to other
+ * kernel objects, and these objects will maintain certain flags inside that
+ * event group automatically.
+ *
+ * So, in case of multiple queues, we can act as follows (assume we have two
+ * queues: Q1 and Q2) :
+ * 
+ * - create event group EG;
+ * - connect EG with flag 1 to Q1;
+ * - connect EG with flag 2 to Q2;
+ * - when task needs to receive a message from either Q1 or Q2, it just waits
+ *   for the any of flags 1 or 2 in the EG, this is done in the single call 
+ *   to `tn_eventgrp_wait()`.
+ * - when that event happened, task checks which flag is set, and receive
+ *   message from the appropriate queue.
+ *
+ * Please note that task waiting for the event should **not** clear the flag
+ * manually: this flag is maintained completely by the queue. If the queue is
+ * non-empty, the flag is set. If the queue becomes empty, the flag is cleared.
+ * 
+ * For the information on system services related to queue, refer to the \ref 
+ * tn_dqueue.h "queue reference".
+ *
+ * There is an example project available that demonstrates event group
+ * connection technique: `examples/queue_eventgrp_conn`. Be sure to examine the
+ * readme there.
+ *
  */
 
 #ifndef _TN_EVENTGRP_H
@@ -60,6 +104,7 @@
 
 #include "tn_list.h"
 #include "tn_common.h"
+#include "tn_sys.h"
 
 
 
@@ -112,7 +157,7 @@ enum TN_EGrpOp {
  */
 struct TN_EventGrp {
    struct TN_ListItem   wait_queue; //!< task wait queue
-   unsigned int         pattern;    //!< current flags pattern
+   TN_UWord             pattern;    //!< current flags pattern
    enum TN_ObjId        id_event;   //!< id for object validity verification
 };
 
@@ -123,15 +168,27 @@ struct TN_EventGrp {
 struct TN_EGrpTaskWait {
    ///
    /// event wait pattern 
-   int  wait_pattern;
+   TN_UWord wait_pattern;
    ///
    /// event wait mode: `AND` or `OR`
    enum TN_EGrpWaitMode wait_mode;
    ///
    /// pattern that caused task to finish waiting
-   int  actual_pattern;
+   TN_UWord actual_pattern;
 };
 
+/**
+ * A link to event group: used when event group can be connected to 
+ * some kernel object, such as queue.
+ */
+struct TN_EGrpLink {
+   ///
+   /// event group whose event(s) should be managed by other kernel object
+   struct TN_EventGrp *eventgrp;
+   ///
+   /// event pattern to manage
+   TN_UWord pattern;
+};
 
 
 /*******************************************************************************
@@ -167,8 +224,8 @@ struct TN_EGrpTaskWait {
  *      is available: `#TN_RC_WPARAM`.
  */
 enum TN_RCode tn_eventgrp_create(
-      struct TN_EventGrp *eventgrp,
-      unsigned int initial_pattern
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             initial_pattern
       );
 
 /**
@@ -210,7 +267,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  *    `wait_pattern` to be set, or for just **any** of them 
  *    (see enum `#TN_EGrpWaitMode`)
  * @param p_flags_pattern
- *    Pointer to the `unsigned int` variable in which actual event pattern
+ *    Pointer to the `TN_UWord` variable in which actual event pattern
  *    that caused task to stop waiting will be stored.
  *    May be `NULL`.
  * @param timeout
@@ -227,9 +284,9 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  */
 enum TN_RCode tn_eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern,
+      TN_UWord            *p_flags_pattern,
       TN_Timeout           timeout
       );
 
@@ -242,9 +299,9 @@ enum TN_RCode tn_eventgrp_wait(
  */
 enum TN_RCode tn_eventgrp_wait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       );
 
 /**
@@ -256,9 +313,9 @@ enum TN_RCode tn_eventgrp_wait_polling(
  */
 enum TN_RCode tn_eventgrp_iwait_polling(
       struct TN_EventGrp  *eventgrp,
-      unsigned int         wait_pattern,
+      TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
-      unsigned int        *p_flags_pattern
+      TN_UWord            *p_flags_pattern
       );
 
 /**
@@ -286,7 +343,7 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 enum TN_RCode tn_eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       );
 
 /**
@@ -299,7 +356,7 @@ enum TN_RCode tn_eventgrp_modify(
 enum TN_RCode tn_eventgrp_imodify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
-      unsigned int         pattern
+      TN_UWord             pattern
       );
 
 

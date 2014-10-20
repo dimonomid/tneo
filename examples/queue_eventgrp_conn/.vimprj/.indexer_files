@@ -1,0 +1,6 @@
+
+[queue_eventgrp_conn]
+option:ctags_params = "--langmap=c:.c.h --languages=c"
+
+$INDEXER_PROJECT_ROOT
+

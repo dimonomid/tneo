@@ -763,6 +763,7 @@ INPUT                  =   ../../src                                       \
                            ../../stuff/doc_pages/mainpage.dox              \
                            ../../stuff/doc_pages/foreword.dox              \
                            ../../stuff/doc_pages/quick_guide.dox           \
+                           ../../stuff/doc_pages/interrupts.dox            \
                            ../../stuff/doc_pages/building.dox              \
                            ../../stuff/doc_pages/pic32_details.dox         \
                            ../../stuff/doc_pages/why_reimplement.dox       \
@@ -770,6 +771,7 @@ INPUT                  =   ../../src                                       \
                            ../../stuff/doc_pages/unit_tests.dox            \
                            ../../stuff/doc_pages/plans.dox                 \
                            ../../stuff/doc_pages/changelog.dox             \
+                           ../../stuff/doc_pages/thanks.dox                \
                            ../../stuff/doc_pages/legend.dox
 
 # This tag can be used to specify the character encoding of the source files

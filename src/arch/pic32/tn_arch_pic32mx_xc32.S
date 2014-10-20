@@ -47,9 +47,8 @@
 
     /* Public functions declared in this file */
 
-    .global  _tn_arch_context_switch_exit
-    .global  _tn_arch_context_switch
-    .global  _tn_arch_system_start
+    .global  _tn_arch_context_switch_now_nosave
+    .global  _tn_arch_context_switch_pend
     .global  _tn_arch_inside_isr
     .global  tn_arch_sr_save_int_dis
     .global  tn_arch_sr_restore
@@ -67,30 +66,9 @@
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent _tn_arch_system_start
+    .ent _tn_arch_context_switch_now_nosave
 
-_tn_arch_system_start:
-
-    li      $t0, 1                      /* 1 -> TN_STATE_FLAG__SYS_RUNNING */
-    la      $t1, tn_sys_state
-    sb      $t0, 0($t1)
-
-    lw      $t1, tn_next_task_to_run
-    lw      $sp, 0($t1)                 /* get new task's sp */
-    la      $t0, tn_curr_run_task
-    j       tn_restore_context
-    sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
-
-    .end _tn_arch_system_start
-
-/*----------------------------------------------------------------------------
-* Interrupts should be disabled here
-*----------------------------------------------------------------------------*/
-    .set noreorder
-    .set noat
-    .ent _tn_arch_context_switch_exit
-
-_tn_arch_context_switch_exit:
+_tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
@@ -102,31 +80,17 @@ _tn_arch_context_switch_exit:
     sw      $t1, 0($t0)                /* *t0 = t1; */
                                        /* i.e. tn_curr_run_task = tn_next_task_to_run; */
 
-    .end _tn_arch_context_switch_exit
+    .end _tn_arch_context_switch_now_nosave
 
 /*----------------------------------------------------------------------------
 *
 *----------------------------------------------------------------------------*/
     .set noreorder
     .set noat
-    .ent _tn_arch_context_switch
+    .ent _tn_arch_context_switch_pend
 
-_tn_arch_context_switch:
+_tn_arch_context_switch_pend:
 
-    /* check if task switch needed */
-
-    /*
-    la      $t0, tn_curr_run_task
-    la      $t1, tn_next_task_to_run
-    lw      $t0, 0($t0)
-    lw      $t1, 0($t1)
-    bne     $t0, $t1, 1f
-    nop
-
-    sdbbp   0
-
-1:
-    */
     /* pend CS0 interrupt */
     lui     $t0, %hi(IFS0SET)
     ori     $t1, $zero, 2
@@ -136,7 +100,7 @@ _tn_arch_context_switch:
     jr      $ra
     nop
 
-    .end _tn_arch_context_switch
+    .end _tn_arch_context_switch_pend
 
 /*----------------------------------------------------------------------------
 *

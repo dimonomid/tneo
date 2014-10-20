@@ -120,8 +120,8 @@ static inline enum TN_RCode _check_param_create(
    } else if (1
          && protocol == TN_MUTEX_PROT_CEILING 
          && (0
-            || ceil_priority < 1
-            || ceil_priority > (TN_PRIORITIES_CNT - 2)
+            || ceil_priority <  0
+            || ceil_priority >= (TN_PRIORITIES_CNT - 1)
             )
          )
    {
@@ -568,26 +568,25 @@ enum TN_RCode tn_mutex_create(
       int                     ceil_priority
       )
 {
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_create(mutex, protocol, ceil_priority);
 
-   rc = _check_param_create(mutex, protocol, ceil_priority);
    if (rc != TN_RC_OK){
-      goto out;
-   }
+      //-- just return rc as it is
+   } else {
 
-   tn_list_reset(&(mutex->wait_queue));
-   tn_list_reset(&(mutex->mutex_queue));
+      tn_list_reset(&(mutex->wait_queue));
+      tn_list_reset(&(mutex->mutex_queue));
 #if TN_MUTEX_DEADLOCK_DETECT
-   tn_list_reset(&(mutex->deadlock_list));
+      tn_list_reset(&(mutex->deadlock_list));
 #endif
 
-   mutex->protocol      = protocol;
-   mutex->holder        = NULL;
-   mutex->ceil_priority = ceil_priority;
-   mutex->cnt           = 0;
-   mutex->id_mutex      = TN_ID_MUTEX;
+      mutex->protocol      = protocol;
+      mutex->holder        = NULL;
+      mutex->ceil_priority = ceil_priority;
+      mutex->cnt           = 0;
+      mutex->id_mutex      = TN_ID_MUTEX;
+   }
 
-out:
    return rc;
 }
 
@@ -596,53 +595,47 @@ out:
  */
 enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 {
-   TN_INTSAVE_DATA;
+   enum TN_RCode rc = _check_param_generic(mutex);
 
-   enum TN_RCode rc = TN_RC_OK;
-
-   rc = _check_param_generic(mutex);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      //-- mutex can be deleted if only it isn't held 
+      if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
+         rc = TN_RC_ILLEGAL_USE;
+      } else {
+
+         //-- Remove all tasks (if any) from mutex's wait queue
+         _tn_wait_queue_notify_deleted(&(mutex->wait_queue));
+
+         if (mutex->holder != NULL){
+            //-- If the mutex is locked
+            _mutex_do_unlock(mutex);
+
+            //-- NOTE: redundant reset, because it will anyway
+            //         be reset in tn_mutex_create()
+            //
+            //         Probably we need to remove it.
+            tn_list_reset(&(mutex->mutex_queue));
+         }
+
+         mutex->id_mutex = 0; //-- mutex does not exist now
+
+      }
+
+      TN_INT_RESTORE();
+
+      //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+      //   has woken up some high-priority task
+      _tn_context_switch_pend_if_needed();
    }
 
-   TN_INT_DIS_SAVE();
-
-   //-- mutex can be deleted if only it isn't held 
-   if (mutex->holder != NULL && mutex->holder != tn_curr_run_task){
-      rc = TN_RC_ILLEGAL_USE;
-      goto out_ei;
-   }
-
-   //-- Remove all tasks (if any) from mutex's wait queue
-   //   NOTE: we might sleep there
-   _tn_wait_queue_notify_deleted(&(mutex->wait_queue));
-
-   if (mutex->holder != NULL){
-      //-- If the mutex is locked
-      _mutex_do_unlock(mutex);
-
-      //-- NOTE: redundant reset, because it will anyway
-      //         be reset in tn_mutex_create()
-      //
-      //         Probably we need to remove it.
-      tn_list_reset(&(mutex->mutex_queue));
-   }
-
-   mutex->id_mutex = 0; //-- mutex does not exist now
-
-out_ei:
-   TN_INT_RESTORE();
-
-   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
-   //   has woken up some high-priority task
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 
@@ -651,94 +644,77 @@ out:
  */
 enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 {
-   TN_INTSAVE_DATA;
-
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(mutex);
    BOOL waited_for_mutex = FALSE;
 
-   rc = _check_param_generic(mutex);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   if (tn_curr_run_task == mutex->holder){
-      //-- mutex is already locked by current task
-      //   if recursive locking enabled (TN_MUTEX_REC), increment lock count,
-      //   otherwise error is returned
-      __mutex_lock_cnt_change(mutex, 1);
-      rc = __MUTEX_REC_LOCK_RETVAL;
-      goto out_ei;
-   }
-
-   if (
-         mutex->protocol == TN_MUTEX_PROT_CEILING
-         && tn_curr_run_task->base_priority < mutex->ceil_priority
-      )
-   {
-      //-- base priority of current task higher
-      rc = TN_RC_ILLEGAL_USE;
-      goto out_ei;
-   }
-
-   if (mutex->holder == NULL){
-      //-- mutex is not locked, let's lock it
-
-      //-- TODO: probably, we should add special flat to _mutex_do_lock,
-      //   something like "other_tasks_can_wait", and set it to false here.
-      //   When _mutex_do_lock() is called from _mutex_do_unlock(), this flag
-      //   should be set to true there.
-      //   _mutex_do_lock() should forward this flag to _find_max_priority_by_mutex(),
-      //   and if that flag is false, _find_max_priority_by_mutex() should not
-      //   call _find_max_blocked_priority().
-      //   We could save about 30 cycles then. =)
-      _mutex_do_lock(mutex, tn_curr_run_task);
-      goto out_ei;
    } else {
-      //-- mutex is already locked
-      if (timeout == 0){
-         //-- in polling mode, just return TN_RC_TIMEOUT
-         rc = TN_RC_TIMEOUT;
-         goto out_ei;
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      if (tn_curr_run_task == mutex->holder){
+         //-- mutex is already locked by current task
+         //   if recursive locking enabled (TN_MUTEX_REC), increment lock count,
+         //   otherwise error is returned
+         __mutex_lock_cnt_change(mutex, 1);
+         rc = __MUTEX_REC_LOCK_RETVAL;
+
+      } else if (
+            mutex->protocol == TN_MUTEX_PROT_CEILING
+            && tn_curr_run_task->base_priority < mutex->ceil_priority
+            )
+      {
+         //-- base priority of current task higher
+         rc = TN_RC_ILLEGAL_USE;
+
+      } else if (mutex->holder == NULL){
+         //-- mutex is not locked, let's lock it
+
+         //-- TODO: probably, we should add special flat to _mutex_do_lock,
+         //   something like "other_tasks_can_wait", and set it to false here.
+         //   When _mutex_do_lock() is called from _mutex_do_unlock(), this flag
+         //   should be set to true there.
+         //   _mutex_do_lock() should forward this flag to _find_max_priority_by_mutex(),
+         //   and if that flag is false, _find_max_priority_by_mutex() should not
+         //   call _find_max_blocked_priority().
+         //   We could save about 30 cycles then. =)
+         _mutex_do_lock(mutex, tn_curr_run_task);
+
       } else {
-         //-- timeout specified, so, wait until mutex is free or timeout expired
-         _add_curr_task_to_mutex_wait_queue(mutex, timeout);
+         //-- mutex is already locked
 
-         waited_for_mutex = TRUE;
+         if (timeout == 0){
+            //-- in polling mode, just return TN_RC_TIMEOUT
+            rc = TN_RC_TIMEOUT;
+         } else {
+            //-- timeout specified, so, wait until mutex is free or timeout expired
+            _add_curr_task_to_mutex_wait_queue(mutex, timeout);
 
-         //-- rc will be set later to tn_curr_run_task->task_wait_rc;
-         goto out_ei;
+            waited_for_mutex = TRUE;
+
+            //-- rc will be set later to tn_curr_run_task->task_wait_rc;
+         }
+      }
+
+#if TN_DEBUG
+      if (!_tn_need_context_switch() && waited_for_mutex){
+         _TN_FATAL_ERROR("");
+      }
+#endif
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
+      if (waited_for_mutex){
+         //-- get wait result
+         rc = tn_curr_run_task->task_wait_rc;
       }
    }
 
-   //-- should never be here
-   rc = TN_RC_INTERNAL;
-   goto out_ei;
-
-out_ei:
-
-#if TN_DEBUG
-   if (!_tn_need_context_switch() && waited_for_mutex){
-      _TN_FATAL_ERROR("");
-   }
-#endif
-
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-   if (waited_for_mutex){
-      //-- get wait result
-      rc = tn_curr_run_task->task_wait_rc;
-   }
-
-out:
    return rc;
-
 }
 
 /*
@@ -755,49 +731,44 @@ enum TN_RCode tn_mutex_lock_polling(struct TN_Mutex *mutex)
  */
 enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
 {
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(mutex);
 
-   TN_INTSAVE_DATA;
-
-   rc = _check_param_generic(mutex);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
-
-   TN_INT_DIS_SAVE();
-
-   //-- unlocking is enabled only for the owner and already locked mutex
-   if (tn_curr_run_task != mutex->holder){
-      rc = TN_RC_ILLEGAL_USE;
-      goto out_ei;
-   }
-
-   __mutex_lock_cnt_change(mutex, -1);
-
-   if (mutex->cnt > 0){
-      //-- there was recursive lock, so here we just decremented counter, 
-      //   but don't unlock the mutex. TN_RC_OK will be returned.
-      goto out_ei;
-   } else if (mutex->cnt < 0){
-      //-- should never be here: lock count is negative.
-      //   bug in RTOS.
-      _TN_FATAL_ERROR();
    } else {
-      //-- lock counter is 0, so, unlock mutex
-      _mutex_do_unlock(mutex);
-      goto out_ei;
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      //-- unlocking is enabled only for the owner and already locked mutex
+      if (tn_curr_run_task != mutex->holder){
+         rc = TN_RC_ILLEGAL_USE;
+      } else {
+
+         //-- decrement lock count (if recursive locking is enabled)
+         __mutex_lock_cnt_change(mutex, -1);
+
+         if (mutex->cnt > 0){
+            //-- there was recursive lock, so here we just decremented counter, 
+            //   but don't unlock the mutex. 
+            //   We're done, TN_RC_OK will be returned.
+         } else if (mutex->cnt < 0){
+            //-- should never be here: lock count is negative.
+            //   bug in the kernel.
+            _TN_FATAL_ERROR();
+         } else {
+            //-- lock counter is 0, so, unlock mutex
+            _mutex_do_unlock(mutex);
+         }
+
+      }
+
+      TN_INT_RESTORE();
+      _tn_context_switch_pend_if_needed();
    }
 
-out_ei:
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 
 }

@@ -325,6 +325,13 @@ typedef struct TN_Sem         TN_SEM;
 /// old TNKernel name for `sizeof(#TN_UWord)`
 #define  TN_ALIG                       sizeof(TN_UWord)
 
+
+
+
+/// old name for `TN_STACK_ARR_DEF`
+#define  TN_TASK_STACK_DEF             TN_STACK_ARR_DEF
+
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

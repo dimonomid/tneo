@@ -74,6 +74,9 @@ static inline enum TN_RCode _check_param_generic(
    return rc;
 }
 
+/**
+ * Additional param checking when creating semaphore
+ */
 static inline enum TN_RCode _check_param_create(
       struct TN_Sem *sem,
       int start_count,
@@ -104,81 +107,86 @@ static inline enum TN_RCode _check_param_create(
 // }}}
 
 
+/**
+ * Generic function that performs job from task context
+ *
+ * @param sem        semaphore to perform job on
+ * @param p_worker   pointer to actual worker function
+ * @param timeout    see `#TN_Timeout`
+ */
 static inline enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem),
       TN_Timeout timeout
       )
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(sem);
    BOOL waited_for_sem = FALSE;
 
-   rc = _check_param_generic(sem);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
-   }
+   } else {
+      TN_INTSAVE_DATA;
 
-   TN_INT_DIS_SAVE();
+      TN_INT_DIS_SAVE();      //-- disable interrupts
+      rc = p_worker(sem);     //-- call actual worker function
 
-   rc = p_worker(sem);
+      //-- if we should wait, put current task to wait
+      if (rc == TN_RC_TIMEOUT && timeout != 0){
+         _tn_task_curr_to_wait_action(
+               &(sem->wait_queue), TN_WAIT_REASON_SEM, timeout
+               );
 
-   if (rc == TN_RC_TIMEOUT && timeout != 0){
-      _tn_task_curr_to_wait_action(
-            &(sem->wait_queue), TN_WAIT_REASON_SEM, timeout
-            );
-
-      //-- rc will be set later thanks to waited_for_sem
-      waited_for_sem = TRUE;
-   }
+         //-- rc will be set later thanks to waited_for_sem
+         waited_for_sem = TRUE;
+      }
 
 #if TN_DEBUG
-   if (!_tn_need_context_switch() && waited_for_sem){
-      _TN_FATAL_ERROR("");
-   }
+      //-- if we're going to wait, _tn_need_context_switch() must return TRUE
+      if (!_tn_need_context_switch() && waited_for_sem){
+         _TN_FATAL_ERROR("");
+      }
 #endif
 
-   TN_INT_RESTORE();
-   _tn_switch_context_if_needed();
-   if (waited_for_sem){
-      //-- get wait result
-      rc = tn_curr_run_task->task_wait_rc;
-   }
+      TN_INT_RESTORE();       //-- restore previous interrupts state
+      _tn_context_switch_pend_if_needed();
+      if (waited_for_sem){
+         //-- get wait result
+         rc = tn_curr_run_task->task_wait_rc;
+      }
 
-out:
+   }
    return rc;
 }
 
+/**
+ * Generic function that performs job from interrupt context
+ *
+ * @param sem        semaphore to perform job on
+ * @param p_worker   pointer to actual worker function
+ */
 static inline enum TN_RCode _sem_job_iperform(
       struct TN_Sem *sem,
       int (p_worker)(struct TN_Sem *sem)
       )
 {
-   TN_INTSAVE_DATA_INT;
-   enum TN_RCode rc = TN_RC_OK;
+   enum TN_RCode rc = _check_param_generic(sem);
 
-   rc = _check_param_generic(sem);
+   //-- perform additional params checking (if enabled by TN_CHECK_PARAM)
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_isr_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_isr_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA_INT;
+
+      TN_INT_IDIS_SAVE();     //-- disable interrupts
+      rc = p_worker(sem);     //-- call actual worker function
+      TN_INT_IRESTORE();      //-- restore previous interrupts state
+      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
    }
-
-   TN_INT_IDIS_SAVE();
-
-   rc = p_worker(sem);
-
-   TN_INT_IRESTORE();
-
-out:
    return rc;
 }
 
@@ -186,6 +194,7 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
+   //-- wake up first (if any) task from the semaphore wait queue
    if (  !_tn_task_first_wait_complete(
             &sem->wait_queue, TN_RC_OK,
             NULL, NULL, NULL
@@ -208,6 +217,9 @@ static inline enum TN_RCode _sem_wait(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
+   //-- decrement semaphore count if possible.
+   //   If not, return TN_RC_TIMEOUT
+   //   (it is handled in _sem_job_perform() / _sem_job_iperform())
    if (sem->count > 0){
       sem->count--;
    } else {
@@ -234,20 +246,20 @@ enum TN_RCode tn_sem_create(
       int max_count
       )
 {
-   enum TN_RCode rc = TN_RC_OK;
+   //-- perform additional params checking (if enabled by TN_CHECK_PARAM)
+   enum TN_RCode rc = _check_param_create(sem, start_count, max_count);
 
-   rc = _check_param_create(sem, start_count, max_count);
    if (rc != TN_RC_OK){
-      goto out;
+      //-- just return rc as it is
+   } else {
+
+      tn_list_reset(&(sem->wait_queue));
+
+      sem->count     = start_count;
+      sem->max_count = max_count;
+      sem->id_sem    = TN_ID_SEMAPHORE;
+
    }
-
-   tn_list_reset(&(sem->wait_queue));
-
-   sem->count     = start_count;
-   sem->max_count = max_count;
-   sem->id_sem    = TN_ID_SEMAPHORE;
-
-out:
    return rc;
 }
 
@@ -256,32 +268,28 @@ out:
  */
 enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
 {
-   TN_INTSAVE_DATA;
-   enum TN_RCode rc = TN_RC_OK;
+   //-- perform additional params checking (if enabled by TN_CHECK_PARAM)
+   enum TN_RCode rc = _check_param_generic(sem);
 
-   rc = _check_param_generic(sem);
    if (rc != TN_RC_OK){
-      goto out;
-   }
-
-   if (!tn_is_task_context()){
+      //-- just return rc as it is
+   } else if (!tn_is_task_context()){
       rc = TN_RC_WCONTEXT;
-      goto out;
+   } else {
+      TN_INTSAVE_DATA;
+
+      TN_INT_DIS_SAVE();
+
+      //-- Remove all tasks from wait queue, returning the TN_RC_DELETED code.
+      _tn_wait_queue_notify_deleted(&(sem->wait_queue));
+
+      sem->id_sem = 0;        //-- Semaphore does not exist now
+      TN_INT_RESTORE();
+
+      //-- we might need to switch context if _tn_wait_queue_notify_deleted()
+      //   has woken up some high-priority task
+      _tn_context_switch_pend_if_needed();
    }
-
-   TN_INT_DIS_SAVE();
-
-   _tn_wait_queue_notify_deleted(&(sem->wait_queue));
-
-   sem->id_sem = 0; //-- Semaphore does not exist now
-
-   TN_INT_RESTORE();
-
-   //-- we might need to switch context if _tn_wait_queue_notify_deleted()
-   //   has woken up some high-priority task
-   _tn_switch_context_if_needed();
-
-out:
    return rc;
 }
 

@@ -5,6 +5,34 @@
 
 TNeoKernel changelog
 
+\section changelog_v1_03 v1.03
+
+Release date: 2014-10-20.
+
+
+  - Added a capability to connect an \ref tn_eventgrp.h "event group" to other
+    system objects, particularly to the \ref tn_dqueue.h "queue". This offers a
+    way to wait for messages from multiple queues with just a single system
+    call.  Refer to the section \ref eventgrp_connect for details. Example
+    project that demonstrates that technique is also available:
+    `examples/queue_eventgrp_conn`.
+  - PIC32 Interrupts: this isn't a mandatory anymore to use kernel-provided macros
+	 `tn_soft_isr()` or `tn_srs_isr()`: interrupts can be defined with standard
+	 way too: this particular ISR will use task's stack instead of interrupt
+	 stack, therefore it takes much more RAM and works a bit faster. There are
+	 no additional constraints on ISR defined without kernel-provided macro: in
+	 either ISR, you can call the same set of kernel services. Refer
+	 to the page \ref interrupts for details.
+  - Priority 0 is now allowed to use by application (in the original TNKernel,
+    it was reserved for the timer task, but TNeoKernel \ref
+    tnkernel_diff_timer_task "does not have timer task")
+  - Application is now available to specify how many priority levels does it
+    need for, it helps to save a bit of RAM. For details, refer to
+    `#TN_PRIORITIES_CNT`.
+  - Added example project `examples/queue` that demonstrates the pattern on
+	 how to use \ref tn_dqueue.h "queue" together with \ref tn_fmem.h 
+	 "fixed memory pool" effectively.
+
 \section changelog_v1_02 v1.02
 
 Release date: 2014-10-14.

@@ -11,8 +11,12 @@
 
 == Plans ==
 
-   * [ ] Make TN_PRIORITIES_CNT customizable. For 32-bit systems, TN_PRIORITIES_CNT is 32, and since we have struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT] and unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT], it takes 10 bytes for each priority. So, overhead is 320 bytes, which is notable. We usually need about 5 priorities, so, it would take 50 bytes.
-   * [ ] Event group connection (at least, it would be useful to connect event group to queue)
+   * [.] Event group connection (at least, it would be useful to connect event group to queue)
+      * [X] implement functionality
+      * [ ] implement tests
+      * [ ] implement example
+      * [ ] add the link to example from `tn_eventgrp.h`
+   * [ ] Exchange object: see AVIX User Guide & Reference Guide, 6.6.8
    * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
    * [ ] Examples

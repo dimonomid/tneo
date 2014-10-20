@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>com.microchip.mplab.nbide.embedded.makeproject</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/make-project/1">
+            <name>example_queue_pic32</name>
+            <creation-uuid>e6b3e7cb-7b49-4750-89c9-cf229d92ec7f</creation-uuid>
+            <make-project-type>0</make-project-type>
+            <c-extensions>c</c-extensions>
+            <cpp-extensions/>
+            <header-extensions/>
+            <asminc-extensions/>
+            <sourceEncoding>UTF-8</sourceEncoding>
+            <make-dep-projects>
+                <make-dep-project>../../../../../src/arch/pic32/tneokernel.X</make-dep-project>
+            </make-dep-projects>
+        </data>
+    </configuration>
+</project>

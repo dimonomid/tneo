@@ -44,7 +44,9 @@
  * data element into the FIFO. If there is no space left in the FIFO, the task
  * is switched to the waiting state and placed in the data queue's `wait_send`
  * queue until space appears (another task gets a data element from the data
- * queue).  A task that receives a data element tries to get a data element
+ * queue).
+ *
+ * A task that receives a data element tries to get a data element
  * from the FIFO. If the FIFO is empty (there is no data in the data queue),
  * the task is switched to the waiting state and placed in the data queue's
  * `wait_receive` queue until data element arrive (another task puts some data
@@ -53,6 +55,21 @@
  * received can be interpreted as a pointer or an integer and may have value 0
  * (`NULL`). 
  *   
+ * For the useful pattern on how to use queue together with \ref tn_fmem.h 
+ * "fixed memory pool", refer to the example: `examples/queue`. Be sure
+ * to examine the readme there.
+ *
+ * TNeoKernel offers a way to wait for a message from multiple queues in just a
+ * single call, refer to the section \ref eventgrp_connect for details. Related
+ * queue services:
+ *
+ * - `tn_queue_eventgrp_connect()`
+ * - `tn_queue_eventgrp_disconnect()`
+ *
+ * There is an example project available that demonstrates event group
+ * connection technique: `examples/queue_eventgrp_conn`. Be sure to examine the
+ * readme there.
+ *
  */
 
 #ifndef _TN_DQUEUE_H
@@ -64,8 +81,13 @@
 
 #include "tn_list.h"
 #include "tn_common.h"
+#include "tn_eventgrp.h"
 
 
+
+/*******************************************************************************
+ *    EXTERN TYPES
+ ******************************************************************************/
 
 
 
@@ -106,6 +128,9 @@ struct TN_DQueue {
    ///
    /// id for object validity verification
    enum TN_ObjId  id_dque;
+   ///
+   /// connected event group
+   struct TN_EGrpLink eventgrp_link;
 };
 
 /**
@@ -304,6 +329,47 @@ enum TN_RCode tn_queue_ireceive_polling(
       );
 
 
+/**
+ * Connect an event group to the queue. 
+ * Refer to the section \ref eventgrp_connect for details.
+ *
+ * Only one event group can be connected to the queue at a time. If you
+ * connect event group while another event group is already connected,
+ * the old link is discarded.
+ *
+ * @param dque
+ *    queue to which event group should be connected
+ * @param eventgrp 
+ *    event groupt to connect
+ * @param pattern
+ *    flags pattern that should be managed by the queue automatically
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_queue_eventgrp_connect(
+      struct TN_DQueue    *dque,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      );
+
+
+/**
+ * Disconnect a connected event group from the queue.
+ * Refer to the section \ref eventgrp_connect for details.
+ *
+ * If there is no event group connected, nothing is changed.
+ *
+ * @param dque    queue from which event group should be disconnected
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ */
+enum TN_RCode tn_queue_eventgrp_disconnect(
+      struct TN_DQueue    *dque
+      );
 
 
 #ifdef __cplusplus

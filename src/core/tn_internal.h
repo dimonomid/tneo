@@ -88,10 +88,10 @@ extern volatile int tn_created_tasks_cnt;
 extern volatile enum TN_StateFlag tn_sys_state;
 
 /// task that runs now
-extern struct TN_Task * tn_curr_run_task;
+extern struct TN_Task *tn_curr_run_task;
 
 /// task that should run as soon as possible (after context switch)
-extern struct TN_Task * tn_next_task_to_run;
+extern struct TN_Task *tn_next_task_to_run;
 
 /// bitmask of priorities with runnable tasks.
 /// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,
@@ -140,6 +140,20 @@ extern struct TN_Task tn_idle_task;
 #endif
 
 
+#ifndef TN_DEBUG
+#  error TN_DEBUG is not defined
+#endif
+
+#if TN_DEBUG
+#define  _TN_BUG_ON(cond, ...){              \
+   if (cond){                                \
+      _TN_FATAL_ERROR(__VA_ARGS__);          \
+   }                                         \
+}
+#else
+#define  _TN_BUG_ON(cond)     /* nothing */
+#endif
+
 
 
 /*******************************************************************************
@@ -148,7 +162,6 @@ extern struct TN_Task tn_idle_task;
 
 /**
  * Remove all tasks from wait queue, returning the TN_RC_DELETED code.
- * Note: this function might sleep.
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
 
@@ -178,10 +191,10 @@ static inline BOOL _tn_need_context_switch(void)
    return (tn_curr_run_task != tn_next_task_to_run);
 }
 
-static inline void _tn_switch_context_if_needed(void)
+static inline void _tn_context_switch_pend_if_needed(void)
 {
    if (_tn_need_context_switch()){
-      _tn_arch_context_switch();
+      _tn_arch_context_switch_pend();
    }
 }
 
@@ -486,6 +499,33 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
+
+
+
+/*******************************************************************************
+ *    tn_eventgrp.c
+ ******************************************************************************/
+
+/**
+ * Establish link to the event group
+ */
+enum TN_RCode _tn_eventgrp_link_set(
+      struct TN_EGrpLink  *eventgrp_link,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      );
+
+/**
+ * Reset link to the event group (no matter whether it is already established)
+ */
+enum TN_RCode _tn_eventgrp_link_reset(
+      struct TN_EGrpLink  *eventgrp_link
+      );
+
+enum TN_RCode _tn_eventgrp_link_manage(
+      struct TN_EGrpLink  *eventgrp_link,
+      BOOL                 set
+      );
 
 #endif // _TN_INTERNAL_H
 
