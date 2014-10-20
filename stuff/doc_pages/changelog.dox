@@ -10,7 +10,9 @@ TNeoKernel changelog
   - Added a capability to connect an \ref tn_eventgrp.h "event group" to other
     system objects, particularly to the \ref tn_dqueue.h "queue". This offers a
     way to wait for messages from multiple queues with just a single system
-    call.  Refer to the section \ref eventgrp_connect for details.
+    call.  Refer to the section \ref eventgrp_connect for details. Example
+    project that demonstrates that technique is also available:
+    `examples/queue_eventgrp_conn`.
   - PIC32 Interrupts: this isn't a mandatory anymore to use kernel-provided macros
 	 `tn_soft_isr()` or `tn_srs_isr()`: interrupts can be defined with standard
 	 way too: this particular ISR will use task's stack instead of interrupt
