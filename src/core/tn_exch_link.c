@@ -41,7 +41,10 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_exch_link.h"
+
 
 //-- header of current module
 #include "tn_exch_link.h"
@@ -147,7 +150,7 @@ static void _vtable_init()
  ******************************************************************************/
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch_link.h file
  */
 const struct TN_ExchLink_VTable *_tn_exch_link_vtable(void)
 {
@@ -157,7 +160,7 @@ const struct TN_ExchLink_VTable *_tn_exch_link_vtable(void)
 
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch_link.h file
  */
 enum TN_RCode _tn_exch_link_create(
       struct TN_ExchLink     *exch_link
@@ -181,7 +184,7 @@ enum TN_RCode _tn_exch_link_create(
 
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch_link.h file
  */
 enum TN_RCode _tn_exch_link_notify(
       struct TN_ExchLink     *exch_link
@@ -200,7 +203,7 @@ enum TN_RCode _tn_exch_link_notify(
 
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch_link.h file
  */
 enum TN_RCode _tn_exch_link_delete(
       struct TN_ExchLink     *exch_link

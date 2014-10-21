@@ -40,7 +40,11 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_eventgrp.h"
+#include "_tn_tasks.h"
+
 
 //-- header of current module
 #include "tn_eventgrp.h"
@@ -497,7 +501,7 @@ enum TN_RCode tn_eventgrp_imodify(
  ******************************************************************************/
 
 /**
- * See comments in the file tn_internal.h
+ * See comments in the file _tn_eventgrp.h
  */
 enum TN_RCode _tn_eventgrp_link_set(
       struct TN_EGrpLink  *eventgrp_link,
@@ -524,7 +528,7 @@ enum TN_RCode _tn_eventgrp_link_set(
 
 
 /**
- * See comments in the file tn_internal.h
+ * See comments in the file _tn_eventgrp.h
  */
 enum TN_RCode _tn_eventgrp_link_reset(
       struct TN_EGrpLink  *eventgrp_link
@@ -540,7 +544,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
 
 
 /**
- * See comments in the file tn_internal.h
+ * See comments in the file _tn_eventgrp.h
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,

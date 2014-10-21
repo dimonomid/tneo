@@ -41,7 +41,10 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_exch.h"
+
 
 //-- header of current module
 #include "tn_exch.h"
@@ -268,7 +271,7 @@ enum TN_RCode tn_exch_read(
  ******************************************************************************/
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch.h file
  */
 enum TN_RCode _tn_exch_write(
       struct TN_Exch   *exch,
@@ -283,7 +286,7 @@ enum TN_RCode _tn_exch_write(
 }
 
 /**
- * See comments in the tn_internal.h file
+ * See comments in the _tn_exch.h file
  */
 enum TN_RCode _tn_exch_read(
       struct TN_Exch   *exch,

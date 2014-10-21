@@ -41,7 +41,10 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_mutex.h"
+#include "_tn_tasks.h"
 
 //-- header of current module
 #include "tn_mutex.h"
@@ -782,7 +785,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
  ******************************************************************************/
 
 /**
- * See comment in tn_internal.h file
+ * See comment in _tn_mutex.h file
  */
 void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
 {
@@ -803,7 +806,7 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
 
 
 /**
- * See comments in tn_internal.h file
+ * See comments in _tn_mutex.h file
  */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
 {
@@ -849,7 +852,7 @@ in:
 }
 
 /**
- * See comments in tn_internal.h file
+ * See comments in _tn_mutex.h file
  */
 void _tn_mutex_on_task_wait_complete(struct TN_Task *task)
 {

@@ -42,7 +42,10 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_tasks.h"
+
 
 //-- header of current module
 #include "tn_sem.h"

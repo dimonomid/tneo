@@ -41,7 +41,11 @@
 
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_eventgrp.h"
+#include "_tn_tasks.h"
+
 
 #include "tn_dqueue.h"
 

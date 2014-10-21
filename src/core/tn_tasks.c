@@ -41,7 +41,12 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_tasks.h"
+#include "_tn_mutex.h"
+#include "_tn_timer.h"
+
 
 //-- header of current module
 #include "tn_tasks.h"
@@ -789,7 +794,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
  ******************************************************************************/
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_task_set_runnable(struct TN_Task * task)
 {
@@ -819,7 +824,7 @@ void _tn_task_set_runnable(struct TN_Task * task)
 }
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_task_clear_runnable(struct TN_Task *task)
 {
@@ -911,7 +916,7 @@ void _tn_task_set_waiting(
 }
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
 {
@@ -1048,7 +1053,7 @@ enum TN_RCode _tn_task_activate(struct TN_Task *task)
 }
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 BOOL _tn_task_first_wait_complete(
       struct TN_ListItem           *wait_queue,
@@ -1084,7 +1089,7 @@ BOOL _tn_task_first_wait_complete(
 
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_change_task_priority(struct TN_Task *task, int new_priority)
 {
@@ -1096,7 +1101,7 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority)
 }
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 {
@@ -1117,7 +1122,7 @@ void _tn_change_running_task_priority(struct TN_Task *task, int new_priority)
 
 #if 0
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 void _tn_task_set_last_rc_if_error(enum TN_RCode rc)
 {
@@ -1133,7 +1138,7 @@ void _tn_task_set_last_rc_if_error(enum TN_RCode rc)
 
 #if TN_USE_MUTEXES
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_tasks.h file
  */
 BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
 {

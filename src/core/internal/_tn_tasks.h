@@ -34,25 +34,15 @@
  *
  ******************************************************************************/
 
-/**
- * \file
- * 
- * Internal TNeoKernel header, should not be included by the application.
- */
-
-
-#ifndef _TN_INTERNAL_H
-#define _TN_INTERNAL_H
-
+#ifndef __TN_TASKS_H
+#define __TN_TASKS_H
 
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_arch.h"
+#include "_tn_sys.h"
 
-#include "tn_tasks.h"   //-- for inline functions
-#include "tn_sys.h"     //-- for inline functions
 
 
 
@@ -62,70 +52,12 @@ extern "C"  {     /*}*/
 #endif
 
 /*******************************************************************************
- *    EXTERNAL TYPES
+ *    PUBLIC TYPES
  ******************************************************************************/
-
-struct TN_Mutex;
-struct TN_ListItem;
-struct TN_Timer;
-struct TN_Exch;
-struct TN_ExchLink;
-
-
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
  ******************************************************************************/
-
-/// list of all ready to run (TN_TASK_STATE_RUNNABLE) tasks
-extern struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
-
-/// list all created tasks (now it is used for statictic only)
-extern struct TN_ListItem tn_create_queue;
-
-/// count of created tasks
-extern volatile int tn_created_tasks_cnt;           
-
-/// system state flags
-extern volatile enum TN_StateFlag tn_sys_state;
-
-/// task that runs now
-extern struct TN_Task *tn_curr_run_task;
-
-/// task that should run as soon as possible (after context switch)
-extern struct TN_Task *tn_next_task_to_run;
-
-/// bitmask of priorities with runnable tasks.
-/// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,
-/// since this priority is used by idle task and it is always runnable.
-extern volatile unsigned int tn_ready_to_run_bmp;
-
-/// system time that is get/set by `tn_sys_time_get()`,
-/// respectively.
-extern volatile unsigned int tn_sys_time_count;
-
-/// current interrupt nesting count. Used by macros
-/// `tn_soft_isr()` and `tn_srs_isr()`.
-extern volatile int tn_int_nest_count;
-
-/// saved task stack pointer. Needed when switching stack pointer from 
-/// task stack to interrupt stack.
-extern void *tn_user_sp;
-
-/// saved ISR stack pointer. Needed when switching stack pointer from
-/// interrupt stack to task stack.
-extern void *tn_int_sp;
-
-///
-/// idle task structure
-extern struct TN_Task tn_idle_task;
-
-
-/*******************************************************************************
- *    INTERNAL KERNEL TYPES
- ******************************************************************************/
-
-/* none yet */
 
 
 
@@ -134,78 +66,14 @@ extern struct TN_Task tn_idle_task;
  *    DEFINITIONS
  ******************************************************************************/
 
-#if !defined(container_of)
-/* given a pointer @ptr to the field @member embedded into type (usually
- * struct) @type, return pointer to the embedding instance of @type. */
-#define container_of(ptr, type, member) \
-   ((type *)((char *)(ptr)-(char *)(&((type *)0)->member)))
-#endif
-
-
-#ifndef TN_DEBUG
-#  error TN_DEBUG is not defined
-#endif
-
-#if TN_DEBUG
-#define  _TN_BUG_ON(cond, ...){              \
-   if (cond){                                \
-      _TN_FATAL_ERROR(__VA_ARGS__);          \
-   }                                         \
-}
-#else
-#define  _TN_BUG_ON(cond)     /* nothing */
-#endif
-
-
-
-/*******************************************************************************
- *    tn_sys.c
- ******************************************************************************/
-
-/**
- * Remove all tasks from wait queue, returning the TN_RC_DELETED code.
- */
-void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
-
-
-/**
- * Set flags by bitmask.
- * Given flags value will be OR-ed with existing flags.
- *
- * @return previous tn_sys_state value.
- */
-enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
-
-/**
- * Clear flags by bitmask
- * Given flags value will be inverted and AND-ed with existing flags.
- *
- * @return previous tn_sys_state value.
- */
-enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
-
-#if TN_MUTEX_DEADLOCK_DETECT
-void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
-#endif
-
-static inline BOOL _tn_need_context_switch(void)
-{
-   return (tn_curr_run_task != tn_next_task_to_run);
-}
-
-static inline void _tn_context_switch_pend_if_needed(void)
-{
-   if (_tn_need_context_switch()){
-      _tn_arch_context_switch_pend();
-   }
-}
-
+#define _tn_get_task_by_tsk_queue(que)                                   \
+   (que ? container_of(que, struct TN_Task, task_queue) : 0)
 
 
 
 
 /*******************************************************************************
- *    tn_tasks.c
+ *    PROTECTED FUNCTION PROTOTYPES
  ******************************************************************************/
 
 /**
@@ -392,182 +260,17 @@ BOOL _tn_task_first_wait_complete(
 
 
 
-#define _tn_get_task_by_tsk_queue(que)                                   \
-   (que ? container_of(que, struct TN_Task, task_queue) : 0)
-
-
-
-/*******************************************************************************
- *    tn_mutex.c
- ******************************************************************************/
-
-#if TN_USE_MUTEXES
-/**
- * Unlock all mutexes locked by the task
- */
-void _tn_mutex_unlock_all_by_task(struct TN_Task *task);
-
-/**
- * Should be called when task finishes waiting
- * for mutex with priority inheritance
- */
-void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
-
-/**
- * Should be called when task winishes waiting
- * for any mutex (no matter which algorithm it uses)
- */
-void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
-
-#else
-static inline void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
-static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
-static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
-#endif
-
-
-
-
-/*******************************************************************************
- *    tn_timer.c
- ******************************************************************************/
-
-///
-/// "generic" list of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__gen;
-///
-/// "tick" lists of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
-
-
-
-
-/**
- * Should be called once at system startup (from `#tn_sys_start()`).
- * It merely resets all timer lists.
- */
-void _tn_timers_init(void);
-
-/**
- * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
- * necessary timers housekeeping: moving them between lists, firing them, etc.
- *
- * See \ref timers_implementation for details.
- */
-void _tn_timers_tick_proceed(void);
-
-/**
- * Actual worker function that is called by `#tn_timer_start()`.
- * Interrupts should be disabled when calling it.
- */
-enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
-
-/**
- * Actual worker function that is called by `#tn_timer_cancel()`.
- * Interrupts should be disabled when calling it.
- */
-enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer);
-
-/**
- * Actual worker function that is called by `#tn_timer_create()`.
- */
-enum TN_RCode _tn_timer_create(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
-      );
-
-/**
- * Actual worker function that is called by `#tn_timer_set_func()`.
- */
-enum TN_RCode _tn_timer_set_func(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
-      );
-
-/**
- * Actual worker function that is called by `#tn_timer_is_active()`.
- * Interrupts should be disabled when calling it.
- */
-BOOL _tn_timer_is_active(struct TN_Timer *timer);
-
-/**
- * Actual worker function that is called by `#tn_timer_time_left()`.
- * Interrupts should be disabled when calling it.
- */
-TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
 
-
-/*******************************************************************************
- *    tn_eventgrp.c
- ******************************************************************************/
-
-/**
- * Establish link to the event group
- */
-enum TN_RCode _tn_eventgrp_link_set(
-      struct TN_EGrpLink  *eventgrp_link,
-      struct TN_EventGrp  *eventgrp,
-      TN_UWord             pattern
-      );
-
-/**
- * Reset link to the event group (no matter whether it is already established)
- */
-enum TN_RCode _tn_eventgrp_link_reset(
-      struct TN_EGrpLink  *eventgrp_link
-      );
-
-enum TN_RCode _tn_eventgrp_link_manage(
-      struct TN_EGrpLink  *eventgrp_link,
-      BOOL                 set
-      );
-
-
+#endif // __TN_TASKS_H
 
 
 /*******************************************************************************
- *    tn_exch.c
+ *    end of file
  ******************************************************************************/
-
-enum TN_RCode _tn_exch_write(
-      struct TN_Exch   *exch,
-      const void       *data
-      );
-
-enum TN_RCode _tn_exch_read(
-      struct TN_Exch   *exch,
-      void             *data_tgt
-      );
-
-
-
-/*******************************************************************************
- *    tn_exch_link.c
- ******************************************************************************/
-
-const struct TN_ExchLink_VTable *_tn_exch_link_vtable(void);
-
-enum TN_RCode _tn_exch_link_create(
-      struct TN_ExchLink     *exch_link
-      );
-
-enum TN_RCode _tn_exch_link_notify(
-      struct TN_ExchLink     *exch_link
-      );
-
-enum TN_RCode _tn_exch_link_delete(
-      struct TN_ExchLink     *exch_link
-      );
-
-
-
-#endif // _TN_INTERNAL_H
 
 

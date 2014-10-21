@@ -48,7 +48,12 @@
 
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_sys.h"
+#include "_tn_timer.h"
+#include "_tn_tasks.h"
+
 
 #include "tn_tasks.h"
 #include "tn_timer.h"
@@ -61,7 +66,7 @@
  ******************************************************************************/
 
 /*
- * For comments on these variables, please see tn_internal.h file.
+ * For comments on these variables, please see _tn_sys.h file.
  */
 struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 struct TN_ListItem tn_create_queue;
@@ -408,7 +413,7 @@ TN_TaskBody *tn_cur_task_body_get(void)
  ******************************************************************************/
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_sys.h file
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 {

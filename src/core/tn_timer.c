@@ -41,7 +41,10 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_timer.h"
+
 
 //-- header of current module
 #include "tn_timer.h"
@@ -277,7 +280,7 @@ enum TN_RCode tn_timer_time_left(
  ******************************************************************************/
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 void _tn_timers_init(void)
 {
@@ -293,7 +296,7 @@ void _tn_timers_init(void)
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 void _tn_timers_tick_proceed(void)
 {
@@ -397,7 +400,7 @@ void _tn_timers_tick_proceed(void)
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
@@ -439,7 +442,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
@@ -467,7 +470,7 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 enum TN_RCode _tn_timer_create(
       struct TN_Timer  *timer,
@@ -491,7 +494,7 @@ enum TN_RCode _tn_timer_create(
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 enum TN_RCode _tn_timer_set_func(
       struct TN_Timer  *timer,
@@ -512,7 +515,7 @@ enum TN_RCode _tn_timer_set_func(
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
@@ -527,7 +530,7 @@ BOOL _tn_timer_is_active(struct TN_Timer *timer)
 }
 
 /**
- * See comments in the tn_internal.h file.
+ * See comments in the _tn_timer.h file.
  */
 TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
