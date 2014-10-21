@@ -69,6 +69,7 @@ struct TN_Mutex;
 struct TN_ListItem;
 struct TN_Timer;
 struct TN_Exch;
+struct TN_ExchLink;
 
 
 
@@ -544,6 +545,28 @@ enum TN_RCode _tn_exch_read(
       struct TN_Exch   *exch,
       void             *data_tgt
       );
+
+
+
+/*******************************************************************************
+ *    tn_exch_link.c
+ ******************************************************************************/
+
+const struct TN_ExchLink_VTable *_tn_exch_link_vtable(void);
+
+enum TN_RCode _tn_exch_link_create(
+      struct TN_ExchLink     *exch_link
+      );
+
+enum TN_RCode _tn_exch_link_notify(
+      struct TN_ExchLink     *exch_link
+      );
+
+enum TN_RCode _tn_exch_link_delete(
+      struct TN_ExchLink     *exch_link
+      );
+
+
 
 #endif // _TN_INTERNAL_H
 
