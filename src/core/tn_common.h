@@ -92,6 +92,7 @@ enum TN_ObjId {
    TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,  //!< id for fixed memory pools
    TN_ID_MUTEX          = 0x17129E45,  //!< id for mutexes
    TN_ID_TIMER          = 0x9A937FBC,  //!< id for timers
+   TN_ID_EXCHANGE       = 0x32b7c072,  //!< id for exchange objects
 };
 
 /**
