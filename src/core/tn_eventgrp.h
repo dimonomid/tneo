@@ -56,7 +56,8 @@
  * examples are:
  *
  * - wait for a message from the queue(s) plus wait for some
- *   application-dependent event;
+ *   application-dependent event (such as a flag to finish the task, or
+ *   whatever);
  * - wait for messages from multiple queues.
  *
  * If the kernel doesn't offer a mechanism for that, programmer usually have to

@@ -132,6 +132,29 @@ In original TNKernel, system functions refused to perform job and returned `#TER
 
 \section tnkernel_new_features New features
 
+\subsection tnkernel_new_features__eventgrp_conn Event group connection
+
+Sometimes task needs to wait for different system events, the most common
+examples are:
+
+- wait for a message from the queue(s) plus wait for some
+  application-dependent event (such as a flag to finish the task, or
+  whatever);
+- wait for messages from multiple queues.
+
+If the kernel doesn't offer a mechanism for that, programmer usually have to
+use polling services on these queues and sleep for a few system ticks.
+Obviously, this approach has serious drawbacks: we have a lot of useless
+context switches, and response for the message gets much slower. Actually, we
+lost the main goal of the preemptive kernel when we use polling services like
+that.
+
+TNeoKernel (since \ref changelog_v1_03) offers a solution: an event group can
+be connected to other kernel objects, and these objects will maintain certain
+flags inside that event group automatically.
+
+Refer to the section \ref eventgrp_connect for details.
+
 \subsection tnkernel_new_features__timer Timers
 
 Support of timers was added since TNeoKernel \ref changelog_v1_02.
