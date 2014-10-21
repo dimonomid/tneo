@@ -77,7 +77,7 @@ struct TN_Exch;
 
 typedef void (TN_ExchCallbackFunc)(
       struct TN_Exch   *exch,
-      TN_UWord         *data,
+      void             *data,
       unsigned int      size,
       void             *p_user_data
       );
@@ -92,9 +92,10 @@ struct TN_Exch {
    struct TN_ListItem links_list;
    ///
    /// Pointer to actual exchange data
-   TN_UWord *data;
+   void *data;
    ///
-   /// Size of the exchange data, should be a multiple of `sizeof(#TN_UWord)`
+   /// Size of the exchange data in bytes, should be a multiple of
+   /// `sizeof(#TN_UWord)`
    unsigned int size;
    ///
    /// id for object validity verification
@@ -224,7 +225,7 @@ struct TN_ExchLinkCallback {
  *    Pointer to already allocated exchange data buffer, its size must be a
  *    multiple of `sizeof(#TN_UWord)`
  * @param size
- *    Size of the exchange data buffer, must be a multiple of
+ *    Size of the exchange data buffer in bytes, must be a multiple of
  *    `sizeof(#TN_UWord)`
  *
  * @return 
@@ -233,7 +234,7 @@ struct TN_ExchLinkCallback {
  */
 enum TN_RCode tn_exch_create(
       struct TN_Exch   *exch,
-      TN_UWord         *data,
+      void             *data,
       unsigned int      size
       );
 

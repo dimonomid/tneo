@@ -68,6 +68,7 @@ extern "C"  {     /*}*/
 struct TN_Mutex;
 struct TN_ListItem;
 struct TN_Timer;
+struct TN_Exch;
 
 
 
@@ -525,6 +526,23 @@ enum TN_RCode _tn_eventgrp_link_reset(
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
       BOOL                 set
+      );
+
+
+
+
+/*******************************************************************************
+ *    tn_exch.c
+ ******************************************************************************/
+
+enum TN_RCode _tn_exch_write(
+      struct TN_Exch   *exch,
+      const void       *data
+      );
+
+enum TN_RCode _tn_exch_read(
+      struct TN_Exch   *exch,
+      void             *data_tgt
       );
 
 #endif // _TN_INTERNAL_H
