@@ -39,6 +39,7 @@
    * [ ] Port to ARM
    * [ ] Probably port to PIC24/dsPIC
    * [ ] Test how much is it slower to use tn_arch_sr_save_int_dis()/tn_arch_sr_restore() instead of TN_INT_DIS_SAVE()/TN_INT_RESTORE()
+   * [ ] Optionally, check if stack pointer is overflowed on each context switch.
 
 
 

@@ -60,7 +60,10 @@
  *    PUBLIC DATA
  ******************************************************************************/
 
+//-- see comments in the file _tn_timer.h
 struct TN_ListItem tn_timer_list__gen;
+
+//-- see comments in the file _tn_timer.h
 struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 
@@ -81,6 +84,8 @@ struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 #endif
 
 /**
+ * Return index in the array `#tn_timer_list__tick`, based on given timeout.
+ *
  * @param timeout    should be < TN_TICK_LISTS_CNT
  */
 #define _TICK_LIST_INDEX(timeout)    \
@@ -382,10 +387,10 @@ void _tn_timers_tick_proceed(void)
                );
 
          //-- first of all, cancel timer, so that 
-         //   function could start it again if it wants to.
+         //   callback function could start it again if it wants to.
          _tn_timer_cancel(timer);
 
-         //-- call user function
+         //-- call user callback function
          timer->func(timer, timer->p_user_data);
       }
 

@@ -84,8 +84,8 @@ extern struct TN_Task *tn_next_task_to_run;
 /// since this priority is used by idle task and it is always runnable.
 extern volatile unsigned int tn_ready_to_run_bmp;
 
-/// system time that is get/set by `tn_sys_time_get()`,
-/// respectively.
+/// system time that can be returned by `tn_sys_time_get()`; it is also used
+/// by tn_timer.h subsystem.
 extern volatile unsigned int tn_sys_time_count;
 
 /// current interrupt nesting count. Used by macros
