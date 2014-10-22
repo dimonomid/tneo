@@ -489,3 +489,17 @@ void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 }
 #endif
 
+/**
+ * @param size_uwords    size in uwords
+ */
+void _tn_memcpy_uword(
+      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
+      )
+{
+   int i;
+   for (i = 0; i < size_uwords; i++){
+      *tgt++ = *src++;
+   }
+}
+
+

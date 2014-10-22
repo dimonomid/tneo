@@ -76,7 +76,7 @@ struct TN_Exch;
  *    PROTECTED FUNCTION PROTOTYPES
  ******************************************************************************/
 
-enum TN_RCode _tn_exch_write(
+void _tn_exch_write(
       struct TN_Exch   *exch,
       const void       *data
       );

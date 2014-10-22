@@ -41,9 +41,12 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
+#include "tn_exch_link.h"
 
 //-- internal tnkernel headers
+#include "_tn_sys.h"
 #include "_tn_exch.h"
+#include "_tn_exch_link.h"
 
 
 //-- header of current module
@@ -110,26 +113,19 @@ static inline enum TN_RCode _check_param_create(
 #endif
 // }}}
 
-/**
- * @param size    size in bytes
- */
-void _memcpy_uword(TN_UWord *tgt, const TN_UWord *src, unsigned int size)
-{
-   //TODO: optimize
-   int uwords_cnt = size / sizeof(TN_UWord);
-   int i;
-   for (i = 0; i < uwords_cnt; i++){
-      *tgt++ = *src++;
-   }
-}
-
-enum TN_RCode _notify_all(
+static enum TN_RCode _notify_all(
       struct TN_Exch   *exch
       )
 {
    enum TN_RCode rc = TN_RC_OK;
-
-   //TODO
+   struct TN_ExchLink *exch_link;
+   
+   tn_list_for_each_entry(exch_link, &(exch->links_list), links_list_item){
+      rc = _tn_exch_link_notify(exch_link);
+      if (rc != TN_RC_OK){
+         break;
+      }
+   }
 
    return rc;
 }
@@ -202,61 +198,62 @@ out:
 enum TN_RCode tn_exch_delete(struct TN_Exch *exch)
 {
    enum TN_RCode rc = _check_param_generic(exch);
+   int sr_saved;
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
-   } else if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
    } else {
-      TN_INTSAVE_DATA;
-
-      TN_INT_DIS_SAVE();
+      sr_saved = tn_arch_sr_save_int_dis();
       exch->id_exch = 0;   //-- Exchange object does not exist now
-      TN_INT_RESTORE();
+      tn_arch_sr_restore(sr_saved);
    }
 
    return rc;
 }
 
+/**
+ * See comments in the header file (tn_exch.h)
+ */
+enum TN_RCode tn_exch_read(
+      struct TN_Exch   *exch,
+      void             *data_tgt
+      )
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(exch);
+
+   if (rc != TN_RC_OK){
+      //-- just return rc as it is
+   } else {
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_exch_read(exch, data_tgt);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
+}
+
+
+/**
+ * See comments in the header file (tn_exch.h)
+ */
 enum TN_RCode tn_exch_write(
       struct TN_Exch   *exch,
       const void       *data
       )
 {
    enum TN_RCode rc = _check_param_generic(exch);
+   int sr_saved;
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
-   } else if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
    } else {
-      TN_INTSAVE_DATA;
+      sr_saved = tn_arch_sr_save_int_dis();
 
-      TN_INT_DIS_SAVE();
-      rc =_tn_exch_write(exch, data);
-      TN_INT_RESTORE();
-   }
+      _tn_exch_write(exch, data);
+      rc = _notify_all(exch);
 
-   return rc;
-}
-
-enum TN_RCode tn_exch_read(
-      struct TN_Exch   *exch,
-      void             *data_tgt
-      )
-{
-   enum TN_RCode rc = _check_param_generic(exch);
-
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else if (!tn_is_task_context()){
-      rc = TN_RC_WCONTEXT;
-   } else {
-      TN_INTSAVE_DATA;
-
-      TN_INT_DIS_SAVE();
-      rc = _tn_exch_read(exch, data_tgt);
-      TN_INT_RESTORE();
+      tn_arch_sr_restore(sr_saved);
    }
 
    return rc;
@@ -273,17 +270,18 @@ enum TN_RCode tn_exch_read(
 /**
  * See comments in the _tn_exch.h file
  */
-enum TN_RCode _tn_exch_write(
+void _tn_exch_write(
       struct TN_Exch   *exch,
       const void       *data
       )
 {
-   _memcpy_uword((TN_UWord *)exch->data, (const TN_UWord *)data, exch->size);
-
-   _notify_all(exch);
-
-   return TN_RC_OK;
+   _tn_memcpy_uword(
+         (TN_UWord *)exch->data,
+         (const TN_UWord *)data,
+         _TN_SIZE_BYTES_TO_UWORDS(exch->size)
+         );
 }
+
 
 /**
  * See comments in the _tn_exch.h file
@@ -293,7 +291,11 @@ enum TN_RCode _tn_exch_read(
       void             *data_tgt
       )
 {
-   _memcpy_uword((TN_UWord *)data_tgt, (const TN_UWord *)exch->data, exch->size);
+   _tn_memcpy_uword(
+         (TN_UWord *)data_tgt,
+         (const TN_UWord *)exch->data,
+         _TN_SIZE_BYTES_TO_UWORDS(exch->size)
+         );
 
    return TN_RC_OK;
 }

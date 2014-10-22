@@ -37,22 +37,22 @@
 /**
  * \file
  *
- * Exchange link (in terms of OOP, it's an "abstract class" of any exchange
- * link).
+ * Exchange link: queue (in terms of OOP, it's an "class, inherited from
+ * `#TN_ExchLink`").
  *
  * For internal kernel usage only.
  *
  */
 
 
-#ifndef _TN_EXCH_LINK_H
-#define _TN_EXCH_LINK_H
+#ifndef _TN_EXCH_LINK_QUEUE_H
+#define _TN_EXCH_LINK_QUEUE_H
 
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_list.h"
+#include "tn_exch_link.h"
 
 
 
@@ -65,53 +65,27 @@ extern "C"  {     /*}*/
  *    PUBLIC TYPES
  ******************************************************************************/
 
-struct TN_ExchLink;
+struct TN_ExchLinkQueue;
 
-
-/**
- * Virtual method prototype: notify.
- *
- * For internal kernel usage only.
- */
-typedef enum TN_RCode (TN_ExchLink_Notify)(struct TN_ExchLink *exch);
-
-/**
- * Virtual method prototype: destructor.
- *
- * For internal kernel usage only.
- */
-typedef enum TN_RCode (TN_ExchLink_Dtor)  (struct TN_ExchLink *exch);
-
-/**
- * Virtual methods table for each type of \ref tn_exch.h "exchange" link. 
- *
- * For internal kernel usage only.
- */
-struct TN_ExchLink_VTable {
-   TN_ExchLink_Notify  *notify;
-   TN_ExchLink_Dtor    *dtor;
-};
 
 /**
  * Base structure for \ref tn_exch.h "exchange" link.
  *
  * For internal kernel usage only.
  */
-struct TN_ExchLink {
+struct TN_ExchLinkQueue {
    ///
-   /// A list item to be included in the exchange links list
-   struct TN_ListItem links_list_item;
+   /// Exchange link: in terms of OOP, it's a superclass (or base class)
+   struct TN_ExchLink super;
    ///
-   /// Pointer to `#TN_Exch` object to which this link is added.
-   /// If not added to any exchange object, it is `NULL`.
-   struct TN_Exch *exch;
+   /// A pointer to queue to send messages to.
+   struct TN_DQueue *queue;
    ///
-   /// Pointer to the virtual methods table
-   const struct TN_ExchLink_VTable *vtable;
-   ///
-   /// Id for object validity verification
-   enum TN_ObjId              id_exch_link;
+   /// A pointer to fixed-memory pool to get memory from.
+   /// Note: if data size is <= `sizeof(#TN_UWord)`, `fmem` might be `NULL`.
+   struct TN_FMem *fmem;
 };
+
 
 
 /*******************************************************************************
@@ -126,13 +100,30 @@ struct TN_ExchLink {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+enum TN_RCode tn_exch_link_queue_create(
+      struct TN_ExchLinkQueue   *exch_link_queue,
+      struct TN_DQueue          *queue,
+      struct TN_FMem            *fmem
+      );
+
+enum TN_RCode tn_exch_link_queue_delete(
+      struct TN_ExchLinkQueue   *exch_link_queue
+      );
+
+static inline struct TN_ExchLink *tn_exch_link_queue_base_get(
+      struct TN_ExchLinkQueue   *exch_link_queue
+      )
+{
+   return &exch_link_queue->super;
+}
+
 
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#endif // _TN_EXCH_LINK_H
+#endif // _TN_EXCH_LINK_QUEUE_H
 
 /*******************************************************************************
  *    end of file

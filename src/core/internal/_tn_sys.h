@@ -178,7 +178,9 @@ static inline void _tn_context_switch_pend_if_needed(void)
    }
 }
 
-
+void _tn_memcpy_uword(
+      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
+      );
 
 
 #ifdef __cplusplus

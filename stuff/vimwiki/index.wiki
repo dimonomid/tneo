@@ -8,14 +8,28 @@
 
 == Routine ==
 
+   * [ ] Exchange object
+   * [ ] probably move _tn_memcpy_uword() to something like `tn_util.c`
+
+
+=== exchange methods ===
+
+   * tn_exch_create
+   * tn_exch_delete
+   * tn_exch_link_add
+   * tn_exch_link_remove
+   * 
+   * tn_read
+   * tn_write
+   * tn_iwrite
+   * 
+   * tn_lock
+   * tn_unlock
+   * tn_unlock_and_notify
+   * tn_iunlock_and_notify
 
 == Plans ==
 
-   * [.] Event group connection (at least, it would be useful to connect event group to queue)
-      * [X] implement functionality
-      * [ ] implement tests
-      * [ ] implement example
-      * [ ] add the link to example from `tn_eventgrp.h`
    * [ ] Exchange object: see AVIX User Guide & Reference Guide, 6.6.8
    * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.

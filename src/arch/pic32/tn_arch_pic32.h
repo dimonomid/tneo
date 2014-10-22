@@ -249,6 +249,13 @@ typedef  unsigned int               TN_UWord;
 #define _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED()          \
    _tn_context_switch_pend_if_needed()
 
+/**
+ * Converts size in bytes to size in `#TN_UWord`.
+ * For 32-bit platforms, we should shift it by 2 bit to the right;
+ * for 16-bit platforms, we should shift it by 1 bit to the right.
+ */
+#define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
+
 
 
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS

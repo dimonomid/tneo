@@ -196,5 +196,11 @@ typedef  unsigned int               TN_UWord;
    _tn_context_switch_pend_if_needed()
 
 
+/**
+ * Converts size in bytes to size in `#TN_UWord`.
+ * For 32-bit platforms, we should shift it by 2 bit to the right;
+ * for 16-bit platforms, we should shift it by 1 bit to the right.
+ */
+#define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #endif   // _TN_ARCH_EXAMPLE_H

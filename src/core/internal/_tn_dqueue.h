@@ -34,25 +34,15 @@
  *
  ******************************************************************************/
 
-/**
- * \file
- *
- * Exchange link (in terms of OOP, it's an "abstract class" of any exchange
- * link).
- *
- * For internal kernel usage only.
- *
- */
-
-
-#ifndef _TN_EXCH_LINK_H
-#define _TN_EXCH_LINK_H
+#ifndef __TN_DQUEUE_H
+#define __TN_DQUEUE_H
 
 /*******************************************************************************
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_list.h"
+#include "_tn_sys.h"
+#include "tn_dqueue.h"
 
 
 
@@ -62,69 +52,37 @@ extern "C"  {     /*}*/
 #endif
 
 /*******************************************************************************
- *    PUBLIC TYPES
+ *    EXTERNAL TYPES
  ******************************************************************************/
 
-struct TN_ExchLink;
+struct TN_Exch;
 
 
-/**
- * Virtual method prototype: notify.
- *
- * For internal kernel usage only.
- */
-typedef enum TN_RCode (TN_ExchLink_Notify)(struct TN_ExchLink *exch);
 
-/**
- * Virtual method prototype: destructor.
- *
- * For internal kernel usage only.
- */
-typedef enum TN_RCode (TN_ExchLink_Dtor)  (struct TN_ExchLink *exch);
-
-/**
- * Virtual methods table for each type of \ref tn_exch.h "exchange" link. 
- *
- * For internal kernel usage only.
- */
-struct TN_ExchLink_VTable {
-   TN_ExchLink_Notify  *notify;
-   TN_ExchLink_Dtor    *dtor;
-};
-
-/**
- * Base structure for \ref tn_exch.h "exchange" link.
- *
- * For internal kernel usage only.
- */
-struct TN_ExchLink {
-   ///
-   /// A list item to be included in the exchange links list
-   struct TN_ListItem links_list_item;
-   ///
-   /// Pointer to `#TN_Exch` object to which this link is added.
-   /// If not added to any exchange object, it is `NULL`.
-   struct TN_Exch *exch;
-   ///
-   /// Pointer to the virtual methods table
-   const struct TN_ExchLink_VTable *vtable;
-   ///
-   /// Id for object validity verification
-   enum TN_ObjId              id_exch_link;
-};
-
+/*******************************************************************************
+ *    PUBLIC TYPES
+ ******************************************************************************/
 
 /*******************************************************************************
  *    GLOBAL VARIABLES
  ******************************************************************************/
 
+
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
 
+
 /*******************************************************************************
- *    PUBLIC FUNCTION PROTOTYPES
+ *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
+
+static inline BOOL _tn_dqueue_is_valid(
+      struct TN_DQueue    *dqueue
+      )
+{
+   return (dqueue->id_dque == TN_ID_DATAQUEUE);
+}
 
 
 
@@ -132,7 +90,9 @@ struct TN_ExchLink {
 }  /* extern "C" */
 #endif
 
-#endif // _TN_EXCH_LINK_H
+
+#endif // __TN_DQUEUE_H
+
 
 /*******************************************************************************
  *    end of file

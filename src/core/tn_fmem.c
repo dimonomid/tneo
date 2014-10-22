@@ -49,6 +49,7 @@
 
 //-- header of current module
 #include "tn_fmem.h"
+#include "_tn_fmem.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"
@@ -74,7 +75,7 @@ static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
 
    if (fmem == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp == TN_ID_FSMEMORYPOOL){
+   } else if (_tn_fmem_is_valid(fmem)){
       rc = TN_RC_WPARAM;
    }
 
@@ -87,7 +88,7 @@ static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
 
    if (fmem == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (!_tn_fmem_is_valid(fmem)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -103,7 +104,7 @@ static inline enum TN_RCode _check_param_job_perform(
 
    if (fmem == NULL || p_data == NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (!_tn_fmem_is_valid(fmem)){
       rc = TN_RC_INVALID_OBJ;
    }
 

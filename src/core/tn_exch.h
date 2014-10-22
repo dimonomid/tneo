@@ -102,6 +102,7 @@ struct TN_Exch {
    enum TN_ObjId id_exch;
 };
 
+#if 0
 struct TN_ExchLinkQueue {
    ///
    /// A list item to be included in the exchange links list
@@ -145,6 +146,7 @@ struct TN_ExchLinkCallback {
    /// User data to be given to callback function
    void *p_user_data;
 };
+#endif
 
 
 /*******************************************************************************

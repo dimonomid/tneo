@@ -42,12 +42,16 @@
 #include "tn_common.h"
 #include "tn_sys.h"
 
+#include "tn_exch.h"
+
 //-- internal tnkernel headers
 #include "_tn_exch_link.h"
+#include "_tn_dqueue.h"
+#include "_tn_fmem.h"
 
 
 //-- header of current module
-#include "tn_exch_link.h"
+#include "tn_exch_link_queue.h"
 
 
 
@@ -60,7 +64,7 @@
  *    PRIVATE FUNCTION PROTOTYPES
  ******************************************************************************/
 
-static enum TN_RCode _notify_error(struct TN_ExchLink *exch_link);
+static enum TN_RCode _notify(struct TN_ExchLink *exch_link);
 static enum TN_RCode _dtor(struct TN_ExchLink *exch_link);
 
 
@@ -70,13 +74,12 @@ static enum TN_RCode _dtor(struct TN_ExchLink *exch_link);
  ******************************************************************************/
 
 /**
- * Virtual methods table of "abstract class" `#TN_ExchLink`.
+ * Virtual methods table
  */
 static const struct TN_ExchLink_VTable _vtable = {
-   .notify     = _notify_error,
+   .notify     = _notify,
    .dtor       = _dtor,
 };
-//static BOOL _vtable_initialized = FALSE;
 
 
 
@@ -84,6 +87,9 @@ static const struct TN_ExchLink_VTable _vtable = {
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
+
+#define _tn_get_exch_link_queue_by_exch_link(exch_link)                       \
+   (exch_link ? container_of(exch_link, struct TN_ExchLinkQueue, super) : 0)
 
 
 
@@ -95,30 +101,19 @@ static const struct TN_ExchLink_VTable _vtable = {
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_generic(
-      struct TN_ExchLink *exch_link
-      )
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (exch_link == NULL){
-      rc = TN_RC_WPARAM;
-   } else if (exch_link->id_exch_link != TN_ID_EXCHANGE_LINK){
-      rc = TN_RC_INVALID_OBJ;
-   }
-
-   return rc;
-}
-
 static inline enum TN_RCode _check_param_create(
-      struct TN_ExchLink  *exch_link
+      struct TN_ExchLinkQueue   *exch_link_queue,
+      struct TN_DQueue          *queue,
+      struct TN_FMem            *fmem
       )
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch_link == NULL){
+   if (exch_link_queue == NULL){
       rc = TN_RC_WPARAM;
-   } else if (exch_link->id_exch_link == TN_ID_EXCHANGE_LINK){
+   } else if (!_tn_dqueue_is_valid(queue)){
+      rc = TN_RC_WPARAM;
+   } else if (!_tn_fmem_is_valid(fmem)){
       rc = TN_RC_WPARAM;
    }
 
@@ -126,35 +121,58 @@ static inline enum TN_RCode _check_param_create(
 }
 
 #else
-#  define _check_param_generic(exch_link)       (TN_RC_OK)
 #  define _check_param_create(exch_link)        (TN_RC_OK)
 #endif
 // }}}
 
-static enum TN_RCode _notify_error(struct TN_ExchLink *exch_link)
+
+static enum TN_RCode _notify(struct TN_ExchLink *exch_link)
 {
-   //-- should never be here
-   _TN_FATAL_ERROR("called notify() of base TN_ExchLink");
-   return TN_RC_INTERNAL;
+   enum TN_RCode rc = TN_RC_OK;
+
+   struct TN_ExchLinkQueue *exch_link_queue = 
+      _tn_get_exch_link_queue_by_exch_link(exch_link);
+
+   void *p_msg = NULL;
+
+   rc = tn_is_task_context()
+      ? tn_fmem_get(exch_link_queue->fmem, &p_msg, TN_WAIT_INFINITE)
+      : tn_fmem_iget_polling(exch_link_queue->fmem, &p_msg);
+
+   if (rc != TN_RC_OK){
+      //-- there was some error: just return rc as it is
+   } else {
+      //-- memory was received from fixed-memory pool, copy data there
+      _tn_memcpy_uword(
+            p_msg,
+            exch_link->exch->data,
+            _TN_SIZE_BYTES_TO_UWORDS(exch_link->exch->size)
+            );
+
+      //-- put it to the queue
+      rc = tn_is_task_context()
+         ? tn_queue_send(exch_link_queue->queue, p_msg, TN_WAIT_INFINITE)
+         : tn_queue_isend_polling(exch_link_queue->queue, p_msg);
+      if (rc != TN_RC_OK){
+         //-- there was some error while sending the message,
+         //   so before we return, we should free buffer that we've allocated
+         rc = tn_is_task_context()
+            ? tn_fmem_release(exch_link_queue->fmem, p_msg)
+            : tn_fmem_irelease(exch_link_queue->fmem, p_msg);
+      } else {
+         //-- everything is fine, so, leave rc = TN_RC_OK
+      }
+
+   }
+
+   return rc;
 }
 
 static enum TN_RCode _dtor(struct TN_ExchLink *exch_link)
 {
-   exch_link->id_exch_link = 0;  //-- exchange link does not exist now
-   return TN_RC_OK;
+   //-- just call desctructor of superclass
+   return _tn_exch_link_vtable()->dtor(exch_link);
 }
-
-#if 0
-static void _vtable_init()
-{
-   if (!_vtable_initialized){
-      _vtable.notify    = _notify_error;
-      _vtable.dtor      = _dtor;
-
-      _vtable_initialized = TRUE;
-   }
-}
-#endif
 
 
 
@@ -163,79 +181,40 @@ static void _vtable_init()
 
 
 /*******************************************************************************
- *    PROTECTED FUNCTIONS
+ *    PUBLIC FUNCTIONS
  ******************************************************************************/
 
-/**
- * See comments in the _tn_exch_link.h file
- */
-const struct TN_ExchLink_VTable *_tn_exch_link_vtable(void)
-{
-   //_vtable_init();
-   return &_vtable;
-}
-
-
-/**
- * See comments in the _tn_exch_link.h file
- */
-enum TN_RCode _tn_exch_link_create(
-      struct TN_ExchLink     *exch_link
+enum TN_RCode tn_exch_link_queue_create(
+      struct TN_ExchLinkQueue   *exch_link_queue,
+      struct TN_DQueue          *queue,
+      struct TN_FMem            *fmem
       )
 {
-   enum TN_RCode rc = _check_param_create(exch_link);
+   enum TN_RCode rc = _check_param_create(exch_link_queue, queue, fmem);
 
+   if (rc == TN_RC_OK){
+      //-- call constructor of superclass
+      rc = _tn_exch_link_create(&exch_link_queue->super);
+   }
+      
    if (rc != TN_RC_OK){
       //-- just return rc as it is
    } else {
-      //_vtable_init();
-      exch_link->vtable = &_vtable;
+      //-- set the virtual functions table of this particular subclass
+      exch_link_queue->super.vtable = &_vtable;
 
-      tn_list_reset(&(exch_link->links_list_item));
-
-      exch_link->id_exch_link = TN_ID_EXCHANGE_LINK;
+      exch_link_queue->queue = queue;
+      exch_link_queue->fmem  = fmem;
    }
 
    return rc;
 }
 
-
-/**
- * See comments in the _tn_exch_link.h file
- */
-enum TN_RCode _tn_exch_link_notify(
-      struct TN_ExchLink     *exch_link
+enum TN_RCode tn_exch_link_queue_delete(
+      struct TN_ExchLinkQueue   *exch_link_queue
       )
 {
-   enum TN_RCode rc = _check_param_generic(exch_link);
-
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else {
-      rc = exch_link->vtable->notify(exch_link);
-   }
-
-   return rc;
-}
-
-
-
-/**
- * See comments in the _tn_exch_link.h file
- */
-enum TN_RCode _tn_exch_link_delete(
-      struct TN_ExchLink     *exch_link
-      )
-{
-   enum TN_RCode rc = _check_param_generic(exch_link);
-
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else {
-      rc = exch_link->vtable->dtor(exch_link);
-   }
-
-   return rc;
+   return _tn_exch_link_delete(&exch_link_queue->super);
 }
 
 

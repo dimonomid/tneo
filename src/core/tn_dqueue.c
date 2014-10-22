@@ -48,6 +48,7 @@
 
 
 #include "tn_dqueue.h"
+#include "_tn_dqueue.h"
 
 #include "tn_tasks.h"
 
@@ -79,7 +80,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (dque == NULL){
       rc = TN_RC_WPARAM;
-   } else if (dque->id_dque != TN_ID_DATAQUEUE){
+   } else if (!_tn_dqueue_is_valid(dque)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -96,7 +97,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (dque == NULL){
       rc = TN_RC_WPARAM;
-   } else if (items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE){
+   } else if (items_cnt < 0 || _tn_dqueue_is_valid(dque)){
       rc = TN_RC_WPARAM;
    }
 
