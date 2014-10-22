@@ -67,6 +67,10 @@ extern "C"  {     /*}*/
  *    DEFINITIONS
  ******************************************************************************/
 
+/**
+ * Get pointer to `struct #TN_Task` by pointer to the `task_queue` member
+ * of the `struct #TN_Task`.
+ */
 #define _tn_get_task_by_tsk_queue(que)                                   \
    (que ? container_of(que, struct TN_Task, task_queue) : 0)
 
@@ -77,15 +81,169 @@ extern "C"  {     /*}*/
  *    PROTECTED FUNCTION PROTOTYPES
  ******************************************************************************/
 
+//-- functions for each task state: set, clear, check {{{
+
+//-- runnable {{{
+
+/**
+ * Bring task to the $(TN_TASK_STATE_RUNNABLE) state.
+ * Should be called when task_state is NONE.
+ *
+ * Set RUNNABLE bit in task_state,
+ * put task on the 'ready queue' for its priority,
+ *
+ * if priority of given `task` is higher than priority of
+ * `tn_next_task_to_run`, then set `tn_next_task_to_run` to given `task`.
+ */
+void _tn_task_set_runnable(struct TN_Task *task);
+
+/**
+ * Bring task out from the $(TN_TASK_STATE_RUNNABLE) state.
+ * Should be called when task_state has just single RUNNABLE bit set.
+ *
+ * Clear RUNNABLE bit, remove task from 'ready queue', determine and set
+ * new `#tn_next_task_to_run`.
+ */
+void _tn_task_clear_runnable(struct TN_Task *task);
+
+/**
+ * Returns whether given task is in $(TN_TASK_STATE_RUNNABLE) state.
+ */
+static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
+{
+   return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
+}
+
+//}}}
+
+//-- wait {{{
+
+/**
+ * Bring task to the $(TN_TASK_STATE_WAIT) state.
+ * Should be called when task_state is either NONE or $(TN_TASK_STATE_SUSPEND).
+ *
+ * @param task
+ *    Task to bring to the $(TN_TASK_STATE_WAIT) state
+ *
+ * @param wait_que
+ *    Wait queue to put task in, may be `#NULL`. If not `#NULL`, task is
+ *    included in that list by `task_queue` member of `struct #TN_Task`.
+ *
+ * @param wait_reason
+ *    Reason of waiting, see `enum #TN_WaitReason`.
+ *
+ * @param timeout
+ *    If neither `0` nor `#TN_WAIT_INFINITE`, task will be woken up by timer
+ *    after specified number of system ticks.
+ */
+void _tn_task_set_waiting(
+      struct TN_Task      *task,
+      struct TN_ListItem  *wait_que,
+      enum TN_WaitReason   wait_reason,
+      TN_Timeout           timeout
+      );
+
+/**
+ * Bring task out from the $(TN_TASK_STATE_WAIT) state.
+ * Task must be already in the $(TN_TASK_STATE_WAIT) state. It may additionally
+ * be in the $(TN_TASK_STATE_SUSPEND) state.
+ *
+ * @param task
+ *    Task to bring out from the $(TN_TASK_STATE_WAIT) state
+ *
+ * @param wait_rc 
+ *    return code that will be returned to waiting task from waited function.
+ */
+void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc);
+
+/**
+ * Returns whether given task is in $(TN_TASK_STATE_WAIT) state. 
+ * Note that this state could be combined with $(TN_TASK_STATE_SUSPEND) state.
+ */
+static inline BOOL _tn_task_is_waiting(struct TN_Task *task)
+{
+   return !!(task->task_state & TN_TASK_STATE_WAIT);
+}
+
+//}}}
+
+//-- suspended {{{
+
+/**
+ * Bring task to the $(TN_TASK_STATE_SUSPEND ) state.
+ * Should be called when `task_state` is either NONE or $(TN_TASK_STATE_WAIT).
+ *
+ * @param task
+ *    Task to bring to the $(TN_TASK_STATE_SUSPEND) state
+ */
+void _tn_task_set_suspended(struct TN_Task *task);
+
+/**
+ * Bring task out from the $(TN_TASK_STATE_SUSPEND) state.
+ * Task must be already in the $(TN_TASK_STATE_SUSPEND) state. It may
+ * additionally be in the $(TN_TASK_STATE_WAIT) state.
+ *
+ * @param task
+ *    Task to bring out from the $(TN_TASK_STATE_SUSPEND) state
+ */
+void _tn_task_clear_suspended(struct TN_Task *task);
+
+/**
+ * Returns whether given task is in $(TN_TASK_STATE_SUSPEND) state. 
+ * Note that this state could be combined with $(TN_TASK_STATE_WAIT) state.
+ */
+static inline BOOL _tn_task_is_suspended(struct TN_Task *task)
+{
+   return !!(task->task_state & TN_TASK_STATE_SUSPEND);
+}
+
+//}}}
+
+//-- dormant {{{
+
+/**
+ * Bring task to the $(TN_TASK_STATE_DORMANT) state.
+ * Should be called when task_state is NONE.
+ *
+ * Set DORMANT bit in task_state, reset task's priority to base value,
+ * reset time slice count to 0.
+ */
+void _tn_task_set_dormant(struct TN_Task* task);
+
+/**
+ * Bring task out from the $(TN_TASK_STATE_DORMANT) state.
+ * Should be called when task_state has just single DORMANT bit set.
+ *
+ * Note: task's stack will be initialized inside this function (that is,
+ * `#_tn_arch_stack_init()` will be called)
+ */
+void _tn_task_clear_dormant(struct TN_Task *task);
+
+/**
+ * Returns whether given task is in $(TN_TASK_STATE_DORMANT) state.
+ */
+static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
+{
+   return !!(task->task_state & TN_TASK_STATE_DORMANT);
+}
+
+//}}}
+
+//}}}
+
+
+
 /**
  * Callback that is given to `_tn_task_first_wait_complete()`, may perform
  * any needed actions before waking task up, e.g. set some data in the `struct
- * TN_Task` that task is waiting for.
+ * #TN_Task` that task is waiting for.
  *
  * @param task
  *    Task that is going to be waken up
+ *
  * @param user_data_1
  *    Arbitrary user data given to `_tn_task_first_wait_complete()`
+ *
  * @param user_data_2
  *    Arbitrary user data given to `_tn_task_first_wait_complete()`
  */
@@ -95,68 +253,16 @@ typedef void (_TN_CBBeforeTaskWaitComplete)(
       void             *user_data_2
       );
 
-
-static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
-{
-   return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
-}
-
-static inline BOOL _tn_task_is_waiting(struct TN_Task *task)
-{
-   return !!(task->task_state & TN_TASK_STATE_WAIT);
-}
-
-static inline BOOL _tn_task_is_suspended(struct TN_Task *task)
-{
-   return !!(task->task_state & TN_TASK_STATE_SUSPEND);
-}
-
-static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
-{
-   return !!(task->task_state & TN_TASK_STATE_DORMANT);
-}
-
 /**
- * Should be called when task_state is NONE.
+ * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h.
  *
- * Set RUNNABLE bit in task_state,
- * put task on the 'ready queue' for its priority,
+ * It merely brings task out from the $(TN_TASK_STATE_DORMANT) state and 
+ * brings it to the $(TN_TASK_STATE_RUNNABLE) state.
  *
- * if priority is higher than tn_next_task_to_run's priority,
- * then set tn_next_task_to_run to this task and return TRUE,
- * otherwise return FALSE.
+ * If task is not in the `DORMANT` state, `#TN_RC_WSTATE` is returned.
  */
-void _tn_task_set_runnable(struct TN_Task *task);
-
-
-/**
- * Should be called when task_state has just single RUNNABLE bit set.
- *
- * Clear RUNNABLE bit, remove task from 'ready queue', determine and set
- * new tn_next_task_to_run.
- */
-void _tn_task_clear_runnable(struct TN_Task *task);
-
-void _tn_task_set_waiting(
-      struct TN_Task *task,
-      struct TN_ListItem *wait_que,
-      enum TN_WaitReason wait_reason,
-      TN_Timeout timeout
-      );
-
-/**
- * @param wait_rc return code that will be returned to waiting task
- */
-void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc);
-
-void _tn_task_set_suspended(struct TN_Task *task);
-void _tn_task_clear_suspended(struct TN_Task *task);
-
-void _tn_task_set_dormant(struct TN_Task* task);
-
-void _tn_task_clear_dormant(struct TN_Task *task);
-
 enum TN_RCode _tn_task_activate(struct TN_Task *task);
+
 
 /**
  * Should be called when task finishes waiting for anything.
@@ -176,11 +282,10 @@ static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wa
 
 
 /**
- * calls _tn_task_clear_runnable() for current task, i.e. tn_curr_run_task
- * Set task state to TN_TASK_STATE_WAIT, set given wait_reason and timeout.
+ * Should be called when task starts waiting for anything.
  *
- * If non-NULL wait_que is provided, then add task to it; otherwise reset task's task_queue.
- * If timeout is not TN_WAIT_INFINITE, add task to tn_wait_timeout_list
+ * It merely calls `#_tn_task_clear_runnable()` and then
+ * `#_tn_task_set_waiting()` for current task (`#tn_curr_run_task`).
  */
 static inline void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
@@ -194,7 +299,7 @@ static inline void _tn_task_curr_to_wait_action(
 
 
 /**
- * Change priority of any task (runnable or non-runnable)
+ * Change priority of any task (either runnable or non-runnable)
  */
 void _tn_change_task_priority(struct TN_Task *task, int new_priority);
 
@@ -234,14 +339,18 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  *
  * @param wait_queue
  *    Wait queue to get first task from
+ *
  * @param wait_rc
  *    Code that will be returned to woken-up task as a result of waiting
  *    (this code is just given to `_tn_task_wait_complete()` actually)
+ *
  * @param callback
  *    Callback function to call before wake task up, see 
  *    `#_TN_CBBeforeTaskWaitComplete`. Can be `NULL`.
+ *
  * @param user_data_1
  *    Arbitrary data that is passed to the callback
+ *
  * @param user_data_2
  *    Arbitrary data that is passed to the callback
  *
@@ -265,6 +374,10 @@ BOOL _tn_task_first_wait_complete(
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given task object is valid 
+ * (actually, just checks against `id_task` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_task_is_valid(
       struct TN_Task   *task
       )

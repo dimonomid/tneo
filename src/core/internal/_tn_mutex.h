@@ -89,6 +89,12 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
 void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
 
 #else
+
+/*
+ * Mutexes are excluded from project: define some stub functions that 
+ * are just compiled out.
+ */
+
 static inline void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
 static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
 static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
@@ -100,6 +106,10 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given mutex object is valid 
+ * (actually, just checks against `id_mutex` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_mutex_is_valid(
       struct TN_Mutex   *mutex
       )

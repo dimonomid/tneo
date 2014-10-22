@@ -142,6 +142,10 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given timer object is valid 
+ * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_timer_is_valid(
       struct TN_Timer   *timer
       )

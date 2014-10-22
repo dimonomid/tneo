@@ -408,8 +408,10 @@ TN_TaskBody *tn_cur_task_body_get(void)
 }
 
 
+
+
 /*******************************************************************************
- *    INTERNAL TNKERNEL FUNCTIONS
+ *    PROTECTED FUNCTIONS
  ******************************************************************************/
 
 /**
@@ -439,10 +441,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 }
 
 /**
- * Set flags by bitmask.
- * Given flags value will be OR-ed with existing flags.
- *
- * @return previous tn_sys_state value.
+ * See comments in the file _tn_sys.h
  */
 enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 {
@@ -452,10 +451,7 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 }
 
 /**
- * Clear flags by bitmask
- * Given flags value will be inverted and AND-ed with existing flags.
- *
- * @return previous tn_sys_state value.
+ * See comments in the file _tn_sys.h
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 {
@@ -466,6 +462,9 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 
 
 #if TN_MUTEX_DEADLOCK_DETECT
+/**
+ * See comments in the file _tn_sys.h
+ */
 void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 {
    if (active){
@@ -490,7 +489,7 @@ void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 #endif
 
 /**
- * @param size_uwords    size in uwords
+ * See comments in the file _tn_sys.h
  */
 void _tn_memcpy_uword(
       TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords

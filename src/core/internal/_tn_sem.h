@@ -75,6 +75,10 @@ extern "C"  {     /*}*/
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given semaphore object is valid 
+ * (actually, just checks against `id_sem` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_sem_is_valid(
       struct TN_Sem    *sem
       )

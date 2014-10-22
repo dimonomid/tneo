@@ -908,11 +908,8 @@ void _tn_task_set_waiting(
       //   it is already reset in _tn_task_clear_runnable().
    }
 
-   //--- Add to the timers queue
-
-   if (timeout != TN_WAIT_INFINITE){
-      _tn_timer_start(&task->timer, timeout);
-   }
+   //-- Add to the timers queue, if timeout is neither 0 nor `TN_WAIT_INFINITE`.
+   _tn_timer_start(&task->timer, timeout);
 }
 
 /**
@@ -1036,7 +1033,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 }
 
 /**
- * See the comment for tn_task_activate, tn_task_iactivate in the tn_tasks.h
+ * See comment in the _tn_tasks.h file
  */
 enum TN_RCode _tn_task_activate(struct TN_Task *task)
 {

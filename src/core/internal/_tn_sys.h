@@ -147,7 +147,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
 
 
 /**
- * Set flags by bitmask.
+ * Set system flags by bitmask.
  * Given flags value will be OR-ed with existing flags.
  *
  * @return previous tn_sys_state value.
@@ -163,24 +163,73 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
 
 #if TN_MUTEX_DEADLOCK_DETECT
+/**
+ * This function is called when deadlock becomes active or inactive 
+ * (this is detected by mutex subsystem).
+ *
+ * @param active
+ *    Boolean value indicating whether deadlock becomes active or inactive.
+ *    Note: deadlock might become inactive if, for example, one of tasks
+ *    involved in deadlock exits from waiting by timeout.
+ *
+ * @param mutex
+ *    mutex that is involved in deadlock. You may find out other mutexes
+ *    involved by means of `mutex->deadlock_list`.
+ *
+ * @param task
+ *    task that is involved in deadlock. You may find out other tasks involved
+ *    by means of `task->deadlock_list`.
+ *    
+ */
 void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
 #endif
 
+/**
+ * memcpy that operates with `#TN_UWord`s. Note: memory overlapping isn't
+ * handled: data is always copied from lower addresses to higher ones.
+ *
+ * @param tgt
+ *    Target memory address
+ *
+ * @param src
+ *    Source memory address
+ *
+ * @param size_uwords
+ *    Number of words to copy
+ *
+ */
+void _tn_memcpy_uword(
+      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
+      );
+
+
+
+
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+/**
+ * Checks whether context switch is needed (that is, if currently running task 
+ * is not the highest-priority task in the $(TN_TASK_STATE_RUNNABLE) state)
+ *
+ * @return `#TRUE` if context switch is needed
+ */
 static inline BOOL _tn_need_context_switch(void)
 {
    return (tn_curr_run_task != tn_next_task_to_run);
 }
 
+/**
+ * If context switch is needed (see `#_tn_need_context_switch()`), 
+ * context switch is pended (see `#_tn_arch_context_switch_pend()`)
+ */
 static inline void _tn_context_switch_pend_if_needed(void)
 {
    if (_tn_need_context_switch()){
       _tn_arch_context_switch_pend();
    }
 }
-
-void _tn_memcpy_uword(
-      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
-      );
 
 
 #ifdef __cplusplus

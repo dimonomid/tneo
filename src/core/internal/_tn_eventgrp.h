@@ -70,7 +70,21 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /**
- * Establish link to the event group
+ * Establish link to the event group. 
+ *
+ * \attention Caller must disable interrupts.
+ *
+ * @param eventgrp_link    
+ *    eventgrp_link object which should be modified. The structure
+ *    `eventgrp_link` is typically contained in some other structure,
+ *    for example, #TN_DQueue.
+ *
+ * @param eventgrp
+ *    Event group object to connect
+ *
+ * @param pattern
+ *    Flags pattern that should be maintained by object to which
+ *    event group is being connected. Can't be 0.
  */
 enum TN_RCode _tn_eventgrp_link_set(
       struct TN_EGrpLink  *eventgrp_link,
@@ -79,12 +93,32 @@ enum TN_RCode _tn_eventgrp_link_set(
       );
 
 /**
- * Reset link to the event group (no matter whether it is already established)
+ * Reset link to the event group, i.e. make it non connected to any event
+ * group. (no matter whether it is already established).
  */
 enum TN_RCode _tn_eventgrp_link_reset(
       struct TN_EGrpLink  *eventgrp_link
       );
 
+/**
+ * Set or clear flag(s) in the connected event group, if any. Flag(s) are
+ * specified by `pattern` argument given to `#_tn_eventgrp_link_set()`.
+ *
+ * If given `eventgrp_link` doesn't contain any connected event group, nothing
+ * is performed and no error returned.
+ *
+ * \attention Caller must disable interrupts.
+ *
+ * @param eventgrp_link    
+ *    eventgrp_link object which contains connected event group.
+ *    `eventgrp_link` is typically contained in some other structure,
+ *    for example, #TN_DQueue.
+ *
+ * @param set
+ *    - if `TRUE`, flag(s) are being set;
+ *    - if `FALSE`, flag(s) are being cleared.
+ *
+ */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
       BOOL                 set
@@ -96,6 +130,10 @@ enum TN_RCode _tn_eventgrp_link_manage(
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given event group object is valid 
+ * (actually, just checks against `id_event` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_eventgrp_is_valid(
       struct TN_EventGrp   *eventgrp
       )

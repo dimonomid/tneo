@@ -75,6 +75,10 @@ extern "C"  {     /*}*/
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given fixed memory pool object is valid 
+ * (actually, just checks against `id_fmp` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_fmem_is_valid(
       struct TN_FMem   *fmem
       )

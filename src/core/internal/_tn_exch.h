@@ -93,6 +93,10 @@ enum TN_RCode _tn_exch_read(
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Checks whether given exchange object is valid 
+ * (actually, just checks against `id_exch` field, see `enum #TN_ObjId`)
+ */
 static inline BOOL _tn_exch_is_valid(
       struct TN_Exch   *exch
       )

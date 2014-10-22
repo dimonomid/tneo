@@ -181,13 +181,18 @@ typedef void (TN_CBIdle)(void);
  * deadlock becomes active or inactive.
  * Note: this feature works if only `#TN_MUTEX_DEADLOCK_DETECT` is non-zero.
  *
- * @param active  if `TRUE`, deadlock becomes active, otherwise it becomes
- *                inactive (say, if task stopped waiting for mutex 
- *                because of timeout)
- * @param mutex   mutex that is involved in deadlock. You may find out other
- *                mutexes involved by means of `mutex->deadlock_list`.
- * @param task    task that is involved in deadlock. You may find out other 
- *                tasks involved by means of `task->deadlock_list`.
+ * @param active
+ *    Boolean value indicating whether deadlock becomes active or inactive.
+ *    Note: deadlock might become inactive if, for example, one of tasks
+ *    involved in deadlock exits from waiting by timeout.
+ *
+ * @param mutex
+ *    mutex that is involved in deadlock. You may find out other mutexes
+ *    involved by means of `mutex->deadlock_list`.
+ *
+ * @param task
+ *    task that is involved in deadlock. You may find out other tasks involved
+ *    by means of `task->deadlock_list`.
  */
 typedef void (TN_CBDeadlock)(
       BOOL active,
