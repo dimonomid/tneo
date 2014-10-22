@@ -97,7 +97,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (mutex == NULL){
       rc = TN_RC_WPARAM;
-   } else if (mutex->id_mutex != TN_ID_MUTEX){
+   } else if (!_tn_mutex_is_valid(mutex)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -114,7 +114,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (mutex == NULL){
       rc = TN_RC_WPARAM;
-   } else if (mutex->id_mutex == TN_ID_MUTEX){
+   } else if (_tn_mutex_is_valid(mutex)){
       rc = TN_RC_WPARAM;
    } else if (    protocol != TN_MUTEX_PROT_CEILING 
                && protocol != TN_MUTEX_PROT_INHERIT)

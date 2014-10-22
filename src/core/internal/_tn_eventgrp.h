@@ -92,6 +92,18 @@ enum TN_RCode _tn_eventgrp_link_manage(
 
 
 
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_eventgrp_is_valid(
+      struct TN_EventGrp   *eventgrp
+      )
+{
+   return (eventgrp->id_event == TN_ID_EVENTGRP);
+}
+
+
 
 
 #ifdef __cplusplus

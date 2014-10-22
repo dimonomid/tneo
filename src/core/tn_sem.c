@@ -48,7 +48,7 @@
 
 
 //-- header of current module
-#include "tn_sem.h"
+#include "_tn_sem.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"
@@ -70,7 +70,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (sem == NULL){
       rc = TN_RC_WPARAM;
-   } else if (sem->id_sem != TN_ID_SEMAPHORE){
+   } else if (!_tn_sem_is_valid(sem)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -91,7 +91,7 @@ static inline enum TN_RCode _check_param_create(
    if (sem == NULL){
       rc = TN_RC_WPARAM;
    } else if (0
-         || sem->id_sem == TN_ID_SEMAPHORE
+         || _tn_sem_is_valid(sem)
          || max_count <= 0
          || start_count < 0
          || start_count > max_count

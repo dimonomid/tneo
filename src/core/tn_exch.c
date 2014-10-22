@@ -85,7 +85,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (exch == NULL){
       rc = TN_RC_WPARAM;
-   } else if (exch->id_exch != TN_ID_EXCHANGE){
+   } else if (!_tn_exch_is_valid(exch)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -100,7 +100,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (exch == NULL){
       rc = TN_RC_WPARAM;
-   } else if (exch->id_exch == TN_ID_EXCHANGE){
+   } else if (_tn_exch_is_valid(exch)){
       rc = TN_RC_WPARAM;
    }
 

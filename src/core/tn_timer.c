@@ -103,7 +103,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (timer == NULL){
       rc = TN_RC_WPARAM;
-   } else if (timer->id_timer != TN_ID_TIMER){
+   } else if (!_tn_timer_is_valid(timer)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -119,7 +119,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (timer == NULL){
       rc = TN_RC_WPARAM;
-   } else if (timer->id_timer == TN_ID_TIMER){
+   } else if (_tn_timer_is_valid(timer)){
       rc = TN_RC_WPARAM;
    }
 

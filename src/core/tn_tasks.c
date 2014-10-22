@@ -49,7 +49,7 @@
 
 
 //-- header of current module
-#include "tn_tasks.h"
+#include "_tn_tasks.h"
 
 //-- header of other needed modules
 #include "tn_mutex.h"
@@ -76,7 +76,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (task == NULL){
       rc = TN_RC_WPARAM;
-   } else if (task->id_task != TN_ID_TASK){
+   } else if (!_tn_task_is_valid(task)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -392,7 +392,7 @@ enum TN_RCode tn_task_create(
          || task_func == NULL
          || task == NULL
          || task_stack_low_addr == NULL
-         || task->id_task == TN_ID_TASK
+         || _tn_task_is_valid(task)
       )
    {
       return TN_RC_WPARAM;

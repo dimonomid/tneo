@@ -103,7 +103,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (exch_link == NULL){
       rc = TN_RC_WPARAM;
-   } else if (exch_link->id_exch_link != TN_ID_EXCHANGE_LINK){
+   } else if (!_tn_exch_link_is_valid(exch_link)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -118,7 +118,7 @@ static inline enum TN_RCode _check_param_create(
 
    if (exch_link == NULL){
       rc = TN_RC_WPARAM;
-   } else if (exch_link->id_exch_link == TN_ID_EXCHANGE_LINK){
+   } else if (_tn_exch_link_is_valid(exch_link)){
       rc = TN_RC_WPARAM;
    }
 

@@ -42,6 +42,7 @@
  ******************************************************************************/
 
 #include "_tn_sys.h"
+#include "tn_mutex.h"
 
 
 
@@ -93,6 +94,18 @@ static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
 static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
 #endif
 
+
+
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_mutex_is_valid(
+      struct TN_Mutex   *mutex
+      )
+{
+   return (mutex->id_mutex == TN_ID_MUTEX);
+}
 
 
 

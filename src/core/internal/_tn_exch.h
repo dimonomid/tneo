@@ -42,6 +42,7 @@
  ******************************************************************************/
 
 #include "_tn_sys.h"
+#include "tn_exch.h"
 
 
 
@@ -86,6 +87,18 @@ enum TN_RCode _tn_exch_read(
       void             *data_tgt
       );
 
+
+
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_exch_is_valid(
+      struct TN_Exch   *exch
+      )
+{
+   return (exch->id_exch == TN_ID_EXCHANGE);
+}
 
 
 

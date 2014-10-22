@@ -42,6 +42,7 @@
  ******************************************************************************/
 
 #include "_tn_sys.h"
+#include "tn_tasks.h"
 
 
 
@@ -258,6 +259,18 @@ BOOL _tn_task_first_wait_complete(
       );
 
 
+
+
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_task_is_valid(
+      struct TN_Task   *task
+      )
+{
+   return (task->id_task == TN_ID_TASK);
+}
 
 
 

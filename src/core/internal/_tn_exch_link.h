@@ -42,6 +42,7 @@
  ******************************************************************************/
 
 #include "_tn_sys.h"
+#include "tn_exch_link.h"
 
 
 
@@ -91,6 +92,18 @@ enum TN_RCode _tn_exch_link_delete(
       );
 
 
+
+
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_exch_link_is_valid(
+      struct TN_ExchLink   *exch_link
+      )
+{
+   return (exch_link->id_exch_link == TN_ID_EXCHANGE_LINK);
+}
 
 
 

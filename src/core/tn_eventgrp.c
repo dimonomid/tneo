@@ -72,7 +72,7 @@ static inline enum TN_RCode _check_param_generic(
 
    if (eventgrp == NULL){
       rc = TN_RC_WPARAM;
-   } else if (eventgrp->id_event != TN_ID_EVENTGRP){
+   } else if (!_tn_eventgrp_is_valid(eventgrp)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -99,7 +99,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (eventgrp == NULL || eventgrp->id_event == TN_ID_EVENTGRP){
+   if (eventgrp == NULL || _tn_eventgrp_is_valid(eventgrp)){
       rc = TN_RC_WPARAM;
    }
 

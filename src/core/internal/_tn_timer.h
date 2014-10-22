@@ -138,6 +138,18 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
 
 
 
+/*******************************************************************************
+ *    PROTECTED INLINE FUNCTIONS
+ ******************************************************************************/
+
+static inline BOOL _tn_timer_is_valid(
+      struct TN_Timer   *timer
+      )
+{
+   return (timer->id_timer == TN_ID_TIMER);
+}
+
+
 
 #ifdef __cplusplus
 }  /* extern "C" */
