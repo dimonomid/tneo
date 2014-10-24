@@ -44,6 +44,7 @@
 
 //-- internal tnkernel headers
 #include "_tn_exch_link.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -191,7 +192,7 @@ enum TN_RCode _tn_exch_link_create(
       //_vtable_init();
       exch_link->vtable = &_vtable;
 
-      tn_list_reset(&(exch_link->links_list_item));
+      _tn_list_reset(&(exch_link->links_list_item));
 
       exch_link->id_exch_link = TN_ID_EXCHANGE_LINK;
    }

@@ -44,6 +44,7 @@
 //-- internal tnkernel headers
 #include "_tn_eventgrp.h"
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -164,7 +165,7 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 
    // checking ALL of the tasks waiting on the event.
 
-   tn_list_for_each_entry_safe(
+   _tn_list_for_each_entry_safe(
          task, tmp_task, &(eventgrp->wait_queue), task_queue
          )
    {
@@ -275,7 +276,7 @@ enum TN_RCode tn_eventgrp_create(
       //-- just return rc as it is
    } else {
 
-      tn_list_reset(&(eventgrp->wait_queue));
+      _tn_list_reset(&(eventgrp->wait_queue));
 
       eventgrp->pattern    = initial_pattern;
       eventgrp->id_event   = TN_ID_EVENTGRP;

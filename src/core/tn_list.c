@@ -35,28 +35,30 @@
  ******************************************************************************/
 
 #include "tn_common.h"
-#include "tn_list.h"
+#include "_tn_list.h"
 
 
 
-//----------------------------------------------------------------------------
-//      Circular double-linked list queue
-//----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-void tn_list_reset(struct TN_ListItem *list)
+/*
+ * See comments in the header file tn_list.h
+ */
+void _tn_list_reset(struct TN_ListItem *list)
 {
    list->prev = list->next = list;
 }
 
-//----------------------------------------------------------------------------
-BOOL tn_is_list_empty(struct TN_ListItem *list)
+/*
+ * See comments in the header file tn_list.h
+ */
+BOOL _tn_list_is_empty(struct TN_ListItem *list)
 {
    return (list->next == list && list->prev == list);
 }
 
-//----------------------------------------------------------------------------
-void tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
+/*
+ * See comments in the header file tn_list.h
+ */
+void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
   //--  Insert an entry at the head of the queue.
 
@@ -66,8 +68,10 @@ void tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
    list->next = entry;
 }
 
-//----------------------------------------------------------------------------
-void tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
+/*
+ * See comments in the header file tn_list.h
+ */
+void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
   //-- Insert an entry at the tail of the queue.
 
@@ -77,8 +81,10 @@ void tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
    list->prev = entry;
 }
 
-//----------------------------------------------------------------------------
-struct TN_ListItem *tn_list_remove_head(struct TN_ListItem *list)
+/*
+ * See comments in the header file tn_list.h
+ */
+struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the head of the queue.
 
@@ -95,24 +101,30 @@ struct TN_ListItem *tn_list_remove_head(struct TN_ListItem *list)
    return entry;
 }
 
-//----------------------------------------------------------------------------
-struct TN_ListItem *tn_list_remove_tail(struct TN_ListItem *list)
+/*
+ * See comments in the header file tn_list.h
+ */
+struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the tail of the queue.
 
    struct TN_ListItem *entry;
 
-   if(list->prev == list)
+   if (list->prev == list){
       return (struct TN_ListItem *) 0;
+   }
 
    entry = list->prev;
    entry->prev->next = list;
    list->prev = entry->prev;
+
    return entry;
 }
 
-//----------------------------------------------------------------------------
-void tn_list_remove_entry(struct TN_ListItem *entry)
+/*
+ * See comments in the header file tn_list.h
+ */
+void _tn_list_remove_entry(struct TN_ListItem *entry)
 {
    //--  Remove an entry from the queue.
    entry->prev->next = entry->next;
@@ -127,13 +139,15 @@ void tn_list_remove_entry(struct TN_ListItem *entry)
    //         to get the next item.
 }
 
-//----------------------------------------------------------------------------
-BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
+/*
+ * See comments in the header file tn_list.h
+ */
+BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
    BOOL ret = FALSE;
    struct TN_ListItem *item;
 
-   tn_list_for_each(item, list){
+   _tn_list_for_each(item, list){
       if (item == list){
          ret = TRUE;
          break;
@@ -142,11 +156,5 @@ BOOL tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
 
    return ret;
 }
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 
 

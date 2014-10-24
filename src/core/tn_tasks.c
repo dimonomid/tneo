@@ -46,6 +46,7 @@
 #include "_tn_tasks.h"
 #include "_tn_mutex.h"
 #include "_tn_timer.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -94,13 +95,13 @@ static inline enum TN_RCode _check_param_generic(
 
 static inline void _init_mutex_queue(struct TN_Task *task)
 {
-   tn_list_reset(&(task->mutex_queue));
+   _tn_list_reset(&(task->mutex_queue));
 }
 
 #if TN_MUTEX_DEADLOCK_DETECT
 static inline void _init_deadlock_list(struct TN_Task *task)
 {
-   tn_list_reset(&(task->deadlock_list));
+   _tn_list_reset(&(task->deadlock_list));
 }
 #else
 #  define   _init_deadlock_list(task)
@@ -196,7 +197,7 @@ static inline enum TN_RCode _task_delete(struct TN_Task *task)
       //-- Cannot delete not-terminated task
       rc = TN_RC_WSTATE;
    } else {
-      tn_list_remove_entry(&(task->create_queue));
+      _tn_list_remove_entry(&(task->create_queue));
       tn_created_tasks_cnt--;
       task->id_task = 0;
    }
@@ -263,10 +264,10 @@ static inline BOOL _remove_entry_from_ready_queue(struct TN_ListItem *list_node,
    BOOL ret;
 
    //-- remove given list_node from the queue
-   tn_list_remove_entry(list_node);
+   _tn_list_remove_entry(list_node);
 
    //-- check if the queue for given priority is empty now
-   ret = tn_is_list_empty(&(tn_ready_list[priority]));
+   ret = _tn_list_is_empty(&(tn_ready_list[priority]));
 
    if (ret){
       //-- list is empty, so, modify bitmask tn_ready_to_run_bmp
@@ -278,7 +279,7 @@ static inline BOOL _remove_entry_from_ready_queue(struct TN_ListItem *list_node,
 
 static inline void _add_entry_to_ready_queue(struct TN_ListItem *list_node, int priority)
 {
-   tn_list_add_tail(&(tn_ready_list[priority]), list_node);
+   _tn_list_add_tail(&(tn_ready_list[priority]), list_node);
    tn_ready_to_run_bmp |= (1 << priority);
 }
 
@@ -445,7 +446,7 @@ enum TN_RCode tn_task_create(
 
    //-- reset task_queue (the queue used to include task to runqueue or 
    //   waitqueue)
-   tn_list_reset(&(task->task_queue));
+   _tn_list_reset(&(task->task_queue));
 
    //-- init timer that is needed to implement task wait timeout
    _tn_timer_create(&task->timer, _task_wait_timeout, task);
@@ -456,7 +457,7 @@ enum TN_RCode tn_task_create(
    _tn_task_set_dormant(task);
 
    //-- Add task to created task queue
-   tn_list_add_tail(&tn_create_queue, &(task->create_queue));
+   _tn_list_add_tail(&tn_create_queue, &(task->create_queue));
    tn_created_tasks_cnt++;
 
    if ((opts & TN_TASK_CREATE_OPT_START)){
@@ -869,7 +870,7 @@ void _tn_task_clear_runnable(struct TN_Task *task)
    }
 
    //-- and reset task's queue
-   tn_list_reset(&(task->task_queue));
+   _tn_list_reset(&(task->task_queue));
 
 }
 
@@ -901,7 +902,7 @@ void _tn_task_set_waiting(
    //--- Add to the wait queue  - FIFO
 
    if (wait_que != NULL){
-      tn_list_add_tail(wait_que, &(task->task_queue));
+      _tn_list_add_tail(wait_que, &(task->task_queue));
       task->pwait_queue = wait_que;
    } else {
       //-- NOTE: we don't need to reset task_queue because
@@ -928,7 +929,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
       _TN_FATAL_ERROR("");
    }
 
-   if (tn_is_list_empty(&task->task_queue) != (task->pwait_queue == NULL)){
+   if (_tn_list_is_empty(&task->task_queue) != (task->pwait_queue == NULL)){
       _TN_FATAL_ERROR("task_queue and pwait_queue are out of sync");
    }
 
@@ -940,11 +941,11 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
    //   get max blocked priority
 
    //-- NOTE: we don't care here whether task is contained in any wait_queue,
-   //   because even if it isn't, tn_list_remove_entry() on empty list
+   //   because even if it isn't, _tn_list_remove_entry() on empty list
    //   does just nothing.
-   tn_list_remove_entry(&task->task_queue);
+   _tn_list_remove_entry(&task->task_queue);
    //-- and reset task's queue
-   tn_list_reset(&(task->task_queue));
+   _tn_list_reset(&(task->task_queue));
 
    //-- handle current wait_reason: say, for MUTEX_I, we should
    //   handle priorities of other involved tasks.
@@ -999,9 +1000,9 @@ void _tn_task_set_dormant(struct TN_Task* task)
 #if TN_DEBUG
    if (task->task_state != TN_TASK_STATE_NONE){
       _TN_FATAL_ERROR("");
-   } else if (!tn_is_list_empty(&task->mutex_queue)){
+   } else if (!_tn_list_is_empty(&task->mutex_queue)){
       _TN_FATAL_ERROR("");
-   } else if (!tn_is_list_empty(&task->deadlock_list)){
+   } else if (!_tn_list_is_empty(&task->deadlock_list)){
       _TN_FATAL_ERROR("");
    }
 #endif
@@ -1062,12 +1063,12 @@ BOOL _tn_task_first_wait_complete(
 {
    BOOL ret = FALSE;
 
-   if (!(tn_is_list_empty(wait_queue))){
+   if (!(_tn_list_is_empty(wait_queue))){
       struct TN_Task *task;
       //-- there are tasks in the wait queue, so, wake up the first one
 
       //-- get first task from the wait_queue
-      task = tn_list_first_entry(wait_queue, typeof(*task), task_queue);
+      task = _tn_list_first_entry(wait_queue, typeof(*task), task_queue);
 
       //-- call provided callback (if any)
       if (callback != NULL){
@@ -1142,7 +1143,7 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
    BOOL ret = FALSE;
 
    struct TN_Mutex *tmp_mutex;
-   tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
+   _tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
       if (tmp_mutex == mutex){
          ret = TRUE;
          break;

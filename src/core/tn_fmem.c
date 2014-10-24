@@ -45,6 +45,7 @@
 
 //-- internal tnkernel headers
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -238,7 +239,7 @@ enum TN_RCode tn_fmem_create(
    fmem->blocks_cnt = blocks_cnt;
 
    //-- reset wait_queue
-   tn_list_reset(&(fmem->wait_queue));
+   _tn_list_reset(&(fmem->wait_queue));
 
    //-- init block pointers
    {

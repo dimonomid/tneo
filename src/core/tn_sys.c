@@ -53,6 +53,7 @@
 #include "_tn_sys.h"
 #include "_tn_timer.h"
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 
 #include "tn_tasks.h"
@@ -148,15 +149,15 @@ static inline void _round_robin_manage(void)
          pri_queue = &(tn_ready_list[priority]);
          //-- If ready queue is not empty and there are more than 1 
          //   task in the queue
-         if (     !(tn_is_list_empty((struct TN_ListItem *)pri_queue))
+         if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
                && pri_queue->next->next != pri_queue
             )
          {
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
-            curr_que = tn_list_remove_head(&(tn_ready_list[priority]));
-            tn_list_add_tail(
+            curr_que = _tn_list_remove_head(&(tn_ready_list[priority]));
+            _tn_list_add_tail(
                   &(tn_ready_list[priority]),
                   (struct TN_ListItem *)curr_que
                   );
@@ -211,12 +212,12 @@ void tn_sys_start(
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
-      tn_list_reset(&(tn_ready_list[i]));
+      _tn_list_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
    //-- reset generic task queue and task count to 0
-   tn_list_reset(&tn_create_queue);
+   _tn_list_reset(&tn_create_queue);
    tn_created_tasks_cnt = 0;
 
    //-- initial system flags: no flags set (see enum TN_StateFlag)
@@ -428,13 +429,13 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
    //   and setting TN_RC_DELETED as a wait return code.
-   tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
+   _tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
       //-- call _tn_task_wait_complete for every task
       _tn_task_wait_complete(task, TN_RC_DELETED);
    }
 
 #if TN_DEBUG
-   if (!tn_is_list_empty(wait_queue)){
+   if (!_tn_list_is_empty(wait_queue)){
       _TN_FATAL_ERROR("");
    }
 #endif

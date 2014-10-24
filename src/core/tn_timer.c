@@ -44,6 +44,7 @@
 
 //-- internal tnkernel headers
 #include "_tn_timer.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -292,11 +293,11 @@ void _tn_timers_init(void)
    int i;
 
    //-- reset "generic" timers list
-   tn_list_reset(&tn_timer_list__gen);
+   _tn_list_reset(&tn_timer_list__gen);
 
    //-- reset all "tick" timer lists
    for (i = 0; i < TN_TICK_LISTS_CNT; i++){
-      tn_list_reset(&tn_timer_list__tick[i]);
+      _tn_list_reset(&tn_timer_list__tick[i]);
    }
 }
 
@@ -326,7 +327,7 @@ void _tn_timers_tick_proceed(void)
          struct TN_Timer *timer;
          struct TN_Timer *tmp_timer;
 
-         tn_list_for_each_entry_safe(
+         _tn_list_for_each_entry_safe(
                timer, tmp_timer, &tn_timer_list__gen, timer_queue
                )
          {
@@ -345,8 +346,8 @@ void _tn_timers_tick_proceed(void)
 
             if (timer->timeout_cur < TN_TICK_LISTS_CNT){
                //-- it's time to move this timer to the "tick" list
-               tn_list_remove_entry(&(timer->timer_queue));
-               tn_list_add_tail(
+               _tn_list_remove_entry(&(timer->timer_queue));
+               _tn_list_add_tail(
                      &tn_timer_list__tick[_TICK_LIST_INDEX(timer->timeout_cur)],
                      &(timer->timer_queue)
                      );
@@ -371,7 +372,7 @@ void _tn_timers_tick_proceed(void)
       //   fire NOW, unconditionally.
 
       //-- NOTE that we shouldn't use iterators like 
-      //   `tn_list_for_each_entry_safe()` here, because timers can be 
+      //   `_tn_list_for_each_entry_safe()` here, because timers can be 
       //   removed from the list while we are iterating through it: 
       //   this may happen if user-provided function cancels timer which 
       //   is in the same list.
@@ -381,8 +382,8 @@ void _tn_timers_tick_proceed(void)
       //   (because timeout 0 is disallowed, and timer with timeout
       //   TN_TICK_LISTS_CNT is added to the "generic" list),
       //   see implementation details in the tn_timer.h file
-      while (!tn_is_list_empty(p_cur_timer_list)){
-         timer = tn_list_first_entry(
+      while (!_tn_list_is_empty(p_cur_timer_list)){
+         timer = _tn_list_first_entry(
                p_cur_timer_list, typeof(*timer), timer_queue
                );
 
@@ -396,7 +397,7 @@ void _tn_timers_tick_proceed(void)
 
 #if TN_DEBUG
       //-- current "tick" list should be empty now
-      if (!tn_is_list_empty(p_cur_timer_list)){
+      if (!_tn_list_is_empty(p_cur_timer_list)){
          _TN_FATAL_ERROR("");
       }
 #endif
@@ -430,7 +431,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
          int tick_list_index = _TICK_LIST_INDEX(timeout);
          timer->timeout_cur = tick_list_index;
 
-         tn_list_add_tail(
+         _tn_list_add_tail(
                &tn_timer_list__tick[ tick_list_index ],
                &(timer->timer_queue)
                );
@@ -439,7 +440,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
          //   We should set timeout_cur adding current "tick" index to it.
          timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
 
-         tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
+         _tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
       }
    }
 
@@ -465,10 +466,10 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
       timer->timeout_cur = 0;
 
       //-- remove entry from timer queue
-      tn_list_remove_entry(&(timer->timer_queue));
+      _tn_list_remove_entry(&(timer->timer_queue));
 
       //-- reset the list
-      tn_list_reset(&(timer->timer_queue));
+      _tn_list_reset(&(timer->timer_queue));
    }
 
    return rc;
@@ -489,7 +490,7 @@ enum TN_RCode _tn_timer_create(
       //-- just return rc as it is
    } else {
 
-      tn_list_reset(&(timer->timer_queue));
+      _tn_list_reset(&(timer->timer_queue));
 
       timer->timeout_cur   = 0;
       timer->id_timer      = TN_ID_TIMER;
@@ -531,7 +532,7 @@ BOOL _tn_timer_is_active(struct TN_Timer *timer)
    }
 #endif
 
-   return (!tn_is_list_empty(&(timer->timer_queue)));
+   return (!_tn_list_is_empty(&(timer->timer_queue)));
 }
 
 /**

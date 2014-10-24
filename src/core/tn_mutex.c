@@ -45,6 +45,7 @@
 //-- internal tnkernel headers
 #include "_tn_mutex.h"
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 //-- header of current module
 #include "tn_mutex.h"
@@ -156,7 +157,7 @@ static inline int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_pri
 
    //-- Iterate through all the tasks that wait for lock mutex.
    //   Highest priority (i.e. lowest number) will be returned eventually.
-   tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
+   _tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
       if(task->priority < priority){
          //--  task priority is higher, remember it
          priority = task->priority;
@@ -222,7 +223,7 @@ static void _update_task_priority(struct TN_Task *task)
       struct TN_Mutex *mutex;
 
       //-- Iterate through all the mutexes locked by given task
-      tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
+      _tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
          priority = _find_max_priority_by_mutex(mutex, priority);
       }
    }
@@ -295,7 +296,7 @@ static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
    __mutex_lock_cnt_change(mutex, 1);
 
    //-- Add mutex to task's locked mutexes queue
-   tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
+   _tn_list_add_tail(&(task->mutex_queue), &(mutex->mutex_queue));
 
    //-- Determine new priority for the task
    {
@@ -330,10 +331,10 @@ in:
    struct TN_Mutex *mutex2 = _get_mutex_by_wait_queque(holder->pwait_queue);
 
    //-- link two tasks together
-   tn_list_add_tail(&task->deadlock_list, &holder->deadlock_list); 
+   _tn_list_add_tail(&task->deadlock_list, &holder->deadlock_list); 
 
    //-- link two mutexes together
-   tn_list_add_head(&mutex->deadlock_list, &mutex2->deadlock_list); 
+   _tn_list_add_head(&mutex->deadlock_list, &mutex2->deadlock_list); 
 
    if (_tn_is_mutex_locked_by_task(task, mutex2)){
       //-- done; all mutexes and tasks involved in deadlock were linked together.
@@ -360,14 +361,14 @@ static void _unlink_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
    struct TN_ListItem *item;
    struct TN_ListItem *tmp_item;
 
-   tn_list_for_each_safe(item, tmp_item, &mutex->deadlock_list){
-      tn_list_remove_entry(item);
-      tn_list_reset(item);
+   _tn_list_for_each_safe(item, tmp_item, &mutex->deadlock_list){
+      _tn_list_remove_entry(item);
+      _tn_list_reset(item);
    }
 
-   tn_list_for_each_safe(item, tmp_item, &task->deadlock_list){
-      tn_list_remove_entry(item);
-      tn_list_reset(item);
+   _tn_list_for_each_safe(item, tmp_item, &task->deadlock_list){
+      _tn_list_remove_entry(item);
+      _tn_list_reset(item);
    }
 
 }
@@ -437,9 +438,9 @@ in:
  */
 static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 {
-   if (!tn_is_list_empty(&mutex->deadlock_list)){
+   if (!_tn_list_is_empty(&mutex->deadlock_list)){
 
-      if (tn_is_list_empty(&task->deadlock_list)){
+      if (_tn_list_is_empty(&task->deadlock_list)){
          //-- should never be here: deadlock lists for tasks and mutexes
          //   should either be both non-empty or both empty
          _TN_FATAL_ERROR();
@@ -512,13 +513,13 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
    mutex->cnt = 0;
 
    //-- Delete curr mutex from task's locked mutexes queue
-   tn_list_remove_entry(&(mutex->mutex_queue));
+   _tn_list_remove_entry(&(mutex->mutex_queue));
 
    //-- update priority for current holder
    _update_task_priority(mutex->holder);
 
    //-- Check for the task(s) that want to lock the mutex
-   if (tn_is_list_empty(&(mutex->wait_queue))){
+   if (_tn_list_is_empty(&(mutex->wait_queue))){
       //-- no more tasks want to lock the mutex,
       //   so, set holder to NULL and return.
       mutex->holder = NULL;
@@ -529,7 +530,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       struct TN_Task *task;
 
       //-- get first task from mutex's wait_queue
-      task = tn_list_first_entry(
+      task = _tn_list_first_entry(
             &(mutex->wait_queue),
             typeof(*task), task_queue
             );
@@ -577,10 +578,10 @@ enum TN_RCode tn_mutex_create(
       //-- just return rc as it is
    } else {
 
-      tn_list_reset(&(mutex->wait_queue));
-      tn_list_reset(&(mutex->mutex_queue));
+      _tn_list_reset(&(mutex->wait_queue));
+      _tn_list_reset(&(mutex->mutex_queue));
 #if TN_MUTEX_DEADLOCK_DETECT
-      tn_list_reset(&(mutex->deadlock_list));
+      _tn_list_reset(&(mutex->deadlock_list));
 #endif
 
       mutex->protocol      = protocol;
@@ -625,7 +626,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
             //         be reset in tn_mutex_create()
             //
             //         Probably we need to remove it.
-            tn_list_reset(&(mutex->mutex_queue));
+            _tn_list_reset(&(mutex->mutex_queue));
          }
 
          mutex->id_mutex = 0; //-- mutex does not exist now
@@ -794,7 +795,7 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
                                  //   item is removed from the list
                                  //   in _mutex_do_unlock().
 
-   tn_list_for_each_entry_safe(
+   _tn_list_for_each_entry_safe(
          mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
          )
    {

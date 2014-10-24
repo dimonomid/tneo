@@ -56,7 +56,6 @@
 #include "core/tn_mutex.h"
 #include "core/tn_sem.h"
 #include "core/tn_tasks.h"
-#include "core/tn_list.h"
 #include "core/tn_exch.h"
 #include "core/tn_timer.h"
 

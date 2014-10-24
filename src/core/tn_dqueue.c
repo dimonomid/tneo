@@ -45,6 +45,7 @@
 //-- internal tnkernel headers
 #include "_tn_eventgrp.h"
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 
 #include "tn_dqueue.h"
@@ -440,8 +441,8 @@ enum TN_RCode tn_queue_create(
    if (rc != TN_RC_OK){
       //-- just return rc as it is
    } else {
-      tn_list_reset(&(dque->wait_send_list));
-      tn_list_reset(&(dque->wait_receive_list));
+      _tn_list_reset(&(dque->wait_send_list));
+      _tn_list_reset(&(dque->wait_receive_list));
 
       dque->data_fifo         = data_fifo;
       dque->items_cnt         = items_cnt;

@@ -47,6 +47,7 @@
 #include "_tn_sys.h"
 #include "_tn_exch.h"
 #include "_tn_exch_link.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -120,7 +121,7 @@ static enum TN_RCode _notify_all(
    enum TN_RCode rc = TN_RC_OK;
    struct TN_ExchLink *exch_link;
    
-   tn_list_for_each_entry(exch_link, &(exch->links_list), links_list_item){
+   _tn_list_for_each_entry(exch_link, &(exch->links_list), links_list_item){
       rc = _tn_exch_link_notify(exch_link);
       if (rc != TN_RC_OK){
          break;
@@ -183,7 +184,7 @@ enum TN_RCode tn_exch_create(
    exch->size = size;
 
    //-- reset links_list
-   tn_list_reset(&(exch->links_list));
+   _tn_list_reset(&(exch->links_list));
 
    //-- set id
    exch->id_exch = TN_ID_EXCHANGE;

@@ -45,6 +45,7 @@
 
 //-- internal tnkernel headers
 #include "_tn_tasks.h"
+#include "_tn_list.h"
 
 
 //-- header of current module
@@ -256,7 +257,7 @@ enum TN_RCode tn_sem_create(
       //-- just return rc as it is
    } else {
 
-      tn_list_reset(&(sem->wait_queue));
+      _tn_list_reset(&(sem->wait_queue));
 
       sem->count     = start_count;
       sem->max_count = max_count;
