@@ -122,13 +122,26 @@ void hw_init(void)
 {
    SYSTEMConfig(SYS_FREQ, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
 
-   //turn off ADC function for all pins
+   //-- turn off ADC function for all pins
    AD1PCFG = 0xffffffff;
 
-   //-- enable timer5 interrupt
+   //-- Set power-saving mode to an idle mode
+   {
+      SYSKEY = 0x0;
+      SYSKEY = 0xAA996655;
+      SYSKEY = 0x556699AA;
+
+      OSCCONCLR = 0x10;
+
+      SYSKEY = 0x0;
+   }
+
+   //-- enable timer5 interrupt.
+   //   It is set to continue in the idle mode, so that system timer
+   //   will wake system up each system tick.
    OpenTimer5((0
             | T5_ON
-            | T5_IDLE_STOP
+            | T5_IDLE_CON
             | SYS_TMR_PRESCALER
             | T5_SOURCE_INT
             ),
@@ -159,6 +172,10 @@ void hw_init(void)
 //-- idle callback that is called periodically from idle task
 void idle_task_callback (void)
 {
+   //TODO: uncomment if you want the idle task to use real power-saving mode.
+   //      actual mode to use ("idle") is set up in the function hw_init(),
+   //      here it is just activated.
+   //asm volatile ("wait");
 }
 
 int32_t main(void)
