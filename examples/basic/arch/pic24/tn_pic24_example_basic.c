@@ -330,7 +330,7 @@ void task_a_body(void *par)
    {
       //mPORTEToggleBits(BIT_0);
       LATE ^= (1 << 0);
-      tn_task_sleep(500);
+      tn_task_sleep(50);
    }
 }
 
@@ -340,7 +340,7 @@ void task_b_body(void *par)
    {
       //mPORTEToggleBits(BIT_1);
       LATE ^= (1 << 1);
-      tn_task_sleep(1000);
+      tn_task_sleep(100);
    }
 }
 
@@ -350,7 +350,7 @@ void task_c_body(void *par)
    {
       //mPORTEToggleBits(BIT_2);
       LATE ^= (1 << 2);
-      tn_task_sleep(1500);
+      tn_task_sleep(150);
    }
 }
 

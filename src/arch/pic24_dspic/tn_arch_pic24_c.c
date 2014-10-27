@@ -56,7 +56,6 @@ TN_UWord *_tn_arch_stack_init(
 
    *(stack_top++) = (TN_UWord)task_func;
    *(stack_top++) = 0;
-   *(stack_top++) = (TN_UWord)p_splim;   // SPLIM
    *(stack_top++) = 0x0103;   // SR
    *(stack_top++) = 0x1414;   // W14
    *(stack_top++) = 0x1212;   // W12
@@ -77,6 +76,7 @@ TN_UWord *_tn_arch_stack_init(
    *(stack_top++) = 0;   // TBLPAG
    *(stack_top++) = 0;   // CORCON
    *(stack_top++) = 0;   // PSVPAG
+   *(stack_top++) = (TN_UWord)p_splim;   // SPLIM
 
    return stack_top;
 }

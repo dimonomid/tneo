@@ -41,7 +41,6 @@
     .extern  tn_curr_run_task
     .extern  tn_next_task_to_run
     .extern  IFS0
-    .extern  __tn_sw_restore
 
     /* Public functions declared in this file */
 
@@ -96,7 +95,6 @@ __INT0Interrupt:
 
         ;; Save current context
 
-        push    _SPLIM
         push    _SR
         push    W14
         push.d  W12
@@ -110,40 +108,55 @@ __INT0Interrupt:
         push    _TBLPAG
         push    _CORCON
         push    _PSVPAG
+        push    _SPLIM
 
-        mov     _SR,            W2                      ; save SR state and disable system interrupts
-        bset    _SR,            #5
+        /* store sp in preemted task's TCB */
+
+        mov     #_tn_curr_run_task,      W0             ; move current task stack pointer to W0
+        mov     [W0],         W0
+        mov     W15,          [W0]
+
+        /* save SR in W2 */
+        mov     _SR,   W2
+
+        /* set SPLIM to max: effectively, turn stack pointer limit off */
+
+        mov    #0xffff, W0
+        mov    W0,   _SPLIM
+
+        /* disable interrupts */
+        mov   _SR,     W0
+        xor   #0xE0,   W0
+        xor   _SR
+
+        /* tn_curr_run_task = tn_next_task_to_run */
+
+        mov     #_tn_next_task_to_run,  W1    ; W1 = &tn_next_task_to_run
+        mov     [W1],           W1            ; W1 = tn_next_task_to_run
+        mov     #_tn_curr_run_task,     W0    ; W0 = &tn_curr_run_task
+
+        mov     W1,             [W0]          ; tn_curr_run_task = tn_next_task_to_run
 
 
-        mov     #0xFFFF,        W0                      ; Prevent stack error exeption if any non OS interrupt will be
-        mov     W0,             _SPLIM
+        /* Set new stack pointer (from newly activated task) */
+
+        mov     [W1],           W15           ; SP = *tn_next_task_to_run
+
+
+        /* clear INT0 pending bit */
 
         mov #_IFS0, W0
         bclr  [W0], #0  ; IFS0bits.INT0IF = 0
 
-        ; next task
+        /* restore SR from W2 (and therefore enable interrupts) */
 
-        mov     #_tn_curr_run_task,      W0             ; move current task stack pointer to W0
-        mov     #_tn_next_task_to_run,   W1             ; move next task stack pointer to W1
-        mov     [W1],           W1
-        mov     [W0],           W0
-        cp0     W1
-        bra     Z,              __tn_sw_restore         ; restore old context, if there is no next task
-        cp      W1,             W0
-        bra     Z,              __tn_sw_restore         ; restore old context, if next task is current task
-
-        mov     W15,            [W0]                    ; exchange stack pointer
-        mov     [W1],           W15
-
-        mov     #_tn_curr_run_task,      W0
-        mov     W1,             [W0]
-
-        mov     W2,             _SR                     ; restore SR state and enable system interrupts
+        mov     W2,             _SR
 
 __tn_sw_restore:
 
         ; Restore context on stack pointer
 
+        pop     _SPLIM
         pop     _PSVPAG
         pop     _CORCON
         pop     _TBLPAG
@@ -157,7 +170,6 @@ __tn_sw_restore:
         pop.d   W12
         pop     W14
         pop     _SR
-        pop     _SPLIM
 
         retfie
 
@@ -168,9 +180,15 @@ __tn_sw_restore:
 _tn_arch_sr_save_int_dis:
 
    push    _SR
-   mov     _SR,   W0
-   ior     #0xE0, W0
-   mov     W0,    _SR
+
+   ;mov     _SR,   W0
+   ;ior     #0xE0, W0
+   ;mov     W0,    _SR
+
+   mov   _SR,     W0
+   xor   #0xE0,   W0
+   xor   _SR
+
    pop     W0
 
    return
