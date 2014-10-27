@@ -12,6 +12,16 @@
    * [ ] probably move _tn_memcpy_uword() to something like `tn_util.c`
 
 
+=== PIC24/dsPIC port ===
+
+   * [ ] SPLIM
+   * [ ] tn_arch_sr_restore: restore only IPL field
+   * [ ] tn_arch_inside_isr: optimize
+   * [ ] TN_IS_INT_DISABLED() : implement
+   * [ ] tn_arch_int_en: implement (or remove?)
+   * [ ] handle IFS1 atomically (__tn_arch_context_switch_pend, __INT1Interrupt)
+   * [ ] ISR macro (with separate stack for ISRs)
+
 === exchange methods ===
 
    * tn_exch_create

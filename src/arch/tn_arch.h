@@ -58,6 +58,8 @@
 
 #if defined(__PIC32MX__)
 #include "pic32/tn_arch_pic32.h"
+#elif defined(__C30__)
+#include "pic24_dspic/tn_arch_pic24.h"
 #else
 #error "unknown platform"
 #endif

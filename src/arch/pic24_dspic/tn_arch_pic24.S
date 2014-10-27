@@ -1,0 +1,209 @@
+/*******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
+ *    as well as new features being added, and it is tested carefully with
+ *    unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
+
+    .text
+
+    /* External references */
+
+    .extern  tn_curr_run_task
+    .extern  tn_next_task_to_run
+    .extern  IFS1
+    .extern  __tn_sw_restore
+
+    /* Public functions declared in this file */
+
+    .global  __tn_arch_context_switch_now_nosave
+    .global  __tn_arch_context_switch_pend
+    .global  __tn_arch_inside_isr
+    .global  _tn_arch_sr_save_int_dis
+    .global  _tn_arch_sr_restore
+    .global  __INT1Interrupt
+
+/*----------------------------------------------------------------------------
+* Interrupts should be disabled here
+*----------------------------------------------------------------------------*/
+
+__tn_arch_context_switch_now_nosave:
+
+    /* get new task's sp */
+
+   mov     #_tn_next_task_to_run,  W1    ; W1 = &tn_next_task_to_run
+   mov     [W1],           W1            ; W1 = tn_next_task_to_run
+   mov     #_tn_curr_run_task,     W0    ; W0 = &tn_curr_run_task
+
+   mov     W1,             [W0]          ; tn_curr_run_task = tn_next_task_to_run
+
+   mov     [W1],           W15           ; SP = *tn_next_task_to_run
+
+   bra     __tn_sw_restore
+
+
+/*----------------------------------------------------------------------------
+*
+*----------------------------------------------------------------------------*/
+
+__tn_arch_context_switch_pend:
+
+   push W0
+   mov #_IFS1, W0
+   ; TODO: atomically!!!
+   bset  [W0], #4  ; IFS1bits.INT1IF = 1
+   pop W0
+
+   return
+
+
+/*----------------------------------------------------------------------------
+*
+*----------------------------------------------------------------------------*/
+
+__INT1Interrupt:
+
+        ;; Save current context
+
+        push    _SPLIM
+        push    _SR
+        push    W14
+        push.d  W12
+        push.d  W10
+        push.d  W8
+        push.d  W6
+        push.d  W4
+        push.d  W2
+        push.d  W0
+        push    _RCOUNT
+        push    _TBLPAG
+        push    _CORCON
+        push    _PSVPAG
+
+        mov     _SR,            W2                      ; save SR state and disable system interrupts
+        bset    _SR,            #5
+
+
+        mov     #0xFFFF,        W0                      ; Prevent stack error exeption if any non OS interrupt will be
+        mov     W0,             _SPLIM
+
+        mov #_IFS1, W0
+        ; TODO: atomically!!!
+        bclr  [W0], #4  ; IFS1bits.INT1IF = 0
+
+        ; next task
+
+        mov     #_tn_curr_run_task,      W0             ; move current task stack pointer to W0
+        mov     #_tn_next_task_to_run,   W1             ; move next task stack pointer to W1
+        mov     [W1],           W1
+        mov     [W0],           W0
+        cp0     W1
+        bra     Z,              __tn_sw_restore         ; restore old context, if there is no next task
+        cp      W1,             W0
+        bra     Z,              __tn_sw_restore         ; restore old context, if next task is current task
+
+        mov     W15,            [W0]                    ; exchange stack pointer
+        mov     [W1],           W15
+
+        mov     #_tn_curr_run_task,      W0
+        mov     W1,             [W0]
+
+        mov     W2,             _SR                     ; restore SR state and enable system interrupts
+
+__tn_sw_restore:
+
+        ; Restore context on stack pointer
+
+        pop     _PSVPAG
+        pop     _CORCON
+        pop     _TBLPAG
+        pop     _RCOUNT
+        pop.d   W0
+        pop.d   W2
+        pop.d   W4
+        pop.d   W6
+        pop.d   W8
+        pop.d   W10
+        pop.d   W12
+        pop     W14
+        pop     _SR
+        pop     _SPLIM
+
+        retfie
+
+/*----------------------------------------------------------------------------
+*
+*----------------------------------------------------------------------------*/
+
+_tn_arch_sr_save_int_dis:
+
+   push    _SR
+   mov     _SR    W0
+   ior     #0xE0, W0
+   mov     W0     _SR
+   pop     W0
+
+   return
+
+
+/*----------------------------------------------------------------------------
+*
+*----------------------------------------------------------------------------*/
+
+_tn_arch_sr_restore:
+
+   //TODO: restore only IPL field
+   mov     W0,    _SR,
+
+   return
+
+/*----------------------------------------------------------------------------
+*
+*----------------------------------------------------------------------------*/
+
+__tn_arch_inside_isr:
+   /* TODO: optimize */
+   mov #0,  W0
+
+   btsc _SR,   #5
+   mov #1, W0
+   btsc _SR,   #6
+   mov #1, W0
+   btsc _SR,   #7
+   mov #1, W0
+
+   return
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
