@@ -82,7 +82,7 @@ struct TN_ExchLinkQueue {
    struct TN_DQueue *queue;
    ///
    /// A pointer to fixed-memory pool to get memory from.
-   /// Note: if data size is <= `sizeof(#TN_UWord)`, `fmem` might be `NULL`.
+   /// Note: if data size is <= `sizeof(#TN_UWord)`, `fmem` might be `TN_NULL`.
    struct TN_FMem *fmem;
 };
 

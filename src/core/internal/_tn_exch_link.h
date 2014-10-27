@@ -102,7 +102,7 @@ enum TN_RCode _tn_exch_link_delete(
  * Checks whether given exchange link object is valid 
  * (actually, just checks against `id_exch_link` field, see `enum #TN_ObjId`)
  */
-static inline BOOL _tn_exch_link_is_valid(
+static inline TN_BOOL _tn_exch_link_is_valid(
       struct TN_ExchLink   *exch_link
       )
 {

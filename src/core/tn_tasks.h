@@ -344,7 +344,7 @@ struct TN_Task {
  *          MY_TASK_PRIORITY,
  *          my_task_stack,
  *          MY_TASK_STACK_SIZE,
- *          NULL,                     //-- parameter isn't used
+ *          TN_NULL,                     //-- parameter isn't used
  *          TN_TASK_CREATE_OPT_START  //-- start task on creation
  *          );
  *

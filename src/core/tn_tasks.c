@@ -75,7 +75,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (task == NULL){
+   if (task == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_task_is_valid(task)){
       rc = TN_RC_INVALID_OBJ;
@@ -117,7 +117,7 @@ static inline void _init_deadlock_list(struct TN_Task *task)
  * Looks for first runnable task with highest priority,
  * set tn_next_task_to_run to it.
  *
- * @return TRUE if tn_next_task_to_run was changed, FALSE otherwise.
+ * @return `TN_TRUE` if tn_next_task_to_run was changed, `TN_FALSE` otherwise.
  */
 static void _find_next_task_to_run(void)
 {
@@ -256,12 +256,12 @@ static inline enum TN_RCode _task_job_iperform(
 }
 
 /**
- * Returns TRUE if there are no more items in the runqueue for given priority,
- *         FALSE otherwise.
+ * Returns TN_TRUE if there are no more items in the runqueue for given priority,
+ *         TN_FALSE otherwise.
  */
-static inline BOOL _remove_entry_from_ready_queue(struct TN_ListItem *list_node, int priority)
+static inline TN_BOOL _remove_entry_from_ready_queue(struct TN_ListItem *list_node, int priority)
 {
-   BOOL ret;
+   TN_BOOL ret;
 
    //-- remove given list_node from the queue
    _tn_list_remove_entry(list_node);
@@ -390,9 +390,9 @@ enum TN_RCode tn_task_create(
    if (0
          || (priority < 0 || priority > (TN_PRIORITIES_CNT - 1))
          || task_stack_size < TN_MIN_STACK_SIZE
-         || task_func == NULL
-         || task == NULL
-         || task_stack_low_addr == NULL
+         || task_func == TN_NULL
+         || task == TN_NULL
+         || task_stack_low_addr == TN_NULL
          || _tn_task_is_valid(task)
       )
    {
@@ -429,7 +429,7 @@ enum TN_RCode tn_task_create(
    task->task_wait_reason = TN_WAIT_REASON_NONE;
    task->task_wait_rc = TN_RC_OK;
 
-   task->pwait_queue  = NULL;
+   task->pwait_queue  = TN_NULL;
 
    //-- fill all task stack space by #TN_FILL_STACK_VAL
    {
@@ -562,7 +562,7 @@ enum TN_RCode tn_task_sleep(TN_Timeout timeout)
 
       TN_INT_DIS_SAVE();
 
-      _tn_task_curr_to_wait_action(NULL, TN_WAIT_REASON_SLEEP, timeout);
+      _tn_task_curr_to_wait_action(TN_NULL, TN_WAIT_REASON_SLEEP, timeout);
 
       TN_INT_RESTORE();
       _tn_context_switch_pend_if_needed();
@@ -806,7 +806,7 @@ void _tn_task_set_runnable(struct TN_Task * task)
    }
 #endif
 
-   //BOOL ret = FALSE;
+   //TN_BOOL ret = TN_FALSE;
    int priority;
 
    priority          = task->priority;
@@ -818,7 +818,7 @@ void _tn_task_set_runnable(struct TN_Task * task)
    //-- less value - greater priority, so '<' operation is used here
    if (priority < tn_next_task_to_run->priority){
       tn_next_task_to_run = task;
-      //ret = TRUE;
+      //ret = TN_TRUE;
    }
 
    //return ret;
@@ -841,7 +841,7 @@ void _tn_task_clear_runnable(struct TN_Task *task)
    }
 #endif
 
-   //BOOL ret = FALSE;
+   //TN_BOOL ret = TN_FALSE;
 
    int priority;
    priority = task->priority;
@@ -865,7 +865,7 @@ void _tn_task_clear_runnable(struct TN_Task *task)
          //   so we should select new next task to run
          tn_next_task_to_run = _tn_get_task_by_tsk_queue(tn_ready_list[priority].next);
 
-         //-- tn_next_task_to_run was just altered, so, we should return TRUE
+         //-- tn_next_task_to_run was just altered, so, we should return TN_TRUE
       }
    }
 
@@ -897,11 +897,11 @@ void _tn_task_set_waiting(
    task->task_wait_reason = wait_reason;
    //task->tick_count       = timeout;
 
-   task->waited           = TRUE;
+   task->waited           = TN_TRUE;
 
    //--- Add to the wait queue  - FIFO
 
-   if (wait_que != NULL){
+   if (wait_que != TN_NULL){
       _tn_list_add_tail(wait_que, &(task->task_queue));
       task->pwait_queue = wait_que;
    } else {
@@ -929,7 +929,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
       _TN_FATAL_ERROR("");
    }
 
-   if (_tn_list_is_empty(&task->task_queue) != (task->pwait_queue == NULL)){
+   if (_tn_list_is_empty(&task->task_queue) != (task->pwait_queue == TN_NULL)){
       _TN_FATAL_ERROR("task_queue and pwait_queue are out of sync");
    }
 
@@ -951,7 +951,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc)
    //   handle priorities of other involved tasks.
    _on_task_wait_complete(task);
 
-   task->pwait_queue  = NULL;
+   task->pwait_queue  = TN_NULL;
    task->task_wait_rc = wait_rc;
 
    //-- if timer is active (i.e. task waits for timeout),
@@ -1054,7 +1054,7 @@ enum TN_RCode _tn_task_activate(struct TN_Task *task)
 /**
  * See comment in the _tn_tasks.h file
  */
-BOOL _tn_task_first_wait_complete(
+TN_BOOL _tn_task_first_wait_complete(
       struct TN_ListItem           *wait_queue,
       enum TN_RCode                 wait_rc,
       _TN_CBBeforeTaskWaitComplete *callback,
@@ -1062,7 +1062,7 @@ BOOL _tn_task_first_wait_complete(
       void                         *user_data_2
       )
 {
-   BOOL ret = FALSE;
+   TN_BOOL ret = TN_FALSE;
 
    if (!(_tn_list_is_empty(wait_queue))){
       struct TN_Task *task;
@@ -1072,7 +1072,7 @@ BOOL _tn_task_first_wait_complete(
       task = _tn_list_first_entry(wait_queue, typeof(*task), task_queue);
 
       //-- call provided callback (if any)
-      if (callback != NULL){
+      if (callback != TN_NULL){
          callback(task, user_data_1, user_data_2);
       }
 
@@ -1080,7 +1080,7 @@ BOOL _tn_task_first_wait_complete(
       _tn_task_wait_complete(task, wait_rc);
 
       //-- indicate that some task has been woken up
-      ret = TRUE;
+      ret = TN_TRUE;
    }
 
    return ret;
@@ -1139,14 +1139,14 @@ void _tn_task_set_last_rc_if_error(enum TN_RCode rc)
 /**
  * See comment in the _tn_tasks.h file
  */
-BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
+TN_BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex)
 {
-   BOOL ret = FALSE;
+   TN_BOOL ret = TN_FALSE;
 
    struct TN_Mutex *tmp_mutex;
    _tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
       if (tmp_mutex == mutex){
-         ret = TRUE;
+         ret = TN_TRUE;
          break;
       }
    }

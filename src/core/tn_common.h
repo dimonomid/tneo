@@ -215,23 +215,23 @@ typedef unsigned long TN_Timeout;
 
 
 /// NULL pointer definition
-#ifndef NULL
-#  define NULL       ((void *)0)
+#ifndef TN_NULL
+#  define TN_NULL       ((void *)0)
 #endif
 
 /// boolean type definition
-#ifndef BOOL
-#  define BOOL       int
+#ifndef TN_BOOL
+#  define TN_BOOL       int
 #endif
 
-/// `true` value definition for type `#BOOL`
-#ifndef TRUE
-#  define TRUE       (1 == 1)
+/// `true` value definition for type `#TN_BOOL`
+#ifndef TN_TRUE
+#  define TN_TRUE       (1 == 1)
 #endif
 
-/// `false` value definition for type `#BOOL`
-#ifndef FALSE
-#  define FALSE      (1 == 0)
+/// `false` value definition for type `#TN_BOOL`
+#ifndef TN_FALSE
+#  define TN_FALSE      (1 == 0)
 #endif
 
 /**

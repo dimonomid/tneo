@@ -270,13 +270,13 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  * @param p_flags_pattern
  *    Pointer to the `TN_UWord` variable in which actual event pattern
  *    that caused task to stop waiting will be stored.
- *    May be `NULL`.
+ *    May be `TN_NULL`.
  * @param timeout
  *    refer to `#TN_Timeout`
  *
  * @return
  *    * `#TN_RC_OK` if specified event is active (so the task can check 
- *      variable pointed to by `p_flags_pattern` if it wasn't `NULL`).
+ *      variable pointed to by `p_flags_pattern` if it wasn't `TN_NULL`).
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `#TN_Timeout`

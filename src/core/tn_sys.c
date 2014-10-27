@@ -103,13 +103,13 @@ static void _idle_task_body(void * par);
 /**
  * Pointer to user idle loop function
  */
-TN_CBIdle        *tn_callback_idle_hook = NULL;
+TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
 
 /**
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
  */
-TN_CBDeadlock    *tn_callback_deadlock = NULL;
+TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 
 
 
@@ -181,7 +181,7 @@ static inline enum TN_RCode _idle_task_create(
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
-         NULL,                            //-- task function parameter
+         TN_NULL,                            //-- task function parameter
          (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
          );
 }
@@ -233,8 +233,8 @@ void tn_sys_start(
    tn_int_nest_count = 0;
 
    //-- reset pointers to currently running task and next task to run
-   tn_next_task_to_run = NULL;
-   tn_curr_run_task    = NULL;
+   tn_next_task_to_run = TN_NULL;
+   tn_curr_run_task    = TN_NULL;
 
    //-- remember user-provided callbacks
    tn_callback_idle_hook = cb_idle;
@@ -466,7 +466,7 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 /**
  * See comments in the file _tn_sys.h
  */
-void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
+void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 {
    if (active){
       if (tn_deadlocks_cnt == 0){
@@ -482,7 +482,7 @@ void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
       }
    }
 
-   if (tn_callback_deadlock != NULL){
+   if (tn_callback_deadlock != TN_NULL){
       tn_callback_deadlock(active, mutex, task);
    }
 

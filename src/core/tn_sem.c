@@ -69,7 +69,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem == NULL){
+   if (sem == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_sem_is_valid(sem)){
       rc = TN_RC_INVALID_OBJ;
@@ -89,7 +89,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem == NULL){
+   if (sem == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (0
          || _tn_sem_is_valid(sem)
@@ -125,7 +125,7 @@ static inline enum TN_RCode _sem_job_perform(
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
-   BOOL waited_for_sem = FALSE;
+   TN_BOOL waited_for_sem = TN_FALSE;
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
@@ -144,11 +144,11 @@ static inline enum TN_RCode _sem_job_perform(
                );
 
          //-- rc will be set later thanks to waited_for_sem
-         waited_for_sem = TRUE;
+         waited_for_sem = TN_TRUE;
       }
 
 #if TN_DEBUG
-      //-- if we're going to wait, _tn_need_context_switch() must return TRUE
+      //-- if we're going to wait, _tn_need_context_switch() must return TN_TRUE
       if (!_tn_need_context_switch() && waited_for_sem){
          _TN_FATAL_ERROR("");
       }
@@ -201,7 +201,7 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    //-- wake up first (if any) task from the semaphore wait queue
    if (  !_tn_task_first_wait_complete(
             &sem->wait_queue, TN_RC_OK,
-            NULL, NULL, NULL
+            TN_NULL, TN_NULL, TN_NULL
             )
       )
    {

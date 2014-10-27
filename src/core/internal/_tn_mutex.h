@@ -110,7 +110,7 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  * Checks whether given mutex object is valid 
  * (actually, just checks against `id_mutex` field, see `enum #TN_ObjId`)
  */
-static inline BOOL _tn_mutex_is_valid(
+static inline TN_BOOL _tn_mutex_is_valid(
       struct TN_Mutex   *mutex
       )
 {

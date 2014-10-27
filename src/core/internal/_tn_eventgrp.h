@@ -115,13 +115,13 @@ enum TN_RCode _tn_eventgrp_link_reset(
  *    for example, #TN_DQueue.
  *
  * @param set
- *    - if `TRUE`, flag(s) are being set;
- *    - if `FALSE`, flag(s) are being cleared.
+ *    - if `TN_TRUE`, flag(s) are being set;
+ *    - if `TN_FALSE`, flag(s) are being cleared.
  *
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
-      BOOL                 set
+      TN_BOOL                 set
       );
 
 
@@ -134,7 +134,7 @@ enum TN_RCode _tn_eventgrp_link_manage(
  * Checks whether given event group object is valid 
  * (actually, just checks against `id_event` field, see `enum #TN_ObjId`)
  */
-static inline BOOL _tn_eventgrp_is_valid(
+static inline TN_BOOL _tn_eventgrp_is_valid(
       struct TN_EventGrp   *eventgrp
       )
 {

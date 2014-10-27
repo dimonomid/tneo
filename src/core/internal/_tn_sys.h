@@ -181,7 +181,7 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
  *    by means of `task->deadlock_list`.
  *    
  */
-void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
+void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
 #endif
 
 /**
@@ -213,9 +213,9 @@ void _tn_memcpy_uword(
  * Checks whether context switch is needed (that is, if currently running task 
  * is not the highest-priority task in the $(TN_TASK_STATE_RUNNABLE) state)
  *
- * @return `#TRUE` if context switch is needed
+ * @return `#TN_TRUE` if context switch is needed
  */
-static inline BOOL _tn_need_context_switch(void)
+static inline TN_BOOL _tn_need_context_switch(void)
 {
    return (tn_curr_run_task != tn_next_task_to_run);
 }

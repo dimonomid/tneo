@@ -84,7 +84,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch == NULL){
+   if (exch == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_exch_is_valid(exch)){
       rc = TN_RC_INVALID_OBJ;
@@ -99,7 +99,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch == NULL){
+   if (exch == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (_tn_exch_is_valid(exch)){
       rc = TN_RC_WPARAM;
@@ -151,9 +151,9 @@ enum TN_RCode tn_exch_create(
       goto out;
    }
 
-   //-- basic check: data should not be NULL,
+   //-- basic check: data should not be TN_NULL,
    //   and size should not be 0
-   if (data == NULL || size == 0){
+   if (data == TN_NULL || size == 0){
       rc = TN_RC_WPARAM;
       goto out;
    }

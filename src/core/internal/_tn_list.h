@@ -124,10 +124,10 @@ extern "C"  {     /*}*/
  * @type:	the type of the struct this is embedded in.
  * @member:	the name of the TN_ListItem member within the struct.
  *
- * Note that if the list is empty, it returns NULL.
+ * Note that if the list is empty, it returns TN_NULL.
  */
 #define _tn_list_first_entry_or_null(ptr, type, member)                   \
-   (!_tn_list_empty(ptr) ? _tn_list_first_entry(ptr, type, member) : NULL)
+   (!_tn_list_empty(ptr) ? _tn_list_first_entry(ptr, type, member) : TN_NULL)
 
 /**
  * _tn_list_next_entry - get the next element in list
@@ -356,7 +356,7 @@ void _tn_list_reset(struct TN_ListItem *list);
 /**
  * Checks whether the list is empty.
  */
-BOOL _tn_list_is_empty(struct TN_ListItem *list);
+TN_BOOL _tn_list_is_empty(struct TN_ListItem *list);
 
 /**
  * Insert an entry at the beginning of the list.
@@ -419,7 +419,7 @@ void _tn_list_remove_entry(struct TN_ListItem *entry);
  * @param entry
  *    Item to check.
  */
-BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
+TN_BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry);
 
 #ifdef __cplusplus
 }  /* extern "C" */

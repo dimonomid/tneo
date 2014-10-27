@@ -50,7 +50,7 @@ void _tn_list_reset(struct TN_ListItem *list)
 /*
  * See comments in the header file tn_list.h
  */
-BOOL _tn_list_is_empty(struct TN_ListItem *list)
+TN_BOOL _tn_list_is_empty(struct TN_ListItem *list)
 {
    return (list->next == list && list->prev == list);
 }
@@ -88,14 +88,14 @@ struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the head of the queue.
 
-   struct TN_ListItem *entry = NULL;
+   struct TN_ListItem *entry = TN_NULL;
 
-   if (list != NULL && list->next != list){
+   if (list != TN_NULL && list->next != list){
       entry             = list->next;
       entry->next->prev = list;
       list->next        = entry->next;
    } else {
-      //-- NULL will be returned
+      //-- TN_NULL will be returned
    }
 
    return entry;
@@ -142,14 +142,14 @@ void _tn_list_remove_entry(struct TN_ListItem *entry)
 /*
  * See comments in the header file tn_list.h
  */
-BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
+TN_BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
-   BOOL ret = FALSE;
+   TN_BOOL ret = TN_FALSE;
    struct TN_ListItem *item;
 
    _tn_list_for_each(item, list){
       if (item == list){
-         ret = TRUE;
+         ret = TN_TRUE;
          break;
       }
    }

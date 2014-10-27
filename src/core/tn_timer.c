@@ -107,7 +107,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (timer == NULL){
+   if (timer == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_timer_is_valid(timer)){
       rc = TN_RC_INVALID_OBJ;
@@ -123,7 +123,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (timer == NULL){
+   if (timer == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (_tn_timer_is_valid(timer)){
       rc = TN_RC_WPARAM;
@@ -243,7 +243,7 @@ enum TN_RCode tn_timer_set_func(
 /*
  * See comments in the header file (tn_timer.h)
  */
-enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active)
+enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active)
 {
    int sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
@@ -510,7 +510,7 @@ enum TN_RCode _tn_timer_set_func(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (func == NULL){
+   if (func == TN_NULL){
       rc = TN_RC_WPARAM;
    } else {
       timer->func          = func;
@@ -523,7 +523,7 @@ enum TN_RCode _tn_timer_set_func(
 /**
  * See comments in the _tn_timer.h file.
  */
-BOOL _tn_timer_is_active(struct TN_Timer *timer)
+TN_BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
 #if TN_DEBUG
    //-- interrupts should be disabled here

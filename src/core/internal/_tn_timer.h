@@ -126,7 +126,7 @@ enum TN_RCode _tn_timer_set_func(
  * Actual worker function that is called by `#tn_timer_is_active()`.
  * Interrupts should be disabled when calling it.
  */
-BOOL _tn_timer_is_active(struct TN_Timer *timer);
+TN_BOOL _tn_timer_is_active(struct TN_Timer *timer);
 
 /**
  * Actual worker function that is called by `#tn_timer_time_left()`.
@@ -146,7 +146,7 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
  * Checks whether given timer object is valid 
  * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
  */
-static inline BOOL _tn_timer_is_valid(
+static inline TN_BOOL _tn_timer_is_valid(
       struct TN_Timer   *timer
       )
 {

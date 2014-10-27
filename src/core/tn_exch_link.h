@@ -104,7 +104,7 @@ struct TN_ExchLink {
    struct TN_ListItem links_list_item;
    ///
    /// Pointer to `#TN_Exch` object to which this link is added.
-   /// If not added to any exchange object, it is `NULL`.
+   /// If not added to any exchange object, it is `TN_NULL`.
    struct TN_Exch *exch;
    ///
    /// Pointer to the virtual methods table

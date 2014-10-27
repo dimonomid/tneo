@@ -195,7 +195,7 @@ typedef void (TN_CBIdle)(void);
  *    by means of `task->deadlock_list`.
  */
 typedef void (TN_CBDeadlock)(
-      BOOL active,
+      TN_BOOL active,
       struct TN_Mutex *mutex,
       struct TN_Task *task
       );
@@ -367,13 +367,13 @@ enum TN_Context tn_sys_context_get(void);
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `#TN_CONTEXT_TASK`,
- *         `FALSE` otherwise.
+ * @return `TN_TRUE` if current system context is `#TN_CONTEXT_TASK`,
+ *         `TN_FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline BOOL tn_is_task_context(void)
+static inline TN_BOOL tn_is_task_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_TASK);
 }
@@ -386,13 +386,13 @@ static inline BOOL tn_is_task_context(void)
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `#TN_CONTEXT_ISR`,
- *         `FALSE` otherwise.
+ * @return `TN_TRUE` if current system context is `#TN_CONTEXT_ISR`,
+ *         `TN_FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline BOOL tn_is_isr_context(void)
+static inline TN_BOOL tn_is_isr_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_ISR);
 }

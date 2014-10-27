@@ -109,7 +109,7 @@ void _tn_task_clear_runnable(struct TN_Task *task);
 /**
  * Returns whether given task is in $(TN_TASK_STATE_RUNNABLE) state.
  */
-static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
+static inline TN_BOOL _tn_task_is_runnable(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
 }
@@ -126,7 +126,7 @@ static inline BOOL _tn_task_is_runnable(struct TN_Task *task)
  *    Task to bring to the $(TN_TASK_STATE_WAIT) state
  *
  * @param wait_que
- *    Wait queue to put task in, may be `#NULL`. If not `#NULL`, task is
+ *    Wait queue to put task in, may be `#TN_NULL`. If not `#TN_NULL`, task is
  *    included in that list by `task_queue` member of `struct #TN_Task`.
  *
  * @param wait_reason
@@ -160,7 +160,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc);
  * Returns whether given task is in $(TN_TASK_STATE_WAIT) state. 
  * Note that this state could be combined with $(TN_TASK_STATE_SUSPEND) state.
  */
-static inline BOOL _tn_task_is_waiting(struct TN_Task *task)
+static inline TN_BOOL _tn_task_is_waiting(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_WAIT);
 }
@@ -192,7 +192,7 @@ void _tn_task_clear_suspended(struct TN_Task *task);
  * Returns whether given task is in $(TN_TASK_STATE_SUSPEND) state. 
  * Note that this state could be combined with $(TN_TASK_STATE_WAIT) state.
  */
-static inline BOOL _tn_task_is_suspended(struct TN_Task *task)
+static inline TN_BOOL _tn_task_is_suspended(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_SUSPEND);
 }
@@ -222,7 +222,7 @@ void _tn_task_clear_dormant(struct TN_Task *task);
 /**
  * Returns whether given task is in $(TN_TASK_STATE_DORMANT) state.
  */
-static inline BOOL _tn_task_is_dormant(struct TN_Task *task)
+static inline TN_BOOL _tn_task_is_dormant(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_DORMANT);
 }
@@ -328,9 +328,9 @@ void _tn_task_set_last_rc_if_error(enum TN_RCode rc);
 /**
  * Check if mutex is locked by task.
  *
- * @return TRUE if mutex is locked, FALSE otherwise.
+ * @return TN_TRUE if mutex is locked, TN_FALSE otherwise.
  */
-BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
+TN_BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
 #endif
 
 /**
@@ -346,7 +346,7 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  *
  * @param callback
  *    Callback function to call before wake task up, see 
- *    `#_TN_CBBeforeTaskWaitComplete`. Can be `NULL`.
+ *    `#_TN_CBBeforeTaskWaitComplete`. Can be `TN_NULL`.
  *
  * @param user_data_1
  *    Arbitrary data that is passed to the callback
@@ -356,10 +356,10 @@ BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex);
  *
  *
  * @return
- *    - `TRUE` if queue is not empty and task has woken up
- *    - `FALSE` if queue is empty, so, no task to wake up
+ *    - `TN_TRUE` if queue is not empty and task has woken up
+ *    - `TN_FALSE` if queue is empty, so, no task to wake up
  */
-BOOL _tn_task_first_wait_complete(
+TN_BOOL _tn_task_first_wait_complete(
       struct TN_ListItem           *wait_queue,
       enum TN_RCode                 wait_rc,
       _TN_CBBeforeTaskWaitComplete *callback,
@@ -378,7 +378,7 @@ BOOL _tn_task_first_wait_complete(
  * Checks whether given task object is valid 
  * (actually, just checks against `id_task` field, see `enum #TN_ObjId`)
  */
-static inline BOOL _tn_task_is_valid(
+static inline TN_BOOL _tn_task_is_valid(
       struct TN_Task   *task
       )
 {

@@ -115,7 +115,7 @@ struct TN_ExchLinkQueue {
    /// allocated for the message.
    ///
    /// NOTE: if the size of exchange item is <= `sizeof(void *)`,
-   /// fixed memory pool might be not used (`NULL`): then, data
+   /// fixed memory pool might be not used (`TN_NULL`): then, data
    /// will be passed by the queue only.
    ///
    /// If fixed memory pool is used, its size should match the size of

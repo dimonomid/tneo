@@ -109,7 +109,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch_link_queue == NULL){
+   if (exch_link_queue == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_dqueue_is_valid(queue)){
       rc = TN_RC_WPARAM;
@@ -133,7 +133,7 @@ static enum TN_RCode _notify(struct TN_ExchLink *exch_link)
    struct TN_ExchLinkQueue *exch_link_queue = 
       _tn_get_exch_link_queue_by_exch_link(exch_link);
 
-   void *p_msg = NULL;
+   void *p_msg = TN_NULL;
 
    rc = tn_is_task_context()
       ? tn_fmem_get(exch_link_queue->fmem, &p_msg, TN_WAIT_INFINITE)

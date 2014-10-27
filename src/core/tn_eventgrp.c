@@ -71,7 +71,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (eventgrp == NULL){
+   if (eventgrp == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_eventgrp_is_valid(eventgrp)){
       rc = TN_RC_INVALID_OBJ;
@@ -100,7 +100,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (eventgrp == NULL || _tn_eventgrp_is_valid(eventgrp)){
+   if (eventgrp == TN_NULL || _tn_eventgrp_is_valid(eventgrp)){
       rc = TN_RC_WPARAM;
    }
 
@@ -115,7 +115,7 @@ static inline enum TN_RCode _check_param_create(
 // }}}
 
 
-static BOOL _cond_check(
+static TN_BOOL _cond_check(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpWaitMode wait_mode,
       TN_UWord             wait_pattern
@@ -124,7 +124,7 @@ static BOOL _cond_check(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   BOOL cond = FALSE;
+   TN_BOOL cond = TN_FALSE;
 
    switch (wait_mode){
       case TN_EVENTGRP_WMODE_OR:
@@ -210,7 +210,7 @@ static enum TN_RCode _eventgrp_wait(
       //-- Check release condition
 
       if (_cond_check(eventgrp, wait_mode, wait_pattern)){
-         if (p_flags_pattern != NULL){
+         if (p_flags_pattern != TN_NULL){
             *p_flags_pattern = eventgrp->pattern;
          }
          _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
@@ -328,7 +328,7 @@ enum TN_RCode tn_eventgrp_wait(
       TN_Timeout           timeout
       )
 {
-   BOOL waited_for_event = FALSE;
+   TN_BOOL waited_for_event = TN_FALSE;
    enum TN_RCode rc = _check_param_generic(eventgrp);
 
    if (rc != TN_RC_OK){
@@ -350,7 +350,7 @@ enum TN_RCode tn_eventgrp_wait(
                TN_WAIT_REASON_EVENT,
                timeout
                );
-         waited_for_event = TRUE;
+         waited_for_event = TN_TRUE;
       }
 
 #if TN_DEBUG
@@ -367,7 +367,7 @@ enum TN_RCode tn_eventgrp_wait(
 
          //-- if wait result is TN_RC_OK, and p_flags_pattern is provided,
          //   copy actual_pattern there
-         if (rc == TN_RC_OK && p_flags_pattern != NULL ){
+         if (rc == TN_RC_OK && p_flags_pattern != TN_NULL ){
             *p_flags_pattern = 
                tn_curr_run_task->subsys_wait.eventgrp.actual_pattern;
          }
@@ -537,7 +537,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   eventgrp_link->eventgrp = NULL;
+   eventgrp_link->eventgrp = TN_NULL;
    eventgrp_link->pattern  = (0);
 
    return rc;
@@ -549,7 +549,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
-      BOOL                 set
+      TN_BOOL                 set
       )
 {
    //-- interrupts should be disabled here
@@ -557,7 +557,7 @@ enum TN_RCode _tn_eventgrp_link_manage(
 
    enum TN_RCode rc = TN_RC_OK;
 
-   if (eventgrp_link->eventgrp != NULL){
+   if (eventgrp_link->eventgrp != TN_NULL){
       _eventgrp_modify(
             eventgrp_link->eventgrp,
             (set ? TN_EVENTGRP_OP_SET : TN_EVENTGRP_OP_CLEAR),

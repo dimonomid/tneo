@@ -77,7 +77,7 @@ static const struct TN_ExchLink_VTable _vtable = {
    .notify     = _notify_error,
    .dtor       = _dtor,
 };
-//static BOOL _vtable_initialized = FALSE;
+//static TN_BOOL _vtable_initialized = TN_FALSE;
 
 
 
@@ -102,7 +102,7 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch_link == NULL){
+   if (exch_link == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (!_tn_exch_link_is_valid(exch_link)){
       rc = TN_RC_INVALID_OBJ;
@@ -117,7 +117,7 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (exch_link == NULL){
+   if (exch_link == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (_tn_exch_link_is_valid(exch_link)){
       rc = TN_RC_WPARAM;
@@ -152,7 +152,7 @@ static void _vtable_init()
       _vtable.notify    = _notify_error;
       _vtable.dtor      = _dtor;
 
-      _vtable_initialized = TRUE;
+      _vtable_initialized = TN_TRUE;
    }
 }
 #endif
