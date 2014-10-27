@@ -48,6 +48,7 @@
     .global  __tn_arch_context_switch_now_nosave
     .global  __tn_arch_context_switch_pend
     .global  __tn_arch_inside_isr
+    .global  __tn_arch_is_int_disabled
     .global  _tn_arch_sr_save_int_dis
     .global  _tn_arch_sr_restore
     .global  __INT1Interrupt
@@ -167,9 +168,9 @@ __tn_sw_restore:
 _tn_arch_sr_save_int_dis:
 
    push    _SR
-   mov     _SR    W0
+   mov     _SR,   W0
    ior     #0xE0, W0
-   mov     W0     _SR
+   mov     W0,    _SR
    pop     W0
 
    return
@@ -201,6 +202,21 @@ __tn_arch_inside_isr:
    btsc _SR,   #7
    mov #1, W0
 
+   return
+
+__tn_arch_is_int_disabled:
+   /* TODO: optimize */
+
+   mov   #0xE0,   W0
+   and   _SR,     WREG
+   lsr   W0,      #5,      W0
+   cp    W0,      #0x7
+   bra   Z,       1f
+   mov   #0,      W0
+   bra            2f
+1:
+   mov   #1,      W0
+2:
    return
 
 /*----------------------------------------------------------------------------*/

@@ -232,7 +232,7 @@ typedef  unsigned int               TN_UWord;
 /**
  * Returns nonzero if interrupts are disabled, zero otherwise.
  */
-#define TN_IS_INT_DISABLED()     (/*TODO*/1)
+#define TN_IS_INT_DISABLED()     (_tn_arch_is_int_disabled())
 
 /**
  * Pend context switch from interrupt.

@@ -161,6 +161,11 @@ TN_UWord *_tn_arch_stack_init(
 int _tn_arch_inside_isr(void);
 
 /**
+ * TODO
+ */
+int _tn_arch_is_int_disabled(void);
+
+/**
  * Called whenever we need to switch context from one task to another.
  *
  * This function typically does NOT switch context; it merely pends it,

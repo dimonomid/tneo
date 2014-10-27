@@ -305,6 +305,7 @@ void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void)
    IFS0bits.T1IF   = 0;
    volatile int b;
    b = 1;
+   b = _tn_arch_is_int_disabled();
    b = 1;
    tn_tick_int_processing();
 }
@@ -328,6 +329,7 @@ void task_a_body(void *par)
    for(;;)
    {
       //mPORTEToggleBits(BIT_0);
+      LATE ^= (1 << 0);
       tn_task_sleep(500);
    }
 }
@@ -337,6 +339,7 @@ void task_b_body(void *par)
    for(;;)
    {
       //mPORTEToggleBits(BIT_1);
+      LATE ^= (1 << 1);
       tn_task_sleep(1000);
    }
 }
@@ -346,6 +349,7 @@ void task_c_body(void *par)
    for(;;)
    {
       //mPORTEToggleBits(BIT_2);
+      LATE ^= (1 << 2);
       tn_task_sleep(1500);
    }
 }
@@ -385,6 +389,10 @@ void appl_init(void)
    //-- configure LED port pins
    //mPORTESetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2);
    //mPORTEClearBits(BIT_0 | BIT_1 | BIT_2);
+
+   TRISEbits.TRISE0 = 0;
+   TRISEbits.TRISE1 = 0;
+   TRISEbits.TRISE2 = 0;
 
    //-- initialize various on-board peripherals, such as
    //   flash memory, displays, etc.
