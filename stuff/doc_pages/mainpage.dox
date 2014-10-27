@@ -42,7 +42,6 @@ API reference:
   - \ref tn_fmem.h "Fixed-memory blocks pool"
   - \ref tn_eventgrp.h "Event groups"
   - \ref tn_dqueue.h "Data queues"
-  - \ref tn_exch.h "Exchange"
   - \ref tn_timer.h "Timers"
 
 

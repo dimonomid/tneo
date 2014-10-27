@@ -118,9 +118,9 @@ void tn_arch_sr_restore(TN_UWord sr);
  * used for storing the new data. Instead, it is the *previous* address.
  *
  * @param   stack_low_address
- *    start address of the stack array.
+ *    Start address of the stack array.
  * @param   stack_size
- *    size of the stack in `#TN_UWord`-s, not in bytes.
+ *    Size of the stack in `#TN_UWord`-s, not in bytes.
  */
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord   *stack_low_address,
@@ -144,6 +144,8 @@ TN_UWord *_tn_arch_stack_top_get(
  *    Pointer to task body function.
  * @param stack_top
  *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
+ * @param stack_size
+ *    Size of the stack in `#TN_UWord`-s, not in bytes.
  * @param param
  *    User-provided parameter for task body function.
  *
