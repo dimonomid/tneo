@@ -83,17 +83,18 @@ extern "C"  {     /*}*/
 
 /**
  * Magic number for object validity verification
+ * TODO: use TN_UWord here instead of unsigned int
  */
 enum TN_ObjId {
-   TN_ID_TASK           = 0x47ABCF69,  //!< id for tasks
-   TN_ID_SEMAPHORE      = 0x6FA173EB,  //!< id for semaphores
-   TN_ID_EVENTGRP       = 0x5E224F25,  //!< id for event groups
-   TN_ID_DATAQUEUE      = 0x8C8A6C89,  //!< id for data queues
-   TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,  //!< id for fixed memory pools
-   TN_ID_MUTEX          = 0x17129E45,  //!< id for mutexes
-   TN_ID_TIMER          = 0x9A937FBC,  //!< id for timers
-   TN_ID_EXCHANGE       = 0x32b7c072,  //!< id for exchange objects
-   TN_ID_EXCHANGE_LINK  = 0x24d36f35,  //!< id for exchange objects
+   TN_ID_TASK           = (unsigned int)0x47ABCF69,  //!< id for tasks
+   TN_ID_SEMAPHORE      = (unsigned int)0x6FA173EB,  //!< id for semaphores
+   TN_ID_EVENTGRP       = (unsigned int)0x5E224F25,  //!< id for event groups
+   TN_ID_DATAQUEUE      = (unsigned int)0x8C8A6C89,  //!< id for data queues
+   TN_ID_FSMEMORYPOOL   = (unsigned int)0x26B7CE8B,  //!< id for fixed memory pools
+   TN_ID_MUTEX          = (unsigned int)0x17129E45,  //!< id for mutexes
+   TN_ID_TIMER          = (unsigned int)0x9A937FBC,  //!< id for timers
+   TN_ID_EXCHANGE       = (unsigned int)0x32b7c072,  //!< id for exchange objects
+   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange objects
 };
 
 /**
