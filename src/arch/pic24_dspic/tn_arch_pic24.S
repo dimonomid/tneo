@@ -79,8 +79,10 @@ __tn_arch_context_switch_now_nosave:
 __tn_arch_context_switch_pend:
 
    push W0
+
    mov #_IFS0, W0
    bset  [W0], #0  ; IFS0bits.INT0IF = 1
+
    pop W0
 
    return
@@ -180,12 +182,18 @@ _tn_arch_sr_save_int_dis:
 
 _tn_arch_sr_restore:
 
+   push  W0
+   push  W1
+
    mov   W0,      W1
    and   #0xE0,   W1
    mov   _SR,     W0
    xor   W0,      W1,      W0
    and   #0xE0,   W0
    xor   _SR
+
+   pop   W1
+   pop   W0
 
    return
 
