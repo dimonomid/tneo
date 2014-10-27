@@ -152,6 +152,7 @@ TN_UWord *_tn_arch_stack_top_get(
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
       TN_UWord      *stack_top,
+      int            stack_size,
       void          *param
       );
 

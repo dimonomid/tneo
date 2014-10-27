@@ -247,7 +247,7 @@ __CSP_CONFIG_3(CODE_WRITE_PROT_MEM_START    |   /* Code write protect block from
 
 
 //-- idle task stack size, in words
-#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 16)
+#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 16 + 100/*TODO: remove*/)
 
 //-- interrupt stack size, in words
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)

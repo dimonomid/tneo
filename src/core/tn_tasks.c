@@ -1027,6 +1027,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
    task->stack_top = _tn_arch_stack_init(
          task->task_func_addr,
          task->base_stack_top,
+         task->stack_size,
          task->task_func_param
          );
 

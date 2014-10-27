@@ -48,13 +48,15 @@ TN_UWord *_tn_arch_stack_top_get(
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
       TN_UWord      *stack_top,
+      int            stack_size,
       void          *param
       )
 {
+   TN_UWord *p_splim = stack_top + stack_size - 1 - 1;
 
-   *(stack_top++) = task_func;
+   *(stack_top++) = (TN_UWord)task_func;
    *(stack_top++) = 0;
-   *(stack_top++) = 0xffff/*SPLIM: TODO*/;
+   *(stack_top++) = (TN_UWord)p_splim;   // SPLIM
    *(stack_top++) = 0x0103;   // SR
    *(stack_top++) = 0x1414;   // W14
    *(stack_top++) = 0x1212;   // W12

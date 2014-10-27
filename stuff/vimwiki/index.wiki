@@ -17,7 +17,8 @@
    * [X] tn_arch_sr_restore: restore only IPL field
    * [X] TN_IS_INT_DISABLED() : implement
    * [X] handle IFS1 atomically (__tn_arch_context_switch_pend, __INT1Interrupt)
-   * [ ] SPLIM
+   * [X] SPLIM
+   * [ ] Rewrite context switch routine (__INT0Interrupt)
    * [ ] tn_arch_int_en: implement (or remove?)
    * [ ] ISR macro (with separate stack for ISRs)
    * [ ] tn_arch_inside_isr: optimize
