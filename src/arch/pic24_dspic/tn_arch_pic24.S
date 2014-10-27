@@ -40,7 +40,7 @@
 
     .extern  tn_curr_run_task
     .extern  tn_next_task_to_run
-    .extern  IFS1
+    .extern  IFS0
     .extern  __tn_sw_restore
 
     /* Public functions declared in this file */
@@ -51,7 +51,7 @@
     .global  __tn_arch_is_int_disabled
     .global  _tn_arch_sr_save_int_dis
     .global  _tn_arch_sr_restore
-    .global  __INT1Interrupt
+    .global  __INT0Interrupt
 
 /*----------------------------------------------------------------------------
 * Interrupts should be disabled here
@@ -79,8 +79,8 @@ __tn_arch_context_switch_now_nosave:
 __tn_arch_context_switch_pend:
 
    push W0
-   mov #_IFS1, W0
-   bset  [W0], #4  ; IFS1bits.INT1IF = 1
+   mov #_IFS0, W0
+   bset  [W0], #0  ; IFS0bits.INT0IF = 1
    pop W0
 
    return
@@ -90,7 +90,7 @@ __tn_arch_context_switch_pend:
 *
 *----------------------------------------------------------------------------*/
 
-__INT1Interrupt:
+__INT0Interrupt:
 
         ;; Save current context
 
@@ -116,8 +116,8 @@ __INT1Interrupt:
         mov     #0xFFFF,        W0                      ; Prevent stack error exeption if any non OS interrupt will be
         mov     W0,             _SPLIM
 
-        mov #_IFS1, W0
-        bclr  [W0], #4  ; IFS1bits.INT1IF = 0
+        mov #_IFS0, W0
+        bclr  [W0], #0  ; IFS0bits.INT0IF = 0
 
         ; next task
 

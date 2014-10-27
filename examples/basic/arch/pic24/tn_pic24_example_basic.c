@@ -377,8 +377,8 @@ void hw_init(void)
    IPC0bits.T1IP   = 2;
    T1CONbits.TON   = 1;
 
-   IEC1bits.INT1IE = 1;
-   IPC5bits.INT1IP = 1;
+   IEC0bits.INT0IE = 1;
+   IPC0bits.INT0IP = 1;
 }
 
 /**
