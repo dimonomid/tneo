@@ -14,13 +14,13 @@
 
 === PIC24/dsPIC port ===
 
+   * [X] tn_arch_sr_restore: restore only IPL field
+   * [X] TN_IS_INT_DISABLED() : implement
+   * [X] handle IFS1 atomically (__tn_arch_context_switch_pend, __INT1Interrupt)
    * [ ] SPLIM
-   * [ ] tn_arch_sr_restore: restore only IPL field
-   * [ ] tn_arch_inside_isr: optimize
-   * [ ] TN_IS_INT_DISABLED() : implement
    * [ ] tn_arch_int_en: implement (or remove?)
-   * [ ] handle IFS1 atomically (__tn_arch_context_switch_pend, __INT1Interrupt)
    * [ ] ISR macro (with separate stack for ISRs)
+   * [ ] tn_arch_inside_isr: optimize
 
 === exchange methods ===
 

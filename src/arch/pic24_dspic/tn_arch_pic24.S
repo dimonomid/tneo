@@ -80,7 +80,6 @@ __tn_arch_context_switch_pend:
 
    push W0
    mov #_IFS1, W0
-   ; TODO: atomically!!!
    bset  [W0], #4  ; IFS1bits.INT1IF = 1
    pop W0
 
@@ -118,7 +117,6 @@ __INT1Interrupt:
         mov     W0,             _SPLIM
 
         mov #_IFS1, W0
-        ; TODO: atomically!!!
         bclr  [W0], #4  ; IFS1bits.INT1IF = 0
 
         ; next task
@@ -182,8 +180,12 @@ _tn_arch_sr_save_int_dis:
 
 _tn_arch_sr_restore:
 
-   //TODO: restore only IPL field
-   mov     W0,    _SR,
+   mov   W0,      W1
+   and   #0xE0,   W1
+   mov   _SR,     W0
+   xor   W0,      W1,      W0
+   and   #0xE0,   W0
+   xor   _SR
 
    return
 
