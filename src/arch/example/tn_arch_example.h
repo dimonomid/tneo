@@ -112,9 +112,10 @@ typedef  unsigned int               TN_UWord;
 #define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
- * Value for infinite waiting, usually matches `UINT_MAX`
+ * Value for infinite waiting, usually matches `ULONG_MAX`,
+ * because `#TN_Timeout` is declared as `unsigned long`.
  */
-#define  TN_WAIT_INFINITE           0xFFFFFFFF
+#define  TN_WAIT_INFINITE           (TN_Timeout)0xFFFFFFFF
 
 /**
  * Value for initializing the unused space of task's stack

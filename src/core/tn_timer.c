@@ -90,7 +90,7 @@ struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
  * @param timeout    should be < TN_TICK_LISTS_CNT
  */
 #define _TICK_LIST_INDEX(timeout)    \
-   ((tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
+   (((TN_Timeout)tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
 
 
 
