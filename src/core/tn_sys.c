@@ -84,14 +84,10 @@ volatile unsigned int tn_ready_to_run_bmp;
 
 volatile unsigned int tn_sys_time_count;
 
-volatile int tn_int_nest_count;
 
 #if TN_MUTEX_DEADLOCK_DETECT
 volatile int tn_deadlocks_cnt = 0;
 #endif
-
-void *tn_user_sp;
-void *tn_int_sp;
 
 //-- System tasks
 
@@ -208,6 +204,9 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
+   //-- call architecture-dependent initialization
+   _tn_arch_sys_init(int_stack, int_stack_size);
+
    //-- for each priority: 
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
@@ -229,9 +228,6 @@ void tn_sys_start(
    //-- reset system time
    tn_sys_time_count = 0;
 
-   //-- reset interrupt nesting count
-   tn_int_nest_count = 0;
-
    //-- reset pointers to currently running task and next task to run
    tn_next_task_to_run = TN_NULL;
    tn_curr_run_task    = TN_NULL;
@@ -243,12 +239,6 @@ void tn_sys_start(
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
-
-   //-- set interrupt's top of the stack
-   tn_int_sp = _tn_arch_stack_top_get(
-         int_stack,
-         int_stack_size
-         );
 
    //-- init timers
    _tn_timers_init();

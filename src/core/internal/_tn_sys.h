@@ -88,18 +88,6 @@ extern volatile unsigned int tn_ready_to_run_bmp;
 /// by tn_timer.h subsystem.
 extern volatile unsigned int tn_sys_time_count;
 
-/// current interrupt nesting count. Used by macros
-/// `tn_soft_isr()` and `tn_srs_isr()`.
-extern volatile int tn_int_nest_count;
-
-/// saved task stack pointer. Needed when switching stack pointer from 
-/// task stack to interrupt stack.
-extern void *tn_user_sp;
-
-/// saved ISR stack pointer. Needed when switching stack pointer from
-/// interrupt stack to task stack.
-extern void *tn_int_sp;
-
 ///
 /// idle task structure
 extern struct TN_Task tn_idle_task;

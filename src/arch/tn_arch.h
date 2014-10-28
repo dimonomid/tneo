@@ -103,7 +103,13 @@ TN_UWord tn_arch_sr_save_int_dis(void);
  */
 void tn_arch_sr_restore(TN_UWord sr);
 
-
+/*
+ * Architecture-dependent system startup routine.
+ */
+void _tn_arch_sys_init(
+      TN_UWord            *int_stack,
+      unsigned int         int_stack_size
+      );
 
 
 /**
