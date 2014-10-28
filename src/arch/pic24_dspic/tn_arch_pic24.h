@@ -262,153 +262,48 @@ typedef  unsigned int               TN_UWord;
 
 // ---------------------------------------------------------------------------
 
-/**
- * Interrupt handler wrapper macro for software context saving.
- *
- * Usage looks like the following:
- *
- *     tn_soft_isr(_TIMER_1_VECTOR)
- *     {
- *        INTClearFlag(INT_T1);
- *
- *        //-- do something useful
- *     }
- *
- * Note that you should not use `__ISR(_TIMER_1_VECTOR)` macro for that.
- *
- * @param vec  interrupt vector number, such as `_TIMER_1_VECTOR`, etc.
- */
-#define tn_soft_isr(vec)                                                       \
-__attribute__((__noinline__)) void _func##vec(void);                           \
-void __attribute__((naked, nomips16))                                          \
-     __attribute__((vector(vec)))                                              \
-     _isr##vec(void)                                                           \
-{                                                                              \
-   asm volatile(".set push");                                                  \
-   asm volatile(".set mips32r2");                                              \
-   asm volatile(".set nomips16");                                              \
-   asm volatile(".set noreorder");                                             \
-   asm volatile(".set noat");                                                  \
-                                                                               \
-   asm volatile("rdpgpr  $sp, $sp");                                           \
-                                                                               \
-   /* Increase interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
-   asm volatile("addiu   $k1, $k1, 1");                                        \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
-   asm volatile("ori     $k0, $zero, 1");                                      \
-   asm volatile("bne     $k1, $k0, 1f");                                       \
-                                                                               \
-   /* Swap stack pointers if nesting count is one */                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("sw      $sp, %lo(tn_user_sp)($k0)");                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("lw      $sp, %lo(tn_int_sp)($k0)");                           \
-                                                                               \
-   asm volatile("1:");                                                         \
-   /* Save context on stack */                                                 \
-   asm volatile("addiu   $sp, $sp, -92");                                      \
-   asm volatile("mfc0    $k1, $14");               /* c0_epc*/                 \
-   asm volatile("mfc0    $k0, $12, 2");            /* c0_srsctl*/              \
-   asm volatile("sw      $k1, 84($sp)");                                       \
-   asm volatile("sw      $k0, 80($sp)");                                       \
-   asm volatile("mfc0    $k1, $12");               /* c0_status*/              \
-   asm volatile("sw      $k1, 88($sp)");                                       \
-                                                                               \
-   /* Enable nested interrupts */                                              \
-   asm volatile("mfc0    $k0, $13");               /* c0_cause*/               \
-   asm volatile("ins     $k1, $zero, 1, 15");                                  \
-   asm volatile("ext     $k0, $k0, 10, 6");                                    \
-   asm volatile("ins     $k1, $k0, 10, 6");                                    \
-   asm volatile("mtc0    $k1, $12");               /* c0_status*/              \
-                                                                               \
-   /* Save caller-save registers on stack */                                   \
-   asm volatile("sw      $ra, 76($sp)");                                       \
-   asm volatile("sw      $t9, 72($sp)");                                       \
-   asm volatile("sw      $t8, 68($sp)");                                       \
-   asm volatile("sw      $t7, 64($sp)");                                       \
-   asm volatile("sw      $t6, 60($sp)");                                       \
-   asm volatile("sw      $t5, 56($sp)");                                       \
-   asm volatile("sw      $t4, 52($sp)");                                       \
-   asm volatile("sw      $t3, 48($sp)");                                       \
-   asm volatile("sw      $t2, 44($sp)");                                       \
-   asm volatile("sw      $t1, 40($sp)");                                       \
-   asm volatile("sw      $t0, 36($sp)");                                       \
-   asm volatile("sw      $a3, 32($sp)");                                       \
-   asm volatile("sw      $a2, 28($sp)");                                       \
-   asm volatile("sw      $a1, 24($sp)");                                       \
-   asm volatile("sw      $a0, 20($sp)");                                       \
-   asm volatile("sw      $v1, 16($sp)");                                       \
-   asm volatile("sw      $v0, 12($sp)");                                       \
-   asm volatile("sw      $at, 8($sp)");                                        \
-   asm volatile("mfhi    $v0");                                                \
-   asm volatile("mflo    $v1");                                                \
-   asm volatile("sw      $v0, 4($sp)");                                        \
-                                                                               \
-   /* Call ISR */                                                              \
-   asm volatile("la      $t0, _func"#vec);                                     \
-   asm volatile("jalr    $t0");                                                \
-   asm volatile("sw      $v1, 0($sp)");                                        \
-                                                                               \
-   /* Restore registers */                                                     \
-   asm volatile("lw      $v1, 0($sp)");                                        \
-   asm volatile("lw      $v0, 4($sp)");                                        \
-   asm volatile("mtlo    $v1");                                                \
-   asm volatile("mthi    $v0");                                                \
-   asm volatile("lw      $at, 8($sp)");                                        \
-   asm volatile("lw      $v0, 12($sp)");                                       \
-   asm volatile("lw      $v1, 16($sp)");                                       \
-   asm volatile("lw      $a0, 20($sp)");                                       \
-   asm volatile("lw      $a1, 24($sp)");                                       \
-   asm volatile("lw      $a2, 28($sp)");                                       \
-   asm volatile("lw      $a3, 32($sp)");                                       \
-   asm volatile("lw      $t0, 36($sp)");                                       \
-   asm volatile("lw      $t1, 40($sp)");                                       \
-   asm volatile("lw      $t2, 44($sp)");                                       \
-   asm volatile("lw      $t3, 48($sp)");                                       \
-   asm volatile("lw      $t4, 52($sp)");                                       \
-   asm volatile("lw      $t5, 56($sp)");                                       \
-   asm volatile("lw      $t6, 60($sp)");                                       \
-   asm volatile("lw      $t7, 64($sp)");                                       \
-   asm volatile("lw      $t8, 68($sp)");                                       \
-   asm volatile("lw      $t9, 72($sp)");                                       \
-   asm volatile("lw      $ra, 76($sp)");                                       \
-                                                                               \
-   asm volatile("di");                                                         \
-   asm volatile("ehb");                                                        \
-                                                                               \
-   /* Restore context */                                                       \
-   asm volatile("lw      $k0, 84($sp)");                                       \
-   asm volatile("mtc0    $k0, $14");               /* c0_epc */                \
-   asm volatile("lw      $k0, 80($sp)");                                       \
-   asm volatile("mtc0    $k0, $12, 2");            /* c0_srsctl */             \
-   asm volatile("addiu   $sp, $sp, 92");                                       \
-                                                                               \
-   /* Decrease interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
-   asm volatile("addiu   $k1, $k1, -1");                                       \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
-   asm volatile("bne     $k1, $zero, 1f");                                     \
-   asm volatile("lw      $k1, -4($sp)");                                       \
-                                                                               \
-   /* Swap stack pointers if nesting count is zero */                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("sw      $sp, %lo(tn_int_sp)($k0)");                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("lw      $sp, %lo(tn_user_sp)($k0)");                          \
-                                                                               \
-   asm volatile("1:");                                                         \
-   asm volatile("wrpgpr  $sp, $sp");                                           \
-   asm volatile("mtc0    $k1, $12");               /* c0_status */             \
-   asm volatile("eret");                                                       \
-                                                                               \
-   asm volatile(".set pop");                                                   \
-                                                                               \
-} __attribute((__noinline__)) void _func##vec(void)
+extern volatile unsigned int   __tn_p24_dspic_inside_isr;
+
+   #define _avixInternalISR_Prologue                        \
+"   push   w0;                             \n"   \
+"   push   w1;                             \n"   \
+"   push   w15;                            \n"   \
+"   mov #__tn_p24_dspic_inside_isr, w0;      \n"   \
+"   mov #1, w1;      \n"   \
+"   mov w1, [w0];      \n"   \
 
 
+   #define _avixInternalISR_Activate                        \
+         "   rcall    1f;                              \n"
+
+   #define _avixInternalISR_Epilogue                        \
+"   mov #__tn_p24_dspic_inside_isr, w0;      \n"   \
+"   mov #0, w1;      \n"   \
+"   mov w1, [w0];      \n"   \
+"   pop      w15;                             \n"   \
+"   pop      w1;                              \n"   \
+"   pop      w0;                              \n"   \
+"   retfie;                                 \n"   \
+"1: mov      SR, w0;                           \n"   \
+"   mov.b   w0, [w15-1];                         "
+
+
+   #define _avixDeclareISRInternalUse(f,p,s)                  \
+                                                   \
+      void __attribute__((__interrupt__                     \
+         (                                          \
+            __preprologue__                              \
+            (   _avixInternalISR_Prologue                  \
+               _avixInternalISR_Activate                  \
+               _avixInternalISR_Epilogue                  \
+            )                                       \
+         ),                                          \
+         p, s)) f(void)
+
+
+
+
+#define  tn_soft_isr(f,p)  _avixDeclareISRInternalUse(f,p,)
 
 
 

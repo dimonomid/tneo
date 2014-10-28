@@ -41,12 +41,12 @@
     .extern  tn_curr_run_task
     .extern  tn_next_task_to_run
     .extern  IFS0
+    .extern  _tn_p24_dspic_inside_isr
 
     /* Public functions declared in this file */
 
     .global  __tn_arch_context_switch_now_nosave
     .global  __tn_arch_context_switch_pend
-    .global  __tn_arch_inside_isr
     .global  __tn_arch_is_int_disabled
     .global  _tn_arch_sr_save_int_dis
     .global  _tn_arch_sr_restore
@@ -218,19 +218,6 @@ _tn_arch_sr_restore:
 /*----------------------------------------------------------------------------
 *
 *----------------------------------------------------------------------------*/
-
-__tn_arch_inside_isr:
-   /* TODO: optimize */
-   mov #0,  W0
-
-   btsc _SR,   #5
-   mov #1, W0
-   btsc _SR,   #6
-   mov #1, W0
-   btsc _SR,   #7
-   mov #1, W0
-
-   return
 
 __tn_arch_is_int_disabled:
    /* TODO: optimize */
