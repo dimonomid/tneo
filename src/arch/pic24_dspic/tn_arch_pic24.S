@@ -60,6 +60,13 @@ __tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
+   /* set SPLIM to max: effectively, turn stack pointer limit off */
+
+   mov    #0xffff, W0
+   mov    W0,   _SPLIM
+
+   /* ---- */
+
    mov     #_tn_next_task_to_run,  W1    ; W1 = &tn_next_task_to_run
    mov     [W1],           W1            ; W1 = tn_next_task_to_run
    mov     #_tn_curr_run_task,     W0    ; W0 = &tn_curr_run_task
