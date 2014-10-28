@@ -74,7 +74,7 @@ TN_UWord *_tn_arch_stack_init(
    *(stack_top++) = 0x0101;   // W01
    *(stack_top++) = 0;   // RCOUNT
    *(stack_top++) = 0;   // TBLPAG
-   *(stack_top++) = 0;   // CORCON
+   *(stack_top++) = 0x04;   // CORCON TODO: take from real CORCON value
    *(stack_top++) = 0;   // PSVPAG
    *(stack_top++) = (TN_UWord)p_splim;   // SPLIM
 
