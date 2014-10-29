@@ -48,6 +48,7 @@
     .global  __tn_arch_context_switch_now_nosave
     .global  __tn_arch_context_switch_pend
     .global  __tn_arch_is_int_disabled
+    .global  __tn_arch_inside_isr
     .global  _tn_arch_sr_save_int_dis
     .global  _tn_arch_sr_restore
     .global  __INT0Interrupt
@@ -67,8 +68,7 @@ __tn_arch_context_switch_now_nosave:
 
    /* ---- */
 
-   mov     #_tn_next_task_to_run,  W1    ; W1 = &tn_next_task_to_run
-   mov     [W1],           W1            ; W1 = tn_next_task_to_run
+   mov     _tn_next_task_to_run,   W1    ; W1 = tn_next_task_to_run
    mov     #_tn_curr_run_task,     W0    ; W0 = &tn_curr_run_task
 
    mov     W1,             [W0]          ; tn_curr_run_task = tn_next_task_to_run
@@ -119,8 +119,7 @@ __INT0Interrupt:
 
         /* store sp in preemted task's TCB */
 
-        mov     #_tn_curr_run_task,      W0             ; move current task stack pointer to W0
-        mov     [W0],         W0
+        mov     _tn_curr_run_task,      W0             ; move current task stack pointer to W0
         mov     W15,          [W0]
 
         /* save SR in W2 */
@@ -138,8 +137,7 @@ __INT0Interrupt:
 
         /* tn_curr_run_task = tn_next_task_to_run */
 
-        mov     #_tn_next_task_to_run,  W1    ; W1 = &tn_next_task_to_run
-        mov     [W1],           W1            ; W1 = tn_next_task_to_run
+        mov     _tn_next_task_to_run,  W1    ; W1 = tn_next_task_to_run
         mov     #_tn_curr_run_task,     W0    ; W0 = &tn_curr_run_task
 
         mov     W1,             [W0]          ; tn_curr_run_task = tn_next_task_to_run
@@ -239,6 +237,22 @@ __tn_arch_is_int_disabled:
 1:
    mov   #1,      W0
 2:
+   return
+
+
+
+
+__tn_arch_inside_isr:
+
+   //-- here, we check if SPLIM is equal to __tn_p24_int_splim.
+   //   If it is, we are inside ISR.
+
+   mov __tn_p24_int_splim, w0
+   cp SPLIM
+   mov   #0,      W0
+   bra nz, 1f
+   mov   #1,      W0
+1:
    return
 
 /*----------------------------------------------------------------------------*/

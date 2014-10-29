@@ -38,7 +38,19 @@
 
 volatile unsigned int _tn_p24_dspic_inside_isr = 0;
 
+TN_UWord *_tn_p24_int_stack_low_addr   = TN_NULL;
+TN_UWord *_tn_p24_int_splim  = TN_NULL;
 
+
+
+void _tn_arch_sys_init(
+      TN_UWord            *int_stack,
+      unsigned int         int_stack_size
+      )
+{
+   _tn_p24_int_stack_low_addr = int_stack;
+   _tn_p24_int_splim = int_stack + int_stack_size - 1 - 1;
+}
 
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord *stack_low_address,
@@ -97,10 +109,12 @@ void tn_arch_int_en(void)
    //TODO
 }
 
+#if 0
 int _tn_arch_inside_isr(void)
 {
    return _tn_p24_dspic_inside_isr;
 }
+#endif
 
 
 //----------------------------------------------------------------------------

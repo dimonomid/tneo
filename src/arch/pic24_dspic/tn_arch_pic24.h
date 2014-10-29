@@ -250,6 +250,46 @@ typedef  unsigned int               TN_UWord;
 
 
 
+#define _tn_soft_isr_prologue                      \
+   "                                         \n"   \
+"   push   w0;                            \n"   \
+"   push   w1;                           \n"   \
+\
+"    mov __tn_p24_int_splim, w0;   \n"   \
+"    cp SPLIM;                    \n"   \
+"    bra z, 1f;                      \n"   \
+"                                         \n"   \
+"    mov SPLIM, w1;   \n"   \
+"    mov w0, SPLIM;   \n"   \
+"    mov w15, w0;   \n"   \
+"    mov __tn_p24_int_stack_low_addr, w15;  \n"   \
+"    push w0;   \n"   /*push SP*/\
+"    push w1;   \n"   /*push SPLIM*/\
+"    bra 2f;                              \n"   \
+"1:                                       \n"   \
+"    push w15;   \n"   /*push SP*/\
+"    push SPLIM;   \n"   /*push SPLIM*/\
+"2:                                       \n"   \
+"                                         \n"   \
+
+
+#define _tn_soft_isr_call                       \
+   "   rcall    1f;                    \n"
+
+#define _tn_soft_isr_epilogue                   \
+   "   pop      w1;                             \n"   /*pop SPLIM*/\
+   "   pop      w0;                              \n"   /*pop SP*/\
+   "   mov      w1, SPLIM;                             \n"   \
+   "   mov      w0, w15;                             \n"   \
+   "   pop      w1;                             \n"   \
+   "   pop      w0;                              \n"   \
+   "   retfie;                                 \n"   \
+   "1: mov      SR, w0;                           \n"   \
+   "   mov.b    w0, [w15-1];                         "
+
+
+
+
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
 
 
@@ -263,48 +303,24 @@ typedef  unsigned int               TN_UWord;
 
 // ---------------------------------------------------------------------------
 
-extern volatile unsigned int   __tn_p24_dspic_inside_isr;
-
-   #define _avixInternalISR_Prologue                        \
-"   push   w0;                             \n"   \
-"   push   w1;                             \n"   \
-"   push   w15;                            \n"   \
-"   mov #__tn_p24_dspic_inside_isr, w0;      \n"   \
-"   mov #1, w1;      \n"   \
-"   mov w1, [w0];      \n"   \
-
-
-   #define _avixInternalISR_Activate                        \
-         "   rcall    1f;                              \n"
-
-   #define _avixInternalISR_Epilogue                        \
-"   mov #__tn_p24_dspic_inside_isr, w0;      \n"   \
-"   mov #0, w1;      \n"   \
-"   mov w1, [w0];      \n"   \
-"   pop      w15;                             \n"   \
-"   pop      w1;                              \n"   \
-"   pop      w0;                              \n"   \
-"   retfie;                                 \n"   \
-"1: mov      SR, w0;                           \n"   \
-"   mov.b   w0, [w15-1];                         "
-
-
-   #define _avixDeclareISRInternalUse(f,p,s)                  \
-                                                   \
-      void __attribute__((__interrupt__                     \
-         (                                          \
-            __preprologue__                              \
-            (   _avixInternalISR_Prologue                  \
-               _avixInternalISR_Activate                  \
-               _avixInternalISR_Epilogue                  \
-            )                                       \
-         ),                                          \
-         p, s)) f(void)
+#define _tn_soft_isr_internal(_func, _psv, _shadow)              \
+   void __attribute__((                           \
+            __interrupt__(\
+               __preprologue__(                                  \
+                   _tn_soft_isr_prologue          \
+                   _tn_soft_isr_call              \
+                   _tn_soft_isr_epilogue          \
+               )                                  \
+            ),                                 \
+            _psv,\
+            _shadow                                  \
+         ))                                    \
+      _func(void)
 
 
 
 
-#define  tn_soft_isr(f,p)  _avixDeclareISRInternalUse(f,p,)
+#define  tn_soft_isr(_func, _psv)  _tn_soft_isr_internal(_func, _psv,)
 
 
 
