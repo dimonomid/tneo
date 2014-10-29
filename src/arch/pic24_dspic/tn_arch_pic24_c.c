@@ -36,10 +36,9 @@
 
 #include "tn_tasks.h"
 
-volatile unsigned int _tn_p24_dspic_inside_isr = 0;
 
 TN_UWord *_tn_p24_int_stack_low_addr   = TN_NULL;
-TN_UWord *_tn_p24_int_splim  = TN_NULL;
+TN_UWord *_tn_p24_int_splim            = TN_NULL;
 
 
 
@@ -52,6 +51,7 @@ void _tn_arch_sys_init(
    _tn_p24_int_splim = int_stack + int_stack_size - 1 - 1;
 }
 
+
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord *stack_low_address,
       int stack_size
@@ -59,6 +59,7 @@ TN_UWord *_tn_arch_stack_top_get(
 {
    return stack_low_address;
 }
+
 
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
@@ -108,13 +109,6 @@ void tn_arch_int_en(void)
    //__builtin_enable_interrupts();
    //TODO
 }
-
-#if 0
-int _tn_arch_inside_isr(void)
-{
-   return _tn_p24_dspic_inside_isr;
-}
-#endif
 
 
 //----------------------------------------------------------------------------

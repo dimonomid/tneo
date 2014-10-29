@@ -41,7 +41,6 @@
     .extern  tn_curr_run_task
     .extern  tn_next_task_to_run
     .extern  IFS0
-    .extern  _tn_p24_dspic_inside_isr
 
     /* Public functions declared in this file */
 
