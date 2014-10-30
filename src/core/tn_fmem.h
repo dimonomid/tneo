@@ -238,7 +238,7 @@ enum TN_RCode tn_fmem_create(
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
  */
-enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);;
+enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);
 
 /**
  * Get memory block from the pool. Start address of the memory block is returned
