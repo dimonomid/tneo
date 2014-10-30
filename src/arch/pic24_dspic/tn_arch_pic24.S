@@ -34,8 +34,12 @@
  *
  ******************************************************************************/
 
-#define  TN_IPL            #0x04
-#define  TN_IPL_SHIFTED    #(TN_IPL << 5)
+//TODO: this symbol is now defined in two places 
+//(tn_arch_pic24.h, tn_arch_pic24.S)
+//need to fix it
+#define  _TN_IPL            0x04
+#define  _TN_IPL_SHIFTED    (_TN_IPL << 5)
+
 
     .text
 
@@ -134,7 +138,7 @@ __INT0Interrupt:
 
         /* disable interrupts */
         mov   _SR,               W0
-        xor   TN_IPL_SHIFTED,    W0
+        xor   #_TN_IPL_SHIFTED,    W0
         and   #0xE0,             W0
         xor   _SR
 
@@ -190,7 +194,7 @@ _tn_arch_sr_save_int_dis:
    push    _SR
 
    mov   _SR,              W0
-   xor   TN_IPL_SHIFTED,   W0
+   xor   #_TN_IPL_SHIFTED,   W0
    and   #0xE0,            W0
    xor   _SR
 
@@ -229,7 +233,7 @@ __tn_arch_is_int_disabled:
    mov   #0xE0,   W0
    and   _SR,     WREG
    lsr   W0,      #5,      W0
-   cp    W0,      TN_IPL
+   cp    W0,      #_TN_IPL
    bra   geu,     1f
    mov   #0,      W0
    bra            2f

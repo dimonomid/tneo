@@ -248,13 +248,47 @@ typedef  unsigned int               TN_UWord;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 1)
 
+//TODO: this symbol is now defined in two places 
+//(tn_arch_pic24.h, tn_arch_pic24.S)
+//need to fix it
+#define  _TN_IPL            "0x04"
+
+
+
+#if TN_CHECK_PARAM
+
+/**
+ * Check whether priority is too high. On PIC24 port, we have a range of
+ * interrupt priorities (let's call this range as "system priority"), and
+ * kernel functions are allowed to call only from ISRs with priority in this
+ * range. 
+ *
+ * As a result, the kernel never disables ALL interrupts: when it modifies
+ * critical data, it disables just interrupts with system priority.
+ */
+#  define _tn_soft_isr_priority_check        \
+   "                                         \n"   \
+   "   mov   #0xE0,   W0                     \n"   \
+   "   and   _SR,     WREG                   \n"   \
+   "   lsr   W0,      #5,      W0            \n"   \
+   "   cp    W0,      #" _TN_IPL "            \n"   \
+   "   bra   leu,     1f                     \n"   \
+   "   .pword 0xDA4000                      \n"   \
+   "   nop                                   \n"   \
+   "1:                                       \n"   \
+
+#else
+#  define _tn_soft_isr_priority_check  /* nothing */
+#endif
 
 
 #define _tn_soft_isr_prologue                      \
    "                                         \n"   \
    "   push   w0;                            \n"   \
    "   push   w1;                           \n"   \
-   \
+\
+_tn_soft_isr_priority_check\
+\
    "    mov __tn_p24_int_splim, w0;   \n"   \
    "    cp SPLIM;                    \n"   \
    "    bra z, 1f;                      \n"   \
