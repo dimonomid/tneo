@@ -252,25 +252,28 @@ typedef  unsigned int               TN_UWord;
 
 #define _tn_soft_isr_prologue                      \
    "                                         \n"   \
-"   push   w0;                            \n"   \
-"   push   w1;                           \n"   \
-\
-"    mov __tn_p24_int_splim, w0;   \n"   \
-"    cp SPLIM;                    \n"   \
-"    bra z, 1f;                      \n"   \
-"                                         \n"   \
-"    mov SPLIM, w1;   \n"   \
-"    mov w0, SPLIM;   \n"   \
-"    mov w15, w0;   \n"   \
-"    mov __tn_p24_int_stack_low_addr, w15;  \n"   \
-"    push w0;   \n"   /*push SP*/\
-"    push w1;   \n"   /*push SPLIM*/\
-"    bra 2f;                              \n"   \
-"1:                                       \n"   \
-"    push w15;   \n"   /*push SP*/\
-"    push SPLIM;   \n"   /*push SPLIM*/\
-"2:                                       \n"   \
-"                                         \n"   \
+   "   push   w0;                            \n"   \
+   "   push   w1;                           \n"   \
+   \
+   "    mov __tn_p24_int_splim, w0;   \n"   \
+   "    cp SPLIM;                    \n"   \
+   "    bra z, 1f;                      \n"   \
+   "                                         \n"   \
+   "    mov SPLIM, w1;   \n"   \
+   "    mov w0, SPLIM;   \n"   \
+   "    mov w15, w0;   \n"   \
+   "    mov __tn_p24_int_stack_low_addr, w15;  \n"   \
+   \
+   /* now, interrupt stack is used. */\
+   /* we need to push previous stack pointer and SPLIM there. */\
+   "    push w0;   \n"   /*push task's SP*/\
+   "    push w1;   \n"   /*push task's SPLIM*/\
+   "    bra 2f;                              \n"   \
+   "1:                                       \n"   \
+   "    push w15;   \n"   /*push SP*/\
+   "    push SPLIM;   \n"   /*push SPLIM*/\
+   "2:                                       \n"   \
+   "                                         \n"   \
 
 
 #define _tn_soft_isr_call                       \
