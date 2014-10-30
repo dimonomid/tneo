@@ -34,8 +34,8 @@
  *
  ******************************************************************************/
 
-#define  TN_IPL               #0x80
-#define  TN_IPL_SHIFTED       #0x04
+#define  TN_IPL            #0x04
+#define  TN_IPL_SHIFTED    #(TN_IPL << 5)
 
     .text
 
@@ -133,9 +133,9 @@ __INT0Interrupt:
         mov    W0,   _SPLIM
 
         /* disable interrupts */
-        mov   _SR,     W0
-        xor   TN_IPL,  W0
-        and   #0xE0,   W0
+        mov   _SR,               W0
+        xor   TN_IPL_SHIFTED,    W0
+        and   #0xE0,             W0
         xor   _SR
 
         /* tn_curr_run_task = tn_next_task_to_run */
@@ -189,9 +189,9 @@ _tn_arch_sr_save_int_dis:
 
    push    _SR
 
-   mov   _SR,     W0
-   xor   TN_IPL,  W0
-   and   #0xE0,   W0
+   mov   _SR,              W0
+   xor   TN_IPL_SHIFTED,   W0
+   and   #0xE0,            W0
    xor   _SR
 
    pop     W0
@@ -229,7 +229,7 @@ __tn_arch_is_int_disabled:
    mov   #0xE0,   W0
    and   _SR,     WREG
    lsr   W0,      #5,      W0
-   cp    W0,      TN_IPL_SHIFTED
+   cp    W0,      TN_IPL
    bra   geu,     1f
    mov   #0,      W0
    bra            2f
