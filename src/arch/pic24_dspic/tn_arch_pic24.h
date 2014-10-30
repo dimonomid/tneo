@@ -263,8 +263,14 @@ typedef  unsigned int               TN_UWord;
  * kernel functions are allowed to call only from ISRs with priority in this
  * range. 
  *
- * As a result, the kernel never disables ALL interrupts: when it modifies
- * critical data, it disables just interrupts with system priority.
+ * As a result, the kernel (almost) never disables ALL interrupts: when it
+ * modifies critical data, it disables just interrupts with system priority.
+ *
+ * The "almost" is because it disables interrupts for 4 cycles when it modifies
+ * stack pointer and SPLIM, because they should always correspond. We could
+ * avoid even this by first setting SPLIM to 0xffff, then modifying SP, and
+ * then setting SPLIM to new correct value, this would take additional register
+ * to save, and this would work longer, so I decided to just 'disi #4'.
  */
 #  define _tn_soft_isr_priority_check        \
    "                                         \n"   \
@@ -293,6 +299,7 @@ _tn_soft_isr_priority_check\
    "    cp SPLIM;                    \n"   \
    "    bra z, 1f;                      \n"   \
    "                                         \n"   \
+   "    disi      #4;   \n"   \
    "    mov SPLIM, w1;   \n"   \
    "    mov w0, SPLIM;   \n"   \
    "    mov w15, w0;   \n"   \
@@ -314,6 +321,7 @@ _tn_soft_isr_priority_check\
    "   rcall    1f;                    \n"
 
 #define _tn_soft_isr_epilogue                   \
+   "   disi     #4;   \n"   \
    "   pop      w1;                             \n"   /*pop SPLIM*/\
    "   pop      w0;                              \n"   /*pop SP*/\
    "   mov      w1, SPLIM;                             \n"   \
