@@ -35,6 +35,7 @@
  ******************************************************************************/
 
 #include "tn_tasks.h"
+#include <xc.h>
 
 
 TN_UWord *_tn_p24_int_stack_low_addr   = TN_NULL;
@@ -49,6 +50,16 @@ void _tn_arch_sys_init(
 {
    _tn_p24_int_stack_low_addr = int_stack;
    _tn_p24_int_splim = int_stack + int_stack_size - 1 - 1;
+
+
+   //-- set up software interrupt for context switching
+
+   IPC0bits.INT0IP = 1; //-- set lowest interrupt priority
+                        //   TODO: this code isn't atomic, but this function
+                        //   is called at system startup, so, nobody should
+                        //   interfere
+   IFS0bits.INT0IF = 0; //-- clear interrupt flag
+   IEC0bits.INT0IE = 1; //-- enable interrupt
 }
 
 

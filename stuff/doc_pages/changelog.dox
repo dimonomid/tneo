@@ -7,7 +7,11 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
-  - *No changes yet*
+  - Refactor: the following symbols: `NULL`, `BOOL`, `TRUE`, `FALSE` now have
+    the `TN_` prefix: `#TN_NULL`, `#TN_BOOL`, `#TN_TRUE`, `#TN_FALSE`. This is
+	 because non-prefixed symbols may be defined by some other program module,
+	 which leads to conflicts. The easiest and robust way is to add unique
+	 prefix.
 
 \section changelog_v1_03 v1.03
 
