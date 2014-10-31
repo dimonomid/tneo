@@ -248,12 +248,14 @@ typedef  unsigned int               TN_UWord;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 1)
 
+
+
+//-- internal interrupt macro stuff {{{
+
 //TODO: this symbol is now defined in two places 
 //(tn_arch_pic24.h, tn_arch_pic24.S)
 //need to fix it
 #define  _TN_IPL            "0x04"
-
-
 
 #if TN_CHECK_PARAM
 
@@ -372,18 +374,6 @@ typedef  unsigned int               TN_UWord;
    /* (because 'rcall' saved this address to the stack)                 */    \
 
 
-#endif   //-- DOXYGEN_SHOULD_SKIP_THIS
-
-
-
-
-
-
-
-
-
-
-// ---------------------------------------------------------------------------
 
 #define _tn_soft_isr_internal(_func, _psv, _shadow)                           \
    void __attribute__((                                                       \
@@ -400,8 +390,46 @@ typedef  unsigned int               TN_UWord;
       _func(void)
 
 
+// }}}
+
+#endif   //-- DOXYGEN_SHOULD_SKIP_THIS
 
 
+
+
+
+
+
+
+
+
+/**
+ * ISR wrapper macro for software context saving.
+ *
+ * Usage looks like the following:
+ *
+ * \code{.c}
+ * tn_soft_isr(_T1Interrupt, auto_psv)
+ * {
+ *    //-- clear interrupt flag
+ *    IFS0bits.T1IF = 0;
+ *
+ *    //-- do something useful
+ * }
+ * \endcode
+ *
+ * Which should be used for system interrupts, instead of standard way:
+ *
+ * \code{.c}
+ * void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void)
+ * \endcode
+ *
+ * Where `_T1Interrupt` is the usual PIC24/dsPIC ISR name,
+ * and `auto_psv` (or `no_auto_psv`) is the usual attribute argument for 
+ * interrupt.
+ *
+ *
+ */
 #define  tn_soft_isr(_func, _psv)  _tn_soft_isr_internal(_func, _psv, )
 
 
