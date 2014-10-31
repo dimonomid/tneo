@@ -266,7 +266,7 @@ typedef  unsigned int               TN_UWord;
  * As a result, the kernel (almost) never disables ALL interrupts: when it
  * modifies critical data, it disables just interrupts with system priority.
  *
- * The "almost" is because it disables interrupts for 4 cycles when it modifies
+ * The "almost" is because it disables interrupts for 4-8 cycles when it modifies
  * stack pointer and SPLIM, because they should always correspond. We could
  * avoid even this by first setting SPLIM to 0xffff, then modifying SP, and
  * then setting SPLIM to new correct value, this would take additional register
@@ -290,47 +290,77 @@ typedef  unsigned int               TN_UWord;
 
 #define _tn_soft_isr_prologue                      \
    "                                         \n"   \
+   /* we need to use a couple of registers, so, save them. */\
    "   push   w0;                            \n"   \
    "   push   w1;                           \n"   \
 \
+/* if TN_CHECK_PARAM is enabled, check if interrupt priority is too high. */\
+/* See macro _tn_soft_isr_priority_check above for details. */\
 _tn_soft_isr_priority_check\
 \
+/* before playing with SP and SPLIM, we need to disable system interrupts */\
+/* NOTE that 'disi' instruction does not disable interrupts with priority 7, */\
+/* so, system interrupt priority should never be 7. */\
+   "    disi      #8;   \n"   \
+/* check if SP is already inside the interrupt stack: */   \
+/* we check it by checking if SPLIM is set to _tn_p24_int_splim */   \
    "    mov __tn_p24_int_splim, w0;   \n"   \
    "    cp SPLIM;                    \n"   \
    "    bra z, 1f;                      \n"   \
+\
+/* SP is not inside the interrupt stack. We should set it. */\
    "                                         \n"   \
-   "    disi      #4;   \n"   \
    "    mov SPLIM, w1;   \n"   \
    "    mov w0, SPLIM;   \n"   \
    "    mov w15, w0;   \n"   \
    "    mov __tn_p24_int_stack_low_addr, w15;  \n"   \
    \
-   /* now, interrupt stack is used. */\
+   /* Interrupts should be re-enabled here. */\
+   /* We just switched to interrupt stack. */\
    /* we need to push previous stack pointer and SPLIM there. */\
    "    push w0;   \n"   /*push task's SP*/\
    "    push w1;   \n"   /*push task's SPLIM*/\
    "    bra 2f;                              \n"   \
    "1:                                       \n"   \
+/* Interrupt stack is already active (it happens when interrupts nest) */\
+/* Just push SP and SPLIM so that stack will be compatible with the case of */\
+/* non-nested interrupt */\
    "    push w15;   \n"   /*push SP*/\
    "    push SPLIM;   \n"   /*push SPLIM*/\
    "2:                                       \n"   \
    "                                         \n"   \
 
-
 #define _tn_soft_isr_call                       \
+   /* before we call user-provided ISR, we need to imitate interrupt call, */\
+   /* i.e. store SR to the stack. It is done below, at the label 1: */\
    "   rcall    1f;                    \n"
 
 #define _tn_soft_isr_epilogue                   \
+   /* we got here when we just returned from user-provided ISR. */\
+   /* now, we need to restore previous SPLIM and SP, and we should disable */\
+   /* interrupts because they could nest, and if SPLIM and SP don't */\
+   /* correspond, system crashes. */\
    "   disi     #4;   \n"   \
-   "   pop      w1;                             \n"   /*pop SPLIM*/\
-   "   pop      w0;                              \n"   /*pop SP*/\
+   "   pop      w1;             \n"   /*pop SPLIM*/\
+   "   pop      w0;             \n"   /*pop SP*/\
    "   mov      w1, SPLIM;                             \n"   \
    "   mov      w0, w15;                             \n"   \
+   /* now, interrupts should be enabled back. */\
+   /* here we just need to restore w0 and w1 that we saved and used in */\
+   /* _tn_soft_isr_prologue */\
    "   pop      w1;                             \n"   \
    "   pop      w0;                              \n"   \
+   /* finally, return from the ISR. */\
    "   retfie;                                 \n"   \
-   "1: mov      SR, w0;                           \n"   \
-   "   mov.b    w0, [w15-1];                         "
+   "1:                                            \n"   \
+   /* we got here by rcall when we are about to call user-provided ISR. */\
+   /* 'rcall' saves program counter to the stack, but we need to imitate */\
+   /* interrupt, so, we manually save SR there. */\
+   "   mov      SR, w0;                           \n"   \
+   "   mov.b    w0, [w15-1];                         "   \
+   /* now, we eventually proceed to user-provided ISR. */\
+   /* When it returns, we get above to the macro _tn_soft_isr_prologue */\
+   /* (because 'rcall' saved this address to the stack) */\
 
 
 
