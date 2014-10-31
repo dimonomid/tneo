@@ -122,7 +122,9 @@ Meanwhile, attributes like `TN_EVENT_ATTR_SINGLE`, `TN_EVENT_ATTR_CLR` imply tha
 
 After all, when we call `tn_event_clear(&my_event_obj, flags)`, we might expect that `flags` argument actually specifies flags to clear. But in fact, we must invert it, to make it work: `~flags`. This is really confusing.
 
-In TNeoKernel, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. I have plans to offer a way to *connect* events group to queue and probably other kernel objects as well, so that queue will set and clear particular flag in the events group automatically, depending on whether a queue is empty. By means of that, it is quite easy to wait for data from multiple queues with just a single call to `tn_eventgrp_wait()`.
+In TNeoKernel, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. 
+
+TNeoKernel also offers a very useful feature: connecting an event group to other kernel objects. Read \ref tnkernel_new_features__eventgrp_conn "below".
 
 For detailed API reference, refer to the `tn_eventgrp.h`.
 
