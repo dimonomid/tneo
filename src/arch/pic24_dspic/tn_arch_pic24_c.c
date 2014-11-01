@@ -35,6 +35,7 @@
  ******************************************************************************/
 
 #include "tn_tasks.h"
+#include "tn_arch_pic24_bfa.h"
 #include <xc.h>
 
 
@@ -68,11 +69,8 @@ void _tn_arch_sys_init(
 
 
    //-- set up software interrupt for context switching
-
-   IPC0bits.INT0IP = 1; //-- set lowest interrupt priority
-                        //   TODO: this code isn't atomic, but this function
-                        //   is called at system startup, so, nobody should
-                        //   interfere
+   BFA(BFA_WR, IPC0, INT0IP, 1); //-- set lowest interrupt priority
+                                 //   for context switch interrupt
    IFS0bits.INT0IF = 0; //-- clear interrupt flag
    IEC0bits.INT0IE = 1; //-- enable interrupt
 }
