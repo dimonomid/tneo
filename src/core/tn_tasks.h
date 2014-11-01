@@ -178,9 +178,6 @@ struct TN_Task {
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     
-   //
-   // queue is used to include task in timer list
-   //struct TN_ListItem timer_queue;
    ///
    /// timer object to implement task waiting for timeout
    struct TN_Timer timer;
