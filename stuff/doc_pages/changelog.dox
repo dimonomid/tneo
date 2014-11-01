@@ -7,6 +7,7 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
+  - Added PIC24/dsPIC support, refer to the page \ref pic24_details;
   - Refactor: the following symbols: `NULL`, `BOOL`, `TRUE`, `FALSE` now have
     the `TN_` prefix: `#TN_NULL`, `#TN_BOOL`, `#TN_TRUE`, `#TN_FALSE`. This is
 	 because non-prefixed symbols may be defined by some other program module,
