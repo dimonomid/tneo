@@ -65,3 +65,5 @@ company, Alexey Morozov and Alexey Gromov, for being flexible about my time.
 
 For comprehensive information, refer to the documentation (see links at the top of this page)
 
+Feel free to contact me at the Microchip forum, [TNeoKernel thread](http://goo.gl/1xKUwA).
+

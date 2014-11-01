@@ -50,13 +50,15 @@
 
    /* Public functions declared in this file */
 
+   .global  __INT0Interrupt
    .global  __tn_arch_context_switch_now_nosave
    .global  __tn_arch_context_switch_pend
    .global  __tn_arch_is_int_disabled
    .global  __tn_arch_inside_isr
    .global  _tn_arch_sr_save_int_dis
    .global  _tn_arch_sr_restore
-   .global  __INT0Interrupt
+   .global  _tn_arch_int_dis
+   .global  _tn_arch_int_en
 
 
 
@@ -89,12 +91,8 @@ __tn_arch_context_switch_now_nosave:
  */
 __tn_arch_context_switch_pend:
 
-   push w0
-
    mov      #_IFS0,  w0
    bset     [w0],    #0    ; IFS0bits.INT0IF = 1
-
-   pop w0
 
    return
 
@@ -191,14 +189,14 @@ __tn_context_restore:
  */
 _tn_arch_sr_save_int_dis:
 
-   push     _SR
+   mov      _SR,     w1
 
    mov      _SR,              w0
    xor      #_TN_IPL_SHIFTED, w0
    and      #0xE0,            w0
    xor      _SR
 
-   pop      w0
+   mov      w1,      w0
 
    return
 
@@ -210,8 +208,6 @@ _tn_arch_sr_restore:
 
    ; w0  - saved SR
 
-   push     w1
-
    mov      w0,      w1
    and      #0xE0,   w1
    mov      _SR,     w0
@@ -219,10 +215,18 @@ _tn_arch_sr_restore:
    and      #0xE0,   w0
    xor      _SR
 
-   pop      w1
-
    return
 
+_tn_arch_int_dis:
+
+   goto     _tn_arch_sr_save_int_dis
+
+_tn_arch_int_en:
+
+   mov      #0xff1f, w0
+   and      _SR
+
+   return
 
 /*
  * See comments for _tn_arch_is_int_disabled() in tn_arch.h

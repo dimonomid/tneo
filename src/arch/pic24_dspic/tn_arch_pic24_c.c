@@ -38,16 +38,31 @@
 #include <xc.h>
 
 
+/*******************************************************************************
+ *    GLOBAL VARIABLES
+ ******************************************************************************/
+
+//-- pointer to interrupt stack
 TN_UWord *_tn_p24_int_stack_low_addr   = TN_NULL;
+
+//-- pointer to interrupt stack limit (the value to set to SPLIM register)
 TN_UWord *_tn_p24_int_splim            = TN_NULL;
 
 
 
+/*******************************************************************************
+ *    ARCHITECTURE-DEPENDENT IMPLEMENTATION
+ ******************************************************************************/
+
+/*
+ * See comments in the file `tn_arch.h`
+ */
 void _tn_arch_sys_init(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
 {
+   //-- set interrupt stack pointers
    _tn_p24_int_stack_low_addr = int_stack;
    _tn_p24_int_splim = int_stack + int_stack_size - 1 - 1;
 
@@ -63,6 +78,9 @@ void _tn_arch_sys_init(
 }
 
 
+/*
+ * See comments in the file `tn_arch.h`
+ */
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord *stack_low_address,
       int stack_size
@@ -72,6 +90,9 @@ TN_UWord *_tn_arch_stack_top_get(
 }
 
 
+/*
+ * See comments in the file `tn_arch.h`
+ */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
       TN_UWord      *stack_top,
@@ -108,19 +129,22 @@ TN_UWord *_tn_arch_stack_init(
    return stack_top;
 }
 
+#if 0
+/*
+ * See comments in the file `tn_arch.h`
+ */
 void tn_arch_int_dis(void)
 {
    tn_arch_sr_save_int_dis();
 }
 
+/*
+ * See comments in the file `tn_arch.h`
+ */
 void tn_arch_int_en(void)
 {
    //__builtin_enable_interrupts();
    //TODO
 }
+#endif
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
