@@ -215,28 +215,12 @@
 
 
 /**
- * PIC24/dsPIC TNeoKernel port allows to specify the range of "system interrupt
- * priorities"; and kernel services are allowed to call only from interrupts of
- * these priorities. These interrupts will be referred to as "system
- * interrupts".
+ * 
+ * Maximum system interrupt priority. For details on system interrupts on
+ * PIC24/dsPIC, refer to the section \ref pic24_interrupts 
+ * "PIC24/dsPIC interrupts". 
  *
- * System interrupts get disabled by the kernel for short periods of time,
- * when kernel needs to modify critical data.
- *
- * The range is specified by just a single number: `TN_P24_SYS_IPL`. Here is
- * a list of priorities and their characteristics:
- *
- * - priorities `[1 .. TN_P24_SYS_IPL]`: kernel services **are** allowed to call.
- *   Interrupts get disabled for short periods of time when modifying critical
- *   kernel data (for about 100 cycles or the like)
- * - priorities `(TN_P24_SYS_IPL .. 6]`: kernel services **are not** allowed
- *   to call.  Interrupts are not disabled when modifying critical kernel data,
- *   but they are disabled for 4..8 cycles by `disi` instruction when
- *   entering/exiting system ISR: we need to safely modify `SP` and `SPLIM`.
- * - priority `7`: Interrupts are never disabled by the kernel. Note that `disi`
- *   instruction leaves interrupts of priority 7 enabled.
- *
- * Maximum system interrupt priority. Should be >= 1 and <= 6. Default: 4.
+ * Should be >= 1 and <= 6. Default: 4.
  *
  */
 #ifndef TN_P24_SYS_IPL
