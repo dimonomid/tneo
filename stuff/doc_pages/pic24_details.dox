@@ -15,19 +15,15 @@ For detailed information about interrupts in TNeoKernel, refer to the page \ref
 interrupts.
 
 PIC24/dsPIC TNeoKernel port supports nested interrupts. It allows to specify
-the range of *system interrupt priorities*; and kernel services are allowed to
-call only from interrupts of these priorities. These interrupts will be
-referred to as *system interrupts*.
-
-System interrupts get disabled by the kernel for short periods of time,
-when kernel needs to modify critical data. It's about 100 cycles at most.
+the range of *system interrupt priorities*. Refer to the section \ref
+interrupt_types for details on what is <i>system interrupt</i>.
 
 System interrupts use separate interrupt stack instead of the task's stack.
 This approach saves a lot of RAM.
 
 The range is specified by just a single number: `#TN_P24_SYS_IPL`, which
-represents maximum *system interrupt priority*. Here is a list of priorities
-and their characteristics:
+represents maximum *system interrupt priority*. Here is a list of available
+priorities and their characteristics:
 
 - priorities `[1 .. #TN_P24_SYS_IPL]`: 
   - Kernel services **are** allowed to call;
