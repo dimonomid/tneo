@@ -252,11 +252,6 @@ typedef  unsigned int               TN_UWord;
 
 //-- internal interrupt macro stuff {{{
 
-//TODO: this symbol is now defined in two places 
-//(tn_arch_pic24.h, tn_arch_pic24.S)
-//need to fix it
-#define  _TN_IPL            "0x04"
-
 #if TN_CHECK_PARAM
 
 /**
@@ -276,7 +271,7 @@ typedef  unsigned int               TN_UWord;
    "   mov     #0xE0,   W0                                              \n"   \
    "   and     _SR,     WREG                                            \n"   \
    "   lsr     W0,      #5,      W0                                     \n"   \
-   "   cp      W0,      #" _TN_IPL "                                    \n"   \
+   "   cp      W0,      #" TN_P24_SYS_IPL_STR "                         \n"   \
    "   bra     leu,     1f                                              \n"   \
                                                                               \
    /* Interrupt priority is too high. Halt the debugger here.           */    \

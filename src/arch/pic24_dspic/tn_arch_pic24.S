@@ -34,11 +34,10 @@
  *
  ******************************************************************************/
 
-//TODO: this symbol is now defined in two places 
-//(tn_arch_pic24.h, tn_arch_pic24.S)
-//need to fix it
-#define  _TN_IPL            0x04
-#define  _TN_IPL_SHIFTED    (_TN_IPL << 5)
+#include "tn_cfg_dispatch.h"
+
+#define  _TN_IPL            TN_P24_SYS_IPL
+#define  _TN_IPL_SHIFTED    (TN_P24_SYS_IPL << 5)
 
 
    .text

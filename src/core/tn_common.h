@@ -47,31 +47,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-//-- Configuration constants
-/**
- * In this case, you should use macro like this: `#TN_MAKE_ALIG(struct my_struct)`.
- * This way is used in the majority of TNKernel ports. (actually, in all ports
- * except the one by AlexB)
- */
-#define  TN_API_MAKE_ALIG_ARG__TYPE       1
-
-/**
- * In this case, you should use macro like this: `#TN_MAKE_ALIG(sizeof(struct
- * my_struct))`. This way is stated in TNKernel docs and used in the port for
- * dsPIC/PIC24/PIC32 by AlexB.
- */
-#define  TN_API_MAKE_ALIG_ARG__SIZE       2
-
-//--- As a starting point, you might want to copy tn_cfg_default.h -> tn_cfg.h,
-//    and then edit it if you want to change default configuration.
-//    NOTE: the file tn_cfg.h is specified in .hgignore file, in order to not include
-//    project-specific configuration in the common TNKernel repository.
-#include "tn_cfg.h"
-
-//--- default cfg file is included too, so that you are free to not set
-//    all available options in your tn_cfg.h file.
-#include "tn_cfg_default.h"
-
+#include "tn_cfg_dispatch.h"
 
 #ifdef __cplusplus
 extern "C"  {     /*}*/
