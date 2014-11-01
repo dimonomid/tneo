@@ -110,8 +110,6 @@ TN_UWord *_tn_arch_stack_init(
 
 void tn_arch_int_dis(void)
 {
-    //__builtin_disable_interrupts();
-    //TODO
    tn_arch_sr_save_int_dis();
 }
 

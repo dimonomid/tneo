@@ -47,6 +47,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "../arch/tn_arch_detect.h"
 #include "tn_cfg_dispatch.h"
 
 #ifdef __cplusplus

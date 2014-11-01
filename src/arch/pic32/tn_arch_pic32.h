@@ -50,9 +50,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-//-- this include is needed to get build-time configuration
-//   (TN_DEBUG is used)
-#include "../../core/tn_common.h"
+#include "../../core/tn_cfg_dispatch.h"
 
 
 

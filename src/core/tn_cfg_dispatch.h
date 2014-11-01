@@ -45,6 +45,7 @@
 #ifndef _TN_CFG_DISPATCH_H
 #define _TN_CFG_DISPATCH_H
 
+#include "../arch/tn_arch_detect.h"
 
 //-- Configuration constants
 /**
@@ -68,12 +69,73 @@
 //    project-specific configuration in the common TNKernel repository.
 #include "tn_cfg.h"
 
+//-- Probably a bit of hack, but anyway:
+//   tn_cfg.h might just be a modified copy from existing tn_cfg_default.h, 
+//   and then, _TN_CFG_DEFAULT_H is probably defined there. 
+//   But we need to set some defaults, so, let's undef it.
+//   Anyway, tn_cfg_default.h checks whether each particular option is already
+//   defined, so it works nice.
+#undef _TN_CFG_DEFAULT_H
+
 //--- default cfg file is included too, so that you are free to not set
 //    all available options in your tn_cfg.h file.
 #include "tn_cfg_default.h"
 
+//-- check that all options specified {{{
 
-#if defined (__XC16__)
+#if !defined(TN_PRIORITIES_CNT)
+#  error TN_PRIORITIES_CNT is not defined
+#endif
+
+#if !defined(TN_CHECK_PARAM)
+#  error TN_CHECK_PARAM is not defined
+#endif
+
+#if !defined(TN_DEBUG)
+#  error TN_DEBUG is not defined
+#endif
+
+#if !defined(TN_OLD_TNKERNEL_NAMES)
+#  error TN_OLD_TNKERNEL_NAMES is not defined
+#endif
+
+#if !defined(TN_USE_MUTEXES)
+#  error TN_USE_MUTEXES is not defined
+#endif
+
+#if TN_USE_MUTEXES
+#  if !defined(TN_MUTEX_REC)
+#     error TN_MUTEX_REC is not defined
+#  endif
+#  if !defined(TN_MUTEX_DEADLOCK_DETECT)
+#     error TN_MUTEX_DEADLOCK_DETECT is not defined
+#  endif
+#endif
+
+#if !defined(TN_TICK_LISTS_CNT)
+#  error TN_TICK_LISTS_CNT is not defined
+#endif
+
+#if !defined(TN_API_MAKE_ALIG_ARG)
+#  error TN_API_MAKE_ALIG_ARG is not defined
+#endif
+
+#if defined (__TN_ARCH_PIC24_DSPIC__)
+#  if !defined(TN_P24_SYS_IPL)
+#     error TN_P24_SYS_IPL is not defined
+#  endif
+
+#  if !defined(TN_P24_SYS_IPL_STR)
+#     error TN_P24_SYS_IPL_STR is not defined
+#  endif
+#endif
+
+// }}}
+
+
+
+
+#if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if TN_P24_SYS_IPL >= 7
 #     error TN_P24_SYS_IPL must be less than 7
 #  endif
@@ -81,6 +143,9 @@
 #     error TN_P24_SYS_IPL must be more than 0
 #  endif
 #endif
+
+
+
 
 #endif // _TN_CFG_DISPATCH_H
 

@@ -251,6 +251,16 @@ __tn_arch_inside_isr:
 
    ; here, we check if SPLIM is equal to __tn_p24_int_splim.
    ; If it is, we are inside ISR.
+   ;
+   ; NOTE: we can't check IPL from SR, because when someone disables interrupts
+   ; by calling tn_arch_sr_save_int_dis(), IPL is modified. So, if we disable
+   ; interrupts from task, then _tn_arch_inside_isr() would return true,
+   ; but it is actually should be false.
+   ;
+   ; Instead, on PIC24/dsPIC, system interrupts **must** use kernel-provided
+   ; macro tn_soft_isr() for interrupt definition, and we modify SPLIM there.
+   ; So, here we check SPLIM, and if it points to _tn_p24_int_splim,
+   ; we are inside interrupt.
 
    mov      __tn_p24_int_splim, w0
    cp       SPLIM

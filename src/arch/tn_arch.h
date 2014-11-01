@@ -56,12 +56,12 @@
  *    ACTUAL PORT IMPLEMENTATION
  ******************************************************************************/
 
-#if defined(__PIC32MX__)
-#include "pic32/tn_arch_pic32.h"
-#elif defined(__C30__)
-#include "pic24_dspic/tn_arch_pic24.h"
+#if defined(__TN_ARCH_PIC32MX__)
+#  include "pic32/tn_arch_pic32.h"
+#elif defined(__TN_ARCH_PIC24_DSPIC__)
+#  include "pic24_dspic/tn_arch_pic24.h"
 #else
-#error "unknown platform"
+#  error "unknown platform"
 #endif
 
 
@@ -76,25 +76,34 @@ extern "C"  {  /*}*/
 
 
 /**
- * Unconditionally disable interrupts
+ * Unconditionally disable <i>system interrupts</i>. 
+ *
+ * Refer to the section \ref interrupt_types for details on what is <i>system
+ * interrupt</i>.
  */
 void tn_arch_int_dis(void);
 
 /**
  * Unconditionally enable interrupts
+ *
+ * Refer to the section \ref interrupt_types for details on what is <i>system
+ * interrupt</i>.
  */
 void tn_arch_int_en(void);
 
 /**
- * Disable interrupts and return previous value of status register,
- * atomically
+ * Disable <i>system interrupts</i> and return previous value of status
+ * register, atomically.
+ *
+ * Refer to the section \ref interrupt_types for details on what is <i>system
+ * interrupt</i>.
  *
  * @see `tn_arch_sr_restore()`
  */
 TN_UWord tn_arch_sr_save_int_dis(void);
 
 /**
- * Restore previously saved status register
+ * Restore previously saved status register.
  *
  * @param sr   status register value previously from
  *             `tn_arch_sr_save_int_dis()`
@@ -103,8 +112,8 @@ TN_UWord tn_arch_sr_save_int_dis(void);
  */
 void tn_arch_sr_restore(TN_UWord sr);
 
-/*
- * Architecture-dependent system startup routine.
+/**
+ * Architecture-dependent system startup routine. Called from `tn_sys_start()`.
  */
 void _tn_arch_sys_init(
       TN_UWord            *int_stack,
@@ -113,15 +122,14 @@ void _tn_arch_sys_init(
 
 
 /**
- * Should return top of the stack, which may be either:
+ * Should return top of the stack, which may be:
  *
  * - `(stack_low_address - 1)`
  * - `(stack_low_address + stack_size)`
+ * - `(stack_low_address)`
+ * - `(stack_low_address + stack_size - 1)`
  *
  * (depending on the architecture)
- *
- * **NOTE** that returned *top of the stack* is NOT the address which may be
- * used for storing the new data. Instead, it is the *previous* address.
  *
  * @param   stack_low_address
  *    Start address of the stack array.
@@ -165,12 +173,19 @@ TN_UWord *_tn_arch_stack_init(
       );
 
 /**
- * Should return 1 if ISR is currently running, 0 otherwise
+ * Should return 1 if <i>system ISR</i> is currently running, 0 otherwise.
+ *
+ * Refer to the section \ref interrupt_types for details on what is <i>system
+ * ISR</i>.
  */
 int _tn_arch_inside_isr(void);
 
 /**
- * TODO
+ * Should return 1 if <i>system interrupts</i> are currently disabled, 0
+ * otherwise.
+ *
+ * Refer to the section \ref interrupt_types for details on what is <i>system
+ * interrupt</i>.
  */
 int _tn_arch_is_int_disabled(void);
 

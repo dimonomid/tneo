@@ -7,7 +7,7 @@ round-robin scheduling for the tasks with identical priority.
 
 TNeoKernel was born as a thorough review and re-implementation of [TNKernel](http://tnkernel.com) v2.7. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
 
-Currently it is available for PIC32 only, but will probably be ported to other architectures. Tested on PIC32MX.
+Currently it is available for PIC32/PIC24/dsPIC, and it will be ported at least to ARM Cortex M3.
 
 Comprehensive documentation is available in two forms: html and pdf.
 
@@ -40,7 +40,7 @@ new name for this project, in order to avoid confusion, hence "TNeoKernel".
 Refer to the [Differences from TNKernel API](http://dfrank.bitbucket.org/tneokernel_api/latest/html/tnkernel_diff.html) page for details.
 
 Together with almost totally re-writing TNKernel, I've implemented detailed
-[unit tests](http://dfrank.bitbucket.org/tneokernel_api/latest/html/unit_tests.html) for it, to make sure I didn't break anything, and of course I've found several bugs in original TNKernel 2.7: refer to the section [Bugs of TNKernel 2.7](http://dfrank.bitbucket.org/tneokernel_api/latest/html/why_reimplement.html#why_reimplement__bugs). Unit tests are, or course, a "must-have" for the project like this; it's so strange bug original TNKernel seems untested.
+[unit tests](http://dfrank.bitbucket.org/tneokernel_api/latest/html/unit_tests.html) for it, to make sure I didn't break anything, and of course I've found several bugs in original TNKernel 2.7: refer to the section [Bugs of TNKernel 2.7](http://dfrank.bitbucket.org/tneokernel_api/latest/html/why_reimplement.html#why_reimplement__bugs). Unit tests are, or course, a "must-have" for the project like this; it's so strange but original TNKernel seems untested.
 
 Note that PIC32-dependent routines (such as context switch and so on) are
 originally implemented by Anders Montonen; I examined them in detail and

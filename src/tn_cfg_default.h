@@ -215,14 +215,31 @@
 
 
 /**
+ * \def TN_P24_SYS_IPL
  * 
  * Maximum system interrupt priority. For details on system interrupts on
  * PIC24/dsPIC, refer to the section \ref pic24_interrupts 
  * "PIC24/dsPIC interrupts". 
  *
+ * \attention you should also set `#TN_P24_SYS_IPL_STR` to appropriate value.
+ *
  * Should be >= 1 and <= 6. Default: 4.
  *
  */
+
+/**
+ * \def TN_P24_SYS_IPL_STR
+ *
+ * The same as `#TN_P24_SYS_IPL` but should be set as string, for example:
+ * \code{.c}
+ * #define TN_P24_SYS_IPL_STR  "4"
+ * \endcode
+ *
+ * It is used in assembly for ISR macro `tn_p24_soft_isr()`. 
+ * I don't like that we have to keep two macros instead of just one, so if
+ * anybody knows how to use integer value there, please let me know :)
+ */
+
 #ifndef TN_P24_SYS_IPL
 //-- NOTE: the following two macros should correspond: they should specify
 //   the same number, but in one case it is an integer, and in the second case

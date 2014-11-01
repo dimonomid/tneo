@@ -45,9 +45,7 @@
 #ifndef  _TN_ARCH_PIC32_H
 #define  _TN_ARCH_PIC32_H
 
-//-- this include is needed to get build-time configuration
-//   (TN_DEBUG is used)
-#include "../../core/tn_common.h"
+#include "../../core/tn_cfg_dispatch.h"
 
 
 #ifdef __cplusplus
@@ -122,7 +120,7 @@ extern "C"  {     /*}*/
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          36//TODO
+#define  TN_MIN_STACK_SIZE          23
 
 /**
  * Width of `int` type.
@@ -406,7 +404,7 @@ typedef  unsigned int               TN_UWord;
  * Usage looks like the following:
  *
  * \code{.c}
- * tn_soft_isr(_T1Interrupt, auto_psv)
+ * tn_p24_soft_isr(_T1Interrupt, auto_psv)
  * {
  *    //-- clear interrupt flag
  *    IFS0bits.T1IF = 0;
@@ -427,7 +425,7 @@ typedef  unsigned int               TN_UWord;
  *
  *
  */
-#define  tn_soft_isr(_func, _psv)  _tn_soft_isr_internal(_func, _psv, )
+#define  tn_p24_soft_isr(_func, _psv)  _tn_soft_isr_internal(_func, _psv, )
 
 
 

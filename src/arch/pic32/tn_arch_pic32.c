@@ -151,6 +151,13 @@ void _tn_arch_sys_init(
 //      SP + 00 lo
 //----------------------------------------------------------------------------
 
+/*
+ * See comments in the `tn_arch.h` file
+ *
+ * **NOTE** that returned *top of the stack* is NOT the address which may be
+ * used for storing the new data. Instead, it is the *previous* address.
+ *
+ */
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord *stack_low_address,
       int stack_size
