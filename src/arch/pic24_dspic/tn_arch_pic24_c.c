@@ -129,22 +129,4 @@ TN_UWord *_tn_arch_stack_init(
    return stack_top;
 }
 
-#if 0
-/*
- * See comments in the file `tn_arch.h`
- */
-void tn_arch_int_dis(void)
-{
-   tn_arch_sr_save_int_dis();
-}
-
-/*
- * See comments in the file `tn_arch.h`
- */
-void tn_arch_int_en(void)
-{
-   //__builtin_enable_interrupts();
-   //TODO
-}
-#endif
 

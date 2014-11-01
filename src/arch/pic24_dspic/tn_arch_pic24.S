@@ -217,14 +217,22 @@ _tn_arch_sr_restore:
 
    return
 
+
+/*
+ * See comments for tn_arch_int_dis() in tn_arch.h
+ */
 _tn_arch_int_dis:
 
    goto     _tn_arch_sr_save_int_dis
 
+
+/*
+ * See comments for tn_arch_int_en() in tn_arch.h
+ */
 _tn_arch_int_en:
 
    mov      #0xff1f, w0
-   and      _SR
+   and      _SR,     WREG
 
    return
 
