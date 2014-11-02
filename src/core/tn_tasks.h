@@ -37,7 +37,75 @@
 /**
  * \file
  *
- * Various task services: create, sleep, wake up, terminate, etc.
+ * \section tn_tasks__tasks Task
+ *
+ * In TNeoKernel, a task is a branch of code that runs concurrently with other
+ * tasks from the programmer's point of view. Indeed, tasks are actually
+ * executed using processor time sharing.  Each task can be considered to be an
+ * independed program, which executes in its own context (processor registers,
+ * stack pointer, etc.).
+ *
+ * Actually, the term <i>thread</i> is more accurate than <i>task</i>, but the
+ * term <i>task</i> historically was used in TNKernel, so TNeoKernel keeps this
+ * convention.
+ *
+ * When kernel decides that it's time to run another task, it performs
+ * <i>context switch</i>: current context (at least, values of all registers)
+ * gets saved to the preempted task's stack, pointer to currently running 
+ * task is altered as well as stack pointer, and context gets restored from
+ * the stack of newly running task.
+ *
+ * \section tn_tasks__states Task states
+ *
+ * For list of task states and their description, refer to `enum
+ * #TN_TaskState`.
+ *
+ *
+ * \section tn_tasks__creating Creating/starting tasks
+ *
+ * Create task and delete task are two separate actions; although you can
+ * perform both of them in one step by passing `#TN_TASK_CREATE_OPT_START` flag
+ * to the `tn_task_create()` function.
+ *
+ * \section tn_tasks__stopping Stopping/deleting tasks
+ *
+ * Stop task and delete task are two separate actions. If task was just stopped
+ * but not deleted, it can be just restarted again by calling
+ * `tn_task_activate()`. If task was deleted, it can't be just activated: it
+ * should be re-created by `tn_task_create()` first.
+ *
+ * Task stops execution when:
+ *
+ * - it calls `tn_task_exit()`;
+ * - it returns from its task body function (it is the equivalent to
+ *   `tn_task_exit(0)`)
+ * - some other task calls `tn_task_terminate()` passing appropriate pointer to
+ *   `struct #TN_Task`.
+ *
+ * \section tn_tasks__scheduling Scheduling rules
+ *
+ * TNeoKernel always runs the most privileged task in state
+ * $(TN_TASK_STATE_RUNNABLE). In no circumstances can task run while there is
+ * at least one task is in the $(TN_TASK_STATE_RUNNABLE) state with higher
+ * priority. Task will run until:
+ *
+ * - It becomes non-runnable (say, it may wait for something, etc)
+ * - Some other task with higher priority becomes runnable.
+ *
+ * Tasks with the same priority may be scheduled in round robin fashion by
+ * getting a predetermined time slice for each task with this priority. 
+ * Time slice is set separately for each priority. By default, round robin
+ * is turned off for all priorities.
+ *
+ * \section tn_tasks__idle Idle task
+ *
+ * TNeoKernel has one system task: an idle task, which has lowest priority.
+ * It is always in the state $(TN_TASK_STATE_RUNNABLE), and it runs only when
+ * there are no other runnable tasks.
+ *
+ * User can provide a callback function to be called from idle task, see
+ * #TN_CBIdle. It is useful to bring the processor to some kind of real idle
+ * state, so that device draws less current.
  *
  */
 
@@ -588,6 +656,9 @@ enum TN_RCode tn_task_irelease_wait(struct TN_Task *task);
  * If this function is invoked with `#TN_TASK_EXIT_OPT_DELETE` option set, the
  * task will be deleted after termination and cannot be reactivated (needs
  * recreation).
+ *
+ * Please note that returning from task body function has the same effect as
+ * calling `tn_task_exit(0)`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
