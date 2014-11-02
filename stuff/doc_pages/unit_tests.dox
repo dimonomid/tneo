@@ -3,6 +3,13 @@
 
 Brief information on the implementation of unit tests
 
+\section tested_cpus Tested CPUs
+
+Currently, unit tests project is tested in the hardware on the following CPUs:
+
+- PIC32MX440F512H
+- PIC24FJ256GB106
+
 \section how_tests_are_implemented How tests are implemented
 
 Briefly: there is a high-priority task like "test director", which creates
