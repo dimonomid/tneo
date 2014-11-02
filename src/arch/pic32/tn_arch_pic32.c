@@ -39,6 +39,7 @@
  ******************************************************************************/
 
 #include "_tn_tasks.h"
+#include <xc.h>
 
 
 
@@ -109,6 +110,18 @@ void _tn_arch_sys_init(
          int_stack,
          int_stack_size
          );
+
+
+   //-- setup core software 0 interrupt, it should be set to lowest priority
+   //   and should not use shadow register set.
+   //   (TNKernel-PIC32 port uses it for switch context routine)
+
+   //-- set priority 1 and subpriority 0;
+   IPC0CLR = 0x00001f00;   //-- initially, reset both priority and subp. to 0
+   IPC0SET = 0x00000400;   //-- then, set priority to 1
+
+   IFS0CLR = 0x00000002;   //-- clear interrupt flag
+   IEC0SET = 0x00000002;   //-- enable interrupt
 }
 
 
