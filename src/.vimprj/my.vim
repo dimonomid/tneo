@@ -1,5 +1,5 @@
 
-" определяем путь к папке .vim
+" detect path to .vimprj dir
 let s:sPath = expand('<sfile>:p:h')
 
 let g:proj_project_filename=s:sPath.'/.vimprojects'

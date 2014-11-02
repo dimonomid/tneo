@@ -164,6 +164,12 @@ extern void *tn_p32_int_sp;
  */
 typedef  unsigned int               TN_UWord;
 
+/**
+ * Unsigned integer type that is able to store pointers.
+ * We need it because some platforms don't define `uintptr_t`.
+ * Typically it's `unsigned int`.
+ */
+typedef  unsigned int               TN_UIntPtr;
 
 /**
  * Maximum number of priorities available, this value usually matches

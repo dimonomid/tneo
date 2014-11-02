@@ -214,10 +214,10 @@ enum TN_RCode tn_fmem_create(
 
    //-- check that start_addr is aligned properly
    {
-      unsigned long start_addr_aligned 
-         = TN_MAKE_ALIG_SIZE((unsigned long)start_addr);
+      TN_UIntPtr start_addr_aligned 
+         = TN_MAKE_ALIG_SIZE((TN_UIntPtr)start_addr);
 
-      if (start_addr_aligned != (unsigned int)start_addr){
+      if (start_addr_aligned != (TN_UIntPtr)start_addr){
          rc = TN_RC_WPARAM;
          goto out;
       }
