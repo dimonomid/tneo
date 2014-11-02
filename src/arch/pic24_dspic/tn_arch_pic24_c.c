@@ -106,7 +106,7 @@ TN_UWord *_tn_arch_stack_init(
    //   it because PIC24/dsPIC hardware works this way.
    TN_UWord *p_splim = stack_top + stack_size - 1 - 1;
 
-   //-- set return address that is used when task body function returned:
+   //-- set return address that is used when task body function returns:
    //   we set it to _tn_task_exit_nodelete, so that returning from task
    //   body function is equivalent to calling tn_task_exit(0)
    *(stack_top++) = (TN_UWord)_tn_task_exit_nodelete;
