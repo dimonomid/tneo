@@ -34,7 +34,7 @@
  *
  ******************************************************************************/
 
-#include "tn_tasks.h"
+#include "_tn_tasks.h"
 #include "tn_arch_pic24_bfa.h"
 #include <xc.h>
 
@@ -100,6 +100,8 @@ TN_UWord *_tn_arch_stack_init(
 {
    TN_UWord *p_splim = stack_top + stack_size - 1 - 1;
 
+   *(stack_top++) = (TN_UWord)_tn_task_exit_nodelete;
+   *(stack_top++) = 0;
    *(stack_top++) = (TN_UWord)task_func;
    *(stack_top++) = 0;
    *(stack_top++) = 0x0103;   // SR

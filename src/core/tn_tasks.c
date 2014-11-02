@@ -1156,3 +1156,11 @@ TN_BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex
 
 #endif
 
+/*
+ * See comment in the _tn_tasks.h file
+ */
+void _tn_task_exit_nodelete(void)
+{
+   tn_task_exit((0));
+}
+

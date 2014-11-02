@@ -38,7 +38,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "tn_tasks.h"
+#include "_tn_tasks.h"
 
 
 
@@ -200,7 +200,7 @@ TN_UWord *_tn_arch_stack_init(
    *(--stack_top) = 0;
    *(--stack_top) = (TN_UWord)task_func;     //-- EPC
    *(--stack_top) = 3;                       //-- Status: EXL and IE bits are set
-   *(--stack_top) = (TN_UWord)tn_task_exit;  //-- ra
+   *(--stack_top) = (TN_UWord)_tn_task_exit_nodelete;  //-- ra
    *(--stack_top) = 0x30303030L;             //-- fp
    *(--stack_top) = (TN_UWord)&_gp;          //-- gp - provided by linker
    *(--stack_top) = 0x25252525L;             //-- t9

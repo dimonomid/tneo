@@ -120,7 +120,7 @@ extern "C"  {     /*}*/
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          23
+#define  TN_MIN_STACK_SIZE          25
 
 /**
  * Width of `int` type.

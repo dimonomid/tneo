@@ -368,6 +368,14 @@ TN_BOOL _tn_task_first_wait_complete(
       );
 
 
+/**
+ * The same as `tn_task_exit(0)`, we need this function that takes no arguments
+ * for exiting from task body function: we just set up initial task's stack so
+ * that return address is `#_tn_task_exit_nodelete`, and it works.
+ *
+ * If the function takes arguments, it becomes much harder.
+ */
+void _tn_task_exit_nodelete(void);
 
 
 /*******************************************************************************
