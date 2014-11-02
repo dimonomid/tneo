@@ -6,18 +6,14 @@
 PIC32 port implementation details
 
 \section pic32_context_switch Context switch
-The context switch is implemented using the core software 0 interrupt. It
-should be configured to use the lowest priority in the system:
+The context switch is implemented using the core software 0 interrupt (`CS0`),
+which is configured by the kernel to the lowest priority (1). This interrupt is
+handled completely by the kernel, application should never touch it.
 
-\code{.c}
-// set up the software interrupt 0 with a priority of 1, subpriority 0
-INTSetVectorPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_PRIORITY_LEVEL_1);
-INTSetVectorSubPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_SUB_PRIORITY_LEVEL_0);
-INTEnable(INT_CS0, INT_ENABLED);
-\endcode
+The interrupt priority level 1 should not be configured to use shadow register
+sets.
 
-The interrupt priority level used by the context switch interrupt should not be
-configured to use shadow register sets.
+Multi-vectored interrupt mode should be enabled.
 
 \attention if tneokernel is built as a separate library, then the file
 `src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included in the main project
