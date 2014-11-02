@@ -43,20 +43,20 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneokernel_pic24.X"
+              <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
                             CT="3"
                             CN="default"
                             AC="true"
                             BL="true"
-                            WD="../../../../../src/arch/pic24_dspic/tneokernel_pic24.X"
+                            WD="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
                             BC="${MAKE}  -f Makefile CONF=default"
                             DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"
-                            OP="dist/default/production/tneokernel_pic24.X.a"
-                            DOP="dist/default/debug/tneokernel_pic24.X.a"
-                            FL="dist/default/production/tneokernel_pic24.X.a"
-                            PD="dist/default/production/tneokernel_pic24.X."
-                            DD="dist/default/debug/tneokernel_pic24.X.">
+                            OP="dist/default/production/tneokernel_pic24_dspic.X.a"
+                            DOP="dist/default/debug/tneokernel_pic24_dspic.X.a"
+                            FL="dist/default/production/tneokernel_pic24_dspic.X.a"
+                            PD="dist/default/production/tneokernel_pic24_dspic.X."
+                            DD="dist/default/debug/tneokernel_pic24_dspic.X.">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>

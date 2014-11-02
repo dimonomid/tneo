@@ -176,34 +176,22 @@
 
 // }}}
 
-//#pragma config CONFIG1H = 0x08;
 
-__CSP_CONFIG_1(JTAG_DIS                     |   /* JTAG disabled                            */
-#if defined(__DEBUG)
+__CSP_CONFIG_1(
+      JTAG_DIS                     |   /* JTAG disabled                            */
       CODE_PROTECT_DIS             |   /* Code Protect disabled                    */
-#else
-      CODE_PROTECT_EN              |   /* TODO:change Code Protect enabled                     */
-#endif
       CODE_WRITE_EN                |   /* Code write enabled                       */
-#if defined(__DEBUG)
       BACKGROUND_DEBUG_EN          |   /* Debug enabled                            */
       EMULATION_EN                 |   /* Emulation enabled                        */
-#else
-      BACKGROUND_DEBUG_DIS         |   /* Debug enabled                            */
-      EMULATION_DIS                |   /* Emulation enabled                        */
-#endif
       ICD_PIN_PGX2                 |   /* PGC2/PGD2 pins used for debug            */
-#if defined(__DEBUG)
       WDT_DIS                      |   /* WDT disabled                             */
-#else
-      WDT_DIS                      |   /* WDT disabled                             */
-#endif
       WDT_WINDOW_DIS               |   /* WDT mode is not-windowed                 */
-WDT_PRESCALE_32              |   /* WDT prescale is 1:32                     */
-WDT_POSTSCALE_1                  /* WDT postscale is 1:1                     */
-);
+      WDT_PRESCALE_32              |   /* WDT prescale is 1:32                     */
+      WDT_POSTSCALE_1                  /* WDT postscale is 1:1                     */
+      );
 
-__CSP_CONFIG_2(TWO_SPEED_STARTUP_DIS        |   /* Two-speed startup disabled               */
+__CSP_CONFIG_2(
+      TWO_SPEED_STARTUP_DIS        |   /* Two-speed startup disabled               */
       USB_PLL_PRESCALE_4           |
       OSC_STARTUP_PRIMARY_PLL      |   /* Startup oscillator is Primary with PLL   */
       CLK_SW_DIS_CLK_MON_DIS       |   /* Clock switch disabled, monitor disabled  */
@@ -213,7 +201,8 @@ __CSP_CONFIG_2(TWO_SPEED_STARTUP_DIS        |   /* Two-speed startup disabled   
       PRIMARY_OSC_HS                   /* Primary oscillator mode is HS            */
       );
 
-__CSP_CONFIG_3(CODE_WRITE_PROT_MEM_START    |   /* Code write protect block from start      */
+__CSP_CONFIG_3(
+      CODE_WRITE_PROT_MEM_START    |   /* Code write protect block from start      */
       CODE_WRITE_CONF_MEM_DIS      |   /* Code config memory block not protected   */
       CODE_WRITE_BLOCK_DIS             /* Code block protect disabled              */
       );
@@ -247,7 +236,7 @@ __CSP_CONFIG_3(CODE_WRITE_PROT_MEM_START    |   /* Code write protect block from
 
 
 //-- idle task stack size, in words
-#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 16 + 100/*TODO: remove*/)
+#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 16)
 
 //-- interrupt stack size, in words
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)
@@ -298,15 +287,10 @@ struct TN_Task task_c = {};
 /**
  * system timer ISR
  */
-//tn_soft_isr(_TIMER_5_VECTOR)
 
-void __attribute__((__interrupt__, auto_psv)) _T1Interrupt(void)
+tn_p24_soft_isr(_T1Interrupt, auto_psv)
 {
    IFS0bits.T1IF   = 0;
-   volatile int b;
-   b = 1;
-   b = _tn_arch_is_int_disabled();
-   b = 1;
    tn_tick_int_processing();
 }
 
@@ -328,9 +312,8 @@ void task_a_body(void *par)
    //   (job for which task was created at all)
    for(;;)
    {
-      //mPORTEToggleBits(BIT_0);
-      LATE ^= (1 << 0);
-      tn_task_sleep(50);
+      __builtin_btg(&LATE, 0);
+      tn_task_sleep(500);
    }
 }
 
@@ -338,9 +321,8 @@ void task_b_body(void *par)
 {
    for(;;)
    {
-      //mPORTEToggleBits(BIT_1);
-      LATE ^= (1 << 1);
-      tn_task_sleep(100);
+      __builtin_btg(&LATE, 1);
+      tn_task_sleep(1000);
    }
 }
 
@@ -348,9 +330,8 @@ void task_c_body(void *par)
 {
    for(;;)
    {
-      //mPORTEToggleBits(BIT_2);
-      LATE ^= (1 << 2);
-      tn_task_sleep(150);
+      __builtin_btg(&LATE, 2);
+      tn_task_sleep(1500);
    }
 }
 
@@ -359,12 +340,7 @@ void task_c_body(void *par)
  */
 void hw_init(void)
 {
-   //SYSTEMConfig(SYS_FREQ, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
-
-   //turn off ADC function for all pins
-   //AD1PCFG = 0xffffffff;
-
-   //-- enable timer5 interrupt
+   //-- set up timer1
    T1CONbits.TCS   = 0;
    T1CONbits.TGATE = 0;
    T1CONbits.TSIDL = 1;
@@ -376,9 +352,6 @@ void hw_init(void)
    IEC0bits.T1IE   = 1;
    IPC0bits.T1IP   = 2;
    T1CONbits.TON   = 1;
-
-   IEC0bits.INT0IE = 1;
-   IPC0bits.INT0IP = 1;
 }
 
 /**
@@ -387,8 +360,6 @@ void hw_init(void)
 void appl_init(void)
 {
    //-- configure LED port pins
-   //mPORTESetPinsDigitalOut(BIT_0 | BIT_1 | BIT_2);
-   //mPORTEClearBits(BIT_0 | BIT_1 | BIT_2);
 
    TRISEbits.TRISE0 = 0;
    TRISEbits.TRISE1 = 0;
@@ -403,14 +374,13 @@ void appl_init(void)
 
 
    //-- create all the rest application tasks
-#if 1
    tn_task_create(
          &task_b,
          task_b_body,
          TASK_B_PRIORITY,
          task_b_stack,
          TASK_B_STK_SIZE,
-         NULL,
+         TN_NULL,
          (TN_TASK_CREATE_OPT_START)
          );
 
@@ -420,10 +390,9 @@ void appl_init(void)
          TASK_C_PRIORITY,
          task_c_stack,
          TASK_C_STK_SIZE,
-         NULL,
+         TN_NULL,
          (TN_TASK_CREATE_OPT_START)
          );
-#endif
 }
 
 //-- idle callback that is called periodically from idle task
@@ -436,49 +405,26 @@ void init_task_create(void)
 {
    //-- task A performs complete application initialization,
    //   it's the first created application task
-#if 1
    tn_task_create(
          &task_a,                   //-- task structure
          task_a_body,               //-- task body function
          TASK_A_PRIORITY,           //-- task priority
          task_a_stack,              //-- task stack
          TASK_A_STK_SIZE,           //-- task stack size (in words)
-         NULL,                      //-- task function parameter
+         TN_NULL,                   //-- task function parameter
          TN_TASK_CREATE_OPT_START   //-- creation option
          );
 
-#endif
 }
 
 int main(void)
 {
-#ifndef PIC32_STARTER_KIT
-   /*The JTAG is on by default on POR.  A PIC32 Starter Kit uses the JTAG, but
-     for other debug tool use, like ICD 3 and Real ICE, the JTAG should be off
-     to free up the JTAG I/O */
-   //DDPCONbits.JTAGEN = 0;
-#endif
-
-#if 1
-   //-- unconditionally disable interrupts
+   //-- unconditionally disable system interrupts
    tn_arch_int_dis();
-#endif
 
    //-- init hardware
    hw_init();
 
-#if 0
-   for (;;){
-      volatile int i;
-      i++;
-      if (i > 10){
-         i = 0;
-         IFS1bits.INT1IF = 1;
-      }
-   }
-#endif
-
-#if 1
    //-- call to tn_sys_start() never returns
    tn_sys_start(
          idle_task_stack,
@@ -488,7 +434,6 @@ int main(void)
          init_task_create,
          idle_task_callback
          );
-#endif
 
    //-- unreachable
    return 1;
@@ -504,40 +449,28 @@ void __attribute((__interrupt__, auto_psv)) _AddressError (void)
    //for(;;);
 }
 
-/**
- *  
- */
 void __attribute((__interrupt__, auto_psv)) _StackError (void)
 {
    PIC24_SOFTWARE_BREAK();
-   //    for(;;);
+   //for(;;);
 }
 
-/**
- *  
- */
 void __attribute((__interrupt__, auto_psv)) _MathError (void)
 {
    PIC24_SOFTWARE_BREAK();
    //for(;;);
 }
 
-/**
- *  
- */
 void __attribute((__interrupt__, auto_psv)) _OscillatorFail (void)
 {
    PIC24_SOFTWARE_BREAK();
    //for(;;);
 }
 
-/**
- * 
- *
- * 
- */
 void __attribute((__interrupt__, auto_psv)) _DefaultInterrupt (void)
 {
    PIC24_SOFTWARE_BREAK();
    //for(;;);
 }
+
+
