@@ -191,17 +191,6 @@ void hw_init(void)
    INTClearFlag(INT_T5);
    INTEnable(INT_T5, INT_ENABLED);
 
-   //-- TNeoKernel PIC32 requirement:
-   //   set up the software interrupt 0 with a priority of 1, subpriority 0
-   //
-   //   NOTE: the ISR is declared in kernel-provided file 
-   //   tn_arch_pic32_int_vec1.S, which should be included in the application
-   //   project itself, in order to dispatch vector correctly.
-   INTSetVectorPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_PRIORITY_LEVEL_1);
-   INTSetVectorSubPriority(INT_CORE_SOFTWARE_0_VECTOR, INT_SUB_PRIORITY_LEVEL_0);
-   INTClearFlag(INT_CS0);
-   INTEnable(INT_CS0, INT_ENABLED);
-
    //-- enable multi-vectored interrupt mode
    INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
 }
