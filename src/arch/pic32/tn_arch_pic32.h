@@ -65,7 +65,7 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /// current interrupt nesting count. Used by macros
-/// `tn_soft_isr()` and `tn_srs_isr()`.
+/// `tn_p32_soft_isr()` and `tn_p32_srs_isr()`.
 extern volatile int tn_p32_int_nest_count;
 
 /// saved task stack pointer. Needed when switching stack pointer from 
@@ -312,7 +312,7 @@ typedef  unsigned int               TN_UIntPtr;
  *
  * Usage looks like the following:
  *
- *     tn_soft_isr(_TIMER_1_VECTOR)
+ *     tn_p32_soft_isr(_TIMER_1_VECTOR)
  *     {
  *        INTClearFlag(INT_T1);
  *
@@ -323,7 +323,7 @@ typedef  unsigned int               TN_UIntPtr;
  *
  * @param vec  interrupt vector number, such as `_TIMER_1_VECTOR`, etc.
  */
-#define tn_soft_isr(vec)                                                       \
+#define tn_p32_soft_isr(vec)                                                       \
 __attribute__((__noinline__)) void _func##vec(void);                           \
 void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
@@ -461,7 +461,7 @@ void __attribute__((naked, nomips16))                                          \
  *
  * Usage looks like the following:
  *
- *     tn_srs_isr(_INT_UART_1_VECTOR)
+ *     tn_p32_srs_isr(_INT_UART_1_VECTOR)
  *     {
  *        INTClearFlag(INT_U1);
  *
@@ -472,7 +472,7 @@ void __attribute__((naked, nomips16))                                          \
  *
  * @param vec  interrupt vector number, such as `_TIMER_1_VECTOR`, etc.
  */
-#define tn_srs_isr(vec)                                                        \
+#define tn_p32_srs_isr(vec)                                                        \
 __attribute__((__noinline__)) void _func##vec(void);                           \
 void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
@@ -566,6 +566,18 @@ void __attribute__((naked, nomips16))                                          \
                                                                                \
 } __attribute((__noinline__)) void _func##vec(void)
 
+
+/**
+ * For compatibility with old projects, old name of `tn_p32_soft_isr()` macro
+ * is kept; please don't use it in new code.
+ */
+#define tn_soft_isr  tn_p32_soft_isr
+
+/**
+ * For compatibility with old projects, old name of `tn_p32_srs_isr()` macro
+ * is kept; please don't use it in new code.
+ */
+#define tn_srs_isr   tn_p32_srs_isr
 
 #ifdef __cplusplus
 }  /* extern "C" */

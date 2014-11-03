@@ -284,7 +284,7 @@ __tn_arch_inside_isr:
    ; but it is actually should be false.
    ;
    ; Instead, on PIC24/dsPIC, system interrupts **must** use kernel-provided
-   ; macro tn_soft_isr() for interrupt definition, and we modify SPLIM there.
+   ; macro tn_p32_soft_isr() for interrupt definition, and we modify SPLIM there.
    ; So, here we check SPLIM, and if it points to _tn_p24_int_splim,
    ; we are inside interrupt.
 

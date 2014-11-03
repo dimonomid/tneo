@@ -29,7 +29,7 @@ Release date: 2014-10-20.
     project that demonstrates that technique is also available:
     `examples/queue_eventgrp_conn`.
   - PIC32 Interrupts: this isn't a mandatory anymore to use kernel-provided macros
-	 `tn_soft_isr()` or `tn_srs_isr()`: interrupts can be defined with standard
+	 `tn_p32_soft_isr()` or `tn_p32_srs_isr()`: interrupts can be defined with standard
 	 way too: this particular ISR will use task's stack instead of interrupt
 	 stack, therefore it takes much more RAM and works a bit faster. There are
 	 no additional constraints on ISR defined without kernel-provided macro: in

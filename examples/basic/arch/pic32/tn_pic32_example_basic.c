@@ -118,7 +118,7 @@ struct TN_Task task_c = {};
 /**
  * system timer ISR
  */
-tn_soft_isr(_TIMER_5_VECTOR)
+tn_p32_soft_isr(_TIMER_5_VECTOR)
 {
    INTClearFlag(INT_T5);
    tn_tick_int_processing();
