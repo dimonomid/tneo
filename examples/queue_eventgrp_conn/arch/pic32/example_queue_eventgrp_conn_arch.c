@@ -1,10 +1,9 @@
 /**
  * \file
  *
- * Data queue usage example.
+ * Usage example of connecting event group to other kernel objects.
+ * Refer to the readme.txt file for details.
  *
- * For general information about the pattern, refer to the top of
- * queue_example.h file
  */
 
 
@@ -13,7 +12,7 @@
  ******************************************************************************/
 
 #include <xc.h>
-#include "queue_example_arch.h"
+#include "example_queue_eventgrp_conn_arch.h"
 #include "task_consumer.h"
 
 

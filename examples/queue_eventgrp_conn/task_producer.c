@@ -7,7 +7,7 @@
 
 #include "task_producer.h"
 #include "task_consumer.h"
-#include "queue_example.h"
+#include "example_queue_eventgrp_conn.h"
 #include "tn.h"
 
 
