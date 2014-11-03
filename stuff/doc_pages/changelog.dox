@@ -16,6 +16,15 @@ TNeoKernel changelog
 	 because non-prefixed symbols may be defined by some other program module,
 	 which leads to conflicts. The easiest and robust way is to add unique
 	 prefix.
+  - Refactor: PIC32 MPLABX project renamed from `tneokernel.X` to
+    `tneokernel_pic32.X`.
+  - Refactor: PIC32 ISR macros renamed: `tn_soft_isr()` ->
+    `tn_p32_soft_isr()`, `tn_srs_isr()` -> `tn_p32_srs_isr()`. It is much
+    easier to maintain documentation for different macros if they have
+    different names; more, the signature of these macros is
+    architecture-dependent. Old names are also available for backward
+    compatibility.
+
 
 \section changelog_v1_03 v1.03
 
