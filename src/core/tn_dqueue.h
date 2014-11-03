@@ -167,7 +167,7 @@ struct TN_DQueueTaskWait {
  *
  * @param dque       pointer to already allocated struct TN_DQueue.
  * @param data_fifo  pointer to already allocated array of `void *` to store
- *                   data queue items. Can be TN_NULL.
+ *                   data queue items. Can be `#TN_NULL`.
  * @param items_cnt  capacity of queue
  *                   (count of elements in the `data_fifo` array)
  *                   Can be 0.
@@ -188,7 +188,7 @@ enum TN_RCode tn_queue_create(
  * Destruct data queue.
  *
  * All tasks that wait for writing to or reading from the queue become
- * runnable with `#TN_RC_DELETED` code returned. TN_RCode, struct TN_Task.
+ * runnable with `#TN_RC_DELETED` code returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
