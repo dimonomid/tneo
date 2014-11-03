@@ -45,6 +45,24 @@ popd
 
 # }}}
 
+# generate pic24/dspic hex {{{
+
+pic24_bin="$tmp_repo_path/bin/pic24_dspic"
+
+pushd src/arch/pic24_dspic/tneokernel_pic24_dspic.X
+make
+
+# in the target temp dir, create "bin" dir
+mkdir -p "$pic24_bin"
+
+# copy hex there
+cp dist/default/production/tneokernel_pic24_dspic.X.a "$pic24_bin"
+
+# cd back
+popd
+
+# }}}
+
 
 # cd to temp dir
 cd $tmp_repo_path
