@@ -8,8 +8,8 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-//-- Include common pic32 header for all examples
-#include "../../../common/arch/pic32/example_arch.h"
+//-- Include common pic24 header for all examples
+#include "../../../common/arch/pic24/example_arch.h"
 
 #endif // _QUEUE_EXAMPLE_ARCH_H
 

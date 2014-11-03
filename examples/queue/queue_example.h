@@ -136,6 +136,22 @@ void queue_example_init(void);
  */
 struct TN_EventGrp *queue_example_eventgrp_get(void);
 
+
+
+/**
+ * Architecture-dependent:
+ * At least, we need to initialize GPIO pins here
+ */
+void queue_example_arch_init(void);
+
+/**
+ * Architecture-dependent:
+ * Toggle pins specified by pin_mask
+ */
+void queue_example_arch_pins_toggle(int pin_mask);
+
+
+
 #endif // _QUEUE_EXAMPLE_H
 
 
