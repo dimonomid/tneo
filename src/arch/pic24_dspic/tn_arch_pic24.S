@@ -118,7 +118,14 @@ __INT0Interrupt:
    push     _RCOUNT
    push     _TBLPAG
    push     _CORCON
+
+   .ifdef __HAS_EDS
+   push     _DSRPAG
+   push     _DSWPAG
+   .else
    push     _PSVPAG
+   .endif
+
    push     _SPLIM
 
    /* store sp in preemted task's TCB */
@@ -167,7 +174,14 @@ __tn_context_restore:
    ; Restore context on stack pointer
 
    pop      _SPLIM
+
+   .ifdef __HAS_EDS
+   pop      _DSWPAG
+   pop      _DSRPAG
+   .else
    pop      _PSVPAG
+   .endif
+
    pop      _CORCON
    pop      _TBLPAG
    pop      _RCOUNT

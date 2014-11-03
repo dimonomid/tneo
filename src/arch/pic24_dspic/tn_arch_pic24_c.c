@@ -138,7 +138,13 @@ TN_UWord *_tn_arch_stack_init(
    *(stack_top++) = 0;                    // TBLPAG
    *(stack_top++) = 0x04;                 // CORCON 
                                           // TODO: take from real CORCON value
+#ifdef __HAS_EDS__
+   *(stack_top++) = 0;                    // DSRPAG
+   *(stack_top++) = 0;                    // DSWPAG
+#else
    *(stack_top++) = 0;                    // PSVPAG
+#endif
+
    *(stack_top++) = (TN_UWord)p_splim;    // SPLIM
 
    return stack_top;

@@ -120,7 +120,19 @@ extern "C"  {     /*}*/
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          25
+#define  TN_MIN_STACK_SIZE          (25 + _TN_EDS_STACK_ADD)
+
+/**
+ * Some devices have two registers: DSRPAG and DSWPAG instead of PSVPAG.
+ * If __HAS_EDS__ is defined, device has two these registers,
+ * so we should take this in account.
+ */
+#ifdef __HAS_EDS__
+#  define   _TN_EDS_STACK_ADD       1
+#else
+#  define   _TN_EDS_STACK_ADD       0
+#endif
+
 
 /**
  * Width of `int` type.
