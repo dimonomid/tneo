@@ -71,10 +71,10 @@ void _tn_arch_sys_init(
 
 
    //-- set up software interrupt for context switching
-   BFA(BFA_WR, IPC0, INT0IP, 1); //-- set lowest interrupt priority
-                                 //   for context switch interrupt
-   BFA(BFA_WR, IFS0, INT0IF, 0); //-- clear interrupt flag
-   BFA(BFA_WR, IEC0, INT0IE, 1); //-- enable interrupt
+   TN_BFA(TN_BFA_WR, IPC0, INT0IP, 1); //-- set lowest interrupt priority
+                                       //   for context switch interrupt
+   TN_BFA(TN_BFA_WR, IFS0, INT0IF, 0); //-- clear interrupt flag
+   TN_BFA(TN_BFA_WR, IEC0, INT0IE, 1); //-- enable interrupt
 }
 
 

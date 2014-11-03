@@ -47,6 +47,9 @@
 
 #include "../../core/tn_cfg_dispatch.h"
 
+//-- include macros for atomic assess to structure bit fields so that
+//   application can use it too.
+#include "tn_arch_pic24_bfa.h"
 
 #ifdef __cplusplus
 extern "C"  {     /*}*/

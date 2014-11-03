@@ -69,4 +69,25 @@ interrupt of priority higher than `#TN_P24_SYS_IPL`). Use standard way to
 define it. If you violate this rule, debugger will be halted by the kernel when
 entering ISR. In release build, CPU is just reset.
 
+
+\section pic24_bfa Atomic access to the structure bit field
+
+The problem with PIC24/dsPIC is that when we write something like:
+
+\code{.c}
+IPC0bits.INT0IP = 0x05;
+\endcode
+
+We actually have read-modify-write sequence which can be interrupted, so that
+resulting data could be corrupted. PIC24/dsPIC port provides `TN_BFA()` macro
+that provides atomic access to the structure bit field.
+
+The kernel would not probably provide that kind of functionality, but 
+TNeoKernel itself needs it, so, it is made public so that application can
+use it too.
+
+Refer to the page \ref tn_arch_pic24_bfa.h "Atomic bit-field access macros"
+for details.
+
+
 */

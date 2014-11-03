@@ -809,8 +809,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../../src/tn_cfg.h                                \
-                         ../../src/arch/tn_arch_detect.h                   \
-                         ../../src/arch/pic24_dspic/tn_arch_pic24_bfa.h
+                         ../../src/arch/tn_arch_detect.h                   
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

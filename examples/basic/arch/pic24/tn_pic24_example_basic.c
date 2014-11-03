@@ -118,7 +118,10 @@ struct TN_Task task_c = {};
 
 tn_p24_soft_isr(_T1Interrupt, auto_psv)
 {
-   IFS0bits.T1IF   = 0;
+   //-- clear interrupt flag
+   TN_BFA(TN_BFA_WR, IFS0, T1IF, 0);
+
+   //-- proceed system tick
    tn_tick_int_processing();
 }
 
@@ -140,7 +143,8 @@ void task_a_body(void *par)
    //   (job for which task was created at all)
    for(;;)
    {
-      __builtin_btg(&LATE, 0);
+      //-- atomically invert LATEbits.LATE0
+      TN_BFA(TN_BFA_INV, LATE, LATE0, 1);
       tn_task_sleep(500);
    }
 }
@@ -149,7 +153,8 @@ void task_b_body(void *par)
 {
    for(;;)
    {
-      __builtin_btg(&LATE, 1);
+      //-- atomically invert LATEbits.LATE1
+      TN_BFA(TN_BFA_INV, LATE, LATE1, 1);
       tn_task_sleep(1000);
    }
 }
@@ -158,7 +163,8 @@ void task_c_body(void *par)
 {
    for(;;)
    {
-      __builtin_btg(&LATE, 2);
+      //-- atomically invert LATEbits.LATE2
+      TN_BFA(TN_BFA_INV, LATE, LATE2, 1);
       tn_task_sleep(1500);
    }
 }
@@ -169,17 +175,22 @@ void task_c_body(void *par)
 void hw_init(void)
 {
    //-- set up timer1
-   T1CONbits.TCS   = 0;
-   T1CONbits.TGATE = 0;
-   T1CONbits.TSIDL = 1;
+   TN_BFA(TN_BFA_WR, T1CON, TCS, 0);
+   TN_BFA(TN_BFA_WR, T1CON, TGATE, 0);
+   TN_BFA(TN_BFA_WR, T1CON, TSIDL, 1);
 
-   T1CONbits.TCKPS = 2;        // 1:64
-   PR1             = (SYS_TMR_PERIOD - 1);
+   //-- set prescaler: 1:64
+   TN_BFA(TN_BFA_WR, T1CON, TCKPS, 2); 
+   //-- set period
+   PR1 = (SYS_TMR_PERIOD - 1);
 
-   IFS0bits.T1IF   = 0;
-   IEC0bits.T1IE   = 1;
-   IPC0bits.T1IP   = 2;
-   T1CONbits.TON   = 1;
+   //-- set timer1 interrupt
+   TN_BFA(TN_BFA_WR, IPC0, T1IP, 2);   //-- set timer1 interrupt priority: 2
+   TN_BFA(TN_BFA_WR, IFS0, T1IF, 0);   //-- clear interrupt flag
+   TN_BFA(TN_BFA_WR, IEC0, T1IE, 1);   //-- enable interrupt
+
+   //-- eventually, turn the timer on
+   TN_BFA(TN_BFA_WR, T1CON, TON, 1);   
 }
 
 /**
@@ -187,11 +198,11 @@ void hw_init(void)
  */
 void appl_init(void)
 {
-   //-- configure LED port pins
+   //-- configure LED port pins to output
 
-   TRISEbits.TRISE0 = 0;
-   TRISEbits.TRISE1 = 0;
-   TRISEbits.TRISE2 = 0;
+   TN_BFA(TN_BFA_WR, TRISE, TRISE0, 0);   
+   TN_BFA(TN_BFA_WR, TRISE, TRISE1, 0);   
+   TN_BFA(TN_BFA_WR, TRISE, TRISE2, 0);   
 
    //-- initialize various on-board peripherals, such as
    //   flash memory, displays, etc.
@@ -270,6 +281,9 @@ int main(void)
 
 
 
+/*******************************************************************************
+ *    ERROR TRAPS
+ ******************************************************************************/
 
 void __attribute((__interrupt__, auto_psv)) _AddressError (void)
 {
