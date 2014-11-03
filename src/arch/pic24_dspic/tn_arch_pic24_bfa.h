@@ -73,64 +73,22 @@ extern "C"  {  /*}*/
 ///
 /// Command for `TN_BFA()` macro: Set bits in the bit field by mask;
 /// `...` macro param should be set to the bit mask to set.
-///
-/// Example:
-/// \code{.c}
-///   //-- Set third bit of the INT0IP field in the IPC0 register:
-///   //   IPC0bits.INT0IP |= (1 << 2);
-///   TN_BFA(TN_BFA_SET, IPC0, INT0IP, (1 << 2));
-/// \endcode
 #define TN_BFA_SET   0x1111
 ///
 /// Command for `TN_BFA()` macro: Clear bits in the bit field by mask;
 /// `...` macro param should be set to the bit mask to clear.
-///
-/// Example:
-/// \code{.c}
-///   //-- Clear second bit of the INT0IP field in the IPC0 register:
-///   //   IPC0bits.INT0IP &= ~(1 << 1);
-///   TN_BFA(TN_BFA_CLR, IPC0, INT0IP, (1 << 1));
-/// \endcode
 #define TN_BFA_CLR   0x2222         
 ///
 /// Command for `TN_BFA()` macro: Invert bits in the bit field by mask;
 /// `...` macro param should be set to the bit mask to invert.
-///
-/// Example:
-/// \code{.c}
-///   //-- Invert two less-significant bits of the INT0IP field 
-///   //   in the IPC0 register:
-///   //   IPC0bits.INT0IP ^= 0x03;
-///   TN_BFA(TN_BFA_INV, IPC0, INT0IP, 0x03);
-/// \endcode
 #define TN_BFA_INV   0x3333
 ///
 /// Command for `TN_BFA()` macro: Write bit field;
 /// `...` macro param should be set to the value to write.
-///
-/// Example:
-/// \code{.c}
-///   //-- Write value 0x05 to the INT0IP field of the IPC0 register:
-///   //   IPC0bits.INT0IP = 0x05;
-///   TN_BFA(TN_BFA_WR, IPC0, INT0IP, 0x05);
-///
-///   //-- Write value of the variable a to the INT0IP field of the IPC0 
-///   //   register:
-///   //   IPC0bits.INT0IP = a;
-///   TN_BFA(TN_BFA_WR, IPC0, INT0IP, a);
-/// \endcode
 #define TN_BFA_WR    0xAAAA
 ///
 /// Command for `TN_BFA()` macro: Read bit field;
 /// `...` macro param ignored.
-///
-/// Example:
-/// \code{.c}
-///   //-- Read the value that is stored in the INT0IP field of the IPC0 
-///   //   register, to the int variable a:
-///   //   int a = IPC0bits.INT0IP;
-///   int a = TN_BFA(TN_BFA_RD, IPC0, INT0IP);
-/// \endcode
 #define TN_BFA_RD    0xBBBB
 
 
@@ -143,9 +101,9 @@ extern "C"  {  /*}*/
  *    command to execute:
  *    - `#TN_BFA_WR`  - write bit field
  *    - `#TN_BFA_RD`  - read bit field
- *    - `#TN_BFA_SET` - set bit fields by mask
- *    - `#TN_BFA_CLR` - clear bit fields by mask
- *    - `#TN_BFA_INV` - invert bit fields by mask
+ *    - `#TN_BFA_SET` - set bits by mask
+ *    - `#TN_BFA_CLR` - clear bits by mask
+ *    - `#TN_BFA_INV` - invert bits by mask
  *
  * @param reg_name
  *    register name (`PORTA`, `CMCON`, ...).
@@ -154,10 +112,44 @@ extern "C"  {  /*}*/
  *    structure field name
  *
  * @param ...
- *    used if only `comm != #TN_BFA_RD`. Should be equal to the value to
- *    write to field. You can use variable here.
+ *    used if only `comm != #TN_BFA_RD`. Meaning depends on the `comm`, 
+ *    see comments for specific command: `#TN_BFA_WR`, etc.
  *  
- * See usage examples for each of the commands: `#TN_BFA_WR`, etc.
+ *
+ * Usage examples:
+ * 
+ * \code{.c}
+ *
+ *    int a = 0x02;
+ *
+ *    //-- Set third bit of the INT0IP field in the IPC0 register:
+ *    //   IPC0bits.INT0IP |= (1 << 2);
+ *    TN_BFA(TN_BFA_SET, IPC0, INT0IP, (1 << 2));
+ *
+ *    //-- Clear second bit of the INT0IP field in the IPC0 register:
+ *    //   IPC0bits.INT0IP &= ~(1 << 1);
+ *    TN_BFA(TN_BFA_CLR, IPC0, INT0IP, (1 << 1));
+ *
+ *    //-- Invert two less-significant bits of the INT0IP field 
+ *    //   in the IPC0 register:
+ *    //   IPC0bits.INT0IP ^= 0x03;
+ *    TN_BFA(TN_BFA_INV, IPC0, INT0IP, 0x03);
+ *
+ *    //-- Write value 0x05 to the INT0IP field of the IPC0 register:
+ *    //   IPC0bits.INT0IP = 0x05;
+ *    TN_BFA(TN_BFA_WR, IPC0, INT0IP, 0x05);
+ * 
+ *    //-- Write value of the variable a to the INT0IP field of the IPC0 
+ *    //   register:
+ *    //   IPC0bits.INT0IP = a;
+ *    TN_BFA(TN_BFA_WR, IPC0, INT0IP, a);
+ *
+ *    //-- Read the value that is stored in the INT0IP field of the IPC0 
+ *    //   register, to the int variable a:
+ *    //   int a = IPC0bits.INT0IP;
+ *    a = TN_BFA(TN_BFA_RD, IPC0, INT0IP);
+ *
+ * \endcode
  */
 #define TN_BFA(comm, reg_name, field_name, ...)                            \
    ({                                                                      \
@@ -224,6 +216,120 @@ extern "C"  {  /*}*/
       :({ /* TN_BFA_RD */                                                  \
           _TN_BFA_STRUCT_VAL(reg_name).field_name;                         \
       })))))));                                                            \
+      })
+
+
+
+/**
+ * Macro for atomic access to the structure bit field specified as a range.
+ *
+ * @param comm
+ *    command to execute:
+ *    - `#TN_BFA_WR`  - write bit field
+ *    - `#TN_BFA_RD`  - read bit field
+ *    - `#TN_BFA_SET` - set bits by mask
+ *    - `#TN_BFA_CLR` - clear bits by mask
+ *    - `#TN_BFA_INV` - invert bits by mask
+ *
+ * @param reg_name
+ *    variable name (`PORTA`, `CMCON`, ...). Variable should be in the near
+ *    memory (first 8 KB)
+ *
+ * @param lower
+ *    number of lowest affected bit of the field
+ *
+ * @param upper
+ *    number of highest affected bit of the field
+ *
+ * @param ...
+ *    used if only `comm != #TN_BFA_RD`. Meaning depends on the `comm`, 
+ *    see comments for specific command: `#TN_BFA_WR`, etc.
+ *  
+ *
+ * Usage examples:
+ * 
+ * \code{.c}
+ *
+ *    int a = 0x02;
+ *
+ *    //-- Write constant 0xaa to the least significant byte of the TRISB
+ *    //   register:
+ *    TN_BFAR(TN_BFA_WR, TRISB, 0, 7, 0xaa);
+ *
+ *    //-- Invert least significant nibble of the most significant byte 
+ *    //   in the register TRISB:
+ *    TN_BFAR(TN_BFA_INV, TRISB, 8, 15, 0x0f);
+ *
+ *    //-- Get 5 least significant bits from the register TRISB and store
+ *    //   result to the variable a
+ *    a = TN_BFAR(TN_BFA_RD, TRISB, 0, 4);
+ *
+ * \endcode
+ *    
+ */
+#define TN_BFAR(comm, reg_name, lower, upper, ...)                         \
+   ({                                                                      \
+      unsigned int lmask, lmaskl, lmasku;                                  \
+      lmaskl = (1 << (lower));                                             \
+      lmasku = (1 << (upper));                                             \
+      lmask  = ((lmaskl-1) ^ (lmasku-1)) | lmaskl | lmasku;                \
+      ((comm) == TN_BFA_WR)                                                \
+      ?({                                                                  \
+         _TN_BFA_COMM_GET(comm) v = __VA_ARGS__+0;                         \
+         v = (v << (((lower) < (upper)) ? (lower) : (upper))) & lmask;     \
+         __asm__ __volatile__                                              \
+         (" xor %0": "=T"(reg_name):"a"(lmask & (v ^ reg_name)));          \
+      }), 0                                                                \
+      :(((comm) == TN_BFA_INV)                                             \
+      ?({                                                                  \
+         _TN_BFA_COMM_GET(comm) v = __VA_ARGS__+0;                         \
+         if (lmask & (lmask-1))                                            \
+         {                                                                 \
+            v = (v << (((lower) < (upper)) ? (lower) : (upper))) & lmask;  \
+            __asm__ __volatile__(                                          \
+               " xor %0":"=T"(reg_name):"a"(lmask & v));                   \
+         } else {                                                          \
+            if (v & 1)                                                     \
+               __asm__ __volatile__(                                       \
+                  " btg %0, #%1" :"=T"(reg_name) :"i"(lower));             \
+         }                                                                 \
+      }), 0                                                                \
+                                                                           \
+      :(((comm) == TN_BFA_SET)                                             \
+      ?({                                                                  \
+         _TN_BFA_COMM_GET(comm) v = __VA_ARGS__+0;                         \
+         if (lmask & (lmask-1))                                            \
+         {                                                                 \
+            v = (v << (((lower) < (upper)) ? (lower) : (upper))) & lmask;  \
+               __asm__ __volatile__(" ior %0 "                             \
+               :"=T"(reg_name)                                             \
+               :"a"(lmask & v));                                           \
+         } else {                                                          \
+            if (v & 1)                                                     \
+               __asm__ __volatile__(                                       \
+                  " bset %0, #%1" :"=T"(reg_name) :"i"(lower));            \
+         }                                                                 \
+      }), 0                                                                \
+                                                                           \
+      :((((comm) == TN_BFA_CLR)                                            \
+      ?({                                                                  \
+         _TN_BFA_COMM_GET(comm) v = __VA_ARGS__+0;                         \
+         if (lmask & (lmask-1))                                            \
+         {                                                                 \
+            v = (v << (((lower) < (upper)) ? (lower) : (upper))) & lmask;  \
+            __asm__ __volatile__(" and %0 "                                \
+            :"=T"(reg_name)                                                \
+            :"a"(~(lmask & v)));                                           \
+         } else {                                                          \
+            if (v & 1)                                                     \
+               __asm__ __volatile__(                                       \
+                  " bclr %0, #%1" :"=T"(reg_name) :"i"(lower));            \
+         }                                                                 \
+      }), 0                                                                \
+                                                                           \
+      :({ /* TN_BFA_RD */                                                  \
+         (reg_name & lmask) >> (((lower) < (upper)) ? (lower) : (upper));  \
+      })))));                                                              \
       })
 
 

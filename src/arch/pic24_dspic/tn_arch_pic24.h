@@ -38,12 +38,12 @@
  *
  * \file
  *
- * PIC32 architecture-dependent routines
+ * PIC24/dsPIC architecture-dependent routines
  *
  */
 
-#ifndef  _TN_ARCH_PIC32_H
-#define  _TN_ARCH_PIC32_H
+#ifndef  _TN_ARCH_PIC24_H
+#define  _TN_ARCH_PIC24_H
 
 #include "../../core/tn_cfg_dispatch.h"
 
@@ -57,17 +57,17 @@ extern "C"  {     /*}*/
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#define  _TN_PIC32_INTSAVE_DATA_INVALID   0xffff
+#define  _TN_PIC24_INTSAVE_DATA_INVALID   0xffff
 
 #if TN_DEBUG
-#  define   _TN_PIC32_INTSAVE_CHECK()                          \
+#  define   _TN_PIC24_INTSAVE_CHECK()                          \
 {                                                              \
-   if (tn_save_status_reg == _TN_PIC32_INTSAVE_DATA_INVALID){  \
+   if (tn_save_status_reg == _TN_PIC24_INTSAVE_DATA_INVALID){  \
       _TN_FATAL_ERROR("");                                     \
    }                                                           \
 }
 #else
-#  define   _TN_PIC32_INTSAVE_CHECK()  /* nothing */
+#  define   _TN_PIC24_INTSAVE_CHECK()  /* nothing */
 #endif
 
 /**
@@ -191,7 +191,7 @@ typedef  unsigned int               TN_UIntPtr;
  * @see `TN_INT_RESTORE()`
  */
 #define  TN_INTSAVE_DATA            \
-   int tn_save_status_reg = _TN_PIC32_INTSAVE_DATA_INVALID;
+   int tn_save_status_reg = _TN_PIC24_INTSAVE_DATA_INVALID;
 
 /**
  * The same as `#TN_INTSAVE_DATA` but for using in ISR together with
@@ -229,7 +229,7 @@ typedef  unsigned int               TN_UIntPtr;
  */
 
 #  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
-#  define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK();                      \
+#  define TN_INT_RESTORE()    _TN_PIC24_INTSAVE_CHECK();                      \
                               tn_arch_sr_restore(tn_save_status_reg)
 
 /**
@@ -456,5 +456,5 @@ typedef  unsigned int               TN_UIntPtr;
 }  /* extern "C" */
 #endif
 
-#endif   // _TN_ARCH_PIC32_H
+#endif   // _TN_ARCH_PIC24_H
 

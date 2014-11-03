@@ -57,7 +57,7 @@ void queue_example_arch_init(void)
  */
 void queue_example_arch_pins_toggle(int pin_mask)
 {
-   LATE ^= pin_mask;
+   TN_BFAR(TN_BFA_INV, LATE, 0, 2, pin_mask);
 }
 
 

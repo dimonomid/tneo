@@ -79,8 +79,8 @@ IPC0bits.INT0IP = 0x05;
 \endcode
 
 We actually have read-modify-write sequence which can be interrupted, so that
-resulting data could be corrupted. PIC24/dsPIC port provides `TN_BFA()` macro
-that provides atomic access to the structure bit field.
+resulting data could be corrupted. PIC24/dsPIC port provides several macros
+that offer atomic access to the structure bit field.
 
 The kernel would not probably provide that kind of functionality, but 
 TNeoKernel itself needs it, so, it is made public so that application can
