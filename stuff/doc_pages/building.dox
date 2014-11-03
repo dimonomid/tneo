@@ -32,11 +32,11 @@ and configure behavior as you like.
 
 \section building_pic32 PIC32 port: MPLABX project
 
-MPLABX project resides in the `src/arch/pic32/tneokernel.X` directory. This is
-a *library project* in terms of MPLABX, so if you use MPLABX you can easily add
-it to your main project by right-clicking `Libraries -> Add Library Project
-...`.  Alternatively, of course you can just build it and use resulting
-`tneokernel.X.a` file in whatever way you like.
+MPLABX project resides in the `src/arch/pic32/tneokernel_pic32.X` directory.
+This is a *library project* in terms of MPLABX, so if you use MPLABX you can
+easily add it to your main project by right-clicking `Libraries -> Add Library
+Project ...`.  Alternatively, of course you can just build it and use
+resulting `tneokernel_pic32.X.a` file in whatever way you like.
 
 \section building_pic24_dspic PIC24/dsPIC port: MPLABX project
 

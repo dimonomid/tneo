@@ -31,14 +31,14 @@ hg clone $repo_path $tmp_repo_path
 
 pic32_bin="$tmp_repo_path/bin/pic32"
 
-pushd src/arch/pic32/tneokernel.X
+pushd src/arch/pic32/tneokernel_pic32.X
 make
 
 # in the target temp dir, create "bin" dir
 mkdir -p "$pic32_bin"
 
 # copy hex there
-cp dist/default/production/tneokernel.X.a "$pic32_bin"
+cp dist/default/production/tneokernel_pic32.X.a "$pic32_bin"
 
 # cd back
 popd
