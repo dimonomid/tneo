@@ -6,7 +6,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "p24Fxxxx.h"
+#include <xc.h>
 #include "tn.h"
 
 
