@@ -16,197 +16,25 @@
  *    HARDWARE CONFIGURATION
  ******************************************************************************/
 
-// {{{
+#pragma config JTAGEN         = OFF       //-- JTAG disabled
+#pragma config GCP            = OFF       //-- Code protect off
+#pragma config GWRP           = OFF       //-- Code write enabled
+#pragma config BKBUG          = ON        //-- Debug enabled
+#pragma config FWDTEN         = OFF       //-- Watchdog disabled
 
-
-/*
-
-   Config word 3 Example: Protect code memory from start (protect 128 flash pages) and protect
-   configuration block of programm memoty
-
-   __CSP_CONFIG_3(CODE_WRITE_PROT_MEM_START |
-   CODE_WRITE_CONF_MEM_EN    |
-   (128)
-   );
-   */
-
-#define __CSP_CONFIG_3(x) __attribute__((section("__CONFIG3.sec,code"))) int __CSP_CONFIG_3 = ((x) | 0x1E00)
-
-/* Write protection location */
-
-#define CODE_WRITE_PROT_MEM_START   (0 << 15)   /* Code write protect from start of programm memory */
-#define CODE_WRITE_PROT_MEM_END     (1 << 15)   /* Code write protect from end of programm memory */
-
-/* Write Protect Configuration Page */
-
-#define CODE_WRITE_CONF_MEM_EN      (1 << 14)   /* Code configuration memory block write protect enabled  */
-#define CODE_WRITE_CONF_MEM_DIS     (0 << 14)   /* Code configuration memory block write protect disabled */
-
-/* Write protect enable */
-
-#define CODE_WRITE_BLOCK_EN         (0 << 13)   /* Code write protect enabled  */
-#define CODE_WRITE_BLOCK_DIS        (1 << 13)   /* Code write protect disabled */
-
-
-#define __CSP_CONFIG_2(x) __attribute__((section("__CONFIG2.sec,code"))) int __CSP_CONFIG_2 = ((x) | 0x0004)
-
-/* Two Speed Start-up: */
-
-#define TWO_SPEED_STARTUP_EN        (1 << 15)   /* Enabled  */
-#define TWO_SPEED_STARTUP_DIS       (0 << 15)   /* Disabled */
-
-/* USB 96 MHz PLL Prescaler Select bits */
-
-#define USB_PLL_PRESCALE_1          (0 << 12)   /* 1:1  */
-#define USB_PLL_PRESCALE_2          (1 << 12)   /* 1:2  */
-#define USB_PLL_PRESCALE_3          (2 << 12)   /* 1:3  */
-#define USB_PLL_PRESCALE_4          (3 << 12)   /* 1:4  */
-#define USB_PLL_PRESCALE_5          (4 << 12)   /* 1:5  */
-#define USB_PLL_PRESCALE_6          (5 << 12)   /* 1:6  */
-#define USB_PLL_PRESCALE_10         (6 << 12)   /* 1:10 */
-#define USB_PLL_PRESCALE_12         (7 << 12)   /* 1:12 */
-
-/* Oscillator Selection: */
-
-#define OSC_STARTUP_FRC             (0 <<  8)  /* Fast RC oscillator                     */
-#define OSC_STARTUP_FRC_PLL         (1 <<  8)  /* Fast RC oscillator w/ divide and PLL   */
-#define OSC_STARTUP_PRIMARY         (2 <<  8)  /* Primary oscillator (XT, HS, EC)        */
-#define OSC_STARTUP_PRIMARY_PLL     (3 <<  8)  /* Primary oscillator (XT, HS, EC) w/ PLL */
-#define OSC_STARTUP_SECONDARY       (4 <<  8)  /* Secondary oscillator                   */
-#define OSC_STARTUP_LPRC            (5 <<  8)  /* Low power RC oscillator                */
-#define OSC_STARTUP_FRC_PS          (7 <<  8)  /* Fast RC oscillator with divide         */
-
-/* Clock switching and clock montor: */
-
-#define CLK_SW_EN_CLK_MON_EN        (0 <<  6)  /* Both enabled                 */
-#define CLK_SW_EN_CLK_MON_DIS       (1 <<  6)  /* Only clock switching enabled */
-#define CLK_SW_DIS_CLK_MON_DIS      (3 <<  6)  /* Both disabled                */
-
-/* OSCO/RC15 function: */
-
-#define OSCO_PIN_CLKO               (1 <<  5)  /* OSCO or Fosc/2 */
-#define OSCO_PIN_GPIO               (0 <<  5)  /* RC15           */
-
-/* RP Register Protection */
-
-#define PPS_REG_PROTECT_DIS         (0 <<  4)  /* Unlimited Writes To RP Registers */
-#define PPS_REG_PROTECT_EN          (1 <<  4)  /* Write RP Registers Once          */
-
-/* USB regulator control */
-
-#define USB_REG_EN                  (0 <<  3)
-#define USB_REG_DIS                 (1 <<  3)
-
-/* Oscillator Selection: */
-
-#define PRIMARY_OSC_EC              (0 <<  0)  /* External clock   */
-#define PRIMARY_OSC_XT              (1 <<  0)  /* XT oscillator    */
-#define PRIMARY_OSC_HS              (2 <<  0)  /* HS oscillator    */
-#define PRIMARY_OSC_DIS             (3 <<  0)  /* Primary disabled */
-
-
-
-#define __CSP_CONFIG_1(x) __attribute__((section("__CONFIG1.sec,code"))) int __CSP_CONFIG_1 = ((x) | 0x8420)
-
-/* JTAG: */
-
-#define JTAG_EN                     (1 << 14)  /* Enabled  */
-#define JTAG_DIS                    (0 << 14)  /* Disabled */
-
-/* Code Protect: */
-
-#define CODE_PROTECT_EN             (0 << 13)  /* Enabled  */
-#define CODE_PROTECT_DIS            (1 << 13)  /* Disabled */
-
-/* Write Protect: */
-
-#define CODE_WRITE_EN               (1 << 12)  /* Enabled  */
-#define CODE_WRITE_DIS              (0 << 12)  /* Disabled */
-
-/* Background Debugger: */
-
-#define BACKGROUND_DEBUG_EN         (0 << 11)  /* Enabled  */
-#define BACKGROUND_DEBUG_DIS        (1 << 11)  /* Disabled */
-
-/* Clip-on Emulation mode: */
-
-#define EMULATION_EN                (0 << 10)  /* Enabled  */
-#define EMULATION_DIS               (1 << 10)  /* Disabled */
-
-/* ICD pins select: */
-
-#define ICD_PIN_PGX3                (1 <<  8)  /* EMUC/EMUD share PGC3/PGD3 */
-#define ICD_PIN_PGX2                (2 <<  8)  /* EMUC/EMUD share PGC2/PGD2 */
-#define ICD_PIN_PGX1                (3 <<  8)  /* EMUC/EMUD share PGC1/PGD1 */
-
-/* Watchdog Timer: */
-
-#define WDT_EN                      (1 <<  7)  /* Enabled  */
-#define WDT_DIS                     (0 <<  7)  /* Disabled */
-
-/* Windowed WDT: */
-
-#define WDT_WINDOW_EN               (0 <<  6)  /* Enabled  */
-#define WDT_WINDOW_DIS              (1 <<  6)  /* Disabled */
-
-/* Watchdog prescaler: */
-
-#define WDT_PRESCALE_32             (0 <<  4)  /* 1:32  */
-#define WDT_PRESCALE_128            (1 <<  4)  /* 1:128 */
-
-
-/* Watchdog postscale: */
-
-#define WDT_POSTSCALE_1             ( 0 << 0)  /* 1:1     */
-#define WDT_POSTSCALE_2             ( 1 << 0)  /* 1:2     */
-#define WDT_POSTSCALE_4             ( 2 << 0)  /* 1:4     */
-#define WDT_POSTSCALE_8             ( 3 << 0)  /* 1:8     */
-#define WDT_POSTSCALE_16            ( 4 << 0)  /* 1:16    */
-#define WDT_POSTSCALE_32            ( 5 << 0)  /* 1:32    */
-#define WDT_POSTSCALE_64            ( 6 << 0)  /* 1:64    */
-#define WDT_POSTSCALE_128           ( 7 << 0)  /* 1:128   */
-#define WDT_POSTSCALE_256           ( 8 << 0)  /* 1:256   */
-#define WDT_POSTSCALE_512           ( 9 << 0)  /* 1:512   */
-#define WDT_POSTSCALE_1024          (10 << 0)  /* 1:1024  */
-#define WDT_POSTSCALE_2048          (11 << 0)  /* 1:2048  */
-#define WDT_POSTSCALE_4096          (12 << 0)  /* 1:4096  */
-#define WDT_POSTSCALE_8192          (13 << 0)  /* 1:8192  */
-#define WDT_POSTSCALE_16384         (14 << 0)  /* 1:16384 */
-#define WDT_POSTSCALE_32768         (15 << 0)  /* 1:32768 */
-
-// }}}
-
-
-__CSP_CONFIG_1(
-      JTAG_DIS                     |   /* JTAG disabled                            */
-      CODE_PROTECT_DIS             |   /* Code Protect disabled                    */
-      CODE_WRITE_EN                |   /* Code write enabled                       */
-      BACKGROUND_DEBUG_EN          |   /* Debug enabled                            */
-      EMULATION_EN                 |   /* Emulation enabled                        */
-      ICD_PIN_PGX2                 |   /* PGC2/PGD2 pins used for debug            */
-      WDT_DIS                      |   /* WDT disabled                             */
-      WDT_WINDOW_DIS               |   /* WDT mode is not-windowed                 */
-      WDT_PRESCALE_32              |   /* WDT prescale is 1:32                     */
-      WDT_POSTSCALE_1                  /* WDT postscale is 1:1                     */
-      );
-
-__CSP_CONFIG_2(
-      TWO_SPEED_STARTUP_DIS        |   /* Two-speed startup disabled               */
-      USB_PLL_PRESCALE_4           |
-      OSC_STARTUP_PRIMARY_PLL      |   /* Startup oscillator is Primary with PLL   */
-      CLK_SW_DIS_CLK_MON_DIS       |   /* Clock switch disabled, monitor disabled  */
-      OSCO_PIN_CLKO                |   /* OSCO pin is clockout                     */
-      PPS_REG_PROTECT_DIS          |   /* PPS runtime change enabled               */
-      USB_REG_DIS                  |
-      PRIMARY_OSC_HS                   /* Primary oscillator mode is HS            */
-      );
-
-__CSP_CONFIG_3(
-      CODE_WRITE_PROT_MEM_START    |   /* Code write protect block from start      */
-      CODE_WRITE_CONF_MEM_DIS      |   /* Code config memory block not protected   */
-      CODE_WRITE_BLOCK_DIS             /* Code block protect disabled              */
-      );
-
+#pragma config WPDIS          = WPDIS     //-- Segmented code protection disabled
+#pragma config WPCFG          = WPCFGDIS  //-- Last page and config words protection
+                                          //   disabled
+#pragma config POSCMOD        = HS        //-- HS oscillator
+#pragma config FNOSC          = PRIPLL    //-- Primary oscillator (XT, HS, EC) with
+                                          //   PLL module
+#pragma config IESO           = OFF       //-- Two-speed start-up disabled
+#pragma config OSCIOFNC       = ON        //-- OSCO functions as OSCO (FOSC / 2),
+                                          //   not as GPIO
+#pragma config PLLDIV         = DIV4      //-- Osc input divided by 4 (16 MHz)
+#pragma config COE            = ON        //-- Clip on emulation mode enabled
+#pragma config ICS            = PGx2      //-- Emulator functions are shared with 
+                                          //   PGEC2/PGED2
 
 
 
