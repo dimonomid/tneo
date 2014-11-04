@@ -5,7 +5,9 @@
 
 TNeoKernel changelog
 
-\section changelog_current Current development version (BETA)
+\section changelog_v1_04 v1.04
+
+Release date: 2014-11-04.
 
   - Added PIC24/dsPIC support, refer to the page \ref pic24_details;
   - PIC32: Core Software Interrupt is now handled by the kernel completely,
