@@ -7,7 +7,7 @@ round-robin scheduling for the tasks with identical priority.
 
 TNeoKernel was born as a thorough review and re-implementation of [TNKernel](http://tnkernel.com) v2.7. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
 
-Currently it is available for PIC32 (PIC24/dsPIC is also supported in BETA), and it will be ported at least to ARM Cortex M3.
+Currently it is available for PIC32/PIC24/dsPIC, and it will be ported at least to ARM Cortex M3 in a few months.
 
 Comprehensive documentation is available in two forms: html and pdf.
 
