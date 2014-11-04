@@ -20,9 +20,6 @@
    * [X] SPLIM
    * [X] Rewrite context switch routine (__INT0Interrupt)
    * [ ] ffs
-   * [ ] tn_arch_int_en: implement (or remove?)
-   * [ ] ISR macro (with separate stack for ISRs)
-   * [ ] tn_arch_inside_isr: optimize
 
 === exchange methods ===
 
@@ -45,11 +42,10 @@
    * [ ] Exchange object: see AVIX User Guide & Reference Guide, 6.6.8
    * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
-   * [ ] Examples
-      * [ ] Separate platform-dependent code from the real example project code
+   * [o] Examples
+      * [X] Separate platform-dependent code from the real example project code
       * [ ] Provide examples for all common system services: timers, queues, etc.
    * [ ] Port to ARM
-   * [ ] Probably port to PIC24/dsPIC
    * [ ] Test how much is it slower to use tn_arch_sr_save_int_dis()/tn_arch_sr_restore() instead of TN_INT_DIS_SAVE()/TN_INT_RESTORE()
    * [ ] Optionally, check if stack pointer is overflowed on each context switch.
 
