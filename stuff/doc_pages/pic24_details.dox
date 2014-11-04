@@ -90,4 +90,23 @@ Refer to the page \ref tn_arch_pic24_bfa.h "Atomic bit-field access macros"
 for details.
 
 
+\section pic24_building Building
+
+For generic information on building TNeoKernel, refer to the page \ref building.
+
+MPLABX project for PIC24/dsPIC port resides in the
+`src/arch/pic24_dspic/tneokernel_pic24_dspic.X` directory. This is a *library
+project* in terms of MPLABX, so if you use MPLABX you can easily add it to your
+main project by right-clicking `Libraries -> Add Library Project ...`.  
+
+\attention there are two configurations of this project: <i>eds</i> and <i>
+no_eds</i>, for devices with and without extended data space, respectively.
+When you add library project to your application project, you should select
+correct configuration for your device; otherwise, you get "undefined reference"
+errors at linker step.
+
+Alternatively, of course you can just build it and use
+resulting `.a` file in whatever way you like.
+
+
 */

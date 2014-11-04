@@ -91,4 +91,15 @@ consider the following:
 - Kernel-provided interrupt macro that uses shadow register set saves a little
   amount of registers **on the interrupt stack**.
 
+\section pic32_building Building
+
+For generic information on building TNeoKernel, refer to the page \ref building.
+
+MPLABX project for PIC32 port resides in the
+`src/arch/pic32/tneokernel_pic32.X` directory.  This is a *library project* in
+terms of MPLABX, so if you use MPLABX you can easily add it to your main
+project by right-clicking `Libraries -> Add Library Project ...`.
+Alternatively, of course you can just build it and use resulting
+`tneokernel_pic32.X.a` file in whatever way you like.
+
 */
