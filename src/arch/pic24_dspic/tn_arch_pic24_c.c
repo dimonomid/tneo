@@ -136,7 +136,7 @@ TN_UWord *_tn_arch_stack_init(
    *(stack_top++) = 0x0101;               // W01
    *(stack_top++) = 0;                    // RCOUNT
    *(stack_top++) = 0;                    // TBLPAG
-   *(stack_top++) = 0x04;                 // CORCON 
+   *(stack_top++) = 0x04;                 // CORCON: the PSV bit is set.
 #ifdef __HAS_EDS__
    *(stack_top++) = 0;                    // DSRPAG
    *(stack_top++) = 0;                    // DSWPAG

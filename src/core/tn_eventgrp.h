@@ -39,7 +39,7 @@
  *
  * Event group.
  *
- * An event group has an internal variable (of type `TN_UWord`), which is
+ * An event group has an internal variable (of type `#TN_UWord`), which is
  * interpreted as a bit pattern where each bit represents an event. An event
  * group also has a wait queue for the tasks waiting on these events. A task
  * may set specified bits when an event occurs and may clear specified bits

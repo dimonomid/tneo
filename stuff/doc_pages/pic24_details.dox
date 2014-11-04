@@ -11,7 +11,7 @@ is handled completely by the kernel, application should never touch it.
 
 \section pic24_interrupts Interrupts
 
-For detailed information about interrupts in TNeoKernel, refer to the page \ref
+For generic information about interrupts in TNeoKernel, refer to the page \ref
 interrupts.
 
 PIC24/dsPIC TNeoKernel port supports nested interrupts. It allows to specify
