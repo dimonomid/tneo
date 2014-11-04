@@ -1,6 +1,7 @@
 
 = tneokernel dev / how to release =
 
+  * recheck plans page: probably you have already implemented something?
   * modify changelog: move everything from "_current development version_" to the new release section, specify release date.
   * make sure changelog does NOT containt "_current development version_", because it should not be present in the release documentation.
   * from the repo:
