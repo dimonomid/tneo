@@ -5,6 +5,29 @@
 
 TNeoKernel changelog
 
+\section changelog_v1_04 v1.04
+
+Release date: 2014-11-04.
+
+  - Added PIC24/dsPIC support, refer to the page \ref pic24_details;
+  - PIC32: Core Software Interrupt is now handled by the kernel completely,
+    application shouldn't set it up anymore. Refer to the page \ref
+    pic32_details.
+  - Refactor: the following symbols: `NULL`, `BOOL`, `TRUE`, `FALSE` now have
+    the `TN_` prefix: `#TN_NULL`, `#TN_BOOL`, `#TN_TRUE`, `#TN_FALSE`. This is
+	 because non-prefixed symbols may be defined by some other program module,
+	 which leads to conflicts. The easiest and robust way is to add unique
+	 prefix.
+  - Refactor: PIC32 MPLABX project renamed from `tneokernel.X` to
+    `tneokernel_pic32.X`.
+  - Refactor: PIC32 ISR macros renamed: `tn_soft_isr()` ->
+    `tn_p32_soft_isr()`, `tn_srs_isr()` -> `tn_p32_srs_isr()`. It is much
+    easier to maintain documentation for different macros if they have
+    different names; more, the signature of these macros is
+    architecture-dependent. Old names are also available for backward
+    compatibility.
+
+
 \section changelog_v1_03 v1.03
 
 Release date: 2014-10-20.
@@ -17,7 +40,7 @@ Release date: 2014-10-20.
     project that demonstrates that technique is also available:
     `examples/queue_eventgrp_conn`.
   - PIC32 Interrupts: this isn't a mandatory anymore to use kernel-provided macros
-	 `tn_soft_isr()` or `tn_srs_isr()`: interrupts can be defined with standard
+	 `tn_p32_soft_isr()` or `tn_p32_srs_isr()`: interrupts can be defined with standard
 	 way too: this particular ISR will use task's stack instead of interrupt
 	 stack, therefore it takes much more RAM and works a bit faster. There are
 	 no additional constraints on ISR defined without kernel-provided macro: in

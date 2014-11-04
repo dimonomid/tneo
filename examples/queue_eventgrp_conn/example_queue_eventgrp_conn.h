@@ -4,8 +4,8 @@
  * Example project that demonstrates usage of queues in TNeoKernel.
  */
 
-#ifndef _QUEUE_EXAMPLE_H
-#define _QUEUE_EXAMPLE_H
+#ifndef _EXAMPLE_QUEUE_EVENTGRP_CONN_H
+#define _EXAMPLE_QUEUE_EVENTGRP_CONN_H
 
 /*******************************************************************************
  *    INCLUDED FILES
@@ -13,7 +13,7 @@
 
 //-- include architecture-specific things,
 //   at least, there is SOFTWARE_BREAK macro
-#include "queue_example_arch.h"
+#include "example_queue_eventgrp_conn_arch.h"
 
 
 /*******************************************************************************
@@ -142,7 +142,35 @@ void queue_example_init(void);
  */
 struct TN_EventGrp *queue_example_eventgrp_get(void);
 
-#endif // _QUEUE_EXAMPLE_H
+
+
+/**
+ * Architecture-dependent:
+ * At least, we need to initialize GPIO pins here
+ */
+void queue_example_arch_init(void);
+
+/**
+ * Architecture-dependent:
+ * Toggle pins specified by pin_mask
+ */
+void queue_example_arch_pins_toggle(int pin_mask);
+
+/**
+ * Architecture-dependent:
+ * Set pins specified by pin_mask
+ */
+void queue_example_arch_pins_set(int pin_mask);
+
+/**
+ * Architecture-dependent:
+ * Clear pins specified by pin_mask
+ */
+void queue_example_arch_pins_clear(int pin_mask);
+
+
+
+#endif // _EXAMPLE_QUEUE_EVENTGRP_CONN_H
 
 
 /*******************************************************************************

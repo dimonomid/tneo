@@ -42,10 +42,14 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_tasks.h"
+#include "_tn_list.h"
+
 
 //-- header of current module
-#include "tn_sem.h"
+#include "_tn_sem.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"
@@ -65,9 +69,9 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem == NULL){
+   if (sem == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (sem->id_sem != TN_ID_SEMAPHORE){
+   } else if (!_tn_sem_is_valid(sem)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -85,10 +89,10 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (sem == NULL){
+   if (sem == TN_NULL){
       rc = TN_RC_WPARAM;
    } else if (0
-         || sem->id_sem == TN_ID_SEMAPHORE
+         || _tn_sem_is_valid(sem)
          || max_count <= 0
          || start_count < 0
          || start_count > max_count
@@ -121,7 +125,7 @@ static inline enum TN_RCode _sem_job_perform(
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
-   BOOL waited_for_sem = FALSE;
+   TN_BOOL waited_for_sem = TN_FALSE;
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
@@ -140,11 +144,11 @@ static inline enum TN_RCode _sem_job_perform(
                );
 
          //-- rc will be set later thanks to waited_for_sem
-         waited_for_sem = TRUE;
+         waited_for_sem = TN_TRUE;
       }
 
 #if TN_DEBUG
-      //-- if we're going to wait, _tn_need_context_switch() must return TRUE
+      //-- if we're going to wait, _tn_need_context_switch() must return TN_TRUE
       if (!_tn_need_context_switch() && waited_for_sem){
          _TN_FATAL_ERROR("");
       }
@@ -197,7 +201,7 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    //-- wake up first (if any) task from the semaphore wait queue
    if (  !_tn_task_first_wait_complete(
             &sem->wait_queue, TN_RC_OK,
-            NULL, NULL, NULL
+            TN_NULL, TN_NULL, TN_NULL
             )
       )
    {
@@ -253,7 +257,7 @@ enum TN_RCode tn_sem_create(
       //-- just return rc as it is
    } else {
 
-      tn_list_reset(&(sem->wait_queue));
+      _tn_list_reset(&(sem->wait_queue));
 
       sem->count     = start_count;
       sem->max_count = max_count;

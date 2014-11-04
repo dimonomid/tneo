@@ -60,7 +60,7 @@ static void appl_init(void)
                queue_example_eventgrp_get(),
                QUE_EXAMPLE_FLAG__TASK_CONSUMER_INIT, 
                TN_EVENTGRP_WMODE_AND,
-               NULL,
+               TN_NULL,
                TN_WAIT_INFINITE
                )
             );
@@ -151,7 +151,7 @@ void task_producer_create(void)
             TASK_PRODUCER_PRIORITY,
             task_producer_stack,
             TASK_PRODUCER_STACK_SIZE,
-            NULL,
+            TN_NULL,
             (TN_TASK_CREATE_OPT_START)
             )
          );

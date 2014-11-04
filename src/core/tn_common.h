@@ -47,31 +47,8 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-//-- Configuration constants
-/**
- * In this case, you should use macro like this: `#TN_MAKE_ALIG(struct my_struct)`.
- * This way is used in the majority of TNKernel ports. (actually, in all ports
- * except the one by AlexB)
- */
-#define  TN_API_MAKE_ALIG_ARG__TYPE       1
-
-/**
- * In this case, you should use macro like this: `#TN_MAKE_ALIG(sizeof(struct
- * my_struct))`. This way is stated in TNKernel docs and used in the port for
- * dsPIC/PIC24/PIC32 by AlexB.
- */
-#define  TN_API_MAKE_ALIG_ARG__SIZE       2
-
-//--- As a starting point, you might want to copy tn_cfg_default.h -> tn_cfg.h,
-//    and then edit it if you want to change default configuration.
-//    NOTE: the file tn_cfg.h is specified in .hgignore file, in order to not include
-//    project-specific configuration in the common TNKernel repository.
-#include "tn_cfg.h"
-
-//--- default cfg file is included too, so that you are free to not set
-//    all available options in your tn_cfg.h file.
-#include "tn_cfg_default.h"
-
+#include "../arch/tn_arch_detect.h"
+#include "tn_cfg_dispatch.h"
 
 #ifdef __cplusplus
 extern "C"  {     /*}*/
@@ -83,15 +60,18 @@ extern "C"  {     /*}*/
 
 /**
  * Magic number for object validity verification
+ * TODO: use TN_UWord here instead of unsigned int
  */
 enum TN_ObjId {
-   TN_ID_TASK           = 0x47ABCF69,  //!< id for tasks
-   TN_ID_SEMAPHORE      = 0x6FA173EB,  //!< id for semaphores
-   TN_ID_EVENTGRP       = 0x5E224F25,  //!< id for event groups
-   TN_ID_DATAQUEUE      = 0x8C8A6C89,  //!< id for data queues
-   TN_ID_FSMEMORYPOOL   = 0x26B7CE8B,  //!< id for fixed memory pools
-   TN_ID_MUTEX          = 0x17129E45,  //!< id for mutexes
-   TN_ID_TIMER          = 0x9A937FBC,  //!< id for timers
+   TN_ID_TASK           = (unsigned int)0x47ABCF69,  //!< id for tasks
+   TN_ID_SEMAPHORE      = (unsigned int)0x6FA173EB,  //!< id for semaphores
+   TN_ID_EVENTGRP       = (unsigned int)0x5E224F25,  //!< id for event groups
+   TN_ID_DATAQUEUE      = (unsigned int)0x8C8A6C89,  //!< id for data queues
+   TN_ID_FSMEMORYPOOL   = (unsigned int)0x26B7CE8B,  //!< id for fixed memory pools
+   TN_ID_MUTEX          = (unsigned int)0x17129E45,  //!< id for mutexes
+   TN_ID_TIMER          = (unsigned int)0x9A937FBC,  //!< id for timers
+   TN_ID_EXCHANGE       = (unsigned int)0x32b7c072,  //!< id for exchange objects
+   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange objects
 };
 
 /**
@@ -213,23 +193,23 @@ typedef unsigned long TN_Timeout;
 
 
 /// NULL pointer definition
-#ifndef NULL
-#  define NULL       ((void *)0)
+#ifndef TN_NULL
+#  define TN_NULL       ((void *)0)
 #endif
 
 /// boolean type definition
-#ifndef BOOL
-#  define BOOL       int
+#ifndef TN_BOOL
+#  define TN_BOOL       int
 #endif
 
-/// `true` value definition for type `#BOOL`
-#ifndef TRUE
-#  define TRUE       (1 == 1)
+/// `true` value definition for type `#TN_BOOL`
+#ifndef TN_TRUE
+#  define TN_TRUE       (1 == 1)
 #endif
 
-/// `false` value definition for type `#BOOL`
-#ifndef FALSE
-#  define FALSE      (1 == 0)
+/// `false` value definition for type `#TN_BOOL`
+#ifndef TN_FALSE
+#  define TN_FALSE      (1 == 0)
 #endif
 
 /**

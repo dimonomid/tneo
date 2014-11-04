@@ -56,14 +56,15 @@
  * examples are:
  *
  * - wait for a message from the queue(s) plus wait for some
- *   application-dependent event;
+ *   application-dependent event (such as a flag to finish the task, or
+ *   whatever);
  * - wait for messages from multiple queues.
  *
  * If the kernel doesn't offer a mechanism for that, programmer usually have to
  * use polling services on these queues and sleep for a few system ticks.
  * Obviously, this approach has serious drawbacks: we have a lot of useless
  * context switches, and response for the message gets much slower. Actually,
- * we lost the main goal of the preemtive kernel when we use polling services
+ * we lost the main goal of the preemptive kernel when we use polling services
  * like that.
  *
  * TNeoKernel offers a solution: an event group can be connected to other
@@ -269,13 +270,13 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  * @param p_flags_pattern
  *    Pointer to the `TN_UWord` variable in which actual event pattern
  *    that caused task to stop waiting will be stored.
- *    May be `NULL`.
+ *    May be `TN_NULL`.
  * @param timeout
  *    refer to `#TN_Timeout`
  *
  * @return
  *    * `#TN_RC_OK` if specified event is active (so the task can check 
- *      variable pointed to by `p_flags_pattern` if it wasn't `NULL`).
+ *      variable pointed to by `p_flags_pattern` if it wasn't `TN_NULL`).
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
  *      refer to `#TN_Timeout`

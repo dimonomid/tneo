@@ -31,7 +31,7 @@ Event group connection is a perfectly fine solution. If the kernel doesn't
 offer a mechanism for that, programmer usually have to use polling services on
 these queues and sleep for a few system ticks.  Obviously, this approach has
 serious drawbacks: we have a lot of useless context switches, and response for
-the message gets much slower. Actually, we lost the main goal of the preemtive
-kernel when we use polling services like that.
+the message gets much slower. Actually, we lost the main goal of the
+preemptive kernel when we use polling services like that.
 
 

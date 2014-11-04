@@ -41,9 +41,15 @@
 
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_eventgrp.h"
+#include "_tn_tasks.h"
+#include "_tn_list.h"
+
 
 #include "tn_dqueue.h"
+#include "_tn_dqueue.h"
 
 #include "tn_tasks.h"
 
@@ -73,9 +79,9 @@ static inline enum TN_RCode _check_param_generic(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (dque == NULL){
+   if (dque == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (dque->id_dque != TN_ID_DATAQUEUE){
+   } else if (!_tn_dqueue_is_valid(dque)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -90,9 +96,9 @@ static inline enum TN_RCode _check_param_create(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (dque == NULL){
+   if (dque == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (items_cnt < 0 || dque->id_dque == TN_ID_DATAQUEUE){
+   } else if (items_cnt < 0 || _tn_dqueue_is_valid(dque)){
       rc = TN_RC_WPARAM;
    }
 
@@ -103,7 +109,7 @@ static inline enum TN_RCode _check_param_read(
       void **pp_data
       )
 {
-   return (pp_data == NULL) ? TN_RC_WPARAM : TN_RC_OK;
+   return (pp_data == TN_NULL) ? TN_RC_WPARAM : TN_RC_OK;
 }
 
 #else
@@ -134,7 +140,7 @@ static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
 
       //-- set flag in the connected event group (if any),
       //   indicating that there are messages in the queue
-      _tn_eventgrp_link_manage(&dque->eventgrp_link, TRUE);
+      _tn_eventgrp_link_manage(&dque->eventgrp_link, TN_TRUE);
    }
 
    return rc;
@@ -163,7 +169,7 @@ static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
       if (dque->filled_items_cnt == 0){
          //-- clear flag in the connected event group (if any),
          //   indicating that there are no messages in the queue
-         _tn_eventgrp_link_manage(&dque->eventgrp_link, FALSE);
+         _tn_eventgrp_link_manage(&dque->eventgrp_link, TN_FALSE);
       }
    }
 
@@ -228,7 +234,7 @@ static enum TN_RCode _queue_send(
 
    if (  !_tn_task_first_wait_complete(
             &dque->wait_receive_list, TN_RC_OK,
-            _cb_before_task_wait_complete__send, p_data, NULL
+            _cb_before_task_wait_complete__send, p_data, TN_NULL
             )
       )
    {
@@ -255,7 +261,7 @@ static enum TN_RCode _queue_receive(
          //   wake the first one up, since there is room now.
          _tn_task_first_wait_complete(
                &dque->wait_send_list, TN_RC_OK,
-               _cb_before_task_wait_complete__receive_ok, dque, NULL
+               _cb_before_task_wait_complete__receive_ok, dque, TN_NULL
                );
          break;
 
@@ -265,7 +271,7 @@ static enum TN_RCode _queue_receive(
          //   (that might happen if only dque->items_cnt is 0)
          if (  _tn_task_first_wait_complete(
                   &dque->wait_send_list, TN_RC_OK,
-                  _cb_before_task_wait_complete__receive_timeout, pp_data, NULL
+                  _cb_before_task_wait_complete__receive_timeout, pp_data, TN_NULL
                   )
             )
          {
@@ -298,7 +304,7 @@ static enum TN_RCode _dqueue_job_perform(
       TN_Timeout timeout
       )
 {
-   BOOL waited = FALSE;
+   TN_BOOL waited = TN_FALSE;
    void **pp_data = (void **)p_data;
    enum TN_RCode rc = _check_param_generic(dque);
 
@@ -325,7 +331,7 @@ static enum TN_RCode _dqueue_job_perform(
                      timeout
                      );
 
-               waited = TRUE;
+               waited = TN_TRUE;
             }
 
             break;
@@ -340,7 +346,7 @@ static enum TN_RCode _dqueue_job_perform(
                      timeout
                      );
 
-               waited = TRUE;
+               waited = TN_TRUE;
             }
             break;
       }
@@ -435,15 +441,15 @@ enum TN_RCode tn_queue_create(
    if (rc != TN_RC_OK){
       //-- just return rc as it is
    } else {
-      tn_list_reset(&(dque->wait_send_list));
-      tn_list_reset(&(dque->wait_receive_list));
+      _tn_list_reset(&(dque->wait_send_list));
+      _tn_list_reset(&(dque->wait_receive_list));
 
       dque->data_fifo         = data_fifo;
       dque->items_cnt         = items_cnt;
 
       _tn_eventgrp_link_reset(&dque->eventgrp_link);
 
-      if (dque->data_fifo == NULL){
+      if (dque->data_fifo == TN_NULL){
          dque->items_cnt = 0;
       }
 

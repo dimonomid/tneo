@@ -241,7 +241,7 @@ struct TN_Timer {
  * @param timer
  *    Pointer to already allocated `struct TN_Timer`
  * @param func
- *    Function to be called by timer, can't be `NULL`. See `TN_TimerFunc()`
+ *    Function to be called by timer, can't be `TN_NULL`. See `TN_TimerFunc()`
  * @param p_user_data
  *    User data pointer that is given to user-provided `func`.
  *
@@ -330,7 +330,7 @@ enum TN_RCode tn_timer_cancel(struct TN_Timer *timer);
  * @param timer
  *    Pointer to timer
  * @param func
- *    Function to be called by timer, can't be `NULL`. See `TN_TimerFunc()`
+ *    Function to be called by timer, can't be `TN_NULL`. See `TN_TimerFunc()`
  * @param p_user_data
  *    User data pointer that is given to user-provided `func`.
  *
@@ -354,13 +354,13 @@ enum TN_RCode tn_timer_set_func(
  * @param timer
  *    Pointer to timer
  * @param p_is_active
- *    Pointer to `#BOOL` variable in which resulting value should be stored
+ *    Pointer to `#TN_BOOL` variable in which resulting value should be stored
  *
  * @return
  *    * `#TN_RC_OK` if operation was successfull;
  *    * `#TN_RC_WPARAM` if wrong params were given.
  */
-enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, BOOL *p_is_active);
+enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active);
 
 /**
  * Returns how many $(TN_SYS_TIMER_LINK) ticks (at most) is left for the timer

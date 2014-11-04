@@ -9,7 +9,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-#include "queue_example.h"
+#include "example_queue_eventgrp_conn.h"
 
 #include "task_consumer.h"
 #include "task_producer.h"

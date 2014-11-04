@@ -122,7 +122,9 @@ Meanwhile, attributes like `TN_EVENT_ATTR_SINGLE`, `TN_EVENT_ATTR_CLR` imply tha
 
 After all, when we call `tn_event_clear(&my_event_obj, flags)`, we might expect that `flags` argument actually specifies flags to clear. But in fact, we must invert it, to make it work: `~flags`. This is really confusing.
 
-In TNeoKernel, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. I have plans to offer a way to *connect* events group to queue and probably other kernel objects as well, so that queue will set and clear particular flag in the events group automatically, depending on whether a queue is empty. By means of that, it is quite easy to wait for data from multiple queues with just a single call to `tn_eventgrp_wait()`.
+In TNeoKernel, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. 
+
+TNeoKernel also offers a very useful feature: connecting an event group to other kernel objects. Read \ref tnkernel_new_features__eventgrp_conn "below".
 
 For detailed API reference, refer to the `tn_eventgrp.h`.
 
@@ -131,6 +133,29 @@ For detailed API reference, refer to the `tn_eventgrp.h`.
 In original TNKernel, system functions refused to perform job and returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually neither convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
 
 \section tnkernel_new_features New features
+
+\subsection tnkernel_new_features__eventgrp_conn Event group connection
+
+Sometimes task needs to wait for different system events, the most common
+examples are:
+
+- wait for a message from the queue(s) plus wait for some
+  application-dependent event (such as a flag to finish the task, or
+  whatever);
+- wait for messages from multiple queues.
+
+If the kernel doesn't offer a mechanism for that, programmer usually have to
+use polling services on these queues and sleep for a few system ticks.
+Obviously, this approach has serious drawbacks: we have a lot of useless
+context switches, and response for the message gets much slower. Actually, we
+lost the main goal of the preemptive kernel when we use polling services like
+that.
+
+TNeoKernel (since \ref changelog_v1_03) offers a solution: an event group can
+be connected to other kernel objects, and these objects will maintain certain
+flags inside that event group automatically.
+
+Refer to the section \ref eventgrp_connect for details.
 
 \subsection tnkernel_new_features__timer Timers
 

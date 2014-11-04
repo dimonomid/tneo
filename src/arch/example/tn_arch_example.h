@@ -104,6 +104,13 @@
 typedef  unsigned int               TN_UWord;
 
 /**
+ * Unsigned integer type that is able to store pointers.
+ * We need it because some platforms don't define `uintptr_t`.
+ * Typically it's `unsigned int`.
+ */
+typedef  unsigned int               TN_UIntPtr;
+
+/**
  * Maximum number of priorities available, this value usually matches
  * `#TN_INT_WIDTH`.
  *
@@ -112,9 +119,10 @@ typedef  unsigned int               TN_UWord;
 #define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
- * Value for infinite waiting, usually matches `UINT_MAX`
+ * Value for infinite waiting, usually matches `ULONG_MAX`,
+ * because `#TN_Timeout` is declared as `unsigned long`.
  */
-#define  TN_WAIT_INFINITE           0xFFFFFFFF
+#define  TN_WAIT_INFINITE           (TN_Timeout)0xFFFFFFFF
 
 /**
  * Value for initializing the unused space of task's stack
@@ -196,5 +204,11 @@ typedef  unsigned int               TN_UWord;
    _tn_context_switch_pend_if_needed()
 
 
+/**
+ * Converts size in bytes to size in `#TN_UWord`.
+ * For 32-bit platforms, we should shift it by 2 bit to the right;
+ * for 16-bit platforms, we should shift it by 1 bit to the right.
+ */
+#define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #endif   // _TN_ARCH_EXAMPLE_H

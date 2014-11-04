@@ -10,8 +10,8 @@ TNeoKernel was born as a thorough review and re-implementation of
 \ref why_reimplement__bugs "inherited bugs" are fixed as well as new features
 being added, it is well documented and tested carefully with unit-tests.
 
-Currently it is available for PIC32 only, but will probably be ported to other
-architectures. Tested on PIC32MX.
+Currently it is available for PIC32/PIC24/dsPIC, and it will be ported at least
+to ARM Cortex M3.
 
 API is \ref tnkernel_diff "changed somewhat", so it's not 100% compatible with
 TNKernel, hence the new name: TNeoKernel.
@@ -25,6 +25,7 @@ Related pages:
   - \ref interrupts
   - \ref building
   - \ref pic32_details
+  - \ref pic24_details
   - \ref why_reimplement
   - \ref tnkernel_diff
   - \ref unit_tests

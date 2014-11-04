@@ -8,14 +8,40 @@
 
 == Routine ==
 
+   * [ ] Exchange object
+   * [ ] probably move _tn_memcpy_uword() to something like `tn_util.c`
+
+
+=== PIC24/dsPIC port ===
+
+   * [X] tn_arch_sr_restore: restore only IPL field
+   * [X] TN_IS_INT_DISABLED() : implement
+   * [X] handle IFS1 atomically (__tn_arch_context_switch_pend, __INT1Interrupt)
+   * [X] SPLIM
+   * [X] Rewrite context switch routine (__INT0Interrupt)
+   * [ ] ffs
+   * [ ] tn_arch_int_en: implement (or remove?)
+   * [ ] ISR macro (with separate stack for ISRs)
+   * [ ] tn_arch_inside_isr: optimize
+
+=== exchange methods ===
+
+   * tn_exch_create
+   * tn_exch_delete
+   * tn_exch_link_add
+   * tn_exch_link_remove
+   * 
+   * tn_read
+   * tn_write
+   * tn_iwrite
+   * 
+   * tn_lock
+   * tn_unlock
+   * tn_unlock_and_notify
+   * tn_iunlock_and_notify
 
 == Plans ==
 
-   * [.] Event group connection (at least, it would be useful to connect event group to queue)
-      * [X] implement functionality
-      * [ ] implement tests
-      * [ ] implement example
-      * [ ] add the link to example from `tn_eventgrp.h`
    * [ ] Exchange object: see AVIX User Guide & Reference Guide, 6.6.8
    * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
@@ -25,6 +51,7 @@
    * [ ] Port to ARM
    * [ ] Probably port to PIC24/dsPIC
    * [ ] Test how much is it slower to use tn_arch_sr_save_int_dis()/tn_arch_sr_restore() instead of TN_INT_DIS_SAVE()/TN_INT_RESTORE()
+   * [ ] Optionally, check if stack pointer is overflowed on each context switch.
 
 
 

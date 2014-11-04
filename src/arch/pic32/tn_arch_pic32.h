@@ -45,14 +45,43 @@
 #ifndef  _TN_ARCH_PIC32_H
 #define  _TN_ARCH_PIC32_H
 
-//-- this include is needed to get build-time configuration
-//   (TN_DEBUG is used)
-#include "../../core/tn_common.h"
+
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
+#include "../../core/tn_cfg_dispatch.h"
+
+
 
 
 #ifdef __cplusplus
 extern "C"  {     /*}*/
 #endif
+
+
+/*******************************************************************************
+ *    GLOBAL VARIABLES
+ ******************************************************************************/
+
+/// current interrupt nesting count. Used by macros
+/// `tn_p32_soft_isr()` and `tn_p32_srs_isr()`.
+extern volatile int tn_p32_int_nest_count;
+
+/// saved task stack pointer. Needed when switching stack pointer from 
+/// task stack to interrupt stack.
+extern void *tn_p32_user_sp;
+
+/// saved ISR stack pointer. Needed when switching stack pointer from
+/// interrupt stack to task stack.
+extern void *tn_p32_int_sp;
+
+
+
+
+
+
+
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -135,6 +164,12 @@ extern "C"  {     /*}*/
  */
 typedef  unsigned int               TN_UWord;
 
+/**
+ * Unsigned integer type that is able to store pointers.
+ * We need it because some platforms don't define `uintptr_t`.
+ * Typically it's `unsigned int`.
+ */
+typedef  unsigned int               TN_UIntPtr;
 
 /**
  * Maximum number of priorities available, this value usually matches
@@ -145,9 +180,10 @@ typedef  unsigned int               TN_UWord;
 #define  TN_PRIORITIES_MAX_CNT      TN_INT_WIDTH
 
 /**
- * Value for infinite waiting, usually matches `UINT_MAX`
+ * Value for infinite waiting, usually matches `ULONG_MAX`,
+ * because `#TN_Timeout` is declared as `unsigned long`.
  */
-#define  TN_WAIT_INFINITE           0xFFFFFFFF
+#define  TN_WAIT_INFINITE           (TN_Timeout)0xFFFFFFFF
 
 /**
  * Value for initializing the task's stack
@@ -249,6 +285,13 @@ typedef  unsigned int               TN_UWord;
 #define _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED()          \
    _tn_context_switch_pend_if_needed()
 
+/**
+ * Converts size in bytes to size in `#TN_UWord`.
+ * For 32-bit platforms, we should shift it by 2 bit to the right;
+ * for 16-bit platforms, we should shift it by 1 bit to the right.
+ */
+#define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
+
 
 
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
@@ -269,7 +312,7 @@ typedef  unsigned int               TN_UWord;
  *
  * Usage looks like the following:
  *
- *     tn_soft_isr(_TIMER_1_VECTOR)
+ *     tn_p32_soft_isr(_TIMER_1_VECTOR)
  *     {
  *        INTClearFlag(INT_T1);
  *
@@ -280,7 +323,7 @@ typedef  unsigned int               TN_UWord;
  *
  * @param vec  interrupt vector number, such as `_TIMER_1_VECTOR`, etc.
  */
-#define tn_soft_isr(vec)                                                       \
+#define tn_p32_soft_isr(vec)                                                       \
 __attribute__((__noinline__)) void _func##vec(void);                           \
 void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
@@ -295,18 +338,18 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("rdpgpr  $sp, $sp");                                           \
                                                                                \
    /* Increase interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("lui     $k0, %hi(tn_p32_int_nest_count)");                        \
+   asm volatile("lw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("addiu   $k1, $k1, 1");                                        \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("sw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("ori     $k0, $zero, 1");                                      \
    asm volatile("bne     $k1, $k0, 1f");                                       \
                                                                                \
    /* Swap stack pointers if nesting count is one */                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("sw      $sp, %lo(tn_user_sp)($k0)");                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("lw      $sp, %lo(tn_int_sp)($k0)");                           \
+   asm volatile("lui     $k0, %hi(tn_p32_user_sp)");                               \
+   asm volatile("sw      $sp, %lo(tn_p32_user_sp)($k0)");                          \
+   asm volatile("lui     $k0, %hi(tn_p32_int_sp)");                                \
+   asm volatile("lw      $sp, %lo(tn_p32_int_sp)($k0)");                           \
                                                                                \
    asm volatile("1:");                                                         \
    /* Save context on stack */                                                 \
@@ -388,18 +431,18 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("addiu   $sp, $sp, 92");                                       \
                                                                                \
    /* Decrease interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("lui     $k0, %hi(tn_p32_int_nest_count)");                        \
+   asm volatile("lw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("addiu   $k1, $k1, -1");                                       \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("sw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("bne     $k1, $zero, 1f");                                     \
    asm volatile("lw      $k1, -4($sp)");                                       \
                                                                                \
    /* Swap stack pointers if nesting count is zero */                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("sw      $sp, %lo(tn_int_sp)($k0)");                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("lw      $sp, %lo(tn_user_sp)($k0)");                          \
+   asm volatile("lui     $k0, %hi(tn_p32_int_sp)");                                \
+   asm volatile("sw      $sp, %lo(tn_p32_int_sp)($k0)");                           \
+   asm volatile("lui     $k0, %hi(tn_p32_user_sp)");                               \
+   asm volatile("lw      $sp, %lo(tn_p32_user_sp)($k0)");                          \
                                                                                \
    asm volatile("1:");                                                         \
    asm volatile("wrpgpr  $sp, $sp");                                           \
@@ -418,7 +461,7 @@ void __attribute__((naked, nomips16))                                          \
  *
  * Usage looks like the following:
  *
- *     tn_srs_isr(_INT_UART_1_VECTOR)
+ *     tn_p32_srs_isr(_INT_UART_1_VECTOR)
  *     {
  *        INTClearFlag(INT_U1);
  *
@@ -429,7 +472,7 @@ void __attribute__((naked, nomips16))                                          \
  *
  * @param vec  interrupt vector number, such as `_TIMER_1_VECTOR`, etc.
  */
-#define tn_srs_isr(vec)                                                        \
+#define tn_p32_srs_isr(vec)                                                        \
 __attribute__((__noinline__)) void _func##vec(void);                           \
 void __attribute__((naked, nomips16))                                          \
      __attribute__((vector(vec)))                                              \
@@ -444,18 +487,18 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("rdpgpr  $sp, $sp");                                           \
                                                                                \
    /* Increase interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("lui     $k0, %hi(tn_p32_int_nest_count)");                        \
+   asm volatile("lw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("addiu   $k1, $k1, 1");                                        \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("sw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("ori     $k0, $zero, 1");                                      \
    asm volatile("bne     $k1, $k0, 1f");                                       \
                                                                                \
    /* Swap stack pointers if nesting count is one */                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("sw      $sp, %lo(tn_user_sp)($k0)");                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("lw      $sp, %lo(tn_int_sp)($k0)");                           \
+   asm volatile("lui     $k0, %hi(tn_p32_user_sp)");                               \
+   asm volatile("sw      $sp, %lo(tn_p32_user_sp)($k0)");                          \
+   asm volatile("lui     $k0, %hi(tn_p32_int_sp)");                                \
+   asm volatile("lw      $sp, %lo(tn_p32_int_sp)($k0)");                           \
                                                                                \
    asm volatile("1:");                                                         \
    /* Save context on stack */                                                 \
@@ -501,18 +544,18 @@ void __attribute__((naked, nomips16))                                          \
    asm volatile("addiu   $sp, $sp, 20");                                       \
                                                                                \
    /* Decrease interrupt nesting count */                                      \
-   asm volatile("lui     $k0, %hi(tn_int_nest_count)");                        \
-   asm volatile("lw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("lui     $k0, %hi(tn_p32_int_nest_count)");                        \
+   asm volatile("lw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("addiu   $k1, $k1, -1");                                       \
-   asm volatile("sw      $k1, %lo(tn_int_nest_count)($k0)");                   \
+   asm volatile("sw      $k1, %lo(tn_p32_int_nest_count)($k0)");                   \
    asm volatile("bne     $k1, $zero, 1f");                                     \
    asm volatile("lw      $k1, -4($sp)");                                       \
                                                                                \
    /* Swap stack pointers if nesting count is zero */                          \
-   asm volatile("lui     $k0, %hi(tn_int_sp)");                                \
-   asm volatile("sw      $sp, %lo(tn_int_sp)($k0)");                           \
-   asm volatile("lui     $k0, %hi(tn_user_sp)");                               \
-   asm volatile("lw      $sp, %lo(tn_user_sp)($k0)");                          \
+   asm volatile("lui     $k0, %hi(tn_p32_int_sp)");                                \
+   asm volatile("sw      $sp, %lo(tn_p32_int_sp)($k0)");                           \
+   asm volatile("lui     $k0, %hi(tn_p32_user_sp)");                               \
+   asm volatile("lw      $sp, %lo(tn_p32_user_sp)($k0)");                          \
                                                                                \
    asm volatile("1:");                                                         \
    asm volatile("wrpgpr  $sp, $sp");                                           \
@@ -523,6 +566,18 @@ void __attribute__((naked, nomips16))                                          \
                                                                                \
 } __attribute((__noinline__)) void _func##vec(void)
 
+
+/**
+ * For compatibility with old projects, old name of `tn_p32_soft_isr()` macro
+ * is kept; please don't use it in new code.
+ */
+#define tn_soft_isr  tn_p32_soft_isr
+
+/**
+ * For compatibility with old projects, old name of `tn_p32_srs_isr()` macro
+ * is kept; please don't use it in new code.
+ */
+#define tn_srs_isr   tn_p32_srs_isr
 
 #ifdef __cplusplus
 }  /* extern "C" */

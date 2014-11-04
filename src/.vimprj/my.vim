@@ -1,5 +1,5 @@
 
-" определяем путь к папке .vim
+" detect path to .vimprj dir
 let s:sPath = expand('<sfile>:p:h')
 
 let g:proj_project_filename=s:sPath.'/.vimprojects'
@@ -16,7 +16,7 @@ let g:indexer_handlePath = 0
 
 let g:indexer_ctagsCommandLineOptions = '--c++-kinds=+p+l --c-kinds=+l --fields=+iaS --extra=+q'
 
-let s:o_dir = $INDEXER_PROJECT_ROOT.'/arch/pic32/tneokernel.X/build/tmp/compiled_in_vim'
+let s:o_dir = $INDEXER_PROJECT_ROOT.'/arch/pic32/tneokernel_pic32.X/build/tmp/compiled_in_vim'
 
 if !isdirectory(s:o_dir)
    call mkdir(s:o_dir, "p")
@@ -37,7 +37,7 @@ call CheckNeededSymbols(
          \  ]
          \  )
 
-let s:sProject = 'arch/pic32/tneokernel.X'
+let s:sProject = 'arch/pic32/tneokernel_pic32.X'
 
 call envcontrol#set_project_file($INDEXER_PROJECT_ROOT.'/'.s:sProject, 'MPLAB_X', {
          \        'parser_params': {

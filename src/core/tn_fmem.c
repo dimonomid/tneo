@@ -42,10 +42,15 @@
 //-- common tnkernel headers
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_tasks.h"
+#include "_tn_list.h"
+
 
 //-- header of current module
 #include "tn_fmem.h"
+#include "_tn_fmem.h"
 
 //-- header of other needed modules
 #include "tn_tasks.h"
@@ -69,9 +74,9 @@ static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmem == NULL){
+   if (fmem == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp == TN_ID_FSMEMORYPOOL){
+   } else if (_tn_fmem_is_valid(fmem)){
       rc = TN_RC_WPARAM;
    }
 
@@ -82,9 +87,9 @@ static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmem == NULL){
+   if (fmem == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (!_tn_fmem_is_valid(fmem)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -98,9 +103,9 @@ static inline enum TN_RCode _check_param_job_perform(
 {
    enum TN_RCode rc = TN_RC_OK;
 
-   if (fmem == NULL || p_data == NULL){
+   if (fmem == TN_NULL || p_data == TN_NULL){
       rc = TN_RC_WPARAM;
-   } else if (fmem->id_fmp != TN_ID_FSMEMORYPOOL){
+   } else if (!_tn_fmem_is_valid(fmem)){
       rc = TN_RC_INVALID_OBJ;
    }
 
@@ -125,7 +130,7 @@ static void _cb_before_task_wait_complete(
 static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
-   void *ptr = NULL;
+   void *ptr = TN_NULL;
 
    if (fmem->free_blocks_cnt > 0){
       ptr = fmem->free_list;
@@ -147,7 +152,7 @@ static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 
    if (  !_tn_task_first_wait_complete(
             &fmem->wait_queue, TN_RC_OK,
-            _cb_before_task_wait_complete, p_data, NULL
+            _cb_before_task_wait_complete, p_data, TN_NULL
             )
       )
    {
@@ -200,19 +205,19 @@ enum TN_RCode tn_fmem_create(
       goto out;
    }
 
-   //-- basic check: start_addr should not be NULL,
+   //-- basic check: start_addr should not be TN_NULL,
    //   and blocks_cnt should be at least 2
-   if (start_addr == NULL || blocks_cnt < 2){
+   if (start_addr == TN_NULL || blocks_cnt < 2){
       rc = TN_RC_WPARAM;
       goto out;
    }
 
    //-- check that start_addr is aligned properly
    {
-      unsigned long start_addr_aligned 
-         = TN_MAKE_ALIG_SIZE((unsigned long)start_addr);
+      TN_UIntPtr start_addr_aligned 
+         = TN_MAKE_ALIG_SIZE((TN_UIntPtr)start_addr);
 
-      if (start_addr_aligned != (unsigned int)start_addr){
+      if (start_addr_aligned != (TN_UIntPtr)start_addr){
          rc = TN_RC_WPARAM;
          goto out;
       }
@@ -234,7 +239,7 @@ enum TN_RCode tn_fmem_create(
    fmem->blocks_cnt = blocks_cnt;
 
    //-- reset wait_queue
-   tn_list_reset(&(fmem->wait_queue));
+   _tn_list_reset(&(fmem->wait_queue));
 
    //-- init block pointers
    {
@@ -249,7 +254,7 @@ enum TN_RCode tn_fmem_create(
          p_tmp   = (void **)p_block;
          p_block += fmem->block_size;
       }
-      *p_tmp = NULL;          //-- Last memory block first cell contents -  NULL
+      *p_tmp = TN_NULL;          //-- Last memory block first cell contents -  TN_NULL
 
       fmem->free_list       = fmem->start_addr;
       fmem->free_blocks_cnt = fmem->blocks_cnt;
@@ -304,7 +309,7 @@ enum TN_RCode tn_fmem_get(
       TN_Timeout timeout
       )
 {
-   BOOL waited_for_data = FALSE;
+   TN_BOOL waited_for_data = TN_FALSE;
    enum TN_RCode rc = _check_param_job_perform(fmem, p_data);
 
    if (rc != TN_RC_OK){
@@ -324,7 +329,7 @@ enum TN_RCode tn_fmem_get(
                TN_WAIT_REASON_WFIXMEM,
                timeout
                );
-         waited_for_data = TRUE;
+         waited_for_data = TN_TRUE;
       }
 
       TN_INT_RESTORE();

@@ -181,16 +181,21 @@ typedef void (TN_CBIdle)(void);
  * deadlock becomes active or inactive.
  * Note: this feature works if only `#TN_MUTEX_DEADLOCK_DETECT` is non-zero.
  *
- * @param active  if `TRUE`, deadlock becomes active, otherwise it becomes
- *                inactive (say, if task stopped waiting for mutex 
- *                because of timeout)
- * @param mutex   mutex that is involved in deadlock. You may find out other
- *                mutexes involved by means of `mutex->deadlock_list`.
- * @param task    task that is involved in deadlock. You may find out other 
- *                tasks involved by means of `task->deadlock_list`.
+ * @param active
+ *    Boolean value indicating whether deadlock becomes active or inactive.
+ *    Note: deadlock might become inactive if, for example, one of tasks
+ *    involved in deadlock exits from waiting by timeout.
+ *
+ * @param mutex
+ *    mutex that is involved in deadlock. You may find out other mutexes
+ *    involved by means of `mutex->deadlock_list`.
+ *
+ * @param task
+ *    task that is involved in deadlock. You may find out other tasks involved
+ *    by means of `task->deadlock_list`.
  */
 typedef void (TN_CBDeadlock)(
-      BOOL active,
+      TN_BOOL active,
       struct TN_Mutex *mutex,
       struct TN_Task *task
       );
@@ -362,13 +367,13 @@ enum TN_Context tn_sys_context_get(void);
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `#TN_CONTEXT_TASK`,
- *         `FALSE` otherwise.
+ * @return `TN_TRUE` if current system context is `#TN_CONTEXT_TASK`,
+ *         `TN_FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline BOOL tn_is_task_context(void)
+static inline TN_BOOL tn_is_task_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_TASK);
 }
@@ -381,13 +386,13 @@ static inline BOOL tn_is_task_context(void)
  * $(TN_CALL_FROM_MAIN)
  * $(TN_LEGEND_LINK)
  *
- * @return `TRUE` if current system context is `#TN_CONTEXT_ISR`,
- *         `FALSE` otherwise.
+ * @return `TN_TRUE` if current system context is `#TN_CONTEXT_ISR`,
+ *         `TN_FALSE` otherwise.
  *
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline BOOL tn_is_isr_context(void)
+static inline TN_BOOL tn_is_isr_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_ISR);
 }

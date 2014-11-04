@@ -53,7 +53,7 @@
  * element into the data queue).  To use a data queue just for the synchronous
  * message passing, set size of the FIFO to 0.  The data element to be sent and
  * received can be interpreted as a pointer or an integer and may have value 0
- * (`NULL`). 
+ * (`TN_NULL`). 
  *   
  * For the useful pattern on how to use queue together with \ref tn_fmem.h 
  * "fixed memory pool", refer to the example: `examples/queue`. Be sure
@@ -111,7 +111,7 @@ struct TN_DQueue {
    struct TN_ListItem  wait_receive_list;
 
    ///
-   /// array of `void *` to store data queue items. Can be `NULL`.
+   /// array of `void *` to store data queue items. Can be `TN_NULL`.
    void         **data_fifo;
    ///
    /// capacity (total items count). Can be 0.
@@ -167,7 +167,7 @@ struct TN_DQueueTaskWait {
  *
  * @param dque       pointer to already allocated struct TN_DQueue.
  * @param data_fifo  pointer to already allocated array of `void *` to store
- *                   data queue items. Can be NULL.
+ *                   data queue items. Can be `#TN_NULL`.
  * @param items_cnt  capacity of queue
  *                   (count of elements in the `data_fifo` array)
  *                   Can be 0.
@@ -188,7 +188,7 @@ enum TN_RCode tn_queue_create(
  * Destruct data queue.
  *
  * All tasks that wait for writing to or reading from the queue become
- * runnable with `#TN_RC_DELETED` code returned. TN_RCode, struct TN_Task.
+ * runnable with `#TN_RC_DELETED` code returned.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)

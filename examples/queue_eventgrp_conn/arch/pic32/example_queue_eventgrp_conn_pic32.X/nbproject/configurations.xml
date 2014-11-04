@@ -14,12 +14,12 @@
                    projectFiles="true">
       <logicalFolder name="f1" displayName="arch" projectFiles="true">
         <itemPath>../pic32_arch.c</itemPath>
-        <itemPath>../queue_example_arch.c</itemPath>
         <itemPath>../../../../../src/arch/pic32/tn_arch_pic32_int_vec1.S</itemPath>
+        <itemPath>../example_queue_eventgrp_conn_arch.c</itemPath>
       </logicalFolder>
-      <itemPath>../../../queue_example.c</itemPath>
       <itemPath>../../../task_consumer.c</itemPath>
       <itemPath>../../../task_producer.c</itemPath>
+      <itemPath>../../../example_queue_eventgrp_conn.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -49,24 +49,26 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic32/tneokernel.X"
+              <makeArtifact PL="../../../../../src/arch/pic32/tneokernel_pic32.X"
                             CT="3"
                             CN="default"
                             AC="true"
                             BL="true"
-                            WD="../../../../../src/arch/pic32/tneokernel.X"
+                            WD="../../../../../src/arch/pic32/tneokernel_pic32.X"
                             BC="${MAKE}  -f Makefile CONF=default"
                             DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"
-                            OP="dist/default/production/tneokernel.X.a"
-                            DOP="dist/default/debug/tneokernel.X.a"
-                            FL="dist/default/production/tneokernel.X.a"
-                            PD="dist/default/production/tneokernel.X."
-                            DD="dist/default/debug/tneokernel.X.">
+                            OP="dist/default/production/tneokernel_pic32.X.a"
+                            DOP="dist/default/debug/tneokernel_pic32.X.a"
+                            FL="dist/default/production/tneokernel_pic32.X.a"
+                            PD="dist/default/production/tneokernel_pic32.X."
+                            DD="dist/default/debug/tneokernel_pic32.X.">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
         </linkerTool>
+        <archiverTool>
+        </archiverTool>
         <loading>
           <useAlternateLoadableFile>false</useAlternateLoadableFile>
           <parseOnProdLoad>false</parseOnProdLoad>

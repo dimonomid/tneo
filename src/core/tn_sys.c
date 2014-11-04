@@ -48,7 +48,13 @@
 
 #include "tn_common.h"
 #include "tn_sys.h"
-#include "tn_internal.h"
+
+//-- internal tnkernel headers
+#include "_tn_sys.h"
+#include "_tn_timer.h"
+#include "_tn_tasks.h"
+#include "_tn_list.h"
+
 
 #include "tn_tasks.h"
 #include "tn_timer.h"
@@ -61,7 +67,7 @@
  ******************************************************************************/
 
 /*
- * For comments on these variables, please see tn_internal.h file.
+ * For comments on these variables, please see _tn_sys.h file.
  */
 struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
 struct TN_ListItem tn_create_queue;
@@ -78,14 +84,10 @@ volatile unsigned int tn_ready_to_run_bmp;
 
 volatile unsigned int tn_sys_time_count;
 
-volatile int tn_int_nest_count;
 
 #if TN_MUTEX_DEADLOCK_DETECT
 volatile int tn_deadlocks_cnt = 0;
 #endif
-
-void *tn_user_sp;
-void *tn_int_sp;
 
 //-- System tasks
 
@@ -97,13 +99,13 @@ static void _idle_task_body(void * par);
 /**
  * Pointer to user idle loop function
  */
-TN_CBIdle        *tn_callback_idle_hook = NULL;
+TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
 
 /**
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
  */
-TN_CBDeadlock    *tn_callback_deadlock = NULL;
+TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 
 
 
@@ -143,15 +145,15 @@ static inline void _round_robin_manage(void)
          pri_queue = &(tn_ready_list[priority]);
          //-- If ready queue is not empty and there are more than 1 
          //   task in the queue
-         if (     !(tn_is_list_empty((struct TN_ListItem *)pri_queue))
+         if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
                && pri_queue->next->next != pri_queue
             )
          {
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
-            curr_que = tn_list_remove_head(&(tn_ready_list[priority]));
-            tn_list_add_tail(
+            curr_que = _tn_list_remove_head(&(tn_ready_list[priority]));
+            _tn_list_add_tail(
                   &(tn_ready_list[priority]),
                   (struct TN_ListItem *)curr_que
                   );
@@ -175,7 +177,7 @@ static inline enum TN_RCode _idle_task_create(
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
-         NULL,                            //-- task function parameter
+         TN_NULL,                            //-- task function parameter
          (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
          );
 }
@@ -202,16 +204,19 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
+   //-- call architecture-dependent initialization
+   _tn_arch_sys_init(int_stack, int_stack_size);
+
    //-- for each priority: 
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
-      tn_list_reset(&(tn_ready_list[i]));
+      _tn_list_reset(&(tn_ready_list[i]));
       tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
    //-- reset generic task queue and task count to 0
-   tn_list_reset(&tn_create_queue);
+   _tn_list_reset(&tn_create_queue);
    tn_created_tasks_cnt = 0;
 
    //-- initial system flags: no flags set (see enum TN_StateFlag)
@@ -223,12 +228,9 @@ void tn_sys_start(
    //-- reset system time
    tn_sys_time_count = 0;
 
-   //-- reset interrupt nesting count
-   tn_int_nest_count = 0;
-
    //-- reset pointers to currently running task and next task to run
-   tn_next_task_to_run = NULL;
-   tn_curr_run_task    = NULL;
+   tn_next_task_to_run = TN_NULL;
+   tn_curr_run_task    = TN_NULL;
 
    //-- remember user-provided callbacks
    tn_callback_idle_hook = cb_idle;
@@ -237,12 +239,6 @@ void tn_sys_start(
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
-
-   //-- set interrupt's top of the stack
-   tn_int_sp = _tn_arch_stack_top_get(
-         int_stack,
-         int_stack_size
-         );
 
    //-- init timers
    _tn_timers_init();
@@ -403,12 +399,14 @@ TN_TaskBody *tn_cur_task_body_get(void)
 }
 
 
+
+
 /*******************************************************************************
- *    INTERNAL TNKERNEL FUNCTIONS
+ *    PROTECTED FUNCTIONS
  ******************************************************************************/
 
 /**
- * See comment in the tn_internal.h file
+ * See comment in the _tn_sys.h file
  */
 void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
 {
@@ -421,23 +419,20 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
    //   and setting TN_RC_DELETED as a wait return code.
-   tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
+   _tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
       //-- call _tn_task_wait_complete for every task
       _tn_task_wait_complete(task, TN_RC_DELETED);
    }
 
 #if TN_DEBUG
-   if (!tn_is_list_empty(wait_queue)){
+   if (!_tn_list_is_empty(wait_queue)){
       _TN_FATAL_ERROR("");
    }
 #endif
 }
 
 /**
- * Set flags by bitmask.
- * Given flags value will be OR-ed with existing flags.
- *
- * @return previous tn_sys_state value.
+ * See comments in the file _tn_sys.h
  */
 enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 {
@@ -447,10 +442,7 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 }
 
 /**
- * Clear flags by bitmask
- * Given flags value will be inverted and AND-ed with existing flags.
- *
- * @return previous tn_sys_state value.
+ * See comments in the file _tn_sys.h
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 {
@@ -461,7 +453,10 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 
 
 #if TN_MUTEX_DEADLOCK_DETECT
-void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
+/**
+ * See comments in the file _tn_sys.h
+ */
+void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 {
    if (active){
       if (tn_deadlocks_cnt == 0){
@@ -477,10 +472,24 @@ void _tn_cry_deadlock(BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
       }
    }
 
-   if (tn_callback_deadlock != NULL){
+   if (tn_callback_deadlock != TN_NULL){
       tn_callback_deadlock(active, mutex, task);
    }
 
 }
 #endif
+
+/**
+ * See comments in the file _tn_sys.h
+ */
+void _tn_memcpy_uword(
+      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
+      )
+{
+   int i;
+   for (i = 0; i < size_uwords; i++){
+      *tgt++ = *src++;
+   }
+}
+
 

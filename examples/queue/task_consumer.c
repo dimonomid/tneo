@@ -174,7 +174,7 @@ void task_consumer_create(void)
             TASK_CONSUMER_PRIORITY,
             task_consumer_stack,
             TASK_CONSUMER_STACK_SIZE,
-            NULL,
+            TN_NULL,
             (TN_TASK_CREATE_OPT_START)
             )
          );
