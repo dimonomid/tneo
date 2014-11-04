@@ -27,7 +27,7 @@ fi
 # clone it from the current one
 hg clone $repo_path $tmp_repo_path
 
-# generate pic32 hex {{{
+# generate pic32 binary {{{
 
 pic32_bin="$tmp_repo_path/bin/pic32"
 
@@ -37,7 +37,7 @@ make
 # in the target temp dir, create "bin" dir
 mkdir -p "$pic32_bin"
 
-# copy hex there
+# copy binary there
 cp dist/default/production/tneokernel_pic32.X.a "$pic32_bin"
 
 # cd back
@@ -45,7 +45,7 @@ popd
 
 # }}}
 
-# generate pic24/dspic hex {{{
+# generate pic24/dspic binaries {{{
 
 pic24_bin="$tmp_repo_path/bin/pic24_dspic"
 
@@ -55,7 +55,7 @@ make all
 # in the target temp dir, create "bin" dir
 mkdir -p "$pic24_bin"
 
-# copy hex there
+# copy binaries there
 cp dist/eds/production/tneokernel_pic24_dspic.X.a    "$pic24_bin/tneokernel_pic24_dspic_eds.X.a"
 cp dist/no_eds/production/tneokernel_pic24_dspic.X.a "$pic24_bin/tneokernel_pic24_dspic_no_eds.X.a"
 
