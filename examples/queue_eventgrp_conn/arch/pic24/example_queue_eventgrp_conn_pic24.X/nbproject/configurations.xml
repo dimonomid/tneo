@@ -48,18 +48,18 @@
             <linkerLibProjectItem>
               <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
                             CT="3"
-                            CN="default"
-                            AC="true"
+                            CN="no_eds"
+                            AC="false"
                             BL="true"
                             WD="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
-                            BC="${MAKE}  -f Makefile CONF=default"
-                            DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
-                            CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"
-                            OP="dist/default/production/tneokernel_pic24_dspic.X.a"
-                            DOP="dist/default/debug/tneokernel_pic24_dspic.X.a"
-                            FL="dist/default/production/tneokernel_pic24_dspic.X.a"
-                            PD="dist/default/production/tneokernel_pic24_dspic.X.a"
-                            DD="dist/default/debug/tneokernel_pic24_dspic.X.a">
+                            BC="${MAKE}  -f Makefile CONF=no_eds"
+                            DBC="${MAKE}  -f Makefile CONF=no_eds TYPE_IMAGE=DEBUG_RUN"
+                            CC="rm -rf &quot;build/no_eds&quot; &quot;dist/no_eds&quot;"
+                            OP="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
+                            DOP="dist/no_eds/debug/tneokernel_pic24_dspic.X.a"
+                            FL="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
+                            PD="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
+                            DD="dist/no_eds/debug/tneokernel_pic24_dspic.X.a">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>
@@ -229,6 +229,7 @@
         <property key="UART 4" value="true"/>
         <property key="UCNFG1" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>
