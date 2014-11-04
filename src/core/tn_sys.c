@@ -61,6 +61,16 @@
 
 
 
+//-- self-check 
+#if !defined(TN_PRIORITIES_MAX_CNT)
+#  error TN_PRIORITIES_MAX_CNT is not defined
+#endif
+
+//-- check TN_PRIORITIES_CNT
+#if (TN_PRIORITIES_CNT > TN_PRIORITIES_MAX_CNT)
+#  error TN_PRIORITIES_CNT is too large (maximum is TN_PRIORITIES_MAX_CNT)
+#endif
+
 
 /*******************************************************************************
  *    PUBLIC DATA

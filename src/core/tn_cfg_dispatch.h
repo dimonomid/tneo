@@ -87,6 +87,7 @@
 #  error TN_PRIORITIES_CNT is not defined
 #endif
 
+
 #if !defined(TN_CHECK_PARAM)
 #  error TN_CHECK_PARAM is not defined
 #endif
@@ -134,7 +135,7 @@
 
 
 
-
+//-- check TN_P24_SYS_IPL: should be 1 .. 6.
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if TN_P24_SYS_IPL >= 7
 #     error TN_P24_SYS_IPL must be less than 7
@@ -144,6 +145,9 @@
 #  endif
 #endif
 
+//-- NOTE: TN_TICK_LISTS_CNT is checked in tn_timer.c
+//-- NOTE: TN_PRIORITIES_CNT is checked in tn_sys.c
+//-- NOTE: TN_API_MAKE_ALIG_ARG is checked in tn_common.h
 
 
 
