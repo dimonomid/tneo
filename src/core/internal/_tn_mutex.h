@@ -78,7 +78,13 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task);
 
 /**
  * Should be called when task finishes waiting
- * for mutex with priority inheritance
+ * for mutex with priority inheritance.
+ *
+ * Preconditions: 
+ *
+ * - `task->task_queue` is removed from the mutex's wait queue;
+ * - `task->pwait_queue` still points to the mutex which task was waiting for;
+ * - `mutex->holder` still points to the task which was holding the mutex.
  */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
 

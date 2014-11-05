@@ -469,12 +469,14 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 {
    if (active){
+      //-- deadlock just became active
       if (tn_deadlocks_cnt == 0){
          _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
       }
 
       tn_deadlocks_cnt++;
    } else {
+      //-- deadlock just became inactive
       tn_deadlocks_cnt--;
 
       if (tn_deadlocks_cnt == 0){
@@ -482,6 +484,8 @@ void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *ta
       }
    }
 
+   //-- if user has specified callback function for deadlock detection,
+   //   notify him by calling this function
    if (tn_callback_deadlock != TN_NULL){
       tn_callback_deadlock(active, mutex, task);
    }
