@@ -600,14 +600,15 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
  */
 static void _update_holders_priority_recursive(struct TN_Task *task)
 {
-in:;
+   struct TN_Task *holder;
+
+in:
    //-- get the holder of mutex for which `task` is/was waiting for.
    //   NOTE that this holder might still hold the mutex
    //   (if `task` stopped waiting by timeout), or it might
    //   already release it. In either case, `mutex->holder` still
    //   points to the task which is/was holding the mutex.
-   struct TN_Task *holder =
-      _get_mutex_by_wait_queque(task->pwait_queue)->holder;
+   holder = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
 
    //-- now, `holder` points to the (ex-)holder, i.e. to the task which is/was
    //   holding the mutex. Now, we iterate through all the mutexes that are
