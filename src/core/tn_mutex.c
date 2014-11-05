@@ -755,7 +755,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       } else if (mutex->holder == TN_NULL){
          //-- mutex is not locked, let's lock it
 
-         //-- TODO: probably, we should add special flat to _mutex_do_lock,
+         //-- TODO: probably, we should add special flag to _mutex_do_lock,
          //   something like "other_tasks_can_wait", and set it to false here.
          //   When _mutex_do_lock() is called from _mutex_do_unlock(), this flag
          //   should be set to true there.
