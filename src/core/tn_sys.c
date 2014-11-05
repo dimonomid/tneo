@@ -187,8 +187,8 @@ static inline enum TN_RCode _idle_task_create(
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
-         TN_NULL,                            //-- task function parameter
-         (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
+         TN_NULL,                         //-- task function parameter
+         (_TN_TASK_CREATE_OPT_IDLE)       //-- Creation option
          );
 }
 

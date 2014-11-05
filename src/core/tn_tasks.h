@@ -219,7 +219,7 @@ enum TN_TaskCreateOpt {
    ///
    /// for internal kernel usage only: this option must be provided
    /// when creating idle task
-   TN_TASK_CREATE_OPT_IDLE =  (1 << 1),
+   _TN_TASK_CREATE_OPT_IDLE = (1 << 1),
 };
 
 /**

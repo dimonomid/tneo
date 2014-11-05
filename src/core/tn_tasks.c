@@ -380,8 +380,8 @@ enum TN_RCode tn_task_create(
    int i;
 
    //-- Lightweight checking of system tasks recreation
-   if (0
-         || (priority == (TN_PRIORITIES_CNT - 1) && !(opts & TN_TASK_CREATE_OPT_IDLE))
+   if (     priority == (TN_PRIORITIES_CNT - 1)
+         && !(opts & _TN_TASK_CREATE_OPT_IDLE)
       )
    {
       return TN_RC_WPARAM;
