@@ -66,8 +66,9 @@ tn_p24_soft_isr(_T1Interrupt, auto_psv)
 
 \attention do **not** use this macro for non-system interrupt (that is, for
 interrupt of priority higher than `#TN_P24_SYS_IPL`). Use standard way to
-define it. If you violate this rule, debugger will be halted by the kernel when
-entering ISR. In release build, CPU is just reset.
+define it. If `#TN_CHECK_PARAM` is on, kernel checks it: if you violate this
+rule, debugger will be halted by the kernel when entering ISR. In release
+build, CPU is just reset.
 
 
 \section pic24_bfa Atomic access to the structure bit field
