@@ -131,6 +131,11 @@
 #  endif
 #endif
 
+#if !defined(TN_DYNAMIC_TICK)
+#  error TN_DYNAMIC_TICK is not defined
+#endif
+
+
 // }}}
 
 

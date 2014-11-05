@@ -205,6 +205,10 @@
 #  define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__SIZE
 #endif
 
+#ifndef TN_DYNAMIC_TICK
+#  define TN_DYNAMIC_TICK        0
+#endif
+
 
 
 

@@ -201,6 +201,15 @@ typedef void (TN_CBDeadlock)(
       );
 
 
+#if TN_DYNAMIC_TICK
+
+typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
+
+
+typedef TN_Timeout (TN_CBTickCntGet)(void);
+
+#endif
+
 
 
 /*******************************************************************************
@@ -414,6 +423,15 @@ struct TN_Task *tn_cur_task_get(void);
  * $(TN_LEGEND_LINK)
  */
 TN_TaskBody *tn_cur_task_body_get(void);
+
+
+#if TN_DYNAMIC_TICK
+void tn_callback_dyn_tick_set(
+      TN_CBTickSchedule   *cb_tick_schedule,
+      TN_CBTickCntGet     *cb_tick_cnt_get
+      );
+#endif
+
 
 #ifdef __cplusplus
 }  /* extern "C" */

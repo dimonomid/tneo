@@ -92,7 +92,10 @@ struct TN_Task *tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
 
+
+#if !TN_DYNAMIC_TICK
 volatile unsigned int tn_sys_time_count;
+#endif
 
 
 #if TN_MUTEX_DEADLOCK_DETECT
@@ -117,6 +120,11 @@ TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
  */
 TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 
+#if TN_DYNAMIC_TICK
+TN_CBTickSchedule      *_tn_cb_tick_schedule = TN_NULL;
+TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
+#endif
+
 
 
 /*******************************************************************************
@@ -138,6 +146,12 @@ static void _idle_task_body(void *par)
 /**
  * Manage round-robin (if used)
  */
+#if TN_DYNAMIC_TICK
+
+static inline void _round_robin_manage(void) {/*TODO*/}
+
+#else
+
 static inline void _round_robin_manage(void)
 {
    //-- volatile is used here only to solve
@@ -171,6 +185,8 @@ static inline void _round_robin_manage(void)
       }
    }
 }
+
+#endif
 
 /**
  * Create idle task, the task is NOT started after creation.
@@ -214,6 +230,18 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
+#if TN_DYNAMIC_TICK
+   //-- if dynamic tick is used, check that we have callbacks set.
+   //   (they should be set by tn_callback_dyn_tick_set() before calling
+   //   tn_sys_start())
+   if (_tn_cb_tick_schedule == TN_NULL || _tn_cb_tick_cnt_get == TN_NULL){
+      _TN_FATAL_ERROR("failed to create idle task");
+   }
+#else
+   //-- reset system time
+   tn_sys_time_count = 0;
+#endif
+
    //-- call architecture-dependent initialization
    _tn_arch_sys_init(int_stack, int_stack_size);
 
@@ -234,9 +262,6 @@ void tn_sys_start(
 
    //-- reset bitmask of priorities with runnable tasks
    tn_ready_to_run_bmp = 0;
-
-   //-- reset system time
-   tn_sys_time_count = 0;
 
    //-- reset pointers to currently running task and next task to run
    tn_next_task_to_run = TN_NULL;
@@ -309,8 +334,10 @@ enum TN_RCode tn_tick_int_processing(void)
 
       TN_INT_IDIS_SAVE();
 
+#if !TN_DYNAMIC_TICK
       //-- increment system timer
       tn_sys_time_count++;
+#endif
 
       //-- manage round-robin (if used)
       _round_robin_manage();
@@ -354,8 +381,12 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
  */
 unsigned int tn_sys_time_get(void)
 {
+#if !TN_DYNAMIC_TICK
    //-- NOTE: it works if only read access to unsigned int is atomic!
    return tn_sys_time_count;
+#else
+   return _tn_cb_tick_cnt_get();
+#endif
 }
 
 /*
@@ -407,6 +438,20 @@ TN_TaskBody *tn_cur_task_body_get(void)
 {
    return tn_curr_run_task->task_func_addr;
 }
+
+
+#if TN_DYNAMIC_TICK
+
+void tn_callback_dyn_tick_set(
+      TN_CBTickSchedule   *cb_tick_schedule,
+      TN_CBTickCntGet     *cb_tick_cnt_get
+      )
+{
+   _tn_cb_tick_schedule = cb_tick_schedule;
+   _tn_cb_tick_cnt_get  = cb_tick_cnt_get;
+}
+
+#endif
 
 
 
