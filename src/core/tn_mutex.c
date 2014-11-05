@@ -576,9 +576,9 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
  *
  * Say, we have the following arrangement:
  *
- * - `task_a` locked mutex M1: `task_a` is runnable;
+ * - `task_a` locked mutex M1:               `task_a` is runnable;
  * - `task_b` locked mutex M2, waits for M1: `task_b` is waiting;
- * - `task_c` waits for M2.
+ * - `task_c`                  waits for M2: `task_c` is waiting.
  * 
  * Now, `task_c` finishes waiting for mutex by timeout, and
  * `_update_holders_priority_recursive(task_c)` is eventually called.
