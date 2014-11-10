@@ -205,6 +205,9 @@
 #  define TN_API_MAKE_ALIG_ARG     TN_API_MAKE_ALIG_ARG__SIZE
 #endif
 
+
+//-- Don't change it, it is still under construction!
+//   The only valid value of `TN_DYNAMIC_TICK` is 0.
 #ifndef TN_DYNAMIC_TICK
 #  define TN_DYNAMIC_TICK        0
 #endif

@@ -122,14 +122,27 @@ void _tn_arch_sys_init(
 
 
 /**
- * Should return top of the stack, which may be:
+ * Should return top of the stack.
  *
- * - `(stack_low_address - 1)`
- * - `(stack_low_address + stack_size)`
- * - `(stack_low_address)`
- * - `(stack_low_address + stack_size - 1)`
+ * A stack implementation is characterized by two attributes:
  *
- * (depending on the architecture)
+ * - Where the stack pointer points:
+ *   - *Full stack*: The stack pointer points to the last full location;
+ *   - *Empty stack*: The stack pointer points to the first empty location.
+ * - How the stack grows:
+ *   - *Descending stack*: The stack grows downward (i.e., toward lower memory
+ *     addresses);
+ *   - *Ascending stack*: The stack grows upward (i.e., toward lower higher
+ *     addresses).
+ *
+ * So, depending on the stack implementation used in the particular
+ * architecture, the value returned from this function can be one of the
+ * following:
+ *
+ * - `(stack_low_address - 1)` (*Full ascending stack*)
+ * - `(stack_low_address + stack_size)` (*Full descending stack*)
+ * - `(stack_low_address)` (*Empty ascending stack*)
+ * - `(stack_low_address + stack_size - 1)` (*Empty descending stack*)
  *
  * @param   stack_low_address
  *    Start address of the stack array.
