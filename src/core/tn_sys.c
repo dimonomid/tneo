@@ -235,7 +235,7 @@ void tn_sys_start(
    //   (they should be set by tn_callback_dyn_tick_set() before calling
    //   tn_sys_start())
    if (_tn_cb_tick_schedule == TN_NULL || _tn_cb_tick_cnt_get == TN_NULL){
-      _TN_FATAL_ERROR("failed to create idle task");
+      _TN_FATAL_ERROR("");
    }
 #else
    //-- reset system time

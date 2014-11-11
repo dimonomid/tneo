@@ -206,8 +206,10 @@
 #endif
 
 
-//-- Don't change it, it is still under construction!
-//   The only valid value of `TN_DYNAMIC_TICK` is 0.
+/**
+ * Don't change it, it is still under construction!
+ * The only valid value of `TN_DYNAMIC_TICK` is 0.
+ */
 #ifndef TN_DYNAMIC_TICK
 #  define TN_DYNAMIC_TICK        0
 #endif
