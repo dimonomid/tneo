@@ -39,13 +39,13 @@ tn_p32_soft_isr(_TIMER_5_VECTOR)
   - You provide idle callback function to be called periodically from idle
     task. It's quite fine to leave it empty.
   - In the `main()` you should:
-    - disable interrupts globally by calling `tn_arch_int_dis()`;
+    - disable <i>system interrupts</i> by calling `tn_arch_int_dis()`;
     - perform some essential CPU configuration, such as oscillator settings and
       similar things. 
     - setup $(TN_SYS_TIMER_LINK) interrupt (from which
       `tn_tick_int_processing()` gets called)
-    - perform any platform-dependent required actions (say, on PIC32 you should
-      enable core software interrupt 0 with the lowest priority)
+    - perform any platform-dependent required actions, if needed (refer to the
+      details of the particular platform)
     - call `tn_sys_start()` providing all necessary information: pointers to
       stacks, their sizes and your callback functions.
   - Kernel acts as follows:

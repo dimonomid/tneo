@@ -15,11 +15,11 @@ sets.
 
 Multi-vectored interrupt mode should be enabled.
 
-\attention if tneokernel is built as a separate library, then the file
-`src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included in the main project
-itself, in order to dispatch vector1 (core software interrupt 0) correctly. Do
-note that if we include this file in the TNeoKernel library project, it doesn't
-work for vector, unfortunately.
+\attention if tneokernel is built as a separate library (which is typically the
+case), then the file `src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included
+in the main project itself, in order to dispatch vector1 (core software
+interrupt 0) correctly. Do note that if we include this file in the TNeoKernel
+library project, it doesn't work for vector, unfortunately.
 
 \attention If you forgot to include this file, you got an error on the link step,
 like this:
