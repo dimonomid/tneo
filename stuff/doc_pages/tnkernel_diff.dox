@@ -33,7 +33,7 @@ tn_task_create(/* ... several arguments omitted ... */
                /* ... several arguments omitted ... */);
 \endcode
 
-TNeoKernel uses the second way (i.e. the way used in port by Alex Borisov), and it does so independently of architecture.
+TNeoKernel uses the second way (i.e. the way used in the port by Alex Borisov), and it does so independently of the architecture being used.
 
 \subsection tnkernel_diff_wakeup_count Task wakeup count, activate count, suspend count
 
