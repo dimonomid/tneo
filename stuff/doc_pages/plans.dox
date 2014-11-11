@@ -5,7 +5,7 @@
 
 I have plans to implement some features not yet present in the kernel, at least:
 
-- Cortext M3 port
+- Cortext M0/M0+/M1/M3/M4 port
 - Dynamic system tick
 - Profiling functionality
 

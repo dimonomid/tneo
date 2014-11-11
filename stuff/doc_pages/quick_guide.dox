@@ -44,8 +44,6 @@ tn_p32_soft_isr(_TIMER_5_VECTOR)
       similar things. 
     - setup $(TN_SYS_TIMER_LINK) interrupt (from which
       `tn_tick_int_processing()` gets called)
-    - perform any platform-dependent required actions, if needed (refer to the
-      details of the particular platform)
     - call `tn_sys_start()` providing all necessary information: pointers to
       stacks, their sizes and your callback functions.
   - Kernel acts as follows:

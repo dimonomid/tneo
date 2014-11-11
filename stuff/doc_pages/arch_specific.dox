@@ -1,0 +1,223 @@
+/**
+\page arch_specific Architecture-specific details
+
+\tableofcontents
+
+Architecture-specific details
+
+
+
+
+
+
+\section pic32_details PIC32 port details
+
+\subsection pic32_context_switch Context switch
+The context switch is implemented using the core software 0 interrupt (`CS0`),
+which is configured by the kernel to the lowest priority (1). This interrupt is
+handled completely by the kernel, application should never touch it.
+
+The interrupt priority level 1 should not be configured to use shadow register
+sets.
+
+Multi-vectored interrupt mode should be enabled.
+
+\attention if tneokernel is built as a separate library (which is typically the
+case), then the file `src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included
+in the main project itself, in order to dispatch vector1 (core software
+interrupt 0) correctly. Do note that if we include this file in the TNeoKernel
+library project, it doesn't work for vector, unfortunately.
+
+\attention If you forgot to include this file, you got an error on the link step,
+like this:
+\code
+undefined reference to `_you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project'
+\endcode
+Which is much more informative than if you just get to `_DefaultInterrupt` when 
+it's time to switch context.
+
+\subsection pic32_interrupts Interrupts
+
+For generic information about interrupts in TNeoKernel, refer to the page \ref
+interrupts.
+
+PIC32 port has <i>system interrupts</i> only, there are no <i>user interrupts</i>.
+
+PIC32 port supports nested interrupts. The kernel provides C-language
+macros for calling C-language interrupt service routines, which can use either
+MIPS32 or MIPS16e mode. Both software and shadow register interrupt context
+saving is supported. Usage is as follows:
+
+\code{.c}
+/* Timer 1 interrupt handler using software interrupt context saving */
+tn_p32_soft_isr(_TIMER_1_VECTOR)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+
+/* High-priority UART interrupt handler using shadow register set */
+tn_p32_srs_isr(_UART_1_VECTOR)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+\endcode
+
+In spite of the fact that the kernel provides separate stack for interrupt,
+this isn't a mandatory on PIC32: you're able to define your ISR in a standard
+way, making it use stask of interrupted task and work a bit faster. Like this:
+
+\code{.c}
+void __ISR(_TIMER_1_VECTOR) timer_1_isr(void)
+{
+   /* here is your ISR code, including clearing of interrupt flag, and so on */
+}
+\endcode
+
+There is always a tradeoff. There are **no additional constraints** on ISR
+defined without kernel-provided macro: in either ISR, you can call the same set
+of kernel services.
+
+When you make a decision on whether particular ISR should use separate stack,
+consider the following:
+
+- When ISR is defined in a standard way, and no function is called from that
+  ISR, only necessary registers are saved on stack. If you have such an ISR
+  (that doesn't call any function), and this ISR should work very fast,
+  consider using standard way instead of kernel-provided macro.
+- When ISR is defined in a standard way, but it calls any function and doesn't
+  use shadow register set, compiler saves (almost) full context **on the task's
+  stack**, because it doesn't know which registers are used inside the function.
+  In this case, it usually makes more sense to use kernel-provided macro (see
+  below).
+- Kernel-provided interrupt macros switch stack pointer between interrupt stack
+  and task stack automatically, it takes additional time: e.g. on PIC32 it's
+  about 20 cycles.
+- Kernel-provided interrupt macro that doesn't use shadow register set always
+  saves (almost) full context **on the interrupt stack**, independently of 
+  whether any function is called from an ISR.
+- Kernel-provided interrupt macro that uses shadow register set saves a little
+  amount of registers **on the interrupt stack**.
+
+\subsection pic32_building Building
+
+For generic information on building TNeoKernel, refer to the page \ref building.
+
+MPLABX project for PIC32 port resides in the
+`src/arch/pic32/tneokernel_pic32.X` directory.  This is a *library project* in
+terms of MPLABX, so if you use MPLABX you can easily add it to your main
+project by right-clicking `Libraries -> Add Library Project ...`.
+Alternatively, of course you can just build it and use resulting
+`tneokernel_pic32.X.a` file in whatever way you like.
+
+
+
+
+
+
+\section pic24_details PIC24/dsPIC port details
+
+\subsection pic24_context_switch Context switch
+The context switch is implemented using the external interrupt 0 (`INT0`). It
+is handled completely by the kernel, application should never touch it.
+
+\subsection pic24_interrupts Interrupts
+
+For generic information about interrupts in TNeoKernel, refer to the page \ref
+interrupts.
+
+PIC24/dsPIC TNeoKernel port supports nested interrupts. It allows to specify
+the range of *system interrupt priorities*. Refer to the subsection \ref
+interrupt_types for details on what is <i>system interrupt</i>.
+
+System interrupts use separate interrupt stack instead of the task's stack.
+This approach saves a lot of RAM.
+
+The range is specified by just a single number: `#TN_P24_SYS_IPL`, which
+represents maximum *system interrupt priority*. Here is a list of available
+priorities and their characteristics:
+
+- priorities `[1 .. #TN_P24_SYS_IPL]`: 
+  - Kernel services **are** allowed to call;
+  - The macro `tn_p24_soft_isr()` <b>must</b> be used.
+  - Separate interrupt stack is used by ISR;
+  - Interrupts get disabled for short periods of time when modifying critical
+    kernel data (for about 100 cycles or the like).
+- priorities `[(#TN_P24_SYS_IPL + 1) .. 6]`:
+  - Kernel services **are not** allowed to call;
+  - The macro `tn_p24_soft_isr()` <b>must not</b> be used.
+  - Task's stack is used by ISR;
+  - Interrupts are not disabled when modifying critical kernel data, but they
+    are disabled for 4..8 cycles by `disi` instruction when entering/exiting
+    system ISR: we need to safely modify `SP` and `SPLIM`.
+- priority `7`:
+  - Kernel services **are not** allowed to call;
+  - The macro `tn_p24_soft_isr()` <b>must not</b> be used.
+  - Task's stack is used by ISR;
+  - Interrupts are never disabled by the kernel. Note that `disi` instruction
+    leaves interrupts of priority 7 enabled. 
+
+The kernel provides C-language macro for calling C-language **system**
+interrupt service routines.
+
+Usage is as follows:
+
+\code{.c}
+/* 
+ * Timer 1 interrupt handler using software interrupt context saving,  
+ * PSV is handled automatically:
+ */
+tn_p24_soft_isr(_T1Interrupt, auto_psv)
+{
+   //-- clear interrupt flag
+   IFS0bits.T1IF = 0;
+
+   //-- do something useful
+}
+\endcode
+
+\attention do **not** use this macro for non-system interrupt (that is, for
+interrupt of priority higher than `#TN_P24_SYS_IPL`). Use standard way to
+define it. If `#TN_CHECK_PARAM` is on, kernel checks it: if you violate this
+rule, debugger will be halted by the kernel when entering ISR. In release
+build, CPU is just reset.
+
+
+\subsection pic24_bfa Atomic access to the structure bit field
+
+The problem with PIC24/dsPIC is that when we write something like:
+
+\code{.c}
+IPC0bits.INT0IP = 0x05;
+\endcode
+
+We actually have read-modify-write sequence which can be interrupted, so that
+resulting data could be corrupted. PIC24/dsPIC port provides several macros
+that offer atomic access to the structure bit field.
+
+The kernel would not probably provide that kind of functionality, but 
+TNeoKernel itself needs it, so, it is made public so that application can
+use it too.
+
+Refer to the page \ref tn_arch_pic24_bfa.h "Atomic bit-field access macros"
+for details.
+
+
+\subsection pic24_building Building
+
+For generic information on building TNeoKernel, refer to the page \ref building.
+
+MPLABX project for PIC24/dsPIC port resides in the
+`src/arch/pic24_dspic/tneokernel_pic24_dspic.X` directory. This is a *library
+project* in terms of MPLABX, so if you use MPLABX you can easily add it to your
+main project by right-clicking `Libraries -> Add Library Project ...`.  
+
+\attention there are two configurations of this project: <i>eds</i> and <i>
+no_eds</i>, for devices with and without extended data space, respectively.
+When you add library project to your application project, you should select
+correct configuration for your device; otherwise, you get "undefined reference"
+errors at linker step.
+
+Alternatively, of course you can just build it and use
+resulting `.a` file in whatever way you like.
+
+*/

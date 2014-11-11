@@ -765,8 +765,7 @@ INPUT                  =   ../../src                                       \
                            ../../stuff/doc_pages/quick_guide.dox           \
                            ../../stuff/doc_pages/interrupts.dox            \
                            ../../stuff/doc_pages/building.dox              \
-                           ../../stuff/doc_pages/pic32_details.dox         \
-                           ../../stuff/doc_pages/pic24_details.dox         \
+                           ../../stuff/doc_pages/arch_specific.dox         \
                            ../../stuff/doc_pages/why_reimplement.dox       \
                            ../../stuff/doc_pages/tnkernel_diff.dox         \
                            ../../stuff/doc_pages/unit_tests.dox            \

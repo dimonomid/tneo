@@ -24,8 +24,9 @@ Related pages:
   - \ref quick_guide
   - \ref interrupts
   - \ref building
-  - \ref pic32_details
-  - \ref pic24_details
+  - \ref arch_specific
+    - \ref pic32_details
+    - \ref pic24_details
   - \ref why_reimplement
   - \ref tnkernel_diff
   - \ref unit_tests
