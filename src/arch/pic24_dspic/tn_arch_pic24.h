@@ -76,7 +76,7 @@ extern "C"  {     /*}*/
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
-//#define  _TN_FFS(x) (32 - __builtin_clz((x) & (0 - (x))))
+#define  _TN_FFS(x)     _tn_p24_ffs_asm(x)
 
 /**
  * Used by the kernel as a signal that something really bad happened.

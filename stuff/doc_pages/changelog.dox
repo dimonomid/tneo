@@ -7,7 +7,10 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
-  - *no changes yet*
+  - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
+    in an efficient PIC24/dsPIC-specific way, so finding next task to run
+    now works a bit faster.
+
 
 \section changelog_v1_04 v1.04
 

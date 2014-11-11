@@ -55,6 +55,7 @@
    .global  __tn_arch_context_switch_pend
    .global  __tn_arch_is_int_disabled
    .global  __tn_arch_inside_isr
+   .global  __tn_p24_ffs_asm
    .global  _tn_arch_sr_save_int_dis
    .global  _tn_arch_sr_restore
    .global  _tn_arch_int_dis
@@ -295,4 +296,14 @@ __tn_arch_inside_isr:
    mov      #1,      w0
 1:
    return
+
+
+/**
+ * find-first-set bit
+ */
+__tn_p24_ffs_asm:
+
+  ff1r    W0,         W0
+  return
+
 
