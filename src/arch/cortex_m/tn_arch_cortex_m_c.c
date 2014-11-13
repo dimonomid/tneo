@@ -213,5 +213,21 @@ int _tn_arch_is_int_disabled(void)
    return (__get_PRIMASK() != 0);
 }
 
+int _tn_arch_inside_isr(void)
+{
+   return !(__get_CONTROL() & 0x02);
+}
+
+void _tn_arch_context_switch_pend(void)
+{
+   //-- activate PendSV
+   *((volatile unsigned long *)0xE000ED04) = 0x10000000;
+}
+
+void _tn_arch_context_switch_now_nosave(void)
+{
+   _tn_arch_context_switch_pend();
+   __enable_irq();
+}
 
 

@@ -91,8 +91,8 @@ extern "C"  {     /*}*/
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
-//TODO: ffs
-//#define  _TN_FFS(x) (32 - __builtin_clz((x) & (0 - (x))))
+#define  _TN_FFS(x)     ffs_asm(x)
+int ffs_asm(int x);
 
 /**
  * Used by the kernel as a signal that something really bad happened.
@@ -277,7 +277,8 @@ typedef  unsigned int               TN_UIntPtr;
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #if defined(__TN_COMPILER_ARMCC__)
-#  define _TN_INLINE   inline
+#  define _TN_INLINE   inline //-- to make it work, we need to build
+                              //   the kernel with --c99 key.
 #else
 //TODO: check other compilers
 #  error unknown Cortex compiler
