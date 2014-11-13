@@ -97,6 +97,23 @@
  ******************************************************************************/
 
 
+/*******************************************************************************
+ *    CORTEX-M SPECIFIC FUNCTIONS
+ ******************************************************************************/
+
+void _tn_cortex_m_sys_init(
+      TN_UWord            *int_stack,
+      unsigned int         int_stack_size
+      )
+{
+   //-- Set PendSV to the minimum priority
+   NVIC_SetPriority(PendSV_IRQn, 0xff);
+
+   //-- Set SVC to the minimum priority
+   NVIC_SetPriority(SVCall_IRQn, 0xff);
+}
+
+
 
 /*******************************************************************************
  *    IMPLEMENTATION
@@ -209,6 +226,7 @@ int _tn_arch_inside_isr(void)
 void _tn_arch_context_switch_pend(void)
 {
    //-- activate PendSV
+   //TODO: make constants as macros
    *((volatile unsigned long *)0xE000ED04) = 0x10000000;
 }
 

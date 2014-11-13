@@ -45,6 +45,7 @@
 
    IMPORT tn_curr_run_task
    IMPORT tn_next_task_to_run
+   IMPORT _tn_cortex_m_sys_init
 
    EXPORT ffs_asm
    EXPORT PendSV_Handler
@@ -52,14 +53,6 @@
    EXPORT _tn_arch_sys_start
    EXPORT _tn_arch_context_switch_now_nosave
 
-
-
-;// --  System Handlers 12-15 Priority Register Address
-PR_12_15_ADDR    EQU     0xE000ED20
-
-;// --  PRI_14 (PendSV) priority in the System Handlers 12-15 Priority Register Address
-;// --  PendSV priority is minimal (0xFF)
-PENDS_VPRIORITY  EQU     0x00FF0000
 
 
 ffs_asm
@@ -128,12 +121,10 @@ _tn_arch_sys_start
        adds   r0, r0, r1                        ;-- r0 = int_stack + int_stack_size
        msr    MSP, r0                           ;-- MSP = r0
 
-       ;-- set PendSV to lowest priority
-       ldr    r3, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
-       ldr    r2, [r3]
-       orr    r2, r2, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
-       str    r2, [r3]
-       ; TODO: set priority of SVC_Handler to lowest, too.
+       ;-- it's more convenient to take advantage of CMSIS in C, so,
+       ;   here we just call C function that performs needed hardware
+       ;   initialization.
+       bl     _tn_cortex_m_sys_init
 
        cpsie  I                         ;-- enable core int
 
@@ -141,6 +132,7 @@ _tn_arch_sys_start
 
 _tn_arch_context_switch_now_nosave
 
+       ;-- perform SVC
        svc    #0x00
 
 
