@@ -203,7 +203,7 @@ void _tn_memcpy_uword(
  *
  * @return `#TN_TRUE` if context switch is needed
  */
-static inline TN_BOOL _tn_need_context_switch(void)
+static _TN_INLINE TN_BOOL _tn_need_context_switch(void)
 {
    return (tn_curr_run_task != tn_next_task_to_run);
 }
@@ -212,7 +212,7 @@ static inline TN_BOOL _tn_need_context_switch(void)
  * If context switch is needed (see `#_tn_need_context_switch()`), 
  * context switch is pended (see `#_tn_arch_context_switch_pend()`)
  */
-static inline void _tn_context_switch_pend_if_needed(void)
+static _TN_INLINE void _tn_context_switch_pend_if_needed(void)
 {
    if (_tn_need_context_switch()){
       _tn_arch_context_switch_pend();

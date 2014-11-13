@@ -65,7 +65,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_generic(
+static _TN_INLINE enum TN_RCode _check_param_generic(
       struct TN_EventGrp  *eventgrp
       )
 {
@@ -80,7 +80,7 @@ static inline enum TN_RCode _check_param_generic(
    return rc;
 }
 
-static inline enum TN_RCode _check_param_job_perform(
+static _TN_INLINE enum TN_RCode _check_param_job_perform(
       struct TN_EventGrp  *eventgrp,
       TN_UWord             pattern
       )
@@ -94,7 +94,7 @@ static inline enum TN_RCode _check_param_job_perform(
    return rc;
 }
 
-static inline enum TN_RCode _check_param_create(
+static _TN_INLINE enum TN_RCode _check_param_create(
       struct TN_EventGrp  *eventgrp
       )
 {

@@ -109,7 +109,7 @@ void _tn_task_clear_runnable(struct TN_Task *task);
 /**
  * Returns whether given task is in $(TN_TASK_STATE_RUNNABLE) state.
  */
-static inline TN_BOOL _tn_task_is_runnable(struct TN_Task *task)
+static _TN_INLINE TN_BOOL _tn_task_is_runnable(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_RUNNABLE);
 }
@@ -160,7 +160,7 @@ void _tn_task_clear_waiting(struct TN_Task *task, enum TN_RCode wait_rc);
  * Returns whether given task is in $(TN_TASK_STATE_WAIT) state. 
  * Note that this state could be combined with $(TN_TASK_STATE_SUSPEND) state.
  */
-static inline TN_BOOL _tn_task_is_waiting(struct TN_Task *task)
+static _TN_INLINE TN_BOOL _tn_task_is_waiting(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_WAIT);
 }
@@ -192,7 +192,7 @@ void _tn_task_clear_suspended(struct TN_Task *task);
  * Returns whether given task is in $(TN_TASK_STATE_SUSPEND) state. 
  * Note that this state could be combined with $(TN_TASK_STATE_WAIT) state.
  */
-static inline TN_BOOL _tn_task_is_suspended(struct TN_Task *task)
+static _TN_INLINE TN_BOOL _tn_task_is_suspended(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_SUSPEND);
 }
@@ -222,7 +222,7 @@ void _tn_task_clear_dormant(struct TN_Task *task);
 /**
  * Returns whether given task is in $(TN_TASK_STATE_DORMANT) state.
  */
-static inline TN_BOOL _tn_task_is_dormant(struct TN_Task *task)
+static _TN_INLINE TN_BOOL _tn_task_is_dormant(struct TN_Task *task)
 {
    return !!(task->task_state & TN_TASK_STATE_DORMANT);
 }
@@ -269,7 +269,7 @@ enum TN_RCode _tn_task_activate(struct TN_Task *task);
  *
  * @param wait_rc return code that will be returned to waiting task
  */
-static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wait_rc)
+static _TN_INLINE void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wait_rc)
 {
    _tn_task_clear_waiting(task, wait_rc);
 
@@ -287,7 +287,7 @@ static inline void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCode wa
  * It merely calls `#_tn_task_clear_runnable()` and then
  * `#_tn_task_set_waiting()` for current task (`#tn_curr_run_task`).
  */
-static inline void _tn_task_curr_to_wait_action(
+static _TN_INLINE void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
       TN_Timeout timeout
@@ -386,7 +386,7 @@ void _tn_task_exit_nodelete(void);
  * Checks whether given task object is valid 
  * (actually, just checks against `id_task` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_task_is_valid(
+static _TN_INLINE TN_BOOL _tn_task_is_valid(
       struct TN_Task   *task
       )
 {

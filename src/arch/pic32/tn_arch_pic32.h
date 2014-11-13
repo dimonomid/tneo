@@ -293,6 +293,7 @@ typedef  unsigned int               TN_UIntPtr;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
+#define _TN_INLINE   inline
 
 
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS

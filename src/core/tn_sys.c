@@ -148,11 +148,11 @@ static void _idle_task_body(void *par)
  */
 #if TN_DYNAMIC_TICK
 
-static inline void _round_robin_manage(void) {/*TODO*/}
+static _TN_INLINE void _round_robin_manage(void) {/*TODO*/}
 
 #else
 
-static inline void _round_robin_manage(void)
+static _TN_INLINE void _round_robin_manage(void)
 {
    //-- volatile is used here only to solve
    //   IAR(c) compiler's high optimization mode problem
@@ -191,7 +191,7 @@ static inline void _round_robin_manage(void)
 /**
  * Create idle task, the task is NOT started after creation.
  */
-static inline enum TN_RCode _idle_task_create(
+static _TN_INLINE enum TN_RCode _idle_task_create(
       TN_UWord      *idle_task_stack,
       unsigned int   idle_task_stack_size
       )

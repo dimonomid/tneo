@@ -70,7 +70,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -83,7 +83,7 @@ static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -96,7 +96,7 @@ static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_job_perform(
+static _TN_INLINE enum TN_RCode _check_param_job_perform(
       struct TN_FMem *fmem,
       void *p_data
       )
@@ -127,7 +127,7 @@ static void _cb_before_task_wait_complete(
    task->subsys_wait.fmem.data_elem = user_data_1;
 }
 
-static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
+static _TN_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = TN_NULL;
@@ -146,7 +146,7 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
    return rc;
 }
 
-static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
+static _TN_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 

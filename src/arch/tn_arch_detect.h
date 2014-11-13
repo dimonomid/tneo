@@ -52,6 +52,11 @@
 
 #undef __TN_ARCH_PIC24_DSPIC__
 #undef __TN_ARCH_PIC32MX__
+#undef __TN_ARCH_CORTEX_M__
+
+
+#undef __TN_COMPILER_ARMCC__
+
 
 
 #if defined(__PIC24F__)
@@ -85,6 +90,7 @@
 #elif defined (__ARMCC_VERSION)
 
 #  define __TN_ARCH_CORTEX_M__
+#  define __TN_COMPILER_ARMCC__
 
 #else
 #  error unknown platform

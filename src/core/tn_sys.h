@@ -382,7 +382,7 @@ enum TN_Context tn_sys_context_get(void);
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline TN_BOOL tn_is_task_context(void)
+static _TN_INLINE TN_BOOL tn_is_task_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_TASK);
 }
@@ -401,7 +401,7 @@ static inline TN_BOOL tn_is_task_context(void)
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static inline TN_BOOL tn_is_isr_context(void)
+static _TN_INLINE TN_BOOL tn_is_isr_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_ISR);
 }
