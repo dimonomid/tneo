@@ -409,14 +409,14 @@
           <GroupName>src</GroupName>
           <Files>
             <File>
-              <FileName>tneokernel_cortex_m_keil5.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\..\..\..\..\src\arch\cortex_m\keil5_uvision\Objects\tneokernel_cortex_m_keil5.lib</FilePath>
-            </File>
-            <File>
               <FileName>tn_stm32f4_example_basic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\tn_stm32f4_example_basic.c</FilePath>
+            </File>
+            <File>
+              <FileName>tneokernel_cortex_m4_keil5.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\tneokernel_cortex_m4_keil5.lib</FilePath>
             </File>
           </Files>
         </Group>
