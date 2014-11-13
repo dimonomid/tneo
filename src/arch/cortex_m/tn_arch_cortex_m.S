@@ -57,108 +57,123 @@
 
 ffs_asm
 
-       mov    r1, r0                    ;-- tmp = in
-       rsbs   r0, r1, #0                ;-- in = -in
-       ands   r0, r0, r1                ;-- in = in & tmp
-       CLZ.W  r0, r0
-       rsb    r0, r0, #0x20             ;-- 32 - in
-       bx     lr
+      mov      r1, r0                  ;-- tmp = in
+      rsbs     r0, r1, #0              ;-- in = -in
+      ands     r0, r0, r1              ;-- in = in & tmp
+      CLZ.W    r0, r0
+      rsb      r0, r0, #0x20           ;-- 32 - in
+      bx       lr
 
 
 
 PendSV_Handler
 
-       cpsid  I                         ;-- Disable core int
+      cpsid    I                       ;-- Disable core int
 
-       mrs    r0, PSP                   ;-- in PSP - process(task) stack pointer
-       stmdb  r0!, {r4-r11}
+      ;-- Now, PSP contains task's stack pointer.
+      ;   We need to get it and save callee-saved registers to stack.
+      mrs      r0, PSP
+      stmdb    r0!, {r4-r11}
 
-       ldr    r3, =tn_curr_run_task
-       mov    r1,  r3
-       ldr    r1, [r1]
-       str    r0, [r1]                  ;-- save own SP in TCB
+      ;-- get stack pointer of preempted task and save it in the
+      ;   tn_curr_run_task->stack_top
+      ldr      r3, =tn_curr_run_task   ;-- r3 = &tn_curr_run_task
+      mov      r1,  r3                 ;-- r1 = &tn_curr_run_task
+      ldr      r1, [r1]                ;-- r1 = tn_curr_run_task
+      str      r0, [r1]                ;-- tn_curr_run_task->stack_top = SP
 	
+      ;-- tn_curr_run_task = tn_next_task_to_run
+      ldr      r1, =tn_next_task_to_run;-- r1 = &tn_next_task_to_run
+      ldr      r2, [r1]                ;-- r2 = tn_next_task_to_run
+      str      r2, [r3]                ;-- tn_curr_run_task = tn_next_task_to_run
 
-       ldr    r1, =tn_next_task_to_run
-       ldr    r2, [r1]
-       str    r2, [r3]                  ;-- in r3 - =tn_curr_run_task
+      ;-- load stack pointer of newly activated task to r0
+      ldr      r0, [r2]       ;-- r0 = tn_curr_run_task->stack_top
 
+      ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
+      msr      PSP, r0        ;-- update PSP to stack of newly activated task
+      orr      lr, lr, #0x04  ;-- force PSP usage
 
-       ldr    r0, [r2]                  ;-- in r0 - new task SP
-
-       ldmia  r0!, {r4-r11}
-       msr    PSP, r0
-       orr    lr, lr, #0x04             ;-- Force to new process PSP
-
-       cpsie  I                         ;-- enable core int
-       bx     lr
+      cpsie    I              ;-- enable core int
+      bx       lr
 
 
 _tn_arch_sys_start
-       ;-- arguments:
-       ;     r0:  int_stack
-       ;     r1:  int_stack_size   (in TN_UWord)
+      ;-- arguments:
+      ;     r0:  int_stack
+      ;     r1:  int_stack_size   (in TN_UWord)
 
-       ;-- set PSP = MSP
-       mrs    r2, MSP
-       msr    PSP, r2
+      ;-- we need to initialize MSP, but before we can do that, we should
+      ;   switch to PSP, so that MSP will stay untouched after we
+      ;   initialize it.
 
-       ;-- modify CONTROL register so that PSP becomes active
+      ;-- set PSP = MSP
+      mrs      r2, MSP
+      msr      PSP, r2
 
-       mrs    r2, CONTROL     ;-- read current CONTROL
-       orrs   r2, r2, #0x02   ;-- set SPSEL
-       msr    CONTROL, r2     ;-- write to CONTROL
+      ;-- modify CONTROL register so that PSP becomes active
 
-       ;-- after modifying CONTROL, we need for instruction barrier
-       ;   (architectural recommendation)
-       isb
+      mrs      r2, CONTROL    ;-- read current CONTROL
+      orrs     r2, r2, #0x02  ;-- set SPSEL
+      msr      CONTROL, r2    ;-- write to CONTROL
 
-       ;-- now, MSP isn't used, so we can set it to interrupt stack.
+      ;-- after modifying CONTROL, we need for instruction barrier
+      ;   (architectural recommendation)
+      isb
 
-       ;-- init MSP to int_stack + int_stack_size (given as arguments)
-       mov    r2, #4
-       mul    r1, r1, r2                        ;-- int_stack_size *= 4;
-       adds   r0, r0, r1                        ;-- r0 = int_stack + int_stack_size
-       msr    MSP, r0                           ;-- MSP = r0
+      ;-- now, MSP isn't used, so we can set it to interrupt stack.
 
-       ;-- it's more convenient to take advantage of CMSIS in C, so,
-       ;   here we just call C function that performs needed hardware
-       ;   initialization.
-       bl     _tn_cortex_m_sys_init
+      ;-- init MSP to int_stack + int_stack_size (given as arguments)
+      mov      r2, #4
+      mul      r1, r1, r2     ;-- int_stack_size *= 4;
+      adds     r0, r0, r1     ;-- r0 = (int_stack + int_stack_size)
+      msr      MSP, r0        ;-- MSP = r0
 
-       cpsie  I                         ;-- enable core int
+      ;-- we need to set priorities of PendSV and SVC to minimum value.
+      ;   it's more convenient to take advantage of CMSIS in C, so,
+      ;   here we just call C function that performs needed hardware
+      ;   initialization.
+      bl       _tn_cortex_m_sys_init
 
-       ;-- proceed to _tn_arch_context_switch_now_nosave() ..
+      cpsie    I              ;-- enable core int
+
+      ;-- proceed to _tn_arch_context_switch_now_nosave() ..
 
 _tn_arch_context_switch_now_nosave
 
-       ;-- perform SVC
-       svc    #0x00
+      ;-- perform SVC
+      svc      #0x00
 
 
-       ;-- SVC is used for context_switch_now_nosave.
+      ;-- SVC is used for context_switch_now_nosave.
 SVC_Handler
 
-       ;-- there is just one service possible: context_switch_now_nosave,
-       ;   so, we don't check params here.
+      ;-- there is just one service possible: context_switch_now_nosave,
+      ;   so, we don't check params.
 
-       cpsid  I                         ;-- Disable core int
-       ldr    r3, =tn_curr_run_task
+      cpsid    I              ;-- Disable core int
 
-       ldr    r1, =tn_next_task_to_run
-       ldr    r2, [r1]
-       str    r2, [r3]                  ;-- in r3 - =tn_curr_run_task
+      ;-- tn_curr_run_task = tn_next_task_to_run {{{
+      ldr      r3, =tn_curr_run_task      ;-- r3 = &tn_curr_run_task
+      ldr      r1, =tn_next_task_to_run   ;-- r1 = &tn_next_task_to_run
+      ldr      r2, [r1]                   ;-- r2 = tn_next_task_to_run
+      str      r2, [r3]                   ;-- tn_curr_run_task = tn_next_task_to_run
+      ;-- }}}
 
-       ldr    r0, [r2]                  ;-- in r0 - new task SP
+      ;-- r2 is now tn_curr_run_task
 
-       ldmia  r0!, {r4-r11}
-       msr    PSP, r0
-       orr    lr, lr, #0x04             ;-- Force to new process PSP
+      ;-- load stack pointer of newly activated task to r0
+      ldr      r0, [r2]       ;-- r0 = tn_curr_run_task->stack_top
 
-       cpsie  I                         ;-- enable core int
-       bx     lr
+      
+      ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
+      msr      PSP, r0        ;-- update PSP to stack of newly activated task
+      orr      lr, lr, #0x04  ;-- force PSP usage
 
-       
+      cpsie    I              ;-- enable core int
+      bx       lr
+
+      
 
 
    END
