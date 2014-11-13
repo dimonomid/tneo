@@ -22,3 +22,8 @@ Makefile\-genesis\.properties
 
 [^a-zA-Z0-9_]*[/\\]bin[/\\][^a-zA-Z0-9_]*
 
+[/\\]Objects[/\\](?!.*\.lib)
+[/\\]Listings[/\\]
+\.build_log\.htm
+\.uvguix\.
+
