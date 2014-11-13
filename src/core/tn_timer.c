@@ -178,7 +178,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
       rc = _tn_timer_cancel(timer);
 
       //-- now, delete timer
-      timer->id_timer = 0;
+      timer->id_timer = TN_ID_NONE;
       tn_arch_sr_restore(sr_saved);
    }
 
@@ -306,14 +306,14 @@ void _tn_timers_init(void)
  */
 void _tn_timers_tick_proceed(void)
 {
+   int tick_list_index = _TICK_LIST_INDEX(0);
+
 #if TN_DEBUG
    //-- interrupts should be disabled here
    if (!TN_IS_INT_DISABLED()){
       _TN_FATAL_ERROR("");
    }
 #endif
-
-   int tick_list_index = _TICK_LIST_INDEX(0);
 
    if (tick_list_index == 0){
       //-- it happens each TN_TICK_LISTS_CNT-th system tick:
@@ -328,7 +328,8 @@ void _tn_timers_tick_proceed(void)
          struct TN_Timer *tmp_timer;
 
          _tn_list_for_each_entry_safe(
-               timer, tmp_timer, &tn_timer_list__gen, timer_queue
+               timer, struct TN_Timer, tmp_timer,
+               &tn_timer_list__gen, timer_queue
                )
          {
 #if TN_DEBUG
@@ -384,7 +385,7 @@ void _tn_timers_tick_proceed(void)
       //   see implementation details in the tn_timer.h file
       while (!_tn_list_is_empty(p_cur_timer_list)){
          timer = _tn_list_first_entry(
-               p_cur_timer_list, typeof(*timer), timer_queue
+               p_cur_timer_list, struct TN_Timer, timer_queue
                );
 
          //-- first of all, cancel timer, so that 
@@ -540,14 +541,14 @@ TN_BOOL _tn_timer_is_active(struct TN_Timer *timer)
  */
 TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
+   TN_Timeout time_left = 0;
+
 #if TN_DEBUG
    //-- interrupts should be disabled here
    if (!TN_IS_INT_DISABLED()){
       _TN_FATAL_ERROR("");
    }
 #endif
-
-   TN_Timeout time_left = 0;
 
    if (_tn_timer_is_active(timer)){
       int tick_list_index = _TICK_LIST_INDEX(0);

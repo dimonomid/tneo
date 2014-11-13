@@ -287,7 +287,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
       //-- remove all tasks (if any) from fmem's wait queue
       _tn_wait_queue_notify_deleted(&(fmem->wait_queue));
 
-      fmem->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
+      fmem->id_fmp = TN_ID_NONE;   //-- Fixed-size memory pool does not exist now
 
       TN_INT_RESTORE();
 

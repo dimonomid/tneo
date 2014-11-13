@@ -486,7 +486,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
       _tn_wait_queue_notify_deleted(&(dque->wait_send_list));
       _tn_wait_queue_notify_deleted(&(dque->wait_receive_list));
 
-      dque->id_dque = 0; //-- data queue does not exist now
+      dque->id_dque = TN_ID_NONE; //-- data queue does not exist now
 
       TN_INT_RESTORE();
 

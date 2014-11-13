@@ -63,6 +63,7 @@ extern "C"  {     /*}*/
  * TODO: use TN_UWord here instead of unsigned int
  */
 enum TN_ObjId {
+   TN_ID_NONE           = (unsigned int)0x0,         //!< id for invalid object
    TN_ID_TASK           = (unsigned int)0x47ABCF69,  //!< id for tasks
    TN_ID_SEMAPHORE      = (unsigned int)0x6FA173EB,  //!< id for semaphores
    TN_ID_EVENTGRP       = (unsigned int)0x5E224F25,  //!< id for event groups

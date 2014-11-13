@@ -134,7 +134,7 @@ enum TN_RCode _tn_eventgrp_link_manage(
  * Checks whether given event group object is valid 
  * (actually, just checks against `id_event` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_eventgrp_is_valid(
+static _TN_INLINE TN_BOOL _tn_eventgrp_is_valid(
       struct TN_EventGrp   *eventgrp
       )
 {

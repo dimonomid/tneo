@@ -134,8 +134,8 @@ extern "C"  {     /*}*/
  * @pos:	the type * to cursor
  * @member:	the name of the TN_ListItem member within the struct.
  */
-#define _tn_list_next_entry(pos, member)                                  \
-   _tn_list_entry((pos)->member.next, typeof(*(pos)), member)
+#define _tn_list_next_entry(pos, type, member)                            \
+   _tn_list_entry((pos)->member.next, type, member)
 
 /**
  * _tn_list_prev_entry - get the prev element in list
@@ -187,13 +187,14 @@ extern "C"  {     /*}*/
 /**
  * _tn_list_for_each_entry	-	iterate over list of given type
  * @pos:	the type * to use as a loop cursor.
+ * @type:	the type of `pos` arg
  * @head:	the head for your list.
  * @member:	the name of the TN_ListItem member within the struct.
  */
-#define _tn_list_for_each_entry(pos, head, member)				            \
-   for (pos = _tn_list_first_entry(head, typeof(*pos), member);	         \
+#define _tn_list_for_each_entry(pos, type, head, member)				            \
+   for (pos = _tn_list_first_entry(head, type, member);	         \
          &pos->member != (head);					                           \
-         pos = _tn_list_next_entry(pos, member))
+         pos = _tn_list_next_entry(pos, type, member))
 
 /**
  * _tn_list_for_each_entry_reverse - iterate backwards over list of given type.
@@ -229,9 +230,9 @@ extern "C"  {     /*}*/
  * the current position.
  */
 #define _tn_list_for_each_entry_continue(pos, head, member) 		         \
-   for (pos = _tn_list_next_entry(pos, member);			                  \
+   for (pos = _tn_list_next_entry(pos, typeof(*pos), member);			                  \
          &pos->member != (head);					                           \
-         pos = _tn_list_next_entry(pos, member))
+         pos = _tn_list_next_entry(pos, typeof(*pos), member))
 
 /**
  * _tn_list_for_each_entry_continue_reverse - iterate backwards from the given
@@ -260,21 +261,22 @@ extern "C"  {     /*}*/
  */
 #define _tn_list_for_each_entry_from(pos, head, member) 			         \
    for (; &pos->member != (head);					                        \
-         pos = _tn_list_next_entry(pos, member))
+         pos = _tn_list_next_entry(pos, typeof(*pos), member))
 
 /**
  * _tn_list_for_each_entry_safe - iterate over list of given type safe against
  * removal of list entry
- * @pos:	the type * to use as a loop cursor.
+ * @pos:	   the type * to use as a loop cursor.
+ * @type:	the type of `pos` arg
  * @n:		another type * to use as temporary storage
  * @head:	the head for your list.
  * @member:	the name of the TN_ListItem member within the struct.
  */
-#define _tn_list_for_each_entry_safe(pos, n, head, member)			      \
-   for (pos = _tn_list_first_entry(head, typeof(*pos), member),	         \
-         n = _tn_list_next_entry(pos, member);			                  \
+#define _tn_list_for_each_entry_safe(pos, type, n, head, member)			\
+   for (pos = _tn_list_first_entry(head, type, member),	      \
+         n = _tn_list_next_entry(pos, type, member);			                  \
          &pos->member != (head); 					                        \
-         pos = n, n = _tn_list_next_entry(n, member))
+         pos = n, n = _tn_list_next_entry(n, type, member))
 
 /**
  * _tn_list_for_each_entry_safe_continue - continue list iteration safe against
@@ -288,10 +290,10 @@ extern "C"  {     /*}*/
  * safe against removal of list entry.
  */
 #define _tn_list_for_each_entry_safe_continue(pos, n, head, member) 		\
-   for (pos = _tn_list_next_entry(pos, member), 				               \
-         n = _tn_list_next_entry(pos, member);				               \
+   for (pos = _tn_list_next_entry(pos, typeof(*pos), member), 				               \
+         n = _tn_list_next_entry(pos, typeof(*pos), member);				               \
          &pos->member != (head);						                        \
-         pos = n, n = _tn_list_next_entry(n, member))
+         pos = n, n = _tn_list_next_entry(n, typeof(*n), member))
 
 /**
  * _tn_list_for_each_entry_safe_from - iterate over list from current point safe
@@ -305,9 +307,9 @@ extern "C"  {     /*}*/
  * removal of list entry.
  */
 #define _tn_list_for_each_entry_safe_from(pos, n, head, member) 			\
-   for (n = _tn_list_next_entry(pos, member);					               \
+   for (n = _tn_list_next_entry(pos, typeof(*pos), member);					               \
          &pos->member != (head);						                        \
-         pos = n, n = _tn_list_next_entry(n, member))
+         pos = n, n = _tn_list_next_entry(n, typeof(*n), member))
 
 /**
  * _tn_list_for_each_entry_safe_reverse - iterate backwards over list safe
@@ -339,7 +341,7 @@ extern "C"  {     /*}*/
  * completing the current iteration of the loop body.
  */
 #define _tn_list_safe_reset_next(pos, n, member)				               \
-   n = _tn_list_next_entry(pos, member)
+   n = _tn_list_next_entry(pos, typeof(*pos), member)
 
 
 

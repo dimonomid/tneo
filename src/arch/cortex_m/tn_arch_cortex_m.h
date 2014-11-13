@@ -277,7 +277,7 @@ typedef  unsigned int               TN_UIntPtr;
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #if defined(__TN_COMPILER_ARMCC__)
-#  define _TN_INLINE   /* nothing */
+#  define _TN_INLINE   inline
 #else
 //TODO: check other compilers
 #  error unknown Cortex compiler

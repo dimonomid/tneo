@@ -474,7 +474,10 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
    //   and setting TN_RC_DELETED as a wait return code.
-   _tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
+   _tn_list_for_each_entry_safe(
+         task, struct TN_Task, tmp_task, wait_queue, task_queue 
+         )
+   {
       //-- call _tn_task_wait_complete for every task
       _tn_task_wait_complete(task, TN_RC_DELETED);
    }

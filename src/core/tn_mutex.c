@@ -157,7 +157,10 @@ static _TN_INLINE int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref
 
    //-- Iterate through all the tasks that wait for lock mutex.
    //   Highest priority (i.e. lowest number) will be returned eventually.
-   _tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
+   _tn_list_for_each_entry(
+         task, struct TN_Task, &(mutex->wait_queue), task_queue
+         )
+   {
       if (task->priority < priority){
          //--  task priority is higher, remember it
          priority = task->priority;
@@ -230,7 +233,10 @@ static void _update_task_priority(struct TN_Task *task)
       struct TN_Mutex *mutex;
 
       //-- Iterate through all the mutexes locked by given task
-      _tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
+      _tn_list_for_each_entry(
+            mutex, struct TN_Mutex, &(task->mutex_queue), mutex_queue
+            )
+      {
          priority = _find_max_priority_by_mutex(mutex, priority);
       }
    }
@@ -540,8 +546,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
 
       //-- get first task from mutex's wait_queue
       task = _tn_list_first_entry(
-            &(mutex->wait_queue),
-            typeof(*task), task_queue
+            &(mutex->wait_queue), struct TN_Task, task_queue
             );
 
       //-- wake it up.
@@ -706,7 +711,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
             _tn_list_reset(&(mutex->mutex_queue));
          }
 
-         mutex->id_mutex = 0; //-- mutex does not exist now
+         mutex->id_mutex = TN_ID_NONE; //-- mutex does not exist now
 
       }
 
@@ -873,7 +878,7 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
                                  //   in _mutex_do_unlock().
 
    _tn_list_for_each_entry_safe(
-         mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
+         mutex, struct TN_Mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
          )
    {
       //-- NOTE: we don't remove item from the list, because it is removed

@@ -199,7 +199,7 @@ static _TN_INLINE enum TN_RCode _task_delete(struct TN_Task *task)
    } else {
       _tn_list_remove_entry(&(task->create_queue));
       tn_created_tasks_cnt--;
-      task->id_task = 0;
+      task->id_task = TN_ID_NONE;
    }
 
    return rc;
@@ -207,7 +207,7 @@ static _TN_INLINE enum TN_RCode _task_delete(struct TN_Task *task)
 
 static _TN_INLINE enum TN_RCode _task_job_perform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task)
+      enum TN_RCode (p_worker)(struct TN_Task *task)
       )
 {
    enum TN_RCode rc = _check_param_generic(task);
@@ -232,7 +232,7 @@ static _TN_INLINE enum TN_RCode _task_job_perform(
 
 static _TN_INLINE enum TN_RCode _task_job_iperform(
       struct TN_Task *task,
-      int (p_worker)(struct TN_Task *task)
+      enum TN_RCode (p_worker)(struct TN_Task *task)
       )
 {
    enum TN_RCode rc = _check_param_generic(task);
@@ -632,14 +632,11 @@ void tn_task_exit(enum TN_TaskExitOpt opts)
       //-- do nothing, just return
    } else {
 
-      //-- it is here only for TN_INT_DIS_SAVE() normal operation,
-      //   but actually we don't need to save current interrupt status:
+      //-- here, we unconditionally disable interrupts:
       //   this function never returns, and interrupt status is restored
       //   from different task's stack inside 
       //   `_tn_arch_context_switch_now_nosave()` call.
-      TN_INTSAVE_DATA;
-
-      TN_INT_DIS_SAVE();
+      tn_arch_int_dis();
 
       task = tn_curr_run_task;
       _tn_task_clear_runnable(task);
@@ -1069,7 +1066,7 @@ TN_BOOL _tn_task_first_wait_complete(
       //-- there are tasks in the wait queue, so, wake up the first one
 
       //-- get first task from the wait_queue
-      task = _tn_list_first_entry(wait_queue, typeof(*task), task_queue);
+      task = _tn_list_first_entry(wait_queue, struct TN_Task, task_queue);
 
       //-- call provided callback (if any)
       if (callback != TN_NULL){
@@ -1144,7 +1141,10 @@ TN_BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex
    TN_BOOL ret = TN_FALSE;
 
    struct TN_Mutex *tmp_mutex;
-   _tn_list_for_each_entry(tmp_mutex, &(task->mutex_queue), mutex_queue){
+   _tn_list_for_each_entry(
+         tmp_mutex, struct TN_Mutex, &(task->mutex_queue), mutex_queue
+         )
+   {
       if (tmp_mutex == mutex){
          ret = TN_TRUE;
          break;

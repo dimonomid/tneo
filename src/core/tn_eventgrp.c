@@ -166,7 +166,7 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
    // checking ALL of the tasks waiting on the event.
 
    _tn_list_for_each_entry_safe(
-         task, tmp_task, &(eventgrp->wait_queue), task_queue
+         task, struct TN_Task, tmp_task, &(eventgrp->wait_queue), task_queue
          )
    {
 
@@ -304,7 +304,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 
       _tn_wait_queue_notify_deleted(&(eventgrp->wait_queue));
 
-      eventgrp->id_event = 0; //-- event does not exist now
+      eventgrp->id_event = TN_ID_NONE; //-- event does not exist now
 
       TN_INT_RESTORE();
 

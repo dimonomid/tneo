@@ -120,7 +120,7 @@ static _TN_INLINE enum TN_RCode _check_param_create(
  */
 static _TN_INLINE enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
-      int (p_worker)(struct TN_Sem *sem),
+      enum TN_RCode (p_worker)(struct TN_Sem *sem),
       TN_Timeout timeout
       )
 {
@@ -173,7 +173,7 @@ static _TN_INLINE enum TN_RCode _sem_job_perform(
  */
 static _TN_INLINE enum TN_RCode _sem_job_iperform(
       struct TN_Sem *sem,
-      int (p_worker)(struct TN_Sem *sem)
+      enum TN_RCode (p_worker)(struct TN_Sem *sem)
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
@@ -287,7 +287,7 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
       //-- Remove all tasks from wait queue, returning the TN_RC_DELETED code.
       _tn_wait_queue_notify_deleted(&(sem->wait_queue));
 
-      sem->id_sem = 0;        //-- Semaphore does not exist now
+      sem->id_sem = TN_ID_NONE;        //-- Semaphore does not exist now
       TN_INT_RESTORE();
 
       //-- we might need to switch context if _tn_wait_queue_notify_deleted()
