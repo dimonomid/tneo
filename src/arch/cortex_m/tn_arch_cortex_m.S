@@ -45,14 +45,41 @@
 
    IMPORT tn_curr_run_task
    IMPORT tn_next_task_to_run
-   IMPORT _tn_cortex_m_sys_init
 
    EXPORT ffs_asm
    EXPORT PendSV_Handler
    EXPORT SVC_Handler
    EXPORT _tn_arch_sys_start
    EXPORT _tn_arch_context_switch_now_nosave
+   EXPORT tn_arch_int_dis
+   EXPORT tn_arch_int_en
 
+   EXPORT tn_arch_sr_save_int_dis
+   EXPORT tn_arch_sr_restore
+   EXPORT _tn_arch_is_int_disabled
+   EXPORT _tn_arch_inside_isr
+   EXPORT _tn_arch_context_switch_pend
+
+
+;// --  Interrupt Control State Register Address
+ICSR_ADDR        EQU     0xE000ED04
+
+;// --  pendSV bit in the Interrupt Control State Register
+PENDSVSET        EQU     0x10000000
+
+;// --  System Handlers 12-15 Priority Register Address
+PR_08_11_ADDR    EQU     0xE000ED1C
+
+;// --  System Handlers 12-15 Priority Register Address
+PR_12_15_ADDR    EQU     0xE000ED20
+
+;// --  PRI_14 (PendSV) priority in the System Handlers 12-15 Priority Register Address
+;// --  PendSV priority is minimal (0xFF)
+PENDS_VPRIORITY  EQU     0x00FF0000
+
+;// --  PRI_11 (SVC) priority in the System Handlers 08-11 Priority Register Address
+;// --  SVC priority is minimal (0xFF)
+SVC_VPRIORITY    EQU     0xFF000000
 
 
 ffs_asm
@@ -129,11 +156,18 @@ _tn_arch_sys_start
       adds     r0, r0, r1     ;-- r0 = (int_stack + int_stack_size)
       msr      MSP, r0        ;-- MSP = r0
 
-      ;-- we need to set priorities of PendSV and SVC to minimum value.
-      ;   it's more convenient to take advantage of CMSIS in C, so,
-      ;   here we just call C function that performs needed hardware
-      ;   initialization.
-      bl       _tn_cortex_m_sys_init
+      ;-- set priorities of PendSV and SVC to minimum value.
+      ldr      r1, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
+      ldr      r0, [r1]
+      orr      r0, r0, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
+      str      r0, [r1]
+
+      ldr      r1, =PR_08_11_ADDR                ;-- Load the System 8-11 Priority Register
+      ldr      r0, [r1]
+      orr      r0, r0, #SVC_VPRIORITY            ;-- set PRI_11 (SVC) to 0xFF - minimal
+      str      r0, [r1]
+
+
 
       cpsie    I              ;-- enable core int
 
@@ -174,6 +208,56 @@ SVC_Handler
       bx       lr
 
       
+
+tn_arch_int_dis
+
+      cpsid    I
+      bx       lr
+
+
+
+tn_arch_int_en
+
+      cpsie    I
+      bx       lr
+
+
+tn_arch_sr_save_int_dis
+
+      mrs      r0, PRIMASK
+      cpsid    I
+      bx       lr
+
+
+tn_arch_sr_restore
+
+      msr      PRIMASK, r0
+      bx       lr
+
+
+_tn_arch_is_int_disabled
+
+      mrs      r0, PRIMASK
+      bx       lr
+
+
+_tn_arch_inside_isr
+
+      mrs      r0, CONTROL
+      tst      r0, #0x02
+      ite      eq
+      moveq    r0, #1
+      movne    r0, #0
+      bx       lr
+
+
+_tn_arch_context_switch_pend
+
+      ldr      r1, =ICSR_ADDR
+      ldr      r0, =PENDSVSET
+      str      r0, [r1]
+
+      bx       lr
 
 
    END

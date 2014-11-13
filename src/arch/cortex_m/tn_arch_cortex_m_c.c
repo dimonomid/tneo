@@ -73,10 +73,6 @@
 
 #include "_tn_tasks.h"
 
-//-- include app-specific header for CMSIS.
-//   Say, if application uses STM32F407VG CPU, the file is "stm32f4xx.h"
-#include "../../tn_app_c.h"
-
 
 
 /*******************************************************************************
@@ -100,19 +96,6 @@
 /*******************************************************************************
  *    CORTEX-M SPECIFIC FUNCTIONS
  ******************************************************************************/
-
-void _tn_cortex_m_sys_init(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
-      )
-{
-   //-- Set PendSV to the minimum priority
-   NVIC_SetPriority(PendSV_IRQn, 0xff);
-
-   //-- Set SVC to the minimum priority
-   NVIC_SetPriority(SVCall_IRQn, 0xff);
-}
-
 
 
 /*******************************************************************************
@@ -173,61 +156,6 @@ TN_UWord *_tn_arch_stack_init(
    // TODO: "caller-saved" floating point registers, if TN_CORTEX_M_FPU is set
 
    return stack_top;
-}
-
-
-/*
- * See comments in the file `tn_arch.h`
- */
-void tn_arch_int_dis(void)
-{
-   __disable_irq();
-}
-
-
-/*
- * See comments in the file `tn_arch.h`
- */
-void tn_arch_int_en(void)
-{
-   __enable_irq();
-}
-
-
-/*
- * See comments in the file `tn_arch.h`
- */
-TN_UWord tn_arch_sr_save_int_dis(void)
-{
-   TN_UWord primask = __get_PRIMASK();
-   __disable_irq();
-   return primask;
-}
-
-
-/*
- * See comments in the file `tn_arch.h`
- */
-void tn_arch_sr_restore(TN_UWord primask)
-{
-   __set_PRIMASK(primask);
-}
-
-int _tn_arch_is_int_disabled(void)
-{
-   return (__get_PRIMASK() != 0);
-}
-
-int _tn_arch_inside_isr(void)
-{
-   return !(__get_CONTROL() & 0x02);
-}
-
-void _tn_arch_context_switch_pend(void)
-{
-   //-- activate PendSV
-   //TODO: make constants as macros
-   *((volatile unsigned long *)0xE000ED04) = 0x10000000;
 }
 
 
