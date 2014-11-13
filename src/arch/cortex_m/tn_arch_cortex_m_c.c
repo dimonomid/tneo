@@ -102,16 +102,18 @@
  *    IMPLEMENTATION
  ******************************************************************************/
 
-void _tn_arch_sys_init(
+#if 0
+void _tn_arch_sys_start(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
 {
-   //TODO: interrupt nesting?
-
    //-- Set PendSV to the minimum priority
    NVIC_SetPriority(PendSV_IRQn, 0xff);
+
+
 }
+#endif
 
 
 

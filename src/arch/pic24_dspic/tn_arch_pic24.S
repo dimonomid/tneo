@@ -51,7 +51,6 @@
    /* Public functions declared in this file */
 
    .global  __INT0Interrupt
-   .global  __tn_arch_sys_start
    .global  __tn_arch_context_switch_now_nosave
    .global  __tn_arch_context_switch_pend
    .global  __tn_arch_is_int_disabled
@@ -61,15 +60,6 @@
    .global  _tn_arch_sr_restore
    .global  _tn_arch_int_dis
    .global  _tn_arch_int_en
-
-
-
-/*
- * See comments for _tn_arch_sys_start() in tn_arch.h
- */
-__tn_arch_sys_start:
-
-   bra     __tn_arch_context_switch_now_nosave
 
 
 

@@ -135,7 +135,7 @@ void *tn_p32_int_sp;
  *    IMPLEMENTATION
  ******************************************************************************/
 
-void _tn_arch_sys_init(
+void _tn_arch_sys_start(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
@@ -159,6 +159,9 @@ void _tn_arch_sys_init(
 
    TN_BFA(TN_BFA_WR, IFS0, CS0IF, 0);  //-- clear interrupt flag
    TN_BFA(TN_BFA_WR, IEC0, CS0IE, 1);  //-- enable interrupt
+
+   //-- perform first context switch
+   _tn_arch_context_switch_now_nosave();
 }
 
 

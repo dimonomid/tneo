@@ -114,13 +114,6 @@ TN_UWord tn_arch_sr_save_int_dis(void);
  */
 void tn_arch_sr_restore(TN_UWord sr);
 
-/**
- * Architecture-dependent system startup routine. Called from `tn_sys_start()`.
- */
-void _tn_arch_sys_init(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
-      );
 
 
 /**
@@ -264,7 +257,10 @@ void _tn_arch_context_switch_now_nosave(void);
  * Typically, this function just calls `_tn_arch_context_switch_now_nosave()`,
  * but it also can perform any architecture-dependent actions first, if needed.
  */
-void _tn_arch_sys_start(void);
+void _tn_arch_sys_start(
+      TN_UWord            *int_stack,
+      unsigned int         int_stack_size
+      );
 
 #ifdef __cplusplus
 }  /* extern "C" */

@@ -58,7 +58,7 @@ TN_UWord *_tn_p24_int_splim            = TN_NULL;
 /*
  * See comments in the file `tn_arch.h`
  */
-void _tn_arch_sys_init(
+void _tn_arch_sys_start(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
@@ -75,6 +75,9 @@ void _tn_arch_sys_init(
                                        //   for context switch interrupt
    TN_BFA(TN_BFA_WR, IFS0, INT0IF, 0); //-- clear interrupt flag
    TN_BFA(TN_BFA_WR, IEC0, INT0IE, 1); //-- enable interrupt
+
+   //-- perform first context switch
+   _tn_arch_context_switch_now_nosave();
 }
 
 

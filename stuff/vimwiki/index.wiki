@@ -34,7 +34,8 @@
    * [ ] make .S file work with GCC, too
    * [ ] FPU support
    * [ ] _tn_arch_context_switch_now_nosave(): probably, implement it without pending PendSV, but restore all the registers by hand, instead?
-   * [ ] manage PSP correctly (now, first context switch works, but the next one doesn't)
+   * [X] manage PSP correctly (now, first context switch works, but the next one doesn't)
+   * [ ] use interrupt_stack
 
 === exchange methods ===
 

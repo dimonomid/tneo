@@ -242,9 +242,6 @@ void tn_sys_start(
    tn_sys_time_count = 0;
 #endif
 
-   //-- call architecture-dependent initialization
-   _tn_arch_sys_init(int_stack, int_stack_size);
-
    //-- for each priority: 
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
@@ -314,8 +311,12 @@ void tn_sys_start(
    //   (well, it will be running soon actually)
    tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
 
-   //-- Run OS - first context switch
-   _tn_arch_sys_start();
+   //-- call architecture-dependent initialization and run the kernel:
+   //   (perform first context switch)
+   _tn_arch_sys_start(int_stack, int_stack_size);
+
+   //-- should never be here
+   _TN_FATAL_ERROR("should never be here");
 }
 
 

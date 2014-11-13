@@ -51,6 +51,16 @@
    EXPORT PendSV_Handler
    EXPORT _tn_arch_sys_start
 
+
+
+;// --  System Handlers 12-15 Priority Register Address
+PR_12_15_ADDR    EQU     0xE000ED20
+
+;// --  PRI_14 (PendSV) priority in the System Handlers 12-15 Priority Register Address
+;// --  PendSV priority is minimal (0xFF)
+PENDS_VPRIORITY  EQU     0x00FF0000
+
+
 ffs_asm
 
        mov    r1, r0                    ;-- tmp = in
@@ -95,14 +105,23 @@ PendSV_Handler
 
 _tn_arch_sys_start
 
-       ldr    r1, =tn_curr_run_task             ; =tn_next_task_to_run
-       ldr    r2, [r1]
-       ldr    r0, [r2]                          ;-- in r0 - new task SP
+       ldr    r3, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
+       ldr    r2, [r3]
+       orr    r2, r2, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
+       str    r2, [r3]
 
-       ldmia  r0!, {r4-r11}
-       msr    PSP, r0
+       ldr    r3, =tn_curr_run_task             ; =tn_next_task_to_run
+       ldr    r2, [r3]
+       ldr    r3, [r2]                          ;-- in r3 - new task SP
+
+       ldmia  r3!, {r4-r11}
+       msr    PSP, r3
        orr    lr, lr, #0x04                     ;-- Force to new process PSP
 
+       mov    r2, #4
+       mul    r1, r1, r2                        ;-- int_stack_size *= 4;
+       adds   r0, r0, r1                        ;-- r0 = int_stack + int_stack_size
+       msr    MSP, r0                           ;-- MSP = r0
 
        b      _tn_arch_context_switch_now_nosave
 
