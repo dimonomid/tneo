@@ -34,6 +34,8 @@
    * [ ] make .S file work with GCC, too
    * [ ] FPU support
    * [ ] cortex m0 support
+   * [ ] document tn_app_c.h file
+   * [ ] document building: all include directories, C99, etc
    * [X] manage PSP correctly (now, first context switch works, but the next one doesn't)
    * [X] use interrupt_stack
 
