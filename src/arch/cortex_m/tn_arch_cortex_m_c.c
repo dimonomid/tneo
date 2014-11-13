@@ -102,20 +102,6 @@
  *    IMPLEMENTATION
  ******************************************************************************/
 
-#if 0
-void _tn_arch_sys_start(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
-      )
-{
-   //-- Set PendSV to the minimum priority
-   NVIC_SetPriority(PendSV_IRQn, 0xff);
-
-
-}
-#endif
-
-
 
 
 /*
@@ -224,12 +210,6 @@ void _tn_arch_context_switch_pend(void)
 {
    //-- activate PendSV
    *((volatile unsigned long *)0xE000ED04) = 0x10000000;
-}
-
-void _tn_arch_context_switch_now_nosave(void)
-{
-   _tn_arch_context_switch_pend();
-   __enable_irq();
 }
 
 

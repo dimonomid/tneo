@@ -45,11 +45,12 @@
 
    IMPORT tn_curr_run_task
    IMPORT tn_next_task_to_run
-   IMPORT _tn_arch_context_switch_now_nosave
 
    EXPORT ffs_asm
    EXPORT PendSV_Handler
+   EXPORT SVC_Handler
    EXPORT _tn_arch_sys_start
+   EXPORT _tn_arch_context_switch_now_nosave
 
 
 
@@ -84,9 +85,6 @@ PendSV_Handler
        ldr    r1, [r1]
        str    r0, [r1]                  ;-- save own SP in TCB
 	
-	
-	
-	
 
        ldr    r1, =tn_next_task_to_run
        ldr    r2, [r1]
@@ -104,27 +102,71 @@ PendSV_Handler
 
 
 _tn_arch_sys_start
+       ;-- arguments:
+       ;     r0:  int_stack
+       ;     r1:  int_stack_size   (in TN_UWord)
 
-       ldr    r3, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
-       ldr    r2, [r3]
-       orr    r2, r2, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
-       str    r2, [r3]
+       ;-- set PSP = MSP
+       mrs    r2, MSP
+       msr    PSP, r2
 
-       ldr    r3, =tn_curr_run_task             ; =tn_next_task_to_run
-       ldr    r2, [r3]
-       ldr    r3, [r2]                          ;-- in r3 - new task SP
+       ;-- modify CONTROL register so that PSP becomes active
 
-       ldmia  r3!, {r4-r11}
-       msr    PSP, r3
-       orr    lr, lr, #0x04                     ;-- Force to new process PSP
+       mrs    r2, CONTROL     ;-- read current CONTROL
+       orrs   r2, r2, #0x02   ;-- set SPSEL
+       msr    CONTROL, r2     ;-- write to CONTROL
 
+       ;-- after modifying CONTROL, we need for instruction barrier
+       ;   (architectural recommendation)
+       isb
+
+       ;-- now, MSP isn't used, so we can set it to interrupt stack.
+
+       ;-- init MSP to int_stack + int_stack_size (given as arguments)
        mov    r2, #4
        mul    r1, r1, r2                        ;-- int_stack_size *= 4;
        adds   r0, r0, r1                        ;-- r0 = int_stack + int_stack_size
        msr    MSP, r0                           ;-- MSP = r0
 
-       b      _tn_arch_context_switch_now_nosave
+       ;-- set PendSV to lowest priority
+       ldr    r3, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
+       ldr    r2, [r3]
+       orr    r2, r2, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
+       str    r2, [r3]
+       ; TODO: set priority of SVC_Handler to lowest, too.
 
+       cpsie  I                         ;-- enable core int
+
+       ;-- proceed to _tn_arch_context_switch_now_nosave() ..
+
+_tn_arch_context_switch_now_nosave
+
+       svc    #0x00
+
+
+       ;-- SVC is used for context_switch_now_nosave.
+SVC_Handler
+
+       ;-- there is just one service possible: context_switch_now_nosave,
+       ;   so, we don't check params here.
+
+       cpsid  I                         ;-- Disable core int
+       ldr    r3, =tn_curr_run_task
+
+       ldr    r1, =tn_next_task_to_run
+       ldr    r2, [r1]
+       str    r2, [r3]                  ;-- in r3 - =tn_curr_run_task
+
+       ldr    r0, [r2]                  ;-- in r0 - new task SP
+
+       ldmia  r0!, {r4-r11}
+       msr    PSP, r0
+       orr    lr, lr, #0x04             ;-- Force to new process PSP
+
+       cpsie  I                         ;-- enable core int
+       bx     lr
+
+       
 
 
    END
