@@ -119,8 +119,6 @@ extern void *tn_p32_int_sp;
 #define  _TN_FATAL_ERROR(error_msg, ...)         \
    {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
 
-
-
 /**
  * \def TN_ARCH_STK_ATTR_BEFORE
  *

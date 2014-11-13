@@ -10,6 +10,7 @@ doxygen[/\\]output
 vimprj[/\\]tags
 vimprj[/\\].+_tags
 [/\\]?tn_cfg\.h$
+[/\\]?tn_app_c\.h$
 
 .*\.map$
 .*\.elf$

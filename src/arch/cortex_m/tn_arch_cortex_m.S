@@ -2,9 +2,9 @@
  *
  * TNeoKernel: real-time kernel initially based on TNKernel
  *
- *    TNKernel:                  copyright Â© 2004, 2013 Yuri Tiomkin.
- *    PIC32-specific routines:   copyright Â© 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright Â© 2014       Dmitry Frank.
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
  *
  *    TNeoKernel was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
@@ -34,70 +34,12 @@
  *
  ******************************************************************************/
 
-/**
- * \file
- *
- * Define macros for platform identification.
- */
-
-#ifndef _TN_ARCH_DETECT_H
-#define _TN_ARCH_DETECT_H
-
-
-
-/*******************************************************************************
- *    DEFINITIONS
- ******************************************************************************/
-
-
-#undef __TN_ARCH_PIC24_DSPIC__
-#undef __TN_ARCH_PIC32MX__
-
-
-#if defined(__PIC24F__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__PIC24E__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__PIC24H__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__dsPIC30F__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__dsPIC33E__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__dsPIC33F__)
-
-#  define __TN_ARCH_PIC24_DSPIC__
-
-#elif defined (__PIC32MX__)
-
-#  define __TN_ARCH_PIC32MX__
-
-#elif defined (__ARMCC_VERSION)
-
-#  define __TN_ARCH_CORTEX_M__
-
-#else
-#  error unknown platform
-#endif
+   AREA    |.text|, CODE, READONLY, ALIGN=3
+   THUMB
+   REQUIRE8
+   PRESERVE8
 
 
 
 
-
-
-
-
-
-
-#endif  /* _TN_ARCH_DETECT_H */
-
+   END
