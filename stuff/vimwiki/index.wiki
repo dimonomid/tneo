@@ -32,6 +32,7 @@
 
    * [ ] preprocess .S file
    * [ ] make .S file work with GCC, too
+   * [ ] don't include cmsis by the core; use hardcoded addresses instead. It should work for all cortex-m devices.
    * [ ] FPU support
    * [ ] cortex m0 support
    * [ ] document tn_app_c.h file
