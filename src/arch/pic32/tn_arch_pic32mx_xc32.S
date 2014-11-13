@@ -47,6 +47,7 @@
 
     /* Public functions declared in this file */
 
+    .global  _tn_arch_sys_start
     .global  _tn_arch_context_switch_now_nosave
     .global  _tn_arch_context_switch_pend
     .global  _tn_arch_inside_isr
@@ -60,6 +61,20 @@
     .equ IFS0SET, 0xBF881038
     .equ context_size, 128
     .equ buildmode, not_simulator           /* workaround for buggy simulator */
+
+/*----------------------------------------------------------------------------
+* Interrupts should be disabled here
+*----------------------------------------------------------------------------*/
+    .set noreorder
+    .set noat
+    .ent _tn_arch_sys_start
+
+_tn_arch_sys_start:
+
+    j       _tn_arch_context_switch_now_nosave
+    nop
+
+    .end _tn_arch_sys_start
 
 /*----------------------------------------------------------------------------
 * Interrupts should be disabled here

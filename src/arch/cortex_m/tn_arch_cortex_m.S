@@ -45,9 +45,11 @@
 
    IMPORT tn_curr_run_task
    IMPORT tn_next_task_to_run
+   IMPORT _tn_arch_context_switch_now_nosave
 
    EXPORT ffs_asm
    EXPORT PendSV_Handler
+   EXPORT _tn_arch_sys_start
 
 ffs_asm
 
@@ -91,6 +93,18 @@ PendSV_Handler
        bx     lr
 
 
+_tn_arch_sys_start
+
+       ldr    r1, =tn_curr_run_task             ; =tn_next_task_to_run
+       ldr    r2, [r1]
+       ldr    r0, [r2]                          ;-- in r0 - new task SP
+
+       ldmia  r0!, {r4-r11}
+       msr    PSP, r0
+       orr    lr, lr, #0x04                     ;-- Force to new process PSP
+
+
+       b      _tn_arch_context_switch_now_nosave
 
 
 

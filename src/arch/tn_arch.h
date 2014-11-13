@@ -235,10 +235,12 @@ void _tn_arch_context_switch_pend(void);
 /**
  * Called whenever we need to switch context to new task, but don't save
  * current context. This happens:
- * - At system start, inside `tn_sys_start()`;
- * - At task exit, inside `tn_task_exit()`
+ * - At system start, inside `tn_sys_start()` 
+ *   (well, it is actually called indirectly but from `_tn_arch_sys_start()`);
+ * - At task exit, inside `tn_task_exit()`.
  *
- * This function doesn't pend context switch, it switches context immediately.
+ * This function doesn't need to pend context switch, it switches context
+ * immediately.
  *
  * **Preconditions:**
  *
@@ -254,6 +256,15 @@ void _tn_arch_context_switch_pend(void);
  * @see `tn_next_task_to_run`
  */
 void _tn_arch_context_switch_now_nosave(void);
+
+/**
+ * Performs first context switch to the first task (`tn_next_task_to_run` is 
+ * already set to needed task).
+ *
+ * Typically, this function just calls `_tn_arch_context_switch_now_nosave()`,
+ * but it also can perform any architecture-dependent actions first, if needed.
+ */
+void _tn_arch_sys_start(void);
 
 #ifdef __cplusplus
 }  /* extern "C" */
