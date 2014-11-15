@@ -169,11 +169,15 @@ _tn_arch_sys_start
 
 
 
-      cpsie    I              ;-- enable core int
 
       ;-- proceed to _tn_arch_context_switch_now_nosave() ..
 
 _tn_arch_context_switch_now_nosave
+
+      ;-- we should enable core int because we're going to
+      ;   call SVC. If interrupts are disabled,
+      ;   a call to SVC causes HardFault exception.
+      cpsie    I
 
       ;-- perform SVC
       svc      #0x00
