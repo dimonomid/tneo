@@ -142,7 +142,7 @@ TN_UWord *_tn_arch_stack_init(
    *(--stack_top) = 0x03030303;           //-- R3
    *(--stack_top) = 0x02020202;           //-- R2
    *(--stack_top) = 0x01010101;           //-- R1
-   *(--stack_top) = 0xfefefefe;           //-- R0
+   *(--stack_top) = (TN_UWord)param;      //-- R0: argument for task body func
 
    *(--stack_top) = 0x11111111;           //-- R11
    *(--stack_top) = 0x10101010;           //-- R10
