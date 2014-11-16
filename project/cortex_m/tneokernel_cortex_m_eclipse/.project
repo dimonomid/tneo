@@ -38,7 +38,7 @@
 	<variableList>
 		<variable>
 			<name>TNEOKERNEL_SRC</name>
-			<value>$%7BPARENT-2-PROJECT_LOC%7D/src</value>
+			<value>$%7BPARENT-3-PROJECT_LOC%7D/src</value>
 		</variable>
 	</variableList>
 </projectDescription>

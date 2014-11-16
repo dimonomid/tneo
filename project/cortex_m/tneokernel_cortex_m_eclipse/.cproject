@@ -53,11 +53,11 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.433917989" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.1677077947" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="../../../src"/>
-									<listOptionValue builtIn="false" value="../../../src/core"/>
-									<listOptionValue builtIn="false" value="../../../src/core/internal"/>
-									<listOptionValue builtIn="false" value="../../../src/arch"/>
-									<listOptionValue builtIn="false" value="../../../src/arch/cortex_m"/>
+									<listOptionValue builtIn="false" value="../../../../src"/>
+									<listOptionValue builtIn="false" value="../../../../src/core"/>
+									<listOptionValue builtIn="false" value="../../../../src/core/internal"/>
+									<listOptionValue builtIn="false" value="../../../../src/arch"/>
+									<listOptionValue builtIn="false" value="../../../../src/arch/cortex_m"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1669498869" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
