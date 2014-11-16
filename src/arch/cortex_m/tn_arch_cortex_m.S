@@ -108,7 +108,7 @@ PendSV_Handler
       mrs      r0, PSP
       stmdb    r0!, {r4-r11}
 
-#if defined(__TN_FEATURE_CORTEX_FPU__)
+#if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
       ;-- pre-decrement r0 by 4 and save CONTROL
       ;;mrs      r1, CONTROL    ;-- read current CONTROL
       ;;str      r1, [r0, #-4]!
@@ -145,7 +145,7 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
       ;-- restore EXC_RETURN and post-increment r0 by 4
       ldr      lr, [r0], #4   
 
-#if defined(__TN_FEATURE_CORTEX_FPU__)
+#if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
 
       ;if FPU was active in the newly activated task, restore S16-S31
       tst      lr, #0x10

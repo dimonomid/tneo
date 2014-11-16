@@ -57,7 +57,7 @@
 #undef __TN_ARCH_CORTEX_M4__
 #undef __TN_ARCH_CORTEX_M4_FP__
 
-#undef __TN_FEATURE_CORTEX_FPU__
+#undef __TN_ARCHFEAT_CORTEX_M_FPU__
 
 #undef __TN_COMPILER_ARMCC__
 
@@ -102,7 +102,7 @@
 #     define __TN_ARCH_CORTEX_M4__
 #  elif defined(__TARGET_CPU_CORTEX_M4_FP)
 #     define __TN_ARCH_CORTEX_M4_FP__
-#     define __TN_FEATURE_CORTEX_FPU__
+#     define __TN_ARCHFEAT_CORTEX_M_FPU__
 #  else
 #     error unknown architecture for ARMCC compiler
 #  endif
