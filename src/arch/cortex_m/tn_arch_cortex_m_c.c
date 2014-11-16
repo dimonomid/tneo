@@ -48,9 +48,9 @@
  *    R1
  *    R0
  *
- *    {Probably, "callee-saved" floating point registers}
+ *    {Probably, "caller-saved" floating point registers}
  *
- * Then, all the "caller-saved" registers:
+ * Then, all the "callee-saved" registers:
  *
  *    R11
  *    R10
@@ -63,11 +63,9 @@
  *
  *    //CONTROL   (not saved now, there is just commented code, for now)
  *
- *    {Probably, "caller-saved" floating-point registers S16-S32}
+ *    {Probably, "callee-saved" floating-point registers S16-S31}
  *
  *    EXC_RETURN (i.e. value of LR when ISR is called)
- *
- *    {TODO: "caller-saved" floating point registers, if TN_CORTEX_M_FPU is set}
  *
  *
  */

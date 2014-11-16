@@ -112,7 +112,10 @@ PendSV_Handler
       ;;mrs      r1, CONTROL    ;-- read current CONTROL
       ;;str      r1, [r0, #-4]!
 
-      ;TODO: if needed, save S16-S31
+      ;-- if FPU is active, save S16-S31
+      tst      lr, #0x10
+      it       eq
+      vstmdbeq r0!, {s16-s31}
 
       ;TODO: #endif
 
@@ -143,7 +146,10 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
 
       ;TODO: #if TN_CORTEX_M_FPU
 
-      ;TODO: if needed, restore S16-S31
+      ;if FPU was active in the newly activated task, restore S16-S31
+      tst      lr, #0x10
+      it       eq
+      vldmiaeq r0!, {s16-s31}
 
       ;-- restore CONTROL and post-increment r0 by 4
       ;;ldr      r1, [r0], #4
