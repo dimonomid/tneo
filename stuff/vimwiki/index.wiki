@@ -30,13 +30,12 @@
 
 === Cortex-M port ===
 
-   * [ ] preprocess .S file
-   * [ ] make .S file work with GCC, too
-   * [ ] don't include cmsis by the core; use hardcoded addresses instead. It should work for all cortex-m devices.
-   * [ ] FPU support
-   * [ ] cortex m0 support
-   * [ ] document tn_app_c.h file
-   * [ ] document building: all include directories, C99, etc
+   * [ ] document building: all include directories, C99, Asm --cpreproc, etc
+   * [X] preprocess .S file
+   * [X] make .S file work with GCC, too
+   * [X] don't include cmsis by the core; use hardcoded addresses instead. It should work for all cortex-m devices.
+   * [X] FPU support
+   * [X] cortex m0 support
    * [X] manage PSP correctly (now, first context switch works, but the next one doesn't)
    * [X] use interrupt_stack
 
