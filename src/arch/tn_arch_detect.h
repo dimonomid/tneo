@@ -122,6 +122,38 @@
 #     error unknown architecture for ARMCC compiler
 #  endif
 
+#elif defined(__GNUC__)
+
+#  define __TN_ARCH_CORTEX_M__
+#  define __TN_COMPILER_GCC__
+
+#  if defined(__ARM_ARCH)
+#     if defined(__ARM_ARCH_6M__)
+#        define __TN_ARCH_CORTEX_M0__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#     elif defined(__ARM_ARCH_7M__)
+#        define __TN_ARCH_CORTEX_M3__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#     elif defined(__ARM_ARCH_7EM__)
+#        if defined(__SOFTFP__)
+#           define __TN_ARCH_CORTEX_M4__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
+#        else
+#           define __TN_ARCH_CORTEX_M4_FP__
+#           define __TN_ARCHFEAT_CORTEX_M_FPU__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
+#        endif
+#     else
+#        error unknown ARM architecture for GCC compiler
+#     endif
+#  else
+#     error unknown architecture for GCC compiler
+#  endif
 #else
 #  error unknown platform
 #endif

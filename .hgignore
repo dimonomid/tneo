@@ -28,3 +28,6 @@ Makefile\-genesis\.properties
 \.uvguix\.
 \.uvoptx
 
+tneokernel_cortex_m_eclipse[/\\]Debug
+tneokernel_cortex_m_eclipse[/\\]Release
+
