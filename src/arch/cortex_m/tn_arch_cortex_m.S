@@ -367,5 +367,5 @@ _TN_LABEL(_tn_arch_context_switch_pend)
       bx       lr
 
 
-_TN_END()
+   _TN_END()
 
