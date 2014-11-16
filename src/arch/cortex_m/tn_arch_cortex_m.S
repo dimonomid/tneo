@@ -36,21 +36,6 @@
 
 #include "../tn_arch_detect.h"
 
-#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
-#  define _TST(Rd, Rm, Imm)         \
-         tst      Rd, Imm        ;
-#  define _ORRS(Rd, Rm, Imm)        \
-         orrs     Rd, Rd, Imm    ;
-#else
-#  define _TST(Rd, Rm, Imm)         \
-         movs     Rm, Imm        ;  \
-         tst      Rd, Rm         ;
-#  define _ORRS(Rd, Rm, Imm)        \
-         movs     Rm, Imm        ;  \
-         orrs     Rd, Rd, Rm     ;
-#endif
-
-
 
    PRESERVE8
 
@@ -63,7 +48,10 @@
    IMPORT tn_curr_run_task
    IMPORT tn_next_task_to_run
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
    EXPORT ffs_asm
+#endif
+
    EXPORT PendSV_Handler
    EXPORT SVC_Handler
    EXPORT _tn_arch_sys_start
@@ -110,7 +98,7 @@ ffs_asm
       mov      r1, r0                  ;-- tmp = in
       rsbs     r0, r1, #0              ;-- in = -in
       ands     r0, r0, r1              ;-- in = in & tmp
-      CLZ.W    r0, r0
+      clz.w    r0, r0
       rsb      r0, r0, #0x20           ;-- 32 - in
       bx       lr
 #endif
@@ -124,12 +112,9 @@ PendSV_Handler
       ;-- Now, PSP contains task's stack pointer.
       ;   We need to get it and save callee-saved registers to stack.
       mrs      r0, PSP
-      stmdb    r0!, {r4-r11}
 
+      ;-- save FPU callee-saved registers, if needed {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
-      ;-- pre-decrement r0 by 4 and save CONTROL
-      ;;mrs      r1, CONTROL    ;-- read current CONTROL
-      ;;str      r1, [r0, #-4]!
 
       ;-- if FPU is active, save S16-S31
       tst      lr, #0x10
@@ -137,9 +122,22 @@ PendSV_Handler
       vstmdbeq r0!, {s16-s31}
 
 #endif
+      ; }}}
 
-      ;-- pre-decrement r0 by 4 and save current EXC_RETURN
-      str      lr, [r0, #-4]! 
+      ;-- save callee-saved registers {{{
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      stmdb    r0!, {r4-r11, lr}
+#else
+      subs     r0, #32     ;-- allocate space for r4-r11
+      stmia    r0!, {r4-r7}
+      mov      r4, r8
+      mov      r5, r9
+      mov      r6, r10
+      mov      r7, r11
+      stmia    r0!, {r4-r7}
+      subs     r0, #32     ;-- increment r0 again
+#endif
+      ; }}}
 
       ;-- get stack pointer of preempted task and save it in the
       ;   tn_curr_run_task->stack_top
@@ -160,9 +158,23 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
       ;-- load stack pointer of newly activated task to r0
       ldr      r0, [r2]       ;-- r0 = tn_curr_run_task->stack_top
 
-      ;-- restore EXC_RETURN and post-increment r0 by 4
-      ldr      lr, [r0], #4   
+      ;-- restore callee-saved registers {{{
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      ldmia    r0!, {r4-r11, lr}  ;-- load callee-saved registers, plus lr
+#else
+      adds     r0, #16
+      ldmia    r0!, {r4-r7}
+      mov      r8, r4
+      mov      r9, r5
+      mov      r10, r6
+      mov      r11, r7
+      subs     r0, #32
+      ldmia    r0!, {r4-r7}
+      adds     r0, #16
+#endif
+      ; }}}
 
+      ;-- restore FPU callee-saved registers, if needed {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
 
       ;if FPU was active in the newly activated task, restore S16-S31
@@ -170,16 +182,9 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
       it       eq
       vldmiaeq r0!, {s16-s31}
 
-      ;-- restore CONTROL and post-increment r0 by 4
-      ;;ldr      r1, [r0], #4
-      ;;msr      CONTROL, r1
-
-      ;-- after modifying CONTROL, we need for instruction barrier
-      ;;isb
-
 #endif
+      ; }}}
 
-      ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
       msr      PSP, r0        ;-- update PSP to stack of newly activated task
 
       cpsie    I              ;-- enable core int
@@ -202,7 +207,9 @@ _tn_arch_sys_start
       ;-- modify CONTROL register so that PSP becomes active
 
       mrs      r2, CONTROL    ;-- read current CONTROL
-      _ORRS(r2, r3, #0x02)    ;-- set SPEL
+      movs     r3, #0x02      ;-- used intermediary register r3 in order to 
+                              ;   work on M0 too
+      orrs     r2, r2, r3
       msr      CONTROL, r2    ;-- write to CONTROL
 
       ;-- after modifying CONTROL, we need for instruction barrier
@@ -217,23 +224,27 @@ _tn_arch_sys_start
       msr      MSP, r0        ;-- MSP = r0
 
       ;-- set priority of PendSV to minimum value.
-      ldr      r1, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
+      ldr      r1, =PR_12_15_ADDR      ;-- Load the System 12-15 Priority Register
       ldr      r0, [r1]
-      orr      r0, r0, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
+      ldr      r2, =PENDS_VPRIORITY
+      orrs     r0, r0, r2              ;-- set PRI_14 (PendSV) to 0xFF - minimal
       str      r0, [r1]
 
       ;-- set priority of SVC to minimum value.
-      ldr      r1, =PR_08_11_ADDR                ;-- Load the System 8-11 Priority Register
+      ldr      r1, =PR_08_11_ADDR      ;-- Load the System 8-11 Priority Register
       ldr      r0, [r1]
-      orr      r0, r0, #SVC_VPRIORITY            ;-- set PRI_11 (SVC) to 0xFF - minimal
+      ldr      r2, =SVC_VPRIORITY
+      orrs     r0, r0, r2              ;-- set PRI_11 (SVC) to 0xFF - minimal
       str      r0, [r1]
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
       ;-- disable lazy stacking (so that if interrupted task uses FPU 
       ;   at the moment, registers S0-S16 are certainly saved by the hardware)
       ldr      r1, =FPU_FPCCR_ADDR               ;-- Load the System 8-11 Priority Register
       ldr      r0, [r1]
       and      r0, r0, #FPU_FPCCR_LSPEN          ;-- set PRI_11 (SVC) to 0xFF - minimal
       str      r0, [r1]
+#endif
 
 
 
@@ -308,20 +319,23 @@ _tn_arch_is_int_disabled
 _tn_arch_inside_isr
 
       mrs      r0, CONTROL
+
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
       tst      r0, #0x02
       ite      eq
       moveq    r0, #1
       movne    r0, #0
+      bx       lr
 #else
       movs     r1, #0x02
       tst      r0, r1
-      movs     r0, #0
       bne      __ne
       movs     r0, #1
-__ne
-#endif
       bx       lr
+__ne
+      movs     r0, #0
+      bx       lr
+#endif
 
 
 _tn_arch_context_switch_pend
