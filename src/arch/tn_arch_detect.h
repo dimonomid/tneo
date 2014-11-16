@@ -53,11 +53,15 @@
 #undef __TN_ARCH_PIC24_DSPIC__
 #undef __TN_ARCH_PIC32MX__
 #undef __TN_ARCH_CORTEX_M__
+#undef __TN_ARCH_CORTEX_M0__
 #undef __TN_ARCH_CORTEX_M3__
 #undef __TN_ARCH_CORTEX_M4__
 #undef __TN_ARCH_CORTEX_M4_FP__
 
 #undef __TN_ARCHFEAT_CORTEX_M_FPU__
+#undef __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#undef __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#undef __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
 
 #undef __TN_COMPILER_ARMCC__
 
@@ -96,13 +100,24 @@
 #  define __TN_ARCH_CORTEX_M__
 #  define __TN_COMPILER_ARMCC__
 
-#  if defined(__TARGET_CPU_CORTEX_M3)
+#  if defined(__TARGET_CPU_CORTEX_M0)
+#     define __TN_ARCH_CORTEX_M0__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#  elif defined(__TARGET_CPU_CORTEX_M3)
 #     define __TN_ARCH_CORTEX_M3__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
 #  elif defined(__TARGET_CPU_CORTEX_M4)
 #     define __TN_ARCH_CORTEX_M4__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
 #  elif defined(__TARGET_CPU_CORTEX_M4_FP)
 #     define __TN_ARCH_CORTEX_M4_FP__
 #     define __TN_ARCHFEAT_CORTEX_M_FPU__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
 #  else
 #     error unknown architecture for ARMCC compiler
 #  endif

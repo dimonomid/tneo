@@ -50,6 +50,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+#include "../tn_arch_detect.h"
 #include "../../core/tn_cfg_dispatch.h"
 
 
@@ -85,6 +86,7 @@ extern "C"  {     /*}*/
 #  define   _TN_PIC32_INTSAVE_CHECK()  /* nothing */
 #endif
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
 /**
  * FFS - find first set bit. Used in `_find_next_task_to_run()` function.
  * Say, for `0xa8` it should return `3`.
@@ -93,6 +95,7 @@ extern "C"  {     /*}*/
  */
 #define  _TN_FFS(x)     ffs_asm(x)
 int ffs_asm(int x);
+#endif
 
 /**
  * Used by the kernel as a signal that something really bad happened.

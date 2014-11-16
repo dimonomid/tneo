@@ -36,6 +36,22 @@
 
 #include "../tn_arch_detect.h"
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+#  define _TST(Rd, Rm, Imm)         \
+         tst      Rd, Imm        ;
+#  define _ORRS(Rd, Rm, Imm)        \
+         orrs     Rd, Rd, Imm    ;
+#else
+#  define _TST(Rd, Rm, Imm)         \
+         movs     Rm, Imm        ;  \
+         tst      Rd, Rm         ;
+#  define _ORRS(Rd, Rm, Imm)        \
+         movs     Rm, Imm        ;  \
+         orrs     Rd, Rd, Rm     ;
+#endif
+
+
+
    PRESERVE8
 
    AREA    |.text|, CODE, READONLY, ALIGN=3
@@ -88,6 +104,7 @@ FPU_FPCCR_ADDR   EQU     0xE000EF34
 FPU_FPCCR_LSPEN  EQU     0xBFFFFFFF
 
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
 ffs_asm
 
       mov      r1, r0                  ;-- tmp = in
@@ -96,6 +113,7 @@ ffs_asm
       CLZ.W    r0, r0
       rsb      r0, r0, #0x20           ;-- 32 - in
       bx       lr
+#endif
 
 
 
@@ -184,7 +202,7 @@ _tn_arch_sys_start
       ;-- modify CONTROL register so that PSP becomes active
 
       mrs      r2, CONTROL    ;-- read current CONTROL
-      orrs     r2, r2, #0x02  ;-- set SPSEL
+      _ORRS(r2, r3, #0x02)    ;-- set SPEL
       msr      CONTROL, r2    ;-- write to CONTROL
 
       ;-- after modifying CONTROL, we need for instruction barrier
@@ -193,8 +211,8 @@ _tn_arch_sys_start
       ;-- now, MSP isn't used, so we can set it to interrupt stack.
 
       ;-- init MSP to int_stack + int_stack_size (given as arguments)
-      mov      r2, #4
-      mul      r1, r1, r2     ;-- int_stack_size *= 4;
+      movs     r2, #4
+      muls     r1, r2, r1     ;-- int_stack_size *= 4;
       adds     r0, r0, r1     ;-- r0 = (int_stack + int_stack_size)
       msr      MSP, r0        ;-- MSP = r0
 
@@ -290,10 +308,19 @@ _tn_arch_is_int_disabled
 _tn_arch_inside_isr
 
       mrs      r0, CONTROL
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
       tst      r0, #0x02
       ite      eq
       moveq    r0, #1
       movne    r0, #0
+#else
+      movs     r1, #0x02
+      tst      r0, r1
+      movs     r0, #0
+      bne      __ne
+      movs     r0, #1
+__ne
+#endif
       bx       lr
 
 
