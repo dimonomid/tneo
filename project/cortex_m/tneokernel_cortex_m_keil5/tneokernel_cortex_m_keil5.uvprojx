@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\core;..\..\..\core\internal;..\..\..;..\..\..\arch;..\..\..\arch\cortex_m</IncludePath>
+              <IncludePath>..\..\..\src\core;..\..\..\src\core\internal;..\..\..\src;..\..\..\src\arch;..\..\..\src\arch\cortex_m</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -411,47 +411,47 @@
             <File>
               <FileName>tn_timer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_timer.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_timer.c</FilePath>
             </File>
             <File>
               <FileName>tn_dqueue.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_dqueue.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_dqueue.c</FilePath>
             </File>
             <File>
               <FileName>tn_eventgrp.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_eventgrp.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_eventgrp.c</FilePath>
             </File>
             <File>
               <FileName>tn_fmem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_fmem.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_fmem.c</FilePath>
             </File>
             <File>
               <FileName>tn_list.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_list.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_list.c</FilePath>
             </File>
             <File>
               <FileName>tn_mutex.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_mutex.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_mutex.c</FilePath>
             </File>
             <File>
               <FileName>tn_sem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_sem.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_sem.c</FilePath>
             </File>
             <File>
               <FileName>tn_sys.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_sys.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_sys.c</FilePath>
             </File>
             <File>
               <FileName>tn_tasks.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\core\tn_tasks.c</FilePath>
+              <FilePath>..\..\..\src\core\tn_tasks.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -461,12 +461,12 @@
             <File>
               <FileName>tn_arch_cortex_m_c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\tn_arch_cortex_m_c.c</FilePath>
+              <FilePath>..\..\..\src\arch\cortex_m\tn_arch_cortex_m_c.c</FilePath>
             </File>
             <File>
               <FileName>tn_arch_cortex_m.S</FileName>
               <FileType>2</FileType>
-              <FilePath>..\tn_arch_cortex_m.S</FilePath>
+              <FilePath>..\..\..\src\arch\cortex_m\tn_arch_cortex_m.S</FilePath>
             </File>
           </Files>
         </Group>
