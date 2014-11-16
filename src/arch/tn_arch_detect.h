@@ -53,7 +53,11 @@
 #undef __TN_ARCH_PIC24_DSPIC__
 #undef __TN_ARCH_PIC32MX__
 #undef __TN_ARCH_CORTEX_M__
+#undef __TN_ARCH_CORTEX_M3__
+#undef __TN_ARCH_CORTEX_M4__
+#undef __TN_ARCH_CORTEX_M4_FP__
 
+#undef __TN_FEATURE_CORTEX_FPU__
 
 #undef __TN_COMPILER_ARMCC__
 
@@ -91,6 +95,17 @@
 
 #  define __TN_ARCH_CORTEX_M__
 #  define __TN_COMPILER_ARMCC__
+
+#  if defined(__TARGET_CPU_CORTEX_M3)
+#     define __TN_ARCH_CORTEX_M3__
+#  elif defined(__TARGET_CPU_CORTEX_M4)
+#     define __TN_ARCH_CORTEX_M4__
+#  elif defined(__TARGET_CPU_CORTEX_M4_FP)
+#     define __TN_ARCH_CORTEX_M4_FP__
+#     define __TN_FEATURE_CORTEX_FPU__
+#  else
+#     error unknown architecture for ARMCC compiler
+#  endif
 
 #else
 #  error unknown platform

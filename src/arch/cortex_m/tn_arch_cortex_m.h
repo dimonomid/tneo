@@ -38,7 +38,7 @@
  *
  * \file
  *
- * PIC32 architecture-dependent routines
+ * Cortex-M0/M0+/M3/M4/M4F architecture-dependent routines
  *
  */
 

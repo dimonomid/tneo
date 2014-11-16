@@ -1,39 +1,40 @@
- ;TODO: how to preprocess this file?
- ;/* ******************************************************************************
- ;*
- ;* TNeoKernel: real-time kernel initially based on TNKernel
- ;*
- ;*    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
- ;*    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- ;*    TNeoKernel:                copyright © 2014       Dmitry Frank.
- ;*
- ;*    TNeoKernel was born as a thorough review and re-implementation of
- ;*    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
- ;*    as well as new features being added, and it is tested carefully with
- ;*    unit-tests.
- ;*
- ;*    API is changed somewhat, so it's not 100% compatible with TNKernel,
- ;*    hence the new name: TNeoKernel.
- ;*
- ;*    Permission to use, copy, modify, and distribute this software in source
- ;*    and binary forms and its documentation for any purpose and without fee
- ;*    is hereby granted, provided that the above copyright notice appear
- ;*    in all copies and that both that copyright notice and this permission
- ;*    notice appear in supporting documentation.
- ;*
- ;*    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
- ;*    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- ;*    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- ;*    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
- ;*    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- ;*    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- ;*    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- ;*    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- ;*    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- ;*    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- ;*    THE POSSIBILITY OF SUCH DAMAGE.
- ;*
- ;******************************************************************************/
+/* ******************************************************************************
+ *
+ * TNeoKernel: real-time kernel initially based on TNKernel
+ *
+ *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
+ *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
+ *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *
+ *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
+ *    as well as new features being added, and it is tested carefully with
+ *    unit-tests.
+ *
+ *    API is changed somewhat, so it's not 100% compatible with TNKernel,
+ *    hence the new name: TNeoKernel.
+ *
+ *    Permission to use, copy, modify, and distribute this software in source
+ *    and binary forms and its documentation for any purpose and without fee
+ *    is hereby granted, provided that the above copyright notice appear
+ *    in all copies and that both that copyright notice and this permission
+ *    notice appear in supporting documentation.
+ *
+ *    THIS SOFTWARE IS PROVIDED BY THE DMITRY FRANK AND CONTRIBUTORS "AS IS"
+ *    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *    PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DMITRY FRANK OR CONTRIBUTORS BE
+ *    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ *    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ *    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ *    THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************/
+
+#include "../tn_arch_detect.h"
 
    PRESERVE8
 
@@ -61,28 +62,28 @@
    EXPORT _tn_arch_context_switch_pend
 
 
-;// --  Interrupt Control State Register Address
+//-- Interrupt Control State Register Address
 ICSR_ADDR        EQU     0xE000ED04
 
-;// --  pendSV bit in the Interrupt Control State Register
+//-- PendSV bit in the Interrupt Control State Register
 PENDSVSET        EQU     0x10000000
 
-;// --  System Handlers 12-15 Priority Register Address
+//-- System Handlers 12-15 Priority Register Address
 PR_08_11_ADDR    EQU     0xE000ED1C
 
-;// --  System Handlers 12-15 Priority Register Address
+//-- System Handlers 12-15 Priority Register Address
 PR_12_15_ADDR    EQU     0xE000ED20
 
-;// --  PRI_14 (PendSV) priority in the System Handlers 12-15 Priority Register Address
-;// --  PendSV priority is minimal (0xFF)
+//-- PRI_14 (PendSV) priority in the System Handlers 12-15 Priority Register Address
+//   PendSV priority is minimal (0xFF)
 PENDS_VPRIORITY  EQU     0x00FF0000
 
-;// --  PRI_11 (SVC) priority in the System Handlers 08-11 Priority Register Address
-;// --  SVC priority is minimal (0xFF)
+//-- PRI_11 (SVC) priority in the System Handlers 08-11 Priority Register Address
+//   SVC priority is minimal (0xFF)
 SVC_VPRIORITY    EQU     0xFF000000
 
-;// --  We need to clear LSPEN bit in FPU->FPCCR, so that here's
-;//     address and mask
+//-- We need to clear LSPEN bit in FPU->FPCCR, so that here's
+//   address and mask
 FPU_FPCCR_ADDR   EQU     0xE000EF34
 FPU_FPCCR_LSPEN  EQU     0xBFFFFFFF
 
@@ -107,7 +108,7 @@ PendSV_Handler
       mrs      r0, PSP
       stmdb    r0!, {r4-r11}
 
-      ;TODO: #if TN_CORTEX_M_FPU
+#if defined(__TN_FEATURE_CORTEX_FPU__)
       ;-- pre-decrement r0 by 4 and save CONTROL
       ;;mrs      r1, CONTROL    ;-- read current CONTROL
       ;;str      r1, [r0, #-4]!
@@ -117,7 +118,7 @@ PendSV_Handler
       it       eq
       vstmdbeq r0!, {s16-s31}
 
-      ;TODO: #endif
+#endif
 
       ;-- pre-decrement r0 by 4 and save current EXC_RETURN
       str      lr, [r0, #-4]! 
@@ -144,7 +145,7 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
       ;-- restore EXC_RETURN and post-increment r0 by 4
       ldr      lr, [r0], #4   
 
-      ;TODO: #if TN_CORTEX_M_FPU
+#if defined(__TN_FEATURE_CORTEX_FPU__)
 
       ;if FPU was active in the newly activated task, restore S16-S31
       tst      lr, #0x10
@@ -158,7 +159,7 @@ __context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
       ;-- after modifying CONTROL, we need for instruction barrier
       ;;isb
 
-      ;TODO: #endif
+#endif
 
       ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
       msr      PSP, r0        ;-- update PSP to stack of newly activated task
