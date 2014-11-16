@@ -81,6 +81,11 @@ PENDS_VPRIORITY  EQU     0x00FF0000
 ;// --  SVC priority is minimal (0xFF)
 SVC_VPRIORITY    EQU     0xFF000000
 
+;// --  We need to clear LSPEN bit in FPU->FPCCR, so that here's
+;//     address and mask
+FPU_FPCCR_ADDR   EQU     0xE000EF34
+FPU_FPCCR_LSPEN  EQU     0xBFFFFFFF
+
 
 ffs_asm
 
@@ -102,24 +107,55 @@ PendSV_Handler
       mrs      r0, PSP
       stmdb    r0!, {r4-r11}
 
+      ;TODO: #if TN_CORTEX_M_FPU
+      ;-- pre-decrement r0 by 4 and save CONTROL
+      ;;mrs      r1, CONTROL    ;-- read current CONTROL
+      ;;str      r1, [r0, #-4]!
+
+      ;TODO: if needed, save S16-S31
+
+      ;TODO: #endif
+
+      ;-- pre-decrement r0 by 4 and save current EXC_RETURN
+      str      lr, [r0, #-4]! 
+
       ;-- get stack pointer of preempted task and save it in the
       ;   tn_curr_run_task->stack_top
       ldr      r3, =tn_curr_run_task   ;-- r3 = &tn_curr_run_task
       mov      r1,  r3                 ;-- r1 = &tn_curr_run_task
       ldr      r1, [r1]                ;-- r1 = tn_curr_run_task
       str      r0, [r1]                ;-- tn_curr_run_task->stack_top = SP
-	
+
       ;-- tn_curr_run_task = tn_next_task_to_run
       ldr      r1, =tn_next_task_to_run;-- r1 = &tn_next_task_to_run
       ldr      r2, [r1]                ;-- r2 = tn_next_task_to_run
       str      r2, [r3]                ;-- tn_curr_run_task = tn_next_task_to_run
 
+      ;-- r2 is now tn_curr_run_task
+
+__context_restore    ;-- if you branch here, r2 should be tn_curr_run_task
+
       ;-- load stack pointer of newly activated task to r0
       ldr      r0, [r2]       ;-- r0 = tn_curr_run_task->stack_top
 
+      ;-- restore EXC_RETURN and post-increment r0 by 4
+      ldr      lr, [r0], #4   
+
+      ;TODO: #if TN_CORTEX_M_FPU
+
+      ;TODO: if needed, restore S16-S31
+
+      ;-- restore CONTROL and post-increment r0 by 4
+      ;;ldr      r1, [r0], #4
+      ;;msr      CONTROL, r1
+
+      ;-- after modifying CONTROL, we need for instruction barrier
+      ;;isb
+
+      ;TODO: #endif
+
       ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
       msr      PSP, r0        ;-- update PSP to stack of newly activated task
-      orr      lr, lr, #0x04  ;-- force PSP usage
 
       cpsie    I              ;-- enable core int
       bx       lr
@@ -145,7 +181,6 @@ _tn_arch_sys_start
       msr      CONTROL, r2    ;-- write to CONTROL
 
       ;-- after modifying CONTROL, we need for instruction barrier
-      ;   (architectural recommendation)
       isb
 
       ;-- now, MSP isn't used, so we can set it to interrupt stack.
@@ -156,15 +191,23 @@ _tn_arch_sys_start
       adds     r0, r0, r1     ;-- r0 = (int_stack + int_stack_size)
       msr      MSP, r0        ;-- MSP = r0
 
-      ;-- set priorities of PendSV and SVC to minimum value.
+      ;-- set priority of PendSV to minimum value.
       ldr      r1, =PR_12_15_ADDR                ;-- Load the System 12-15 Priority Register
       ldr      r0, [r1]
       orr      r0, r0, #PENDS_VPRIORITY          ;-- set PRI_14 (PendSV) to 0xFF - minimal
       str      r0, [r1]
 
+      ;-- set priority of SVC to minimum value.
       ldr      r1, =PR_08_11_ADDR                ;-- Load the System 8-11 Priority Register
       ldr      r0, [r1]
       orr      r0, r0, #SVC_VPRIORITY            ;-- set PRI_11 (SVC) to 0xFF - minimal
+      str      r0, [r1]
+
+      ;-- disable lazy stacking (so that if interrupted task uses FPU 
+      ;   at the moment, registers S0-S16 are certainly saved by the hardware)
+      ldr      r1, =FPU_FPCCR_ADDR               ;-- Load the System 8-11 Priority Register
+      ldr      r0, [r1]
+      and      r0, r0, #FPU_FPCCR_LSPEN          ;-- set PRI_11 (SVC) to 0xFF - minimal
       str      r0, [r1]
 
 
@@ -200,16 +243,8 @@ SVC_Handler
 
       ;-- r2 is now tn_curr_run_task
 
-      ;-- load stack pointer of newly activated task to r0
-      ldr      r0, [r2]       ;-- r0 = tn_curr_run_task->stack_top
-
-      
-      ldmia    r0!, {r4-r11}  ;-- load callee-saved registers
-      msr      PSP, r0        ;-- update PSP to stack of newly activated task
-      orr      lr, lr, #0x04  ;-- force PSP usage
-
-      cpsie    I              ;-- enable core int
-      bx       lr
+      ;-- proceed to context restore (r2 must be set to tn_curr_run_task)
+      b        __context_restore
 
       
 

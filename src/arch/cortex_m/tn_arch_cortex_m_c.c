@@ -61,6 +61,12 @@
  *    R5
  *    R4
  *
+ *    //CONTROL   (not saved now, there is just commented code, for now)
+ *
+ *    {Probably, "caller-saved" floating-point registers S16-S32}
+ *
+ *    EXC_RETURN (i.e. value of LR when ISR is called)
+ *
  *    {TODO: "caller-saved" floating point registers, if TN_CORTEX_M_FPU is set}
  *
  *
@@ -153,8 +159,21 @@ TN_UWord *_tn_arch_stack_init(
    *(--stack_top) = 0x05050505;           //-- R5
    *(--stack_top) = 0x04040404;           //-- R4
 
-   // TODO: "caller-saved" floating point registers, if TN_CORTEX_M_FPU is set
+   //TODO: #if TN_CORTEX_M_FPU
+   //*(--stack_top) = 0x00000000;           //-- CONTROL
 
+   //-- NOTE: at this point, there are floating-point registers S16-S31
+   //   if bit 0x00000010 of EXC_RETURN is cleared.
+   //   Initially, it is of course set (see below), so that we don't have
+   //   these registers in initial stack.
+
+   //TODO: #endif
+
+   //-- EXC_RETURN:
+   //    - floating point is not used by the task at the moment;
+   //    - return to Thread mode;
+   //    - use PSP.
+   *(--stack_top) = 0xFFFFFFFD;
    return stack_top;
 }
 
