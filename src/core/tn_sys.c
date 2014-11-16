@@ -255,7 +255,7 @@ void tn_sys_start(
    tn_created_tasks_cnt = 0;
 
    //-- initial system flags: no flags set (see enum TN_StateFlag)
-   tn_sys_state = (0);  
+   tn_sys_state = (enum TN_StateFlag)(0);  
 
    //-- reset bitmask of priorities with runnable tasks
    tn_ready_to_run_bmp = 0;

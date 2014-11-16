@@ -1161,6 +1161,6 @@ TN_BOOL _tn_is_mutex_locked_by_task(struct TN_Task *task, struct TN_Mutex *mutex
  */
 void _tn_task_exit_nodelete(void)
 {
-   tn_task_exit((0));
+   tn_task_exit((enum TN_TaskExitOpt)(0));
 }
 
