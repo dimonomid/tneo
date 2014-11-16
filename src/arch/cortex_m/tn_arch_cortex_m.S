@@ -34,15 +34,50 @@
  *
  ******************************************************************************/
 
+
+
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
 #include "../tn_arch_detect.h"
+
+
+
+
+
+
+/*******************************************************************************
+ *    DEFINITIONS
+ ******************************************************************************/
 
 #if defined(__TN_COMPILER_ARMCC__)
 
-#define  _TN_EXTERN(x)  IMPORT x
-#define  _TN_GLOBAL(x)  EXPORT x
-#define  _TN_EQU(symbol, value)  symbol EQU value
-#define  _TN_LABEL(label)        label
-#define  _TN_END()               END
+#  define   _TN_EXTERN(x)           IMPORT x
+#  define   _TN_GLOBAL(x)           EXPORT x
+#  define   _TN_EQU(symbol, value)  symbol EQU value
+#  define   _TN_LABEL(label)        label
+#  define   _TN_END()               END
+
+#elif defined(__TN_COMPILER_GCC__)
+
+#  define   _TN_EXTERN(x)           .extern x
+#  define   _TN_GLOBAL(x)           .global x
+#  define   _TN_EQU(symbol, value)  .equ symbol, value
+#  define   _TN_LABEL(label)        label:
+#  define   _TN_END()               /* nothing */
+
+#endif
+
+
+
+
+
+/*******************************************************************************
+ *    ASM PROLOGUE
+ ******************************************************************************/
+
+#if defined(__TN_COMPILER_ARMCC__)
 
    PRESERVE8
 
@@ -53,20 +88,27 @@
 
 #elif defined(__TN_COMPILER_GCC__)
 
-#define  _TN_EXTERN(x)  .extern x
-#define  _TN_GLOBAL(x)  .global x
-#define  _TN_EQU(symbol, value)  .equ symbol, value
-#define  _TN_LABEL(label)        label:
-#define  _TN_END()
-
    .text
    .syntax unified
    .thumb
 
 #endif
 
+
+
+
+/*******************************************************************************
+ *    EXTERN SYMBOLS
+ ******************************************************************************/
+
    _TN_EXTERN(tn_curr_run_task)
    _TN_EXTERN(tn_next_task_to_run)
+
+
+
+/*******************************************************************************
+ *    PUBLIC SYMBOLS
+ ******************************************************************************/
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
    _TN_GLOBAL(ffs_asm)
@@ -85,6 +127,11 @@
    _TN_GLOBAL(_tn_arch_inside_isr)
    _TN_GLOBAL(_tn_arch_context_switch_pend)
 
+
+
+/*******************************************************************************
+ *    CONSTANTS
+ ******************************************************************************/
 
 //-- Interrupt Control State Register Address
 _TN_EQU(ICSR_ADDR, 0xE000ED04)
@@ -111,6 +158,12 @@ _TN_EQU(SVC_VPRIORITY, 0xFF000000)
 _TN_EQU(FPU_FPCCR_ADDR, 0xE000EF34)
 _TN_EQU(FPU_FPCCR_LSPEN, 0xBFFFFFFF)
 
+
+
+
+/*******************************************************************************
+ *    CODE
+ ******************************************************************************/
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
 _TN_LABEL(ffs_asm)
@@ -341,12 +394,14 @@ _TN_LABEL(_tn_arch_inside_isr)
       mrs      r0, CONTROL
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
       tst      r0, #0x02
       ite      eq
       moveq    r0, #1
       movne    r0, #0
       bx       lr
 #else
+      //-- Code for Cortex-M0/M0+
       movs     r1, #0x02
       tst      r0, r1
       bne      __ne
