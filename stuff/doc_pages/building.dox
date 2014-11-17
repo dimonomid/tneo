@@ -1,9 +1,13 @@
 /**
-\page building Building the project
+\page building Building TNeoKernel
 
 \tableofcontents
 
-Some notes on building the project
+Some notes on building the project.
+
+Note: you don't <i>have</i> to build TNeoKernel to use it. If you want to just
+use pre-built library (with default configuration), refer to the section \ref
+usage_generic.
 
 \section configuration_file Configuration file
 
@@ -30,12 +34,56 @@ supports symbolic links, copy it somewhere to your main project's directory
 Default configuration file contains detailed comments, so you can read them
 and configure behavior as you like.
 
-\section building_generic Building the project
+\section building_generic__lib_project Library projects
 
-For information on building TNeoKernel, please refer to the appropriate section
-for your platform:
+If you need to build TNeoKernel with some non-default configuration, the
+easiest way is to use ready-made library project.
+
+In the root of TNeoKernel repository, there is a directory `lib_project`
+which contains ready-made projects for various platforms. You may use it
+for building library, and then use resulting library file in your project.
+
+For MPLABX projects, there are <i>library projects</i>, so that you even don't
+need to build a library: just add this <i>library project</i> to your main
+project, and MPLABX will do all the work for you. You can change `tn_cfg.h`
+file "on-the-fly" then. Other IDEs don't offer such a luxuries, so you need to
+build library file as a separate step.
+
+\section building_generic__manual Building manually
+
+If you want to create library project yourself (say, in some different IDE, or
+anything), or if you want to build TNeoKernel as a direct part of your project,
+there are some generic requirements (for architecture-dependent requirements,
+see links below):
+
+- <b>Core sources</b>: add all `.c` files from `src/core` directory to the
+  project.
+- <b>C99</b>: TNeoKernel uses some features of C99, such as `static inline`
+  functions and variable declarations not at the start of a compound statement.
+  So, C99 is a requirement.
+- <b>C Include directories</b> (relative to the root of the repository) :
+  - `src`
+  - `src/core`
+  - `src/core/internal`
+  - `src/arch`
+- <b>`.S` files preprocessed by C preprocessor</b>: This is probably more
+  arch-dependent requirement than a generic one, but actually `.S` files for
+  all supported architectures need to be preprocessed, so it is specified here.
+  On most platforms, it works "out-of-the-box", on some others, you need to
+  perform additional steps for it: in these cases, necessary steps explained in
+  the "building" section for the appropriate architecture, see links below.
+- <b>Isolate each function in a section</b> Not a requirement, but
+  recommendation: for embedded designs, it is usually a good idea to isolate
+  each function in a section, so that in your application you can set linker
+  option like "remove unused sections", and save notable amount of flash
+  memory.
+
+For arch-dependent information on building TNeoKernel, please refer to the
+appropriate section:
 
 - \ref pic24_building "Building for PIC24/dsPIC"
 - \ref pic32_building "Building for PIC32"
+
+
 
 */

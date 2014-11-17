@@ -5,6 +5,33 @@
 
 This page contains quick guide on system startup and important implementation details.
 
+\section usage_generic Using TNeoKernel in your application
+
+The easiest way is to download version archive from [downloads page]
+(https://bitbucket.org/dfrank/tneokernel/downloads): it contains `bin` folder
+with library files for various platforms. These library files were built with
+default configuration file (`src/tn_cfg_default.h`, see the section \ref
+configuration_file).
+
+If you use MPLABX, it is probably better to add <i>library project</i> to your
+main project instead; library projects reside in the
+`<tneokernel_path>/lib_project` directory.
+
+In either case, all you need is the following:
+
+- Add library file for appropriate platform to your project (or <i>library
+  project</i> in case of MPLABX);
+- Add C include path: `<tneokernel_path>/src`;
+- Copy default configuration file as current configuration file: `cp
+  <tneokernel_path>/src/tn_cfg_default.h <tneokernel_path>/src/tn_cfg.h`
+  (for more information about configuration file and better ways to manage it,
+  refer to the section \ref configuration_file)
+
+That's all; you can use it in your project now. See below how to do this.
+
+If, however, you need to build it with some different configuration file, or
+you just want to hack on it, refer to the page \ref building.
+
 \section time_ticks Time ticks
 
 For the purpose of calculating timeouts, the kernel uses a time tick timer.  In

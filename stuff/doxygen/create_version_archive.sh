@@ -31,7 +31,7 @@ hg clone $repo_path $tmp_repo_path
 
 pic32_bin="$tmp_repo_path/bin/pic32"
 
-pushd src/arch/pic32/tneokernel_pic32.X
+pushd lib_project/pic32/tneokernel_pic32.X
 make
 
 # in the target temp dir, create "bin" dir
@@ -49,7 +49,7 @@ popd
 
 pic24_bin="$tmp_repo_path/bin/pic24_dspic"
 
-pushd src/arch/pic24_dspic/tneokernel_pic24_dspic.X
+pushd lib_project/pic24_dspic/tneokernel_pic24_dspic.X
 make all
 
 # in the target temp dir, create "bin" dir
