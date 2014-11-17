@@ -33,4 +33,6 @@ tneokernel_cortex_m_eclipse[/\\]Release
 
 tneokernel_cortex_m_coocox[/\\]Debug
 \.xcodeproj$
+\.cogui$
+\.comarker$
 
