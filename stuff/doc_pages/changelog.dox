@@ -7,6 +7,10 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
+  - Cortex-M0/M0+/M1/M3/M4/M4F architectures are now supported. The following
+    compilers are supported:
+    - ARMCC
+    - GCC
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.
