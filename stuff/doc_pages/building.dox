@@ -53,8 +53,8 @@ build library file as a separate step.
 
 If you want to create library project yourself (say, in some different IDE, or
 anything), or if you want to build TNeoKernel as a direct part of your project,
-there are some generic requirements (for architecture-dependent requirements,
-see links below):
+there are some generic requirements (there might be additional
+architecture-dependent requirements, see links below):
 
 - <b>Core sources</b>: add all `.c` files from `src/core` directory to the
   project.
@@ -83,6 +83,7 @@ appropriate section:
 
 - \ref pic24_building "Building for PIC24/dsPIC"
 - \ref pic32_building "Building for PIC32"
+- \ref cortex_m_building "Building for Cortex-M0/M1/M3/M4/M4F"
 
 
 

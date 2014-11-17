@@ -2,6 +2,15 @@
 = tneokernel dev / how to release =
 
   * recheck plans page: probably you have already implemented something?
+  * TODO: think how to build binaries. Besides the auto-generated ones (for PICs), we need the following:
+     * Keil ARMCC
+        * Cortex-M0
+        * Cortex-M0P
+        * Cortex-M3
+        * Cortex-M4
+        * Cortex-M4F
+     * GCC
+        * -- the same --
   * modify changelog: move everything from "_current development version_" to the new release section, specify release date.
   * make sure changelog does NOT containt "_current development version_", because it should not be present in the release documentation.
   * from the repo:

@@ -30,7 +30,7 @@
 
 === Cortex-M port ===
 
-   * [ ] document building: all include directories, C99, Asm --cpreproc, etc
+   * [X] document building: all include directories, C99, Asm --cpreproc, etc
    * [X] preprocess .S file
    * [X] make .S file work with GCC, too
    * [X] don't include cmsis by the core; use hardcoded addresses instead. It should work for all cortex-m devices.

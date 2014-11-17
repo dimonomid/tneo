@@ -227,4 +227,53 @@ If you want to build TNeoKernel manually, there are no additional arch-specific
 requirements; for generic notes about manual building, refer to the section
 \ref building_generic__manual.
 
+
+
+
+
+
+
+
+
+\section cortex_m_details Cortex-M0/M0+/M3/M4/M4F port details
+
+\subsection cortex_m_context_switch Context switch
+The context switch is implemented in a standard for Cortex-M CPUs way: the
+PendSV exception. It is configured by the kernel to the lowest priority.
+
+\subsection cortex_m_interrupts Interrupts
+
+For generic information about interrupts in TNeoKernel, refer to the page \ref
+interrupts.
+
+Cortex-M port has <i>system interrupts</i> only, there are no <i>user
+interrupts</i>.
+
+There are no constraints on ISRs: no special macros for ISR definition, or
+whatever. This is because Cortex-M processors are designed with OS applications
+in mind, so a number of featureas are available to make OS implementation
+easier and make OS operations more efficient.
+
+\subsection cortex_m_building Building
+
+For generic information on building TNeoKernel, refer to the page \ref building.
+
+There are many environments for building for Cortex-M CPUs (Keil, Eclipse,
+CooCox), all available projects reside in `lib_project/cortex_m` directory.
+They usually are pretty enough if you want to just build the kernel with
+non-default configuration.
+
+If, however, you want to build it not using provided project, there are some
+tips:
+
+<b>Keil 5, ARMCC compiler</b>
+
+To satisfy \ref building_generic__manual "building requirements", a couple of
+actions needed:
+
+- C99 is off by default. In project options, C/C++ tab, check "C99 Mode"
+  checkbox.
+- Assembler files (`.S`) aren't preprocessed by default, so, in project options,
+  Asm tab, "Misc Controls" field, type the following: `--cpreproc`
+
 */

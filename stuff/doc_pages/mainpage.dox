@@ -27,6 +27,7 @@ Related pages:
   - \ref arch_specific
     - \ref pic32_details
     - \ref pic24_details
+    - \ref cortex_m_details
   - \ref why_reimplement
   - \ref tnkernel_diff
   - \ref unit_tests
