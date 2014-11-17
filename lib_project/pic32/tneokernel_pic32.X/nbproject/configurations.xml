@@ -14,20 +14,20 @@
                    projectFiles="true">
       <logicalFolder name="arch" displayName="arch" projectFiles="true">
         <logicalFolder name="pic32" displayName="pic32" projectFiles="true">
-          <itemPath>../tn_arch_pic32.c</itemPath>
-          <itemPath>../tn_arch_pic32mx_xc32.S</itemPath>
+          <itemPath>../../../src/arch/pic32/tn_arch_pic32.c</itemPath>
+          <itemPath>../../../src/arch/pic32/tn_arch_pic32mx_xc32.S</itemPath>
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="core" displayName="core" projectFiles="true">
-        <itemPath>../../../core/tn_mutex.c</itemPath>
-        <itemPath>../../../core/tn_sem.c</itemPath>
-        <itemPath>../../../core/tn_tasks.c</itemPath>
-        <itemPath>../../../core/tn_dqueue.c</itemPath>
-        <itemPath>../../../core/tn_sys.c</itemPath>
-        <itemPath>../../../core/tn_list.c</itemPath>
-        <itemPath>../../../core/tn_eventgrp.c</itemPath>
-        <itemPath>../../../core/tn_fmem.c</itemPath>
-        <itemPath>../../../core/tn_timer.c</itemPath>
+        <itemPath>../../../src/core/tn_mutex.c</itemPath>
+        <itemPath>../../../src/core/tn_sem.c</itemPath>
+        <itemPath>../../../src/core/tn_tasks.c</itemPath>
+        <itemPath>../../../src/core/tn_dqueue.c</itemPath>
+        <itemPath>../../../src/core/tn_sys.c</itemPath>
+        <itemPath>../../../src/core/tn_list.c</itemPath>
+        <itemPath>../../../src/core/tn_eventgrp.c</itemPath>
+        <itemPath>../../../src/core/tn_fmem.c</itemPath>
+        <itemPath>../../../src/core/tn_timer.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -37,8 +37,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../../core</Elem>
-    <Elem>../..</Elem>
+    <Elem>../../../src/core</Elem>
+    <Elem>../../../src/arch</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -50,7 +50,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>1.33</languageToolchainVersion>
+        <languageToolchainVersion>1.21</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -83,7 +83,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value="../../../core;../..;../../..;../../../core/internal"/>
+                  value="../../../src/core;../../../src/arch;../../../src;../../../src/core/internal"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="true"/>
