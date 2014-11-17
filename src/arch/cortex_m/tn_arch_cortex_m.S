@@ -70,6 +70,7 @@
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        label
 #  define   _TN_END()               END
+#  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_GCC__)
 
@@ -78,6 +79,7 @@
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
 #  define   _TN_LABEL(label)        label:
 #  define   _TN_END()               /* nothing */
+#  define   _TN_THUMB_FUNC()        .thumb_func
 
 #endif
 
@@ -178,6 +180,7 @@ _TN_EQU(FPU_FPCCR_LSPEN, 0xBFFFFFFF)
  ******************************************************************************/
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+_TN_THUMB_FUNC()
 _TN_LABEL(ffs_asm)
 
       mov      r1, r0                  //-- tmp = in
@@ -190,6 +193,7 @@ _TN_LABEL(ffs_asm)
 
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(PendSV_Handler)
 
       cpsid    I                       //-- Disable core int
@@ -238,6 +242,7 @@ _TN_LABEL(PendSV_Handler)
 
       //-- r2 is now tn_curr_run_task
 
+_TN_THUMB_FUNC()
 _TN_LABEL(__context_restore)    //-- if you branch here, r2 should be tn_curr_run_task
 
       //-- load stack pointer of newly activated task to r0
@@ -276,6 +281,7 @@ _TN_LABEL(__context_restore)    //-- if you branch here, r2 should be tn_curr_ru
       bx       lr
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(_tn_arch_sys_start)
       //-- arguments:
       //     r0:  int_stack
@@ -336,6 +342,7 @@ _TN_LABEL(_tn_arch_sys_start)
 
       //-- proceed to _tn_arch_context_switch_now_nosave() ..
 
+_TN_THUMB_FUNC()
 _TN_LABEL(_tn_arch_context_switch_now_nosave)
 
       //-- we should enable core int because we're going to
@@ -348,6 +355,7 @@ _TN_LABEL(_tn_arch_context_switch_now_nosave)
 
 
       //-- SVC is used for context_switch_now_nosave.
+_TN_THUMB_FUNC()
 _TN_LABEL(SVC_Handler)
 
       //-- there is just one service possible: context_switch_now_nosave,
@@ -369,6 +377,7 @@ _TN_LABEL(SVC_Handler)
 
       
 
+_TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_dis)
 
       cpsid    I
@@ -376,12 +385,14 @@ _TN_LABEL(tn_arch_int_dis)
 
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_en)
 
       cpsie    I
       bx       lr
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sr_save_int_dis)
 
       mrs      r0, PRIMASK
@@ -389,18 +400,21 @@ _TN_LABEL(tn_arch_sr_save_int_dis)
       bx       lr
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sr_restore)
 
       msr      PRIMASK, r0
       bx       lr
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(_tn_arch_is_int_disabled)
 
       mrs      r0, PRIMASK
       bx       lr
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(_tn_arch_inside_isr)
 
       mrs      r0, CONTROL
@@ -425,6 +439,7 @@ __ne
 #endif
 
 
+_TN_THUMB_FUNC()
 _TN_LABEL(_tn_arch_context_switch_pend)
 
       ldr      r1, =ICSR_ADDR
