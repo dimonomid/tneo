@@ -103,15 +103,22 @@ consider the following:
 For generic information on building TNeoKernel, refer to the page \ref building.
 
 MPLABX project for PIC32 port resides in the
-`lib_project/pic32/tneokernel_pic32.X` directory.  This is a *library project* in
-terms of MPLABX, so if you use MPLABX you can easily add it to your main
-project by right-clicking `Libraries -> Add Library Project ...`.
+`lib_project/pic32/tneokernel_pic32.X` directory.  This is a *library project*
+in terms of MPLABX, so if you use MPLABX you can easily add it to your
+application project by right-clicking `Libraries -> Add Library Project ...`.
 Alternatively, of course you can just build it and use resulting
 `tneokernel_pic32.X.a` file in whatever way you like.
 
-If you want to build TNeoKernel manually, there are no additional arch-specific
-requirements; for generic notes about manual building, refer to the section
-\ref building_generic__manual.
+If you want to build TNeoKernel manually, refer to the section \ref
+building_generic__manual for generic notes about it, and there is a couple of
+arch-dependent sources you need to add to the project:
+
+- `src/arch/pic32/tn_arch_pic32.c`
+- `src/arch/pic32/tn_arch_pic32mx_xc32.S`
+
+\attention There is one more file: `tn_arch_pic32_int_vec1.S`, which should be
+included <b>in your application project</b> to make things work. It is needed
+to dispatch vector1 (Core Software Interrupt 0) correctly.
 
 
 
@@ -223,9 +230,9 @@ When you add library project to your application project, you should select
 correct configuration for your device; otherwise, you get "undefined reference"
 errors at linker step.
 
-If you want to build TNeoKernel manually, there are no additional arch-specific
-requirements; for generic notes about manual building, refer to the section
-\ref building_generic__manual.
+If you want to build TNeoKernel manually, refer to the section \ref
+building_generic__manual for generic notes about it, and additionally you should
+add arch-dependent sources: all `.c` and `.S` files from `src/arch/pic24_dspic`
 
 
 
@@ -263,8 +270,12 @@ CooCox), all available projects reside in `lib_project/cortex_m` directory.
 They usually are pretty enough if you want to just build the kernel with
 non-default configuration.
 
-If, however, you want to build it not using provided project, there are some
-tips:
+If, however, you want to build it not using provided project, refer to the
+section \ref building_generic__manual for generic notes about it, and
+additionally you should add arch-dependent sources: all `.c` and `.S` files
+from `src/arch/cortex_m`.
+
+There are some additional tips depending on the build environment:
 
 <b>Keil 5, ARMCC compiler</b>
 
