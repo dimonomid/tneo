@@ -432,7 +432,7 @@ enum TN_RCode tn_task_create(
    task->pwait_queue  = TN_NULL;
 
 #if TN_PROFILER
-   memset(&task->timing, 0x00, sizeof(task->timing));
+   memset(&task->profiler, 0x00, sizeof(task->profiler));
 #endif
 
    //-- fill all task stack space by #TN_FILL_STACK_VAL
@@ -1170,8 +1170,8 @@ void _tn_task_exit_nodelete(void)
 
 #if TN_PROFILER
 void _tn_task_profiler_on_context_switch(
-      struct TN_Task *task_old,  //-- task was running, goes to wait
-      struct TN_Task *task_new   //-- task was waiting, goes to run
+      struct TN_Task *task_prev, //-- task was running, going to wait
+      struct TN_Task *task_new   //-- task was waiting, going to run
       )
 {
 #if TN_DEBUG
@@ -1182,55 +1182,70 @@ void _tn_task_profiler_on_context_switch(
 #endif
    TN_SysTickCnt cur_tick_cnt = _tn_sys_time_get();
 
-   //-- when starting system, task_old is NULL, so, we should check this case
-   if (task_old != TN_NULL){
-      if (!task_old->timing.bool_run){
+   //-- handle task_prev (the one that was running and going to wait) {{{
+   {
+#if TN_DEBUG
+      if (!task_prev->profiler.bool_run){
          _TN_FATAL_ERROR();
       }
+      task_prev->profiler.bool_run = 0;
+#endif
+
       //-- get difference between current time and last saved time:
       //   this is the time task was running.
       TN_SysTickCnt cur_run_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_old->timing.last_tick_cnt);
+         = (TN_SysTickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
 
       //-- add it to total run time
-      task_old->timing.timing.total_run_time += cur_run_time;
+      task_prev->profiler.timing.total_run_time += cur_run_time;
 
       //-- check if we should update consecutive max run time
-      if (task_old->timing.timing.max_run_time < cur_run_time){
-         task_old->timing.timing.max_run_time = cur_run_time;
+      if (task_prev->profiler.timing.max_consecutive_run_time < cur_run_time){
+         task_prev->profiler.timing.max_consecutive_run_time = cur_run_time;
       }
 
       //-- update current task state
-      task_old->timing.last_tick_cnt      = cur_tick_cnt;
-      task_old->timing.last_wait_reason   = task_old->task_wait_reason;
-      task_old->timing.bool_run = 0;
+      task_prev->profiler.last_tick_cnt      = cur_tick_cnt;
+      task_prev->profiler.last_wait_reason   = task_prev->task_wait_reason;
    }
+   // }}}
 
+   //-- handle task_new (the one that was waiting and going to run) {{{
    {
-      if (task_new->timing.bool_run){
+#if TN_DEBUG
+      if (task_new->profiler.bool_run){
          _TN_FATAL_ERROR();
       }
+      task_new->profiler.bool_run = 1;
+#endif
+
       //-- get difference between current time and last saved time:
       //   this is the time task was waiting.
       TN_SysTickCnt cur_wait_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_new->timing.last_tick_cnt);
+         = (TN_SysTickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
 
       //-- add it to total total_wait_time for particular wait reason
-      task_new->timing.timing.total_wait_time[ task_new->timing.last_wait_reason ] 
+      task_new->profiler.timing.total_wait_time
+         [ task_new->profiler.last_wait_reason ] 
          += cur_wait_time;
 
       //-- check if we should update consecutive max wait time
-      if (task_new->timing.timing.max_wait_time[ task_new->timing.last_wait_reason ] < cur_wait_time){
-         task_new->timing.timing.max_wait_time[ task_new->timing.last_wait_reason ] = cur_wait_time;
+      if (
+            task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] < cur_wait_time
+         )
+      {
+         task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] = cur_wait_time;
       }
 
-      //-- increment the counter of times task got runnable
-      task_new->timing.timing.run_cnt++;
+      //-- increment the counter of times task got running
+      task_new->profiler.timing.got_running_cnt++;
 
       //-- update current task state
-      task_new->timing.last_tick_cnt      = cur_tick_cnt;
-      task_new->timing.bool_run = 1;
+      task_new->profiler.last_tick_cnt      = cur_tick_cnt;
    }
+   // }}}
 }
 #endif
 

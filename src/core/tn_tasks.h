@@ -244,22 +244,24 @@ enum TN_TaskExitOpt {
 
 #if TN_PROFILER
 /**
- * Profiler structure, contained in each `struct #TN_Task` structure.
+ * Profiler timing structure, contained in each `struct #TN_Task` structure.
  * Available if only `#TN_PROFILER` option is non-zero.
  */
 struct TN_TaskTiming {
    unsigned long long   total_run_time;
    unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
-   unsigned long        max_run_time;
-   unsigned long        max_wait_time[ TN_WAIT_REASONS_CNT ];
+   unsigned long        max_consecutive_run_time;
+   unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
 
-   unsigned long        run_cnt; //-- how many times task got runnable
+   unsigned long        got_running_cnt; //-- how many times task got running
 };
 
-struct _TN_TaskTiming {
+struct _TN_TaskProfiler {
    TN_SysTickCnt        last_tick_cnt;
    enum TN_WaitReason   last_wait_reason;
+#if TN_DEBUG
    int                  bool_run;
+#endif
    struct TN_TaskTiming timing;
 };
 #endif
@@ -367,7 +369,7 @@ struct TN_Task {
 #endif
 
 #if TN_PROFILER
-   struct _TN_TaskTiming    timing;
+   struct _TN_TaskProfiler    profiler;
 #endif
 
    /// Internal flag used to optimize mutex priority algorithms.

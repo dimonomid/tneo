@@ -18,6 +18,12 @@
    * [ ] get rid of memset
    * [ ] document profiler functionality in arch-dependent functions
    * [ ] remove bool_run
+   * [ ] profiler for all platforms
+   * [ ] document things
+   * [ ] system service for getting profiler information
+   * [ ] add TN_ON_SWITCH_CONTEXT_HANDLER_PRESENT, which should reflect TN_STACK_OVERFLOW_CHECK as well (in the future).
+   * [ ] refactor profiler structure names
+   * [ ] add service to set task name
 
 === dynamic tick ===
 
