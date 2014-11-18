@@ -86,7 +86,7 @@ extern volatile unsigned int tn_ready_to_run_bmp;
 
 /// system time that can be returned by `tn_sys_time_get()`; it is also used
 /// by tn_timer.h subsystem.
-extern volatile unsigned int tn_sys_time_count;
+extern volatile TN_SysTickCnt tn_sys_time_count;
 
 ///
 /// idle task structure
@@ -217,6 +217,16 @@ static _TN_INLINE void _tn_context_switch_pend_if_needed(void)
    if (_tn_need_context_switch()){
       _tn_arch_context_switch_pend();
    }
+}
+
+static _TN_INLINE TN_SysTickCnt _tn_sys_time_get(void)
+{
+   //-- NOTE: interrupts should be disabled here
+#if !TN_DYNAMIC_TICK
+   return tn_sys_time_count;
+#else
+   return _tn_cb_tick_cnt_get();
+#endif
 }
 
 

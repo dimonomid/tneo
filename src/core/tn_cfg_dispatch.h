@@ -121,6 +121,10 @@
 #  error TN_API_MAKE_ALIG_ARG is not defined
 #endif
 
+#if !defined(TN_PROFILER)
+#  error TN_PROFILER is not defined
+#endif
+
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if !defined(TN_P24_SYS_IPL)
 #     error TN_P24_SYS_IPL is not defined

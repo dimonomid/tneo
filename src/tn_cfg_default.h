@@ -206,6 +206,11 @@
 #endif
 
 
+#ifndef TN_PROFILER
+#  define TN_PROFILER         1
+#endif
+
+
 /**
  * Don't change it, it is still under construction!
  * The only valid value of `TN_DYNAMIC_TICK` is 0.

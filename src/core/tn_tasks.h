@@ -139,6 +139,7 @@ extern "C"  {     /*}*/
  * Task state
  */
 enum TN_TaskState {
+   ///
    /// This state should never be publicly available.
    /// It may be stored in task_state only temporarily,
    /// while some system service is in progress.
@@ -161,6 +162,8 @@ enum TN_TaskState {
    ///
    /// Task isn't yet activated or it was terminated by `tn_task_terminate()`.
    TN_TASK_STATE_DORMANT      = (1 << 3),
+
+
 };
 
 
@@ -169,43 +172,51 @@ enum TN_TaskState {
  */
 enum TN_WaitReason {
    ///
-   /// task isn't waiting for anything
-   TN_WAIT_REASON_NONE,
-   ///
-   /// task has called `tn_task_sleep()`
+   /// Task has called `tn_task_sleep()`
    TN_WAIT_REASON_SLEEP,
    ///
-   /// task waits to acquire a semaphore
+   /// Task waits to acquire a semaphore
    /// @see tn_sem.h
    TN_WAIT_REASON_SEM,
    ///
-   /// task waits for some event in the event group to be set
+   /// Task waits for some event in the event group to be set
    /// @see tn_eventgrp.h
    TN_WAIT_REASON_EVENT,
    ///
-   /// task wants to put some data to the data queue, and there's no space
+   /// Task wants to put some data to the data queue, and there's no space
    /// in the queue.
    /// @see tn_dqueue.h
    TN_WAIT_REASON_DQUE_WSEND,
    ///
-   /// task wants to receive some data to the data queue, and there's no data
+   /// Task wants to receive some data to the data queue, and there's no data
    /// in the queue
    /// @see tn_dqueue.h
    TN_WAIT_REASON_DQUE_WRECEIVE,
    ///
-   /// task wants to lock a mutex with priority ceiling
+   /// Task wants to lock a mutex with priority ceiling
    /// @see tn_mutex.h
    TN_WAIT_REASON_MUTEX_C,
    ///
-   /// task wants to lock a mutex with priority inheritance
+   /// Task wants to lock a mutex with priority inheritance
    /// @see tn_mutex.h
    TN_WAIT_REASON_MUTEX_I,
    ///
-   /// task wants to get memory block from memory pool, and there's no free
+   /// Task wants to get memory block from memory pool, and there's no free
    /// memory blocks
    /// @see tn_fmem.h
    TN_WAIT_REASON_WFIXMEM,
+
+
+   ///
+   /// Wait reasons count
+   TN_WAIT_REASONS_CNT
 };
+
+///
+/// Task isn't waiting for anything
+///
+/// Internally, it is synonym for `#TN_WAIT_REASONS_CNT` actually.
+#define  TN_WAIT_REASON_NONE   TN_WAIT_REASONS_CNT
 
 /**
  * Options for `tn_task_create()`
@@ -234,6 +245,27 @@ enum TN_TaskExitOpt {
    TN_TASK_EXIT_OPT_DELETE = (1 << 0),
 };
 
+#if TN_PROFILER
+/**
+ * Profiler structure, contained in each `struct #TN_Task` structure.
+ * Available if only `#TN_PROFILER` option is non-zero.
+ */
+struct TN_TaskTiming {
+   unsigned long long   total_run_time;
+   unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
+   unsigned long        max_run_time;
+   unsigned long        max_wait_time[ TN_WAIT_REASONS_CNT ];
+
+   unsigned long        run_cnt; //-- how many times task got runnable
+};
+
+struct _TN_TaskTiming {
+   TN_SysTickCnt        last_tick_cnt;
+   enum TN_WaitReason   last_wait_reason;
+   int                  bool_run;
+   struct TN_TaskTiming timing;
+};
+#endif
 
 /**
  * Task
@@ -335,6 +367,10 @@ struct TN_Task {
 #if TN_DEBUG
    /// task name for debug purposes, user may want to set it by hand
    const char *name;          
+#endif
+
+#if TN_PROFILER
+   struct _TN_TaskTiming    timing;
 #endif
 
    /// Internal flag used to optimize mutex priority algorithms.

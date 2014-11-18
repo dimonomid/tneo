@@ -37,7 +37,7 @@ call CheckNeededSymbols(
          \  ]
          \  )
 
-let s:sProject = 'arch/pic32/tneokernel_pic32.X'
+let s:sProject = '../lib_project/pic32/tneokernel_pic32.X'
 
 call envcontrol#set_project_file($INDEXER_PROJECT_ROOT.'/'.s:sProject, 'MPLAB_X', {
          \        'parser_params': {

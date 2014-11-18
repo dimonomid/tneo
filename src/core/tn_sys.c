@@ -94,7 +94,7 @@ volatile unsigned int tn_ready_to_run_bmp;
 
 
 #if !TN_DYNAMIC_TICK
-volatile unsigned int tn_sys_time_count;
+volatile TN_SysTickCnt tn_sys_time_count;
 #endif
 
 
@@ -380,14 +380,16 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 /*
  * See comments in the header file (tn_sys.h)
  */
-unsigned int tn_sys_time_get(void)
+TN_SysTickCnt tn_sys_time_get(void)
 {
-#if !TN_DYNAMIC_TICK
-   //-- NOTE: it works if only read access to unsigned int is atomic!
-   return tn_sys_time_count;
-#else
-   return _tn_cb_tick_cnt_get();
-#endif
+   TN_SysTickCnt ret;
+   TN_INTSAVE_DATA;
+
+   TN_INT_DIS_SAVE();
+   ret = _tn_sys_time_get();
+   TN_INT_RESTORE();
+
+   return ret;
 }
 
 /*

@@ -377,6 +377,10 @@ TN_BOOL _tn_task_first_wait_complete(
  */
 void _tn_task_exit_nodelete(void);
 
+void _tn_task_profiler_on_context_switch(
+      struct TN_Task *task_old,
+      struct TN_Task *task_new
+      );
 
 /*******************************************************************************
  *    PROTECTED INLINE FUNCTIONS

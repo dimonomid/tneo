@@ -200,7 +200,6 @@ typedef void (TN_CBDeadlock)(
       struct TN_Task *task
       );
 
-
 #if TN_DYNAMIC_TICK
 
 typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
@@ -325,7 +324,7 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks);
  * @return
  *    Current system ticks count. 
  */
-unsigned int tn_sys_time_get(void);
+TN_SysTickCnt tn_sys_time_get(void);
 
 
 /**

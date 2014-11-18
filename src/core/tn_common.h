@@ -183,6 +183,7 @@ typedef void (TN_TaskBody)(void *param);
  */
 typedef unsigned long TN_Timeout;
 
+typedef unsigned long TN_SysTickCnt;
 
 /*******************************************************************************
  *    GLOBAL VARIABLES

@@ -34,6 +34,8 @@
  *
  ******************************************************************************/
 
+#include "tn_cfg_dispatch.h"
+
     .set mips32r2
     .set nomips16
     .text
@@ -44,6 +46,7 @@
     .extern  tn_curr_run_task, 4
     .extern  tn_next_task_to_run, 4
     .extern  tn_sys_state, 4
+    .extern  _tn_task_profiler_on_context_switch, 4
 
     /* Public functions declared in this file */
 
@@ -72,12 +75,20 @@ _tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
-    lw      $t1, tn_next_task_to_run   /* t1 = tn_next_task_to_run; */
-    lw      $sp, 0($t1)                /* sp = *t1; */
+    lw      $a1, tn_next_task_to_run   /* a1 = tn_next_task_to_run; */
+
+#if TN_PROFILER
+    addu    $a0, $zero, $zero
+    /* NOTE: next instruction is executed BEFORE call, so,
+       SP is updated to tn_next_task_to_run->stack_top before call */
+    jal     _tn_task_profiler_on_context_switch
+#endif
+
+    lw      $sp, 0($a1)                /* sp = *a1; */
                                        /* i.e. sp = *(int *)tn_next_task_to_run; */
     la      $t0, tn_curr_run_task      /* t0 = &tn_curr_run_task; */
     j       tn_restore_context
-    sw      $t1, 0($t0)                /* *t0 = t1; */
+    sw      $a1, 0($t0)                /* *t0 = a1; */
                                        /* i.e. tn_curr_run_task = tn_next_task_to_run; */
 
     .end _tn_arch_context_switch_now_nosave
@@ -158,17 +169,31 @@ cs0_int_handler:
     sw      $t0, 4($sp)
     sw      $t1, 0($sp)
 
-    la      $t0, tn_curr_run_task
-    lw      $t1, 0($t0)
-    sw      $sp, 0($t1)                 /* store sp in preempted task's TCB */
+    la      $s0, tn_curr_run_task       /* s0 = &tn_curr_run_task */
+    lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
+    sw      $sp, 0($a0)                 /* store sp in preempted task's TCB */
+
+
 
     di      $t2                         /* disable interrupts */
     ehb
 
-    la      $t1, tn_next_task_to_run
-    lw      $t1, 0($t1)
-    lw      $sp, 0($t1)                 /* get new task's sp */
-    sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    la      $a1, tn_next_task_to_run    /* a1 = &tn_next_task_to_run */
+    lw      $a1, 0($a1)                 /* a1 =  tn_next_task_to_run */
+
+
+
+
+
+
+#if TN_PROFILER
+    /* NOTE: next instruction is executed BEFORE call, so,
+       SP is updated to tn_next_task_to_run->stack_top before call */
+    jal     _tn_task_profiler_on_context_switch
+#endif
+
+    lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */
+    sw      $a1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
     lui     $k0, %hi(IFS0CLR)           /* clear cs0 pending bit */
     ori     $k1, $zero, 2
