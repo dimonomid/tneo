@@ -302,6 +302,7 @@ void tn_sys_start(
 
    //-- set tn_curr_run_task to idle task
    tn_curr_run_task = &tn_idle_task;
+   tn_idle_task.timing.bool_run = 1;
 
    //-- now, we can create user's task(s)
    //   (by user-provided callback)

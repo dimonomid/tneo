@@ -13,6 +13,12 @@
    * [ ] rename tn_callback_... to _tn_cb_....
 
 
+=== profiler ===
+
+   * [ ] get rid of memset
+   * [ ] document profiler functionality in arch-dependent functions
+   * [ ] remove bool_run
+
 === dynamic tick ===
 
    * [ ] make TN_DYNAMIC_TICK off by default

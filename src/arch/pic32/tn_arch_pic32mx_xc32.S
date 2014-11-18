@@ -75,21 +75,19 @@ _tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
-    lw      $a1, tn_next_task_to_run   /* a1 = tn_next_task_to_run; */
+    la      $s0, tn_curr_run_task       /* s0 = &tn_curr_run_task */
+    lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
+    lw      $a1, tn_next_task_to_run    /* a1 =  tn_next_task_to_run */
 
 #if TN_PROFILER
-    addu    $a0, $zero, $zero
     /* NOTE: next instruction is executed BEFORE call, so,
        SP is updated to tn_next_task_to_run->stack_top before call */
     jal     _tn_task_profiler_on_context_switch
 #endif
 
-    lw      $sp, 0($a1)                /* sp = *a1; */
-                                       /* i.e. sp = *(int *)tn_next_task_to_run; */
-    la      $t0, tn_curr_run_task      /* t0 = &tn_curr_run_task; */
+    lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */
     j       tn_restore_context
-    sw      $a1, 0($t0)                /* *t0 = a1; */
-                                       /* i.e. tn_curr_run_task = tn_next_task_to_run; */
+    sw      $a1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
     .end _tn_arch_context_switch_now_nosave
 
@@ -180,11 +178,6 @@ cs0_int_handler:
 
     la      $a1, tn_next_task_to_run    /* a1 = &tn_next_task_to_run */
     lw      $a1, 0($a1)                 /* a1 =  tn_next_task_to_run */
-
-
-
-
-
 
 #if TN_PROFILER
     /* NOTE: next instruction is executed BEFORE call, so,
