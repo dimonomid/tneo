@@ -304,7 +304,7 @@ void tn_sys_start(
    tn_curr_run_task = &tn_idle_task;
 #if TN_PROFILER
 #if TN_DEBUG
-   tn_idle_task.profiler.bool_run = 1;
+   tn_idle_task.profiler.is_running = 1;
 #endif
 #endif
 

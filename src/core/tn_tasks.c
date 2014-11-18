@@ -55,6 +55,9 @@
 //-- header of other needed modules
 #include "tn_mutex.h"
 
+//-- std header for memset()
+#include <string.h>
+
 
 
 /*******************************************************************************
@@ -1185,10 +1188,10 @@ void _tn_task_profiler_on_context_switch(
    //-- handle task_prev (the one that was running and going to wait) {{{
    {
 #if TN_DEBUG
-      if (!task_prev->profiler.bool_run){
+      if (!task_prev->profiler.is_running){
          _TN_FATAL_ERROR();
       }
-      task_prev->profiler.bool_run = 0;
+      task_prev->profiler.is_running = 0;
 #endif
 
       //-- get difference between current time and last saved time:
@@ -1213,10 +1216,10 @@ void _tn_task_profiler_on_context_switch(
    //-- handle task_new (the one that was waiting and going to run) {{{
    {
 #if TN_DEBUG
-      if (task_new->profiler.bool_run){
+      if (task_new->profiler.is_running){
          _TN_FATAL_ERROR();
       }
-      task_new->profiler.bool_run = 1;
+      task_new->profiler.is_running = 1;
 #endif
 
       //-- get difference between current time and last saved time:

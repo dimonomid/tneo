@@ -15,9 +15,7 @@
 
 === profiler ===
 
-   * [ ] get rid of memset
    * [ ] document profiler functionality in arch-dependent functions
-   * [ ] remove bool_run
    * [ ] profiler for all platforms
    * [ ] document things
    * [ ] system service for getting profiler information

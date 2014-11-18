@@ -260,7 +260,7 @@ struct _TN_TaskProfiler {
    TN_SysTickCnt        last_tick_cnt;
    enum TN_WaitReason   last_wait_reason;
 #if TN_DEBUG
-   int                  bool_run;
+   int                  is_running;
 #endif
    struct TN_TaskTiming timing;
 };
