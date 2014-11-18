@@ -172,6 +172,9 @@ enum TN_TaskState {
  */
 enum TN_WaitReason {
    ///
+   /// Task isn't waiting for anything
+   TN_WAIT_REASON_NONE,
+   ///
    /// Task has called `tn_task_sleep()`
    TN_WAIT_REASON_SLEEP,
    ///
@@ -211,12 +214,6 @@ enum TN_WaitReason {
    /// Wait reasons count
    TN_WAIT_REASONS_CNT
 };
-
-///
-/// Task isn't waiting for anything
-///
-/// Internally, it is synonym for `#TN_WAIT_REASONS_CNT` actually.
-#define  TN_WAIT_REASON_NONE   TN_WAIT_REASONS_CNT
 
 /**
  * Options for `tn_task_create()`
