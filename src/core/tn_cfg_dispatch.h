@@ -160,6 +160,12 @@
 
 
 
+#if TN_PROFILER /* TODO: when stack check is implemented, add it here with || */
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
+#else
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  0
+#endif
+
 #endif // _TN_CFG_DISPATCH_H
 
 

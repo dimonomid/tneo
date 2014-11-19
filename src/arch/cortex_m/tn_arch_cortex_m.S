@@ -118,7 +118,7 @@
 
    _TN_EXTERN(tn_curr_run_task)
    _TN_EXTERN(tn_next_task_to_run)
-   _TN_EXTERN(_tn_task_profiler_on_context_switch)
+   _TN_EXTERN(_tn_sys_on_context_switch)
 
 
 
@@ -239,8 +239,8 @@ _TN_LABEL(PendSV_Handler)
       str      r2, [r0]                //-- tn_curr_run_task->stack_top = SP
 
 
-#if TN_PROFILER
-      bl       _tn_task_profiler_on_context_switch
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+      bl       _tn_sys_on_context_switch
 #endif
 
       //-- tn_curr_run_task = tn_next_task_to_run
@@ -376,8 +376,8 @@ _TN_LABEL(SVC_Handler)
       ldr      r0, [r5]                   //-- r0 =  tn_curr_run_task
       ldr      r1, [r6]                   //-- r1 =  tn_next_task_to_run
 
-#if TN_PROFILER
-      bl       _tn_task_profiler_on_context_switch
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+      bl       _tn_sys_on_context_switch
 #endif
 
       ldr      r4, [r6]                   //-- r4 =  tn_next_task_to_run

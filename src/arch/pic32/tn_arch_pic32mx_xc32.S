@@ -46,7 +46,7 @@
     .extern  tn_curr_run_task, 4
     .extern  tn_next_task_to_run, 4
     .extern  tn_sys_state, 4
-    .extern  _tn_task_profiler_on_context_switch, 4
+    .extern  _tn_sys_on_context_switch, 4
 
     /* Public functions declared in this file */
 
@@ -79,10 +79,10 @@ _tn_arch_context_switch_now_nosave:
     lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
     lw      $a1, tn_next_task_to_run    /* a1 =  tn_next_task_to_run */
 
-#if TN_PROFILER
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
     /* NOTE: next instruction is executed BEFORE call, so,
        SP is updated to tn_next_task_to_run->stack_top before call */
-    jal     _tn_task_profiler_on_context_switch
+    jal     _tn_sys_on_context_switch
 #endif
 
     lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */
@@ -179,10 +179,10 @@ cs0_int_handler:
     la      $a1, tn_next_task_to_run    /* a1 = &tn_next_task_to_run */
     lw      $a1, 0($a1)                 /* a1 =  tn_next_task_to_run */
 
-#if TN_PROFILER
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
     /* NOTE: next instruction is executed BEFORE call, so,
        SP is updated to tn_next_task_to_run->stack_top before call */
-    jal     _tn_task_profiler_on_context_switch
+    jal     _tn_sys_on_context_switch
 #endif
 
     lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */

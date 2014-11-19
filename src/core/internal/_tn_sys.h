@@ -191,6 +191,12 @@ void _tn_memcpy_uword(
       );
 
 
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+void _tn_sys_on_context_switch(
+      struct TN_Task *task_prev, //-- task was running, going to wait
+      struct TN_Task *task_new   //-- task was waiting, going to run
+      );
+#endif
 
 
 /*******************************************************************************
