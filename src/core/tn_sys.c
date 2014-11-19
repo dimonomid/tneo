@@ -189,6 +189,7 @@ static _TN_INLINE void _round_robin_manage(void)
 #endif
 
 
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
 #if TN_PROFILER
 /**
  * This function is called at every context switch, if `#TN_PROFILER` is 
@@ -287,6 +288,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       struct TN_Task *task_new   //-- task was waiting, going to run
       )
 {}
+#endif
 #endif
 
 /**
