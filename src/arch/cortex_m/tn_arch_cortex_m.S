@@ -375,7 +375,6 @@ _TN_LABEL(SVC_Handler)
 
       cpsid    I              //-- Disable core int
 
-      //-- tn_curr_run_task = tn_next_task_to_run {{{
       ldr      r5, =tn_curr_run_task      //-- r5 = &tn_curr_run_task
       ldr      r6, =tn_next_task_to_run   //-- r6 = &tn_next_task_to_run
       ldr      r0, [r5]                   //-- r0 =  tn_curr_run_task
@@ -392,7 +391,6 @@ _TN_LABEL(SVC_Handler)
 
       ldr      r4, [r6]                   //-- r4 =  tn_next_task_to_run
       str      r4, [r5]                   //-- tn_curr_run_task = tn_next_task_to_run
-      //-- }}}
 
       //-- r4 is now tn_curr_run_task
 
