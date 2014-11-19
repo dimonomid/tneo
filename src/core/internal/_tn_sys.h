@@ -172,26 +172,22 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
 void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task);
 #endif
 
-/**
- * memcpy that operates with `#TN_UWord`s. Note: memory overlapping isn't
- * handled: data is always copied from lower addresses to higher ones.
- *
- * @param tgt
- *    Target memory address
- *
- * @param src
- *    Source memory address
- *
- * @param size_uwords
- *    Number of words to copy
- *
- */
-void _tn_memcpy_uword(
-      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
-      );
-
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
+/**
+ * This function is called at every context switch, if needed
+ * (that is, if we have at least one on-context-switch handler: 
+ * say, profiler. See `#TN_PROFILER`).
+ *
+ * It is a wrapper function which calls actual handlers, so that if we need
+ * to add a new handler, we modify C code in just one place, instead of 
+ * modifying assembler code for each platform.
+ *
+ * @param task_prev
+ *    Task that was running, and now it is going to wait
+ * @param task_new
+ *    Task that was waiting, and now it is going to run
+ */
 void _tn_sys_on_context_switch(
       struct TN_Task *task_prev, //-- task was running, going to wait
       struct TN_Task *task_new   //-- task was waiting, going to run

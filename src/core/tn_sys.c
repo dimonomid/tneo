@@ -188,6 +188,107 @@ static _TN_INLINE void _round_robin_manage(void)
 
 #endif
 
+
+#if TN_PROFILER
+/**
+ * This function is called at every context switch, if `#TN_PROFILER` is 
+ * non-zero.
+ *
+ * @param task_prev
+ *    Task that was running, and now it is going to wait
+ * @param task_new
+ *    Task that was waiting, and now it is going to run
+ */
+static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+      struct TN_Task *task_prev,
+      struct TN_Task *task_new
+      )
+{
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+   TN_SysTickCnt cur_tick_cnt = _tn_sys_time_get();
+
+   //-- handle task_prev (the one that was running and going to wait) {{{
+   {
+#if TN_DEBUG
+      if (!task_prev->profiler.is_running){
+         _TN_FATAL_ERROR();
+      }
+      task_prev->profiler.is_running = 0;
+#endif
+
+      //-- get difference between current time and last saved time:
+      //   this is the time task was running.
+      TN_SysTickCnt cur_run_time
+         = (TN_SysTickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
+
+      //-- add it to total run time
+      task_prev->profiler.timing.total_run_time += cur_run_time;
+
+      //-- check if we should update consecutive max run time
+      if (task_prev->profiler.timing.max_consecutive_run_time < cur_run_time){
+         task_prev->profiler.timing.max_consecutive_run_time = cur_run_time;
+      }
+
+      //-- update current task state
+      task_prev->profiler.last_tick_cnt      = cur_tick_cnt;
+      task_prev->profiler.last_wait_reason   = task_prev->task_wait_reason;
+   }
+   // }}}
+
+   //-- handle task_new (the one that was waiting and going to run) {{{
+   {
+#if TN_DEBUG
+      if (task_new->profiler.is_running){
+         _TN_FATAL_ERROR();
+      }
+      task_new->profiler.is_running = 1;
+#endif
+
+      //-- get difference between current time and last saved time:
+      //   this is the time task was waiting.
+      TN_SysTickCnt cur_wait_time
+         = (TN_SysTickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
+
+      //-- add it to total total_wait_time for particular wait reason
+      task_new->profiler.timing.total_wait_time
+         [ task_new->profiler.last_wait_reason ] 
+         += cur_wait_time;
+
+      //-- check if we should update consecutive max wait time
+      if (
+            task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] < cur_wait_time
+         )
+      {
+         task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] = cur_wait_time;
+      }
+
+      //-- increment the counter of times task got running
+      task_new->profiler.timing.got_running_cnt++;
+
+      //-- update current task state
+      task_new->profiler.last_tick_cnt      = cur_tick_cnt;
+   }
+   // }}}
+}
+#else
+
+/**
+ * Stub empty function, it is needed when `#TN_PROFILER` is zero.
+ */
+static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+      struct TN_Task *task_prev, //-- task was running, going to wait
+      struct TN_Task *task_new   //-- task was waiting, going to run
+      )
+{}
+#endif
+
 /**
  * Create idle task, the task is NOT started after creation.
  */
@@ -549,116 +650,18 @@ void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *ta
 }
 #endif
 
-#if TN_PROFILER
-static _TN_INLINE void _tn_sys_on_context_switch_profiler(
-      struct TN_Task *task_prev, //-- task was running, going to wait
-      struct TN_Task *task_new   //-- task was waiting, going to run
-      )
-{
-#if TN_DEBUG
-   //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
-   TN_SysTickCnt cur_tick_cnt = _tn_sys_time_get();
-
-   //-- handle task_prev (the one that was running and going to wait) {{{
-   {
-#if TN_DEBUG
-      if (!task_prev->profiler.is_running){
-         _TN_FATAL_ERROR();
-      }
-      task_prev->profiler.is_running = 0;
-#endif
-
-      //-- get difference between current time and last saved time:
-      //   this is the time task was running.
-      TN_SysTickCnt cur_run_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
-
-      //-- add it to total run time
-      task_prev->profiler.timing.total_run_time += cur_run_time;
-
-      //-- check if we should update consecutive max run time
-      if (task_prev->profiler.timing.max_consecutive_run_time < cur_run_time){
-         task_prev->profiler.timing.max_consecutive_run_time = cur_run_time;
-      }
-
-      //-- update current task state
-      task_prev->profiler.last_tick_cnt      = cur_tick_cnt;
-      task_prev->profiler.last_wait_reason   = task_prev->task_wait_reason;
-   }
-   // }}}
-
-   //-- handle task_new (the one that was waiting and going to run) {{{
-   {
-#if TN_DEBUG
-      if (task_new->profiler.is_running){
-         _TN_FATAL_ERROR();
-      }
-      task_new->profiler.is_running = 1;
-#endif
-
-      //-- get difference between current time and last saved time:
-      //   this is the time task was waiting.
-      TN_SysTickCnt cur_wait_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
-
-      //-- add it to total total_wait_time for particular wait reason
-      task_new->profiler.timing.total_wait_time
-         [ task_new->profiler.last_wait_reason ] 
-         += cur_wait_time;
-
-      //-- check if we should update consecutive max wait time
-      if (
-            task_new->profiler.timing.max_consecutive_wait_time
-            [ task_new->profiler.last_wait_reason ] < cur_wait_time
-         )
-      {
-         task_new->profiler.timing.max_consecutive_wait_time
-            [ task_new->profiler.last_wait_reason ] = cur_wait_time;
-      }
-
-      //-- increment the counter of times task got running
-      task_new->profiler.timing.got_running_cnt++;
-
-      //-- update current task state
-      task_new->profiler.last_tick_cnt      = cur_tick_cnt;
-   }
-   // }}}
-}
-#else
-static _TN_INLINE void _tn_sys_on_context_switch_profiler(
-      struct TN_Task *task_prev, //-- task was running, going to wait
-      struct TN_Task *task_new   //-- task was waiting, going to run
-      )
-{}
-#endif
-
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
+/*
+ * See comments in the file _tn_sys.h
+ */
 void _tn_sys_on_context_switch(
-      struct TN_Task *task_prev, //-- task was running, going to wait
-      struct TN_Task *task_new   //-- task was waiting, going to run
+      struct TN_Task *task_prev,
+      struct TN_Task *task_new
       )
 {
    _tn_sys_on_context_switch_profiler(task_prev, task_new);
    //TODO: stack overflow check
 }
 #endif
-
-
-/**
- * See comments in the file _tn_sys.h
- */
-void _tn_memcpy_uword(
-      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
-      )
-{
-   int i;
-   for (i = 0; i < size_uwords; i++){
-      *tgt++ = *src++;
-   }
-}
 
 

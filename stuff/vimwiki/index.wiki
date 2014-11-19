@@ -11,7 +11,7 @@
    * [ ] Exchange object
    * [ ] probably move _tn_memcpy_uword() to something like `tn_util.c`
    * [ ] rename tn_callback_... to _tn_cb_....
-   * [ ] check_param functions: make them take pointer to `const` struct.
+   * [X] check_param functions: make them take pointer to `const` struct.
 
 
 === profiler ===
