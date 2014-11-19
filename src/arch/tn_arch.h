@@ -203,10 +203,8 @@ int _tn_arch_is_int_disabled(void);
  * This function typically does NOT switch context; it merely pends it,
  * that is, it sets appropriate interrupt flag. If current level is an
  * application level, interrupt is fired immediately, and context gets
- * switched.
- *
- * But, if it's hard or impossible on particular platform to use dedicated 
- * interrupt flag, this function may just switch the context on its own.
+ * switched. Otherwise (if some ISR is currently running), context switch
+ * keeps pending until all ISR return.
  *
  * **Preconditions:**
  *
@@ -217,6 +215,8 @@ int _tn_arch_is_int_disabled(void);
  * **Actions to perform in actual context switching routine:**
  *
  * - save context of the preempted task to its stack;
+ * - if preprocessor macro `#_TN_ON_CONTEXT_SWITCH_HANDLER` is non-zero, call 
+ *   `_tn_sys_on_context_switch(tn_curr_run_task, tn_next_task_to_run);`.
  * - set `tn_curr_run_task` to `tn_next_task_to_run`;
  * - restore context of the newly activated task from its stack.
  *
@@ -242,6 +242,8 @@ void _tn_arch_context_switch_pend(void);
  *    
  * **Actions to perform:**
  *
+ * - if preprocessor macro `#_TN_ON_CONTEXT_SWITCH_HANDLER` is non-zero, call 
+ *   `_tn_sys_on_context_switch(tn_curr_run_task, tn_next_task_to_run);`.
  * - set `tn_curr_run_task` to `tn_next_task_to_run`;
  * - restore context of the newly activated task from its stack.
  *

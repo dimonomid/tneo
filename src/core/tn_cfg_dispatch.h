@@ -159,15 +159,20 @@
 //-- NOTE: TN_API_MAKE_ALIG_ARG is checked in tn_common.h
 
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#  if TN_PROFILER /* TODO: when stack check is implemented, add it here with || */
-#     define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
-#  else
-#     define   _TN_ON_CONTEXT_SWITCH_HANDLER  0
-#  endif
-
-#endif   //-- DOXYGEN_SHOULD_SKIP_THIS
+/**
+ * Internal kernel definition: set to non-zero if `_tn_sys_on_context_switch()`
+ * should be called on context switch. 
+ *
+ * Currently, the only actual handler is available: profiler (see
+ * #TN_PROFILER).  In the future, software stack overflow check will be
+ * implemented as well.
+ */
+#if TN_PROFILER /* TODO: when stack check is implemented, add it here with || */
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
+#else
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  0
+#endif
 
 #endif // _TN_CFG_DISPATCH_H
 
