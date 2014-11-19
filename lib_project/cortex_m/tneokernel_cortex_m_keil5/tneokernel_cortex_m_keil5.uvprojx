@@ -382,7 +382,7 @@
               <MiscControls>--cpreproc</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>..\..\..\src;..\..\..\src\core</IncludePath>
             </VariousControls>
           </Aads>
           <LDads>
