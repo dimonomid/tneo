@@ -830,6 +830,7 @@ enum TN_RCode tn_task_state_get(
       enum TN_TaskState *p_state
       );
 
+#if TN_PROFILER
 /**
  * Read profiler timing data of the task. See `struct #TN_TaskTiming` for
  * details on timing data.
@@ -847,6 +848,7 @@ enum TN_RCode tn_task_profiler_timing_get(
       const struct TN_Task *task,
       struct TN_TaskTiming *tgt
       );
+#endif
 
 
 /**

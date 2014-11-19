@@ -790,6 +790,7 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
    return rc;
 }
 
+#if TN_PROFILER
 enum TN_RCode tn_task_profiler_timing_get(
       const struct TN_Task *task,
       struct TN_TaskTiming *tgt
@@ -809,6 +810,7 @@ enum TN_RCode tn_task_profiler_timing_get(
    }
    return rc;
 }
+#endif
 
 
 
