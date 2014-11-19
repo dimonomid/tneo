@@ -15,13 +15,15 @@
 
 === profiler ===
 
+   * [X] profiler for all platforms
+   * [X] add TN_ON_SWITCH_CONTEXT_HANDLER_PRESENT, which should reflect TN_STACK_OVERFLOW_CHECK as well (in the future).
+   * [X] refactor profiler structure names
    * [ ] document profiler functionality in arch-dependent functions
-   * [ ] profiler for all platforms
    * [ ] document things
    * [ ] system service for getting profiler information
-   * [ ] add TN_ON_SWITCH_CONTEXT_HANDLER_PRESENT, which should reflect TN_STACK_OVERFLOW_CHECK as well (in the future).
-   * [ ] refactor profiler structure names
    * [ ] add service to set task name
+   * [ ] test without TN_PROFILER
+   * [ ] test without TN_DEBUG
 
 === dynamic tick ===
 
