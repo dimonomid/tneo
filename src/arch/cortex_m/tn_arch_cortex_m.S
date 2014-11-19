@@ -118,7 +118,9 @@
 
    _TN_EXTERN(tn_curr_run_task)
    _TN_EXTERN(tn_next_task_to_run)
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
    _TN_EXTERN(_tn_sys_on_context_switch)
+#endif
 
 
 
