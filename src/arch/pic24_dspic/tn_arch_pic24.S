@@ -47,6 +47,7 @@
    .extern  tn_curr_run_task
    .extern  tn_next_task_to_run
    .extern  IFS0
+   .extern  __tn_sys_on_context_switch
 
    /* Public functions declared in this file */
 
@@ -69,6 +70,21 @@
 __tn_arch_context_switch_now_nosave:
 
    /* NOTE: interrupts should be disabled here */
+
+
+   /* call on-context-switch handler, if needed */
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+   mov      _tn_curr_run_task,      w0    ; w0 = tn_curr_run_task
+   mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
+
+   /* 
+    * arguments are set:
+    * - w0: tn_curr_run_task
+    * - w1: tn_next_task_to_run
+    */
+   call     __tn_sys_on_context_switch
+   nop
+#endif
 
    /* set SPLIM to max: effectively, turn stack pointer limit off */
 
@@ -134,41 +150,55 @@ __INT0Interrupt:
    mov      _tn_curr_run_task, w0   ; w0 = tn_curr_run_task;
    mov      w15,     [w0]           ; tn_curr_run_task->stack_top = SR;
 
-   /* save SR in w2 */
-   mov      _SR,     w2
-
-   /* set SPLIM to max: effectively, turn stack pointer limit off */
-
-   mov      #0xffff, w0
-   mov      w0,      _SPLIM
+   /* save SR in w10 */
+   mov      _SR,     w10
 
    /* disable interrupts */
    mov      _SR,              w0
    xor      #_TN_IPL_SHIFTED, w0
    and      #0xE0,            w0
-   xor      _SR
+   xor      _SR,            /*w0*/
+
+   /* call on-context-switch handler, if needed */
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+   mov      _tn_curr_run_task,      w0    ; w0 = tn_curr_run_task
+   mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
+
+   /* 
+    * arguments are set:
+    * - w0: tn_curr_run_task
+    * - w1: tn_next_task_to_run
+    */
+   call     __tn_sys_on_context_switch
+   nop
+#endif
+
+   /* set SPLIM to max: effectively, turn stack pointer limit off */
+
+   mov      #0xffff, w2
+   mov      w2,      _SPLIM
 
    /* tn_curr_run_task = tn_next_task_to_run */
 
-   mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
-   mov      #_tn_curr_run_task,     w0    ; w0 = &tn_curr_run_task
+   mov      _tn_next_task_to_run,   w9    ; w9 = tn_next_task_to_run
+   mov      #_tn_curr_run_task,     w2    ; w2 = &tn_curr_run_task
 
-   mov      w1,      [w0]          ; tn_curr_run_task = tn_next_task_to_run
+   mov      w9,      [w2]          ; tn_curr_run_task = tn_next_task_to_run
 
 
    /* Set new stack pointer (from newly activated task) */
 
-   mov      [w1],    w15           ; SP = *tn_next_task_to_run
+   mov      [w9],    w15           ; SP = *tn_next_task_to_run
 
 
    /* clear INT0 pending bit */
 
-   mov      #_IFS0,  w0
-   bclr     [w0],    #0  ; IFS0bits.INT0IF = 0
+   mov      #_IFS0,  w2
+   bclr     [w2],    #0  ; IFS0bits.INT0IF = 0
 
-   /* restore SR from w2 (and therefore enable interrupts) */
+   /* restore SR from w10 (and therefore enable interrupts) */
 
-   mov      w2,      _SR
+   mov      w10,     _SR
 
 __tn_context_restore:
 
@@ -247,7 +277,7 @@ _tn_arch_int_dis:
 _tn_arch_int_en:
 
    mov      #0xff1f, w0
-   and      _SR,     WREG
+   and      _SR,     WREG/*w0*/
 
    return
 
@@ -257,7 +287,7 @@ _tn_arch_int_en:
 __tn_arch_is_int_disabled:
 
    mov      #0xE0,   w0
-   and      _SR,     WREG
+   and      _SR,     WREG/*w0*/
    lsr      w0,      #5,      w0
    cp       w0,      #_TN_IPL
    bra      geu,     1f

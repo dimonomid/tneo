@@ -78,16 +78,23 @@ _tn_arch_context_switch_now_nosave:
     la      $s0, tn_curr_run_task       /* s0 = &tn_curr_run_task */
     lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
     lw      $a1, tn_next_task_to_run    /* a1 =  tn_next_task_to_run */
+    addiu   $s1, $a1, 0                 /* s1 =  tn_next_task_to_run */
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
     /* NOTE: next instruction is executed BEFORE call, so,
        SP is updated to tn_next_task_to_run->stack_top before call */
+
+    /* 
+     * arguments are set:
+     * - a0: tn_curr_run_task
+     * - a1: tn_next_task_to_run
+     */
     jal     _tn_sys_on_context_switch
 #endif
 
-    lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */
+    lw      $sp, 0($s1)                 /* sp = *tn_next_task_to_run */
     j       tn_restore_context
-    sw      $a1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    sw      $s1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
     .end _tn_arch_context_switch_now_nosave
 
@@ -176,17 +183,23 @@ cs0_int_handler:
     di      $t2                         /* disable interrupts */
     ehb
 
-    la      $a1, tn_next_task_to_run    /* a1 = &tn_next_task_to_run */
-    lw      $a1, 0($a1)                 /* a1 =  tn_next_task_to_run */
+    lw      $a1, tn_next_task_to_run    /* a1 =  tn_next_task_to_run */
+    addiu   $s1, $a1, 0                 /* s1 =  tn_next_task_to_run */
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
     /* NOTE: next instruction is executed BEFORE call, so,
        SP is updated to tn_next_task_to_run->stack_top before call */
+
+   /* 
+    * arguments are set:
+    * - a0: tn_curr_run_task
+    * - a1: tn_next_task_to_run
+    */
     jal     _tn_sys_on_context_switch
 #endif
 
-    lw      $sp, 0($a1)                 /* sp = *tn_next_task_to_run */
-    sw      $a1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    lw      $sp, 0($s1)                 /* sp = *tn_next_task_to_run */
+    sw      $s1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
 
     lui     $k0, %hi(IFS0CLR)           /* clear cs0 pending bit */
     ori     $k1, $zero, 2

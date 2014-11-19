@@ -240,6 +240,11 @@ _TN_LABEL(PendSV_Handler)
 
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
+      /* 
+       * arguments are set:
+       * - r0: tn_curr_run_task
+       * - r1: tn_next_task_to_run
+       */
       bl       _tn_sys_on_context_switch
 #endif
 
@@ -377,6 +382,11 @@ _TN_LABEL(SVC_Handler)
       ldr      r1, [r6]                   //-- r1 =  tn_next_task_to_run
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
+      /* 
+       * arguments are set:
+       * - r0: tn_curr_run_task
+       * - r1: tn_next_task_to_run
+       */
       bl       _tn_sys_on_context_switch
 #endif
 
