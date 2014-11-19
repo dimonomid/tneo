@@ -263,16 +263,16 @@ struct TN_TaskTiming {
    /// is used.
    unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
    ///
+   /// How many times task got running. It is useful to find an average
+   /// value of running time: `(total_run_time / got_running_cnt)`
+   unsigned long long   got_running_cnt;
+   ///
    /// Maximum consecutive time task was running.
    unsigned long        max_consecutive_run_time;
    ///
    /// Maximum consecutive time task was not running. Time is broken down by
    /// reasons of waiting.
    unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
-   ///
-   /// How many times task got running. It is useful to find an average
-   /// value of running time: `(total_run_time / got_running_cnt)`
-   unsigned long        got_running_cnt;
 };
 
 struct _TN_TaskProfiler {
