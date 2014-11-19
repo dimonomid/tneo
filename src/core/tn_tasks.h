@@ -248,12 +248,31 @@ enum TN_TaskExitOpt {
  * Available if only `#TN_PROFILER` option is non-zero.
  */
 struct TN_TaskTiming {
+   ///
+   /// Total time when task was running. 
+   ///
+   /// \attention
+   /// This is NOT the time that task was in $(TN_TASK_STATE_RUNNABLE) state:
+   /// if task A is preempted by high-priority task B, task A is not running,
+   /// but is still in the $(TN_TASK_STATE_RUNNABLE) state.
    unsigned long long   total_run_time;
+   ///
+   /// Total time when task was not running. Time is broken down by reasons of
+   /// waiting. If task is in the $(TN_TASK_STATE_RUNNABLE) state, but
+   /// preempted by another task, `total_wait_time[#TN_WAIT_REASON_NONE]`
+   /// is used.
    unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
+   ///
+   /// Maximum consecutive time task was running.
    unsigned long        max_consecutive_run_time;
+   ///
+   /// Maximum consecutive time task was not running. Time is broken down by
+   /// reasons of waiting.
    unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
-
-   unsigned long        got_running_cnt; //-- how many times task got running
+   ///
+   /// How many times task got running. It is useful to find an average
+   /// value of running time: `(total_run_time / got_running_cnt)`
+   unsigned long        got_running_cnt;
 };
 
 struct _TN_TaskProfiler {

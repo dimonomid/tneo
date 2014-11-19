@@ -206,6 +206,13 @@
 #endif
 
 
+/**
+ * Whether profiler functionality should be enabled.
+ * Enabling this option adds overhead to context switching and bumps
+ * the size of `#TN_Task` structure by more than 100 bytes.
+ *
+ * @see `struct #TN_TaskTiming`
+ */
 #ifndef TN_PROFILER
 #  define TN_PROFILER         1
 #endif
