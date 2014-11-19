@@ -11,6 +11,9 @@ TNeoKernel changelog
     compilers are tested:
     - ARMCC
     - GCC
+  - Profiler (optionally): allows to see how much time task was running, how much
+    time it was waiting and for what it was waiting, and so on. Refer to the
+    documentation of `struct #TN_TaskTiming` for details.
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.
