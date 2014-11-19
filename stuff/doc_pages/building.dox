@@ -66,6 +66,9 @@ architecture-dependent requirements, see links below):
   - `src/core`
   - `src/core/internal`
   - `src/arch`
+- <b>Assembler Include directories</b> (relative to the root of the repository) :
+  - `src`
+  - `src/core`
 - <b>`.S` files preprocessed by C preprocessor</b>: This is probably more
   arch-dependent requirement than a generic one, but actually `.S` files for
   all supported architectures need to be preprocessed, so it is specified here.

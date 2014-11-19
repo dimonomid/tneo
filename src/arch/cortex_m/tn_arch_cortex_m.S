@@ -53,6 +53,7 @@
  ******************************************************************************/
 
 #include "../tn_arch_detect.h"
+#include "tn_cfg_dispatch.h"
 
 
 
@@ -117,6 +118,7 @@
 
    _TN_EXTERN(tn_curr_run_task)
    _TN_EXTERN(tn_next_task_to_run)
+   _TN_EXTERN(_tn_task_profiler_on_context_switch)
 
 
 
@@ -200,7 +202,7 @@ _TN_LABEL(PendSV_Handler)
 
       //-- Now, PSP contains task's stack pointer.
       //   We need to get it and save callee-saved registers to stack.
-      mrs      r0, PSP
+      mrs      r2, PSP
 
       //-- save FPU callee-saved registers, if needed {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
@@ -208,45 +210,50 @@ _TN_LABEL(PendSV_Handler)
       //-- if FPU is active, save S16-S31
       tst      lr, #0x10
       it       eq
-      vstmdbeq r0!, {s16-s31}
+      vstmdbeq r2!, {s16-s31}
 
 #endif
       // }}}
 
       //-- save callee-saved registers {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
-      stmdb    r0!, {r4-r11, lr}
+      stmdb    r2!, {r4-r11, lr}
 #else
-      subs     r0, #32     //-- allocate space for r4-r11
-      stmia    r0!, {r4-r7}
+      subs     r2, #32     //-- allocate space for r4-r11
+      stmia    r2!, {r4-r7}
       mov      r4, r8
       mov      r5, r9
       mov      r6, r10
       mov      r7, r11
-      stmia    r0!, {r4-r7}
-      subs     r0, #32     //-- increment r0 again
+      stmia    r2!, {r4-r7}
+      subs     r2, #32     //-- increment r2 again
 #endif
       // }}}
 
       //-- get stack pointer of preempted task and save it in the
       //   tn_curr_run_task->stack_top
-      ldr      r3, =tn_curr_run_task   //-- r3 = &tn_curr_run_task
-      mov      r1,  r3                 //-- r1 = &tn_curr_run_task
-      ldr      r1, [r1]                //-- r1 = tn_curr_run_task
-      str      r0, [r1]                //-- tn_curr_run_task->stack_top = SP
+      ldr      r5, =tn_curr_run_task   //-- r5 = &tn_curr_run_task
+      ldr      r6, =tn_next_task_to_run//-- r6 = &tn_next_task_to_run
+      ldr      r0, [r5]                //-- r0 =  tn_curr_run_task
+      ldr      r1, [r6]                //-- r1 =  tn_next_task_to_run
+      str      r2, [r0]                //-- tn_curr_run_task->stack_top = SP
+
+
+#if TN_PROFILER
+      bl       _tn_task_profiler_on_context_switch
+#endif
 
       //-- tn_curr_run_task = tn_next_task_to_run
-      ldr      r1, =tn_next_task_to_run//-- r1 = &tn_next_task_to_run
-      ldr      r2, [r1]                //-- r2 = tn_next_task_to_run
-      str      r2, [r3]                //-- tn_curr_run_task = tn_next_task_to_run
+      ldr      r4, [r6]                //-- r4 =  tn_next_task_to_run
+      str      r4, [r5]                //-- tn_curr_run_task = tn_next_task_to_run
 
-      //-- r2 is now tn_curr_run_task
+      //-- r4 is now tn_curr_run_task
 
 _TN_THUMB_FUNC()
-_TN_LABEL(__context_restore)    //-- if you branch here, r2 should be tn_curr_run_task
+_TN_LABEL(__context_restore)  //-- if you branch here, r4 should be tn_curr_run_task
 
       //-- load stack pointer of newly activated task to r0
-      ldr      r0, [r2]       //-- r0 = tn_curr_run_task->stack_top
+      ldr      r0, [r4]       //-- r0 = tn_curr_run_task->stack_top
 
       //-- restore callee-saved registers {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
@@ -364,15 +371,22 @@ _TN_LABEL(SVC_Handler)
       cpsid    I              //-- Disable core int
 
       //-- tn_curr_run_task = tn_next_task_to_run {{{
-      ldr      r3, =tn_curr_run_task      //-- r3 = &tn_curr_run_task
-      ldr      r1, =tn_next_task_to_run   //-- r1 = &tn_next_task_to_run
-      ldr      r2, [r1]                   //-- r2 = tn_next_task_to_run
-      str      r2, [r3]                   //-- tn_curr_run_task = tn_next_task_to_run
+      ldr      r5, =tn_curr_run_task      //-- r5 = &tn_curr_run_task
+      ldr      r6, =tn_next_task_to_run   //-- r6 = &tn_next_task_to_run
+      ldr      r0, [r5]                   //-- r0 =  tn_curr_run_task
+      ldr      r1, [r6]                   //-- r1 =  tn_next_task_to_run
+
+#if TN_PROFILER
+      bl       _tn_task_profiler_on_context_switch
+#endif
+
+      ldr      r4, [r6]                   //-- r4 =  tn_next_task_to_run
+      str      r4, [r5]                   //-- tn_curr_run_task = tn_next_task_to_run
       //-- }}}
 
-      //-- r2 is now tn_curr_run_task
+      //-- r4 is now tn_curr_run_task
 
-      //-- proceed to context restore (r2 must be set to tn_curr_run_task)
+      //-- proceed to context restore (r4 must be set to tn_curr_run_task)
       b        __context_restore
 
       
