@@ -406,12 +406,9 @@ struct TN_Task {
       /// fields specific to tn_fmem.h
       struct TN_FMemTaskWait fmem;
    } subsys_wait;
-
-#if TN_DEBUG
-   /// task name for debug purposes, user may want to set it by hand
+   ///
+   /// Task name for debug purposes, user may want to set it by hand
    const char *name;          
-#endif
-
 #if TN_PROFILER
    /// Profiler data, available if only `#TN_PROFILER` is non-zero.
    struct _TN_TaskProfiler    profiler;

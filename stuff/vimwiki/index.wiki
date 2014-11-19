@@ -21,7 +21,7 @@
    * [X] refactor profiler structure names
    * [X] document things
    * [X] document profiler functionality in arch-dependent functions
-   * [ ] system service for getting profiler information
+   * [X] system service for getting profiler information
    * [ ] add service to set task name
    * [ ] test without TN_PROFILER
    * [ ] test without TN_DEBUG
