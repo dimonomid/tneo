@@ -147,7 +147,7 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
  * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_timer_is_valid(
-      struct TN_Timer   *timer
+      const struct TN_Timer   *timer
       )
 {
    return (timer->id_timer == TN_ID_TIMER);

@@ -80,7 +80,7 @@ extern "C"  {     /*}*/
  * (actually, just checks against `id_fmp` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_fmem_is_valid(
-      struct TN_FMem   *fmem
+      const struct TN_FMem   *fmem
       )
 {
    return (fmem->id_fmp == TN_ID_FSMEMORYPOOL);

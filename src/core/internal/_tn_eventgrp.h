@@ -121,7 +121,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
-      TN_BOOL                 set
+      TN_BOOL              set
       );
 
 
@@ -135,7 +135,7 @@ enum TN_RCode _tn_eventgrp_link_manage(
  * (actually, just checks against `id_event` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_eventgrp_is_valid(
-      struct TN_EventGrp   *eventgrp
+      const struct TN_EventGrp   *eventgrp
       )
 {
    return (eventgrp->id_event == TN_ID_EVENTGRP);

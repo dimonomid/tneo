@@ -64,7 +64,7 @@
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
 static _TN_INLINE enum TN_RCode _check_param_generic(
-      struct TN_Sem *sem
+      const struct TN_Sem *sem
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -82,7 +82,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
  * Additional param checking when creating semaphore
  */
 static _TN_INLINE enum TN_RCode _check_param_create(
-      struct TN_Sem *sem,
+      const struct TN_Sem *sem,
       int start_count,
       int max_count
       )

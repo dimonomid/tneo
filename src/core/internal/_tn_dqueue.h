@@ -80,7 +80,7 @@ extern "C"  {     /*}*/
  * (actually, just checks against `id_dque` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_dqueue_is_valid(
-      struct TN_DQueue    *dqueue
+      const struct TN_DQueue    *dqueue
       )
 {
    return (dqueue->id_dque == TN_ID_DATAQUEUE);

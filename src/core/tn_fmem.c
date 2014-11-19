@@ -70,7 +70,9 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_create(
+      const struct TN_FMem *fmem
+      )
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -83,7 +85,9 @@ static _TN_INLINE enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_delete(
+      const struct TN_FMem *fmem
+      )
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -97,7 +101,7 @@ static _TN_INLINE enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
 }
 
 static _TN_INLINE enum TN_RCode _check_param_job_perform(
-      struct TN_FMem *fmem,
+      const struct TN_FMem *fmem,
       void *p_data
       )
 {

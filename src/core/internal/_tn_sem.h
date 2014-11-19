@@ -80,7 +80,7 @@ extern "C"  {     /*}*/
  * (actually, just checks against `id_sem` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_sem_is_valid(
-      struct TN_Sem    *sem
+      const struct TN_Sem    *sem
       )
 {
    return (sem->id_sem == TN_ID_SEMAPHORE);

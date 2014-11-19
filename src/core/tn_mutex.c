@@ -91,7 +91,7 @@
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
 static _TN_INLINE enum TN_RCode _check_param_generic(
-      struct TN_Mutex *mutex
+      const struct TN_Mutex *mutex
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -106,7 +106,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
 }
 
 static _TN_INLINE enum TN_RCode _check_param_create(
-      struct TN_Mutex        *mutex,
+      const struct TN_Mutex        *mutex,
       enum TN_MutexProtocol   protocol,
       int                     ceil_priority
       )

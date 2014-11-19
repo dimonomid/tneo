@@ -102,7 +102,7 @@ struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
 static _TN_INLINE enum TN_RCode _check_param_generic(
-      struct TN_Timer *timer
+      const struct TN_Timer *timer
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -117,7 +117,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
 }
 
 static _TN_INLINE enum TN_RCode _check_param_create(
-      struct TN_Timer  *timer,
+      const struct TN_Timer  *timer,
       TN_TimerFunc     *func
       )
 {
