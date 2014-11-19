@@ -215,7 +215,7 @@
  * @see `struct #TN_TaskTiming`
  */
 #ifndef TN_PROFILER
-#  define TN_PROFILER         1
+#  define TN_PROFILER            0
 #endif
 
 
