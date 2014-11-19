@@ -25,6 +25,7 @@
    * [ ] add service to set task name
    * [ ] test without TN_PROFILER
    * [ ] test without TN_DEBUG
+   * [ ] make TN_PROFILER off by default
 
 === dynamic tick ===
 

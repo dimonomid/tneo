@@ -2,6 +2,7 @@
 = tneokernel dev / how to release =
 
   * recheck plans page: probably you have already implemented something?
+  * make sure ALL binaries are built with default configuration
   * TODO: think how to build binaries. Besides the auto-generated ones (for PICs), we need the following:
      * Keil ARMCC
         * Cortex-M0
