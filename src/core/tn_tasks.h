@@ -244,7 +244,10 @@ enum TN_TaskExitOpt {
 
 #if TN_PROFILER
 /**
- * Profiler timing structure, contained in each `struct #TN_Task` structure.
+ * Timing structure that is managed by profiler and can be read by
+ * `#tn_task_profiler_timing_get()` function. This structure is contained in
+ * each `struct #TN_Task` structure. 
+ *
  * Available if only `#TN_PROFILER` option is non-zero.
  */
 struct TN_TaskTiming {
@@ -257,30 +260,52 @@ struct TN_TaskTiming {
    /// but is still in the $(TN_TASK_STATE_RUNNABLE) state.
    unsigned long long   total_run_time;
    ///
-   /// Total time when task was not running. Time is broken down by reasons of
-   /// waiting. If task is in the $(TN_TASK_STATE_RUNNABLE) state, but
-   /// preempted by another task, `total_wait_time[#TN_WAIT_REASON_NONE]`
-   /// is used.
+   /// Total time when task was not running; time is broken down by reasons of
+   /// waiting. 
+   ///
+   /// For example, to get the time task was waiting for mutexes with priority
+   /// inheritance protocol, use: `total_wait_time[ #TN_WAIT_REASON_MUTEX_I ]`
+   ///
+   /// To get the time task was runnable but preempted by another task, use:
+   /// `total_wait_time[ #TN_WAIT_REASON_NONE ]`
+   /// 
    unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
    ///
    /// How many times task got running. It is useful to find an average
-   /// value of running time: `(total_run_time / got_running_cnt)`
+   /// value of consecutive running time: `(total_run_time / got_running_cnt)`
    unsigned long long   got_running_cnt;
    ///
    /// Maximum consecutive time task was running.
    unsigned long        max_consecutive_run_time;
    ///
-   /// Maximum consecutive time task was not running. Time is broken down by
+   /// Maximum consecutive time task was not running; time is broken down by
    /// reasons of waiting.
+   ///
+   /// @see `total_wait_time`
    unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
 };
 
+/**
+ * Internal kernel structure for profiling data of task.
+ *
+ * Available if only `#TN_PROFILER` option is non-zero.
+ */
 struct _TN_TaskProfiler {
+   ///
+   /// Tick count of when the task got running or non-running last time.
    TN_SysTickCnt        last_tick_cnt;
+   ///
+   /// Value of `task->task_wait_reason` when task got non-running last time.
    enum TN_WaitReason   last_wait_reason;
 #if TN_DEBUG
+   ///
+   /// For internal profiler self-check only: indicates whether task is 
+   /// running or not. Available if only `#TN_DEBUG` is non-zero.
    int                  is_running;
 #endif
+   ///
+   /// Main timing structure managed by profiler. Contents of this structure
+   /// can be read by `#tn_task_profiler_timing_get()` function.
    struct TN_TaskTiming timing;
 };
 #endif
@@ -388,6 +413,7 @@ struct TN_Task {
 #endif
 
 #if TN_PROFILER
+   /// Profiler data, available if only `#TN_PROFILER` is non-zero.
    struct _TN_TaskProfiler    profiler;
 #endif
 
@@ -808,6 +834,25 @@ enum TN_RCode tn_task_state_get(
       );
 
 /**
+ * Read profiler timing data of the task. See `struct #TN_TaskTiming` for
+ * details on timing data.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param task
+ *    Task to get timing data of
+ * @param tgt
+ *    Target structure to fill with data, should be allocated by caller
+ */
+enum TN_RCode tn_task_profiler_timing_get(
+      const struct TN_Task *task,
+      struct TN_TaskTiming *tgt
+      );
+
+
+/**
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
  *
@@ -817,8 +862,6 @@ enum TN_RCode tn_task_state_get(
  * \attention this function is obsolete and will probably be removed
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority);
-
-
 
 #ifdef __cplusplus
 }  /* extern "C" */

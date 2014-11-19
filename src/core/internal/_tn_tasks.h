@@ -386,7 +386,7 @@ void _tn_task_exit_nodelete(void);
  * (actually, just checks against `id_task` field, see `enum #TN_ObjId`)
  */
 static _TN_INLINE TN_BOOL _tn_task_is_valid(
-      struct TN_Task   *task
+      const struct TN_Task   *task
       )
 {
    return (task->id_task == TN_ID_TASK);

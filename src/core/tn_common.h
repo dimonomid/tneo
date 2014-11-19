@@ -183,6 +183,18 @@ typedef void (TN_TaskBody)(void *param);
  */
 typedef unsigned long TN_Timeout;
 
+/**
+ * Type for internal kernel tick counter; the value of current tick count
+ * is returned by `tn_sys_time_get()`.
+ *
+ * If profiler is used (see `#TN_PROFILER`), it is important to make
+ * `TN_SysTickCnt` large enough to keep maximum time between task getting
+ * running or non-running. That is, when task gets running, profiler calculates
+ * time it was non-running; and if this time is more than `TN_SysTickCnt`
+ * count, data will be wrong. The same when task gets non-running, of course.
+ *
+ * 32-bit integer seems pretty enough, so, `unsigned long` is used here.
+ */
 typedef unsigned long TN_SysTickCnt;
 
 /*******************************************************************************

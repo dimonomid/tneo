@@ -55,7 +55,7 @@
 //-- header of other needed modules
 #include "tn_mutex.h"
 
-//-- std header for memset()
+//-- std header for memset() and memcpy()
 #include <string.h>
 
 
@@ -73,7 +73,7 @@
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
 static _TN_INLINE enum TN_RCode _check_param_generic(
-      struct TN_Task *task
+      const struct TN_Task *task
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -790,6 +790,25 @@ enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority)
    return rc;
 }
 
+enum TN_RCode tn_task_profiler_timing_get(
+      const struct TN_Task *task,
+      struct TN_TaskTiming *tgt
+      )
+{
+   enum TN_RCode rc = _check_param_generic(task);
+
+   if (rc != TN_RC_OK){
+      //-- just return rc as it is
+   } else {
+      int sr_saved;
+      sr_saved = tn_arch_sr_save_int_dis();
+
+      memcpy(tgt, &task->profiler.timing, sizeof(*tgt));
+
+      tn_arch_sr_restore(sr_saved);
+   }
+   return rc;
+}
 
 
 

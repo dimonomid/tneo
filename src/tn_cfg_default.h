@@ -209,8 +209,9 @@
 /**
  * Whether profiler functionality should be enabled.
  * Enabling this option adds overhead to context switching and bumps
- * the size of `#TN_Task` structure by more than 100 bytes.
+ * the size of `#TN_Task` structure by more than 120 bytes.
  *
+ * @see `#tn_task_profiler_timing_get()`
  * @see `struct #TN_TaskTiming`
  */
 #ifndef TN_PROFILER
