@@ -19,8 +19,8 @@ main project instead; library projects reside in the
 
 In either case, all you need is the following:
 
-- Add library file for appropriate platform to your project (or <i>library
-  project</i> in case of MPLABX);
+- Add library file for appropriate platform to your project (or probably
+  <i>library project</i> in case of MPLABX);
 - Add C include path: `<tneokernel_path>/src`;
 - Copy default configuration file as current configuration file: `cp
   <tneokernel_path>/src/tn_cfg_default.h <tneokernel_path>/src/tn_cfg.h`
@@ -29,8 +29,10 @@ In either case, all you need is the following:
 
 That's all; you can use it in your project now. See below how to do this.
 
-If, however, you need to build it with some different configuration file, or
-you just want to hack on it, refer to the page \ref building.
+\attention If you need to change the configuration, you can't just edit
+`tn_cfg.h` and keep using pre-built library file: you need to rebuild the
+library after editing `tn_cfg.h`. Refer to the page \ref building for details.
+
 
 \section time_ticks Time ticks
 

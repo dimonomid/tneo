@@ -246,7 +246,9 @@ add arch-dependent sources: all `.c` and `.S` files from `src/arch/pic24_dspic`
 
 \subsection cortex_m_context_switch Context switch
 The context switch is implemented in a standard for Cortex-M CPUs way: the
-PendSV exception. It is configured by the kernel to the lowest priority.
+PendSV exception. SVC exception is used for
+`_tn_arch_context_switch_now_nosave()`. These two exceptions are configured by
+the kernel to the lowest priority.
 
 \subsection cortex_m_interrupts Interrupts
 
@@ -255,6 +257,9 @@ interrupts.
 
 Cortex-M port has <i>system interrupts</i> only, there are no <i>user
 interrupts</i>.
+
+Interrupts use separate interrupt stack, i.e. MSP (Main Stack Pointer). Tasks
+use PSP (Process Stack Pointer).
 
 There are no constraints on ISRs: no special macros for ISR definition, or
 whatever. This is because Cortex-M processors are designed with OS applications
@@ -286,5 +291,26 @@ actions needed:
   checkbox.
 - Assembler files (`.S`) aren't preprocessed by default, so, in project options,
   Asm tab, "Misc Controls" field, type the following: `--cpreproc`
+
+<b>Keil 5, GCC compiler</b>
+
+Unfortunately, when GCC toolchain is used from Keil uVision IDE, for `.S` files
+it calls `arm-none-eabi-as`, which does not call C preprocessor.
+ 
+Instead, `arm-none-eabi-gcc` should be used, but unfortunately I was unable to
+make Keil uVision issue `arm-none-eabi-gcc` for `.S` files, the only way to use
+GCC toolchain in Keil uVision that I'm aware of is to preprocess the file
+manually, like that:
+
+    cpp -P -undef tn_arch_cortex_m.S                         \
+          -D __GNUC__ -D __ARM_ARCH -D __ARM_ARCH_7M__       \
+          -I ../.. -I ../../core                             \
+          > tn_arch_cortex_m3_gcc.s
+
+(this example is for Cortex-M3, you may check the file `tn_arch_detect.h` to
+see what should you define instead of `__ARM_ARCH_7M__` for other cores)
+
+And then, add the output file `tn_arch_cortex_m3_gcc.s` to the project instead
+of `tn_arch_cortex_m.S`
 
 */
