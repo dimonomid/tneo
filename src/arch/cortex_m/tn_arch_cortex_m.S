@@ -210,7 +210,7 @@ _TN_LABEL(PendSV_Handler)
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
 
       //-- if FPU is active, save S16-S31
-      tst      lr, #0x10
+      tst      lr, #0x10      //-- test bit 4 (Stack Frame type) of EXC_RETURN
       it       eq
       vstmdbeq r2!, {s16-s31}
 
@@ -282,7 +282,7 @@ _TN_LABEL(__context_restore)  //-- if you branch here, r4 should be tn_curr_run_
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
 
       //if FPU was active in the newly activated task, restore S16-S31
-      tst      lr, #0x10
+      tst      lr, #0x10      //-- test bit 4 (Stack Frame type) of EXC_RETURN
       it       eq
       vldmiaeq r0!, {s16-s31}
 
@@ -445,20 +445,20 @@ _TN_LABEL(_tn_arch_inside_isr)
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
       //-- Code for Cortex-M3/M4/M4F
-      tst      r0, #0x02
+      tst      r0, #0x02   //-- test SPSEL bit (0: MSP, 1: PSP)
       ite      eq
-      moveq    r0, #1
-      movne    r0, #0
+      moveq    r0, #1      //-- SPSEL bit is clear: return true
+      movne    r0, #0      //-- SPSEL bit is set: return false
       bx       lr
 #else
       //-- Code for Cortex-M0/M0+
       movs     r1, #0x02
-      tst      r0, r1
+      tst      r0, r1      //-- test SPSEL bit (0: MSP, 1: PSP)
       bne      __ne
-      movs     r0, #1
+      movs     r0, #1      //-- SPSEL bit is clear: return true
       bx       lr
 __ne
-      movs     r0, #0
+      movs     r0, #0      //-- SPSEL bit is set: return false
       bx       lr
 #endif
 
