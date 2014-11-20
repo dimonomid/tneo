@@ -64,6 +64,7 @@
 #undef __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
 
 #undef __TN_COMPILER_ARMCC__
+#undef __TN_COMPILER_IAR__
 
 
 
@@ -120,6 +121,49 @@
 #     define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
 #  else
 #     error unknown architecture for ARMCC compiler
+#  endif
+
+#elif defined (__IAR_SYSTEMS_ICC__) || defined (__IAR_SYSTEMS_ASM__)
+
+#  if defined(__ICCARM__) || defined(__IASMARM__)
+#     define __TN_COMPILER_IAR__
+
+#     if !defined(__CORE__)
+#        error __CORE__ is not defined
+#     endif
+
+#     if defined(__ARM_PROFILE_M__)
+#        define __TN_ARCH_CORTEX_M__
+#     else
+#        error IAR: the only supported core family is Cortex-M
+#     endif
+
+#     if (__CORE__ == __ARM6M__)
+#        define __TN_ARCH_CORTEX_M0__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#     elif (__CORE__ == __ARM7M__)
+#        define __TN_ARCH_CORTEX_M3__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#        define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#     elif (__CORE__ == __ARM7EM__)
+#        if defined(__ARMVFP__)
+#           define __TN_ARCH_CORTEX_M4__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
+#        else
+#           define __TN_ARCH_CORTEX_M4_FP__
+#           define __TN_ARCHFEAT_CORTEX_M_FPU__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
+#           define __TN_ARCHFEAT_CORTEX_M_ARMv7EM_ISA__
+#        endif
+#     else
+#        error __CORE__ is unsupported
+#     endif
+
+#  else
+#     error unknown compiler of IAR
 #  endif
 
 #elif defined(__GNUC__)

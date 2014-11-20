@@ -104,8 +104,14 @@ int ffs_asm(int x);
  *
  * Typically, set to assembler instruction that causes debugger to halt.
  */
-#define  _TN_FATAL_ERROR(error_msg, ...)         \
-   {__asm__ volatile("bkpt #0");}
+
+#if defined(__TN_COMPILER_IAR__)
+#  define  _TN_FATAL_ERROR(error_msg, ...)         \
+      {asm("bkpt #0");}
+#else
+#  define  _TN_FATAL_ERROR(error_msg, ...)         \
+      {__asm__ volatile("bkpt #0");}
+#endif
 
 
 
@@ -283,6 +289,8 @@ typedef  unsigned int               TN_UIntPtr;
 #  define _TN_INLINE   inline //-- to make it work, we need to build
                               //   the kernel with --c99 key.
 #elif defined(__TN_COMPILER_GCC__)
+#  define _TN_INLINE   inline
+#elif defined(__TN_COMPILER_IAR__)
 #  define _TN_INLINE   inline
 #else
 //TODO: check other compilers

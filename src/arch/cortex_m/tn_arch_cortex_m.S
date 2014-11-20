@@ -73,6 +73,15 @@
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
+#elif defined(__TN_COMPILER_IAR__)
+
+#  define   _TN_EXTERN(x)           IMPORT x
+#  define   _TN_GLOBAL(x)           EXPORT x
+#  define   _TN_EQU(symbol, value)  symbol EQU value
+#  define   _TN_LABEL(label)        label:
+#  define   _TN_END()               END
+#  define   _TN_THUMB_FUNC()        /* nothing */
+
 #elif defined(__TN_COMPILER_GCC__)
 
 #  define   _TN_EXTERN(x)           .extern x
@@ -82,6 +91,8 @@
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
+#else
+#  error unknown compiler for Cortex-M
 #endif
 
 
@@ -94,9 +105,14 @@
 
 #if defined(__TN_COMPILER_ARMCC__)
 
+   AREA    |.text|, CODE, READONLY, ALIGN=3
+   THUMB
+   REQUIRE8
    PRESERVE8
 
-   AREA    |.text|, CODE, READONLY, ALIGN=3
+#elif defined(__TN_COMPILER_IAR__)
+
+   SECTION  .text:CODE(2)
    THUMB
    REQUIRE8
    PRESERVE8
@@ -107,6 +123,8 @@
    .syntax unified
    .thumb
 
+#else
+#  error unknown compiler for Cortex-M
 #endif
 
 
