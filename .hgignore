@@ -36,3 +36,9 @@ tneokernel_cortex_m_coocox[/\\]Debug
 \.cogui$
 \.comarker$
 
+tneokernel_cortex_m_iar[/\\]Debug
+tneokernel_cortex_m_iar[/\\]settings
+\.dep$
+\.ewd$
+
+\.tmp

@@ -65,6 +65,7 @@
 
 #undef __TN_COMPILER_ARMCC__
 #undef __TN_COMPILER_IAR__
+#undef __TN_COMPILER_GCC__
 
 
 
@@ -146,7 +147,7 @@
 #        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
 #        define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
 #     elif (__CORE__ == __ARM7EM__)
-#        if defined(__ARMVFP__)
+#        if !defined(__ARMVFP__)
 #           define __TN_ARCH_CORTEX_M4__
 #           define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
 #           define __TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__
