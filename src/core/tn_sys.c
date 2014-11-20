@@ -156,9 +156,9 @@ static _TN_INLINE void _round_robin_manage(void)
 {
    //-- volatile is used here only to solve
    //   IAR(c) compiler's high optimization mode problem
-   volatile struct TN_ListItem *curr_que;
-   volatile struct TN_ListItem *pri_queue;
-   volatile int priority = tn_curr_run_task->priority;
+   _TN_VOLATILE_WORKAROUND struct TN_ListItem *curr_que;
+   _TN_VOLATILE_WORKAROUND struct TN_ListItem *pri_queue;
+   _TN_VOLATILE_WORKAROUND int priority = tn_curr_run_task->priority;
 
    if (tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
       tn_curr_run_task->tslice_count++;

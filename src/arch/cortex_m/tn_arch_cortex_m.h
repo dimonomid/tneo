@@ -288,10 +288,13 @@ typedef  unsigned int               TN_UIntPtr;
 #if defined(__TN_COMPILER_ARMCC__)
 #  define _TN_INLINE   inline //-- to make it work, we need to build
                               //   the kernel with --c99 key.
+#  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_GCC__)
 #  define _TN_INLINE   inline
+#  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_IAR__)
 #  define _TN_INLINE   inline
+#  define _TN_VOLATILE_WORKAROUND   volatile
 #else
 //TODO: check other compilers
 #  error unknown Cortex compiler

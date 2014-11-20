@@ -295,6 +295,7 @@ typedef  unsigned int               TN_UIntPtr;
 
 #define _TN_INLINE   inline
 
+#define _TN_VOLATILE_WORKAROUND   /* nothing */
 
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
 

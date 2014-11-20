@@ -211,4 +211,19 @@ typedef  unsigned int               TN_UIntPtr;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
+/**
+ * If compiler does not conform to c99 standard, there's no inline keyword.
+ * So, there's a special macro for that.
+ */
+#define _TN_INLINE   inline
+
+/**
+ * Sometimes compilers are buggy in high-optimization modes, and these
+ * bugs are often could be worked around by adding the `volatile` keyword.
+ *
+ * It is compiler-dependent, so, there's a special macro for that.
+ */
+#define _TN_VOLATILE_WORKAROUND   /* nothing */
+
+
 #endif   // _TN_ARCH_EXAMPLE_H

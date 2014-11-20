@@ -270,6 +270,7 @@ typedef  unsigned int               TN_UIntPtr;
 
 #define _TN_INLINE   inline
 
+#define _TN_VOLATILE_WORKAROUND   /* nothing */
 
 //-- internal interrupt macro stuff {{{
 
