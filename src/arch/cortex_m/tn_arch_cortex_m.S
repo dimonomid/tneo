@@ -44,6 +44,34 @@
  *
  * - ARMCC
  * - GCC
+ * - IAR
+ *
+ * NOTE: this file should be parsed by C preprocessor before assembling.
+ * 
+ * If your toolchain is unable to do it for you automatically (say, Keil
+ * uVision + GCC seem unable), it is possible for you to issue cpp (C
+ * preprocessor) manually. Say, for GNU assembler and Cortex-M3, the following
+ * command does the trick:
+ *
+ *    cpp -P -undef tn_arch_cortex_m.S                         \
+ *          -D __GNUC__ -D __ARM_ARCH -D __ARM_ARCH_7M__       \
+ *          -I ../.. -I ../../core                             \
+ *          > tn_arch_cortex_m3_gcc.s
+ *
+ * And then, you should include the output file tn_arch_cortex_m3_gcc.s to your
+ * project, instead of this one (tn_arch_cortex_m.S).
+ *
+ * For other cores/compilers, you need to change predefined macros ( -D ... ),
+ * you can check the file src/arch/tn_arch_detect.h to see what it expects for
+ * each particular core/compiler.
+ * 
+ * Say, when GCC toolchain is used from Keil uVision IDE, for .S files it calls
+ * arm-none-eabi-as, which does not call C preprocessor.
+ *
+ * Instead, arm-none-eabi-gcc should be used, but unfortunately I was unable to
+ * make Keil uVision issue arm-none-eabi-gcc for .S files, the only way to use
+ * GCC toolchain in Keil uVision that I'm aware of is to preprocess the file
+ * manually.
  *
  */
 
