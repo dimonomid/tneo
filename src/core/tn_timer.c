@@ -84,6 +84,17 @@ struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 #  error TN_TICK_LISTS_CNT must be >= 2
 #endif
 
+//-- The limitation of 256 is actually because struct _TN_BuildCfg has
+//   just 8-bit field `tick_lists_cnt_minus_one` for this value.
+//   This should never be the problem, because for embedded systems
+//   it makes little sense to use even more than 64 lists, as it takes
+//   significant amount of RAM.
+#if (TN_TICK_LISTS_CNT > 256)
+#  error TN_TICK_LISTS_CNT must be <= 256
+#endif
+
+
+
 /**
  * Return index in the array `#tn_timer_list__tick`, based on given timeout.
  *

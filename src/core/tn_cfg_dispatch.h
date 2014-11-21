@@ -83,6 +83,10 @@
 
 //-- check that all options specified {{{
 
+#if !defined(TN_CHECK_BUILD_CFG)
+#  error TN_CHECK_BUILD_CFG is not defined
+#endif
+
 #if !defined(TN_PRIORITIES_CNT)
 #  error TN_PRIORITIES_CNT is not defined
 #endif

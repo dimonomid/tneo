@@ -54,8 +54,9 @@
 
 /**
  * Used by the kernel as a signal that something really bad happened.
- * Indicates TNeoKernel bugs as well as illegal kernel usage
- * (e.g. sleeping in the idle task callback)
+ * Indicates TNeoKernel bugs as well as illegal kernel usage, e.g. sleeping in
+ * the idle task callback or build-time configuration mismatch (see
+ * `#TN_CHECK_BUILD_CFG` for details on the last one)
  *
  * Typically, set to assembler instruction that causes debugger to halt.
  */

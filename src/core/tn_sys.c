@@ -60,6 +60,8 @@
 #include "tn_timer.h"
 
 
+//-- for memcmp()
+#include <string.h>
 
 //-- self-check 
 #if !defined(TN_PRIORITIES_MAX_CNT)
@@ -70,6 +72,11 @@
 #if (TN_PRIORITIES_CNT > TN_PRIORITIES_MAX_CNT)
 #  error TN_PRIORITIES_CNT is too large (maximum is TN_PRIORITIES_MAX_CNT)
 #endif
+
+
+/*******************************************************************************
+ *    PRIVATE TYPES
+ ******************************************************************************/
 
 
 /*******************************************************************************
@@ -124,6 +131,22 @@ TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 TN_CBTickSchedule      *_tn_cb_tick_schedule = TN_NULL;
 TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
 #endif
+
+
+
+/*******************************************************************************
+ *    PRIVATE DATA
+ ******************************************************************************/
+
+_TN_BUILD_CFG_DEFINE(static const, _build_cfg);
+
+
+
+/*******************************************************************************
+ *    EXTERNAL FUNCTION PROTOTYPES
+ ******************************************************************************/
+
+const struct _TN_BuildCfg *tn_app_build_cfg_get(void);
 
 
 
@@ -311,6 +334,71 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
          );
 }
 
+#if TN_CHECK_BUILD_CFG
+static void _build_cfg_check(void)
+{
+   const struct _TN_BuildCfg *app_build_cfg = tn_app_build_cfg_get();
+   if (_build_cfg.priorities_cnt != app_build_cfg->priorities_cnt){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.check_param != app_build_cfg->check_param){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.debug != app_build_cfg->debug){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.use_mutexes != app_build_cfg->use_mutexes){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.mutex_rec != app_build_cfg->mutex_rec){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.mutex_deadlock_detect != app_build_cfg->mutex_deadlock_detect){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.tick_lists_cnt_minus_one != app_build_cfg->tick_lists_cnt_minus_one){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.api_make_alig_arg != app_build_cfg->api_make_alig_arg){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.profiler != app_build_cfg->profiler){
+      _TN_FATAL_ERROR("");
+   }
+
+   if (_build_cfg.dynamic_tick != app_build_cfg->dynamic_tick){
+      _TN_FATAL_ERROR("");
+   }
+
+#if defined (__TN_ARCH_PIC24_DSPIC__)
+   if (_build_cfg.arch.p24.p24_sys_ipl != app_build_cfg->arch.p24.p24_sys_ipl){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
+
+   //-- for the case I forgot to add some param above, perform generic check
+   TN_BOOL cfg_match = 
+      !memcmp(&_build_cfg, app_build_cfg, sizeof(_build_cfg));
+
+   if (!cfg_match){
+      _TN_FATAL_ERROR("configuration mismatch");
+   }
+}
+#else 
+
+static inline void _build_cfg_check(void) {}
+
+#endif
+
 
 
 
@@ -344,6 +432,10 @@ void tn_sys_start(
    //-- reset system time
    tn_sys_time_count = 0;
 #endif
+
+   //-- check that build configuration for the kernel and application matches
+   //   (if only TN_CHECK_BUILD_CFG is non-zero)
+   _build_cfg_check();
 
    //-- for each priority: 
    //   - reset list of runnable tasks with this priority

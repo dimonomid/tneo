@@ -89,10 +89,62 @@ struct TN_Mutex;
 
 
 
+#if defined (__TN_ARCH_PIC24_DSPIC__)
+#  define _TN_BUILD_CFG_P24_DEFINE()                              \
+         .p24 = {                                                 \
+            .p24_sys_ipl         = TN_P24_SYS_IPL,                \
+         },
+
+#else
+#  define _TN_BUILD_CFG_P24_DEFINE()
+#endif
+
+
+#define  _TN_BUILD_CFG_DEFINE(_modifiers_, _name_)                \
+   _modifiers_ struct _TN_BuildCfg _name_ = {                     \
+      .priorities_cnt            = TN_PRIORITIES_CNT,             \
+      .check_param               = TN_CHECK_PARAM,                \
+      .debug                     = TN_DEBUG,                      \
+      .use_mutexes               = TN_USE_MUTEXES,                \
+      .mutex_rec                 = TN_MUTEX_REC,                  \
+      .mutex_deadlock_detect     = TN_MUTEX_DEADLOCK_DETECT,      \
+      .tick_lists_cnt_minus_one  = (TN_TICK_LISTS_CNT - 1),       \
+      .api_make_alig_arg         = TN_API_MAKE_ALIG_ARG,          \
+      .profiler                  = TN_PROFILER,                   \
+      .dynamic_tick              = TN_DYNAMIC_TICK,               \
+      .arch = {                                                   \
+         _TN_BUILD_CFG_P24_DEFINE()                               \
+      },                                                          \
+   };
+
+
+
 
 /*******************************************************************************
  *    PUBLIC TYPES
  ******************************************************************************/
+
+struct _TN_BuildCfg {
+   unsigned          priorities_cnt             : 7;
+   unsigned          check_param                : 1;
+   unsigned          debug                      : 1;
+   //-- Note: we don't include TN_OLD_TNKERNEL_NAMES since it doesn't
+   //   affect behavior of the kernel in any way.
+   unsigned          use_mutexes                : 1;
+   unsigned          mutex_rec                  : 1;
+   unsigned          mutex_deadlock_detect      : 1;
+   unsigned          tick_lists_cnt_minus_one   : 8;
+   unsigned          api_make_alig_arg          : 2;
+   unsigned          profiler                   : 1;
+   unsigned          dynamic_tick               : 1;
+   struct {
+#if defined (__TN_ARCH_PIC24_DSPIC__)
+      union {
+         unsigned    p24_sys_ipl                : 3;
+      } p24;
+#endif
+   } arch;
+};
 
 /**
  * System state flags

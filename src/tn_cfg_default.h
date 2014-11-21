@@ -73,6 +73,29 @@
  ******************************************************************************/
 
 /**
+ * This option enables run-time check which ensures build-time options that
+ * were used to build the kernel match ones that were used to build the
+ * application.
+ *
+ * Without this check, it is possible that you change your `tn_cfg.h` file, and
+ * just rebuild your application without rebuilding the kernel. Then,
+ * application would assume that kernel behaves accordingly to `tn_cfg.h` which
+ * was included in the application, but this is actually not true: you need to
+ * rebuild the kernel for changes to take effect.
+ *
+ * With this option turned on, if build-time configurations don't match, you
+ * will get run-time error (`_TN_FATAL_ERROR()`) inside `tn_sys_start()`, which
+ * is much more informative than weird bugs caused by configuration mismatch.
+ *
+ * \attention If this option is on, your application must include the file
+ * `tn_app_check.c`.
+ */
+#ifndef TN_CHECK_BUILD_CFG
+#  define TN_CHECK_BUILD_CFG        1
+#endif
+
+
+/**
  * Number of priorities that can be used by application, plus one for idle task
  * (which has the lowest priority). This value can't be higher than
  * architecture-dependent value `#TN_PRIORITIES_MAX_CNT`, which typically
