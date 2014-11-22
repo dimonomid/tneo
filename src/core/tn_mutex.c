@@ -842,7 +842,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
             //   We're done, TN_RC_OK will be returned.
          } else if (mutex->cnt < 0){
             //-- should never be here: lock count is negative.
-            //   bug in the kernel.
+            //   Bug in the kernel, or memory got corrupted.
             _TN_FATAL_ERROR();
          } else {
             //-- lock counter is 0, so, unlock mutex
