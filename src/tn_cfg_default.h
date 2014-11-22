@@ -73,9 +73,8 @@
  ******************************************************************************/
 
 /**
- * This option enables run-time check which ensures build-time options that
- * were used to build the kernel match ones that were used to build the
- * application.
+ * This option enables run-time check which ensures that build-time options for
+ * the kernel match ones for the application.
  *
  * Without this check, it is possible that you change your `tn_cfg.h` file, and
  * just rebuild your application without rebuilding the kernel. Then,
@@ -86,6 +85,11 @@
  * With this option turned on, if build-time configurations don't match, you
  * will get run-time error (`_TN_FATAL_ERROR()`) inside `tn_sys_start()`, which
  * is much more informative than weird bugs caused by configuration mismatch.
+ *
+ * <b>Note</b>: turning this option on makes sense if only you use TNeoKernel
+ * as a separate library. If you build TNeoKernel together with the
+ * application, both the kernel and the application always use the same
+ * `tn_cfg.h` file, therefore this option is useless.
  *
  * \attention If this option is on, your application must include the file
  * `tn_app_check.c`.

@@ -26,6 +26,8 @@ In either case, all you need is the following:
   <tneokernel_path>/src/tn_cfg_default.h <tneokernel_path>/src/tn_cfg.h`
   (for more information about configuration file and better ways to manage it,
   refer to the section \ref configuration_file)
+- Add the file `<tneokernel_path>/src/tn_app_check.c` to your application
+  project (see `#TN_CHECK_BUILD_CFG` for details on it).
 
 That's all; you can use it in your project now. See below how to do this.
 

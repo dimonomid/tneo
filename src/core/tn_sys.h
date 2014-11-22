@@ -52,6 +52,7 @@
 
 #include "tn_list.h"
 #include "../arch/tn_arch.h"
+#include "tn_cfg_dispatch.h"
 
 
 
@@ -88,20 +89,32 @@ struct TN_Mutex;
    TN_ARCH_STK_ATTR_AFTER
 
 
+#if TN_CHECK_BUILD_CFG
 
+/**
+ * For internal kernel usage: helper macro that defines architecture-dependent
+ * values. This macro is used by `#_TN_BUILD_CFG_DEFINE()` only.
+ */
 #if defined (__TN_ARCH_PIC24_DSPIC__)
-#  define _TN_BUILD_CFG_P24_DEFINE()                              \
+#  define _TN_BUILD_CFG_ARCH_DEFINE()                             \
          .p24 = {                                                 \
             .p24_sys_ipl         = TN_P24_SYS_IPL,                \
          },
 
 #else
-#  define _TN_BUILD_CFG_P24_DEFINE()
+#  define _TN_BUILD_CFG_ARCH_DEFINE()
 #endif
 
 
-#define  _TN_BUILD_CFG_DEFINE(_modifiers_, _name_)                \
-   _modifiers_ struct _TN_BuildCfg _name_ = {                     \
+/**
+ * For internal kernel usage: define structure `#_TN_BuildCfg` with
+ * current build-time configuration values.
+ *
+ * @param modifiers     Variable modifiers, like `static const`
+ * @param name          Variable name
+ */
+#define  _TN_BUILD_CFG_DEFINE(modifiers, name)                    \
+   modifiers struct _TN_BuildCfg name = {                         \
       .priorities_cnt            = TN_PRIORITIES_CNT,             \
       .check_param               = TN_CHECK_PARAM,                \
       .debug                     = TN_DEBUG,                      \
@@ -113,10 +126,15 @@ struct TN_Mutex;
       .profiler                  = TN_PROFILER,                   \
       .dynamic_tick              = TN_DYNAMIC_TICK,               \
       .arch = {                                                   \
-         _TN_BUILD_CFG_P24_DEFINE()                               \
+         _TN_BUILD_CFG_ARCH_DEFINE()                              \
       },                                                          \
    };
 
+#else
+
+#define  _TN_BUILD_CFG_DEFINE(modifiers, name)    /* nothing */
+
+#endif   // TN_CHECK_BUILD_CFG
 
 
 
@@ -124,22 +142,53 @@ struct TN_Mutex;
  *    PUBLIC TYPES
  ******************************************************************************/
 
+/**
+ * Structure with build-time configurations values; it is needed for run-time
+ * check which ensures that build-time options for the kernel match ones for
+ * the application. See `#TN_CHECK_BUILD_CFG` for details.
+ */
 struct _TN_BuildCfg {
+   ///
+   /// Value of `#TN_PRIORITIES_CNT`
    unsigned          priorities_cnt             : 7;
+   ///
+   /// Value of `#TN_CHECK_PARAM`
    unsigned          check_param                : 1;
+   ///
+   /// Value of `#TN_DEBUG`
    unsigned          debug                      : 1;
    //-- Note: we don't include TN_OLD_TNKERNEL_NAMES since it doesn't
    //   affect behavior of the kernel in any way.
+   ///
+   /// Value of `#TN_USE_MUTEXES`
    unsigned          use_mutexes                : 1;
+   ///
+   /// Value of `#TN_MUTEX_REC`
    unsigned          mutex_rec                  : 1;
+   ///
+   /// Value of `#TN_MUTEX_DEADLOCK_DETECT`
    unsigned          mutex_deadlock_detect      : 1;
+   ///
+   /// Value of `#TN_TICK_LISTS_CNT` minus one
    unsigned          tick_lists_cnt_minus_one   : 8;
+   ///
+   /// Value of `#TN_API_MAKE_ALIG_ARG`
    unsigned          api_make_alig_arg          : 2;
+   ///
+   /// Value of `#TN_PROFILER`
    unsigned          profiler                   : 1;
+   ///
+   /// Value of `#TN_DYNAMIC_TICK`
    unsigned          dynamic_tick               : 1;
+   ///
+   /// Architecture-dependent values
    struct {
 #if defined (__TN_ARCH_PIC24_DSPIC__)
+      ///
+      /// PIC24/dsPIC-dependent values
       union {
+         ///
+         /// Value of `#TN_P24_SYS_IPL`
          unsigned    p24_sys_ipl                : 3;
       } p24;
 #endif

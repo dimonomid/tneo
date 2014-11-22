@@ -59,8 +59,11 @@
  *    PRIVATE DATA
  ******************************************************************************/
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 _TN_BUILD_CFG_DEFINE(static const, _build_cfg);
 
+#endif   // DOXYGEN_SHOULD_SKIP_THIS
 
 
 /*******************************************************************************
