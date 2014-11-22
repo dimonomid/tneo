@@ -102,7 +102,7 @@ struct TN_Mutex;
          },
 
 #else
-#  define _TN_BUILD_CFG_ARCH_DEFINE()
+#  define _TN_BUILD_CFG_ARCH_DEFINE()     .dummy = 0,
 #endif
 
 
@@ -182,16 +182,19 @@ struct _TN_BuildCfg {
    unsigned          dynamic_tick               : 1;
    ///
    /// Architecture-dependent values
-   struct {
-#if defined (__TN_ARCH_PIC24_DSPIC__)
+   union {
+      ///
+      /// On some architectures, we don't have any arch-dependent build-time
+      /// options, but we need this "dummy" value to avoid errors of crappy
+      /// compilers that don't allow empty structure initializers (like ARMCC)
+      TN_UWord dummy;
       ///
       /// PIC24/dsPIC-dependent values
-      union {
+      struct {
          ///
          /// Value of `#TN_P24_SYS_IPL`
          unsigned    p24_sys_ipl                : 3;
       } p24;
-#endif
    } arch;
 };
 
