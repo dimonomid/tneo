@@ -137,17 +137,23 @@ int ffs_asm(int x);
  * @see TN_ARCH_STK_ATTR_BEFORE
  */
 
-//TODO: depending on the compiler, use 8-byte alignment
-#define TN_ARCH_STK_ATTR_BEFORE
-#define TN_ARCH_STK_ATTR_AFTER
-#if 0
-#if defined (__XC32)
+#if defined(__TN_COMPILER_ARMCC__)
+
+#  define TN_ARCH_STK_ATTR_BEFORE      __align(8)
+#  define TN_ARCH_STK_ATTR_AFTER
+
+#elif defined(__TN_COMPILER_GCC__)
+
 #  define TN_ARCH_STK_ATTR_BEFORE
-#  define TN_ARCH_STK_ATTR_AFTER       __attribute__((aligned(0x8)))
-#else
-#  error "Unknown compiler"
+#  define TN_ARCH_STK_ATTR_AFTER       __attribute__((aligned(0x08)))
+
+#elif defined(__TN_COMPILER_IAR__)
+
+#  define TN_ARCH_STK_ATTR_BEFORE
+#  define TN_ARCH_STK_ATTR_AFTER
+
 #endif
-#endif
+
 
 /**
  * Minimum task's stack size, in words, not in bytes; includes a space for
@@ -296,7 +302,6 @@ typedef  unsigned int               TN_UIntPtr;
 #  define _TN_INLINE   inline
 #  define _TN_VOLATILE_WORKAROUND   volatile
 #else
-//TODO: check other compilers
 #  error unknown Cortex compiler
 #endif
 
