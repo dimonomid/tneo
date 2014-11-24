@@ -41,6 +41,13 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+//-- as long as that header file (_tn_timer.h) is a generic one for timers,
+//   we should include headers of each particular timers implementation as well
+//   (static timers and dynamic timers, it depends on TN_DYNAMIC_TICK option
+//   which one is actually used)
+#include "_tn_timer_static.h"
+
+
 #include "_tn_sys.h"
 
 
@@ -59,12 +66,7 @@ extern "C"  {     /*}*/
  *    GLOBAL VARIABLES
  ******************************************************************************/
 
-///
-/// "generic" list of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__gen;
-///
-/// "tick" lists of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+
 
 
 

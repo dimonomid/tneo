@@ -100,10 +100,6 @@ struct TN_Task *tn_curr_run_task;
 volatile unsigned int tn_ready_to_run_bmp;
 
 
-#if !TN_DYNAMIC_TICK
-volatile TN_SysTickCnt tn_sys_time_count;
-#endif
-
 
 #if TN_MUTEX_DEADLOCK_DETECT
 volatile int tn_deadlocks_cnt = 0;
@@ -234,7 +230,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       _TN_FATAL_ERROR("");
    }
 #endif
-   TN_SysTickCnt cur_tick_cnt = _tn_sys_time_get();
+   TN_SysTickCnt cur_tick_cnt = _tn_timer_sys_time_get();
 
    //-- handle task_prev (the one that was running and going to wait) {{{
    {
@@ -428,12 +424,12 @@ void tn_sys_start(
    if (_tn_cb_tick_schedule == TN_NULL || _tn_cb_tick_cnt_get == TN_NULL){
       _TN_FATAL_ERROR("");
    }
-#else
-   //-- reset system time
-   tn_sys_time_count = 0;
 #endif
 
-   //-- check that build configuration for the kernel and application matches
+   //-- init timers
+   _tn_timers_init();
+
+   //-- check that build configuration for the kernel and application match
    //   (if only TN_CHECK_BUILD_CFG is non-zero)
    _build_cfg_check();
 
@@ -466,9 +462,6 @@ void tn_sys_start(
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
-
-   //-- init timers
-   _tn_timers_init();
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
@@ -535,16 +528,11 @@ enum TN_RCode tn_tick_int_processing(void)
 
       TN_INT_IDIS_SAVE();
 
-#if !TN_DYNAMIC_TICK
-      //-- increment system timer
-      tn_sys_time_count++;
-#endif
+      //-- manage timers
+      _tn_timers_tick_proceed();
 
       //-- manage round-robin (if used)
       _round_robin_manage();
-
-      //-- manage timers
-      _tn_timers_tick_proceed();
 
       TN_INT_IRESTORE();
       _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
@@ -586,7 +574,7 @@ TN_SysTickCnt tn_sys_time_get(void)
    TN_INTSAVE_DATA;
 
    TN_INT_DIS_SAVE();
-   ret = _tn_sys_time_get();
+   ret = _tn_timer_sys_time_get();
    TN_INT_RESTORE();
 
    return ret;
