@@ -304,14 +304,6 @@ typedef void (TN_CBDeadlock)(
       struct TN_Task *task
       );
 
-#if TN_DYNAMIC_TICK
-
-typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
-
-
-typedef TN_Timeout (TN_CBTickCntGet)(void);
-
-#endif
 
 
 

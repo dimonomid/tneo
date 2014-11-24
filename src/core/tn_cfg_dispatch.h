@@ -158,7 +158,7 @@
 #  endif
 #endif
 
-//-- NOTE: TN_TICK_LISTS_CNT is checked in tn_timer.c
+//-- NOTE: TN_TICK_LISTS_CNT is checked in tn_timer_static.c
 //-- NOTE: TN_PRIORITIES_CNT is checked in tn_sys.c
 //-- NOTE: TN_API_MAKE_ALIG_ARG is checked in tn_common.h
 

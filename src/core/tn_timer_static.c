@@ -54,6 +54,8 @@
 #include "tn_tasks.h"
 
 
+#if !TN_DYNAMIC_TICK
+
 
 
 
@@ -414,5 +416,6 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 }
 
 
+#endif // !TN_DYNAMIC_TICK
 
 

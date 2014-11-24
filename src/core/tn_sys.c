@@ -123,12 +123,6 @@ TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
  */
 TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 
-#if TN_DYNAMIC_TICK
-TN_CBTickSchedule      *_tn_cb_tick_schedule = TN_NULL;
-TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
-#endif
-
-
 
 /*******************************************************************************
  *    PRIVATE DATA
@@ -417,15 +411,6 @@ void tn_sys_start(
    int i;
    enum TN_RCode rc;
 
-#if TN_DYNAMIC_TICK
-   //-- if dynamic tick is used, check that we have callbacks set.
-   //   (they should be set by tn_callback_dyn_tick_set() before calling
-   //   tn_sys_start())
-   if (_tn_cb_tick_schedule == TN_NULL || _tn_cb_tick_cnt_get == TN_NULL){
-      _TN_FATAL_ERROR("");
-   }
-#endif
-
    //-- init timers
    _tn_timers_init();
 
@@ -638,8 +623,7 @@ void tn_callback_dyn_tick_set(
       TN_CBTickCntGet     *cb_tick_cnt_get
       )
 {
-   _tn_cb_tick_schedule = cb_tick_schedule;
-   _tn_cb_tick_cnt_get  = cb_tick_cnt_get;
+   _tn_timer_dyn_callback_set(cb_tick_schedule, cb_tick_cnt_get);
 }
 
 #endif

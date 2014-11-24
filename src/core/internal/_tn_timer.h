@@ -46,6 +46,7 @@
 //   (static timers and dynamic timers, it depends on TN_DYNAMIC_TICK option
 //   which one is actually used)
 #include "_tn_timer_static.h"
+#include "_tn_timer_dyn.h"
 
 
 #include "_tn_sys.h"
