@@ -221,10 +221,34 @@ struct TN_Timer {
 
 
 
-#if TN_DYNAMIC_TICK
+#if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
 
+/**
+ * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+ *
+ * Prototype of callback function that should schedule next time to call 
+ * `tn_tick_int_processing()`.
+ *
+ * See `tn_callback_dyn_tick_set()`
+ *
+ * @param timeout 
+ *    Timeout after which `tn_tick_int_processing()` should be called next
+ *    time.
+ *
+ */
 typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
-typedef TN_Timeout (TN_CBTickCntGet)(void);
+
+/**
+ * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+ *
+ * Prototype of callback function that should return current system tick
+ * counter value.
+ *
+ * See `tn_callback_dyn_tick_set()`
+ *
+ * @return current system tick counter value.
+ */
+typedef TN_SysTickCnt (TN_CBTickCntGet)(void);
 
 #endif
 

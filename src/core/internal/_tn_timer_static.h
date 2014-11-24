@@ -95,8 +95,7 @@ extern volatile TN_SysTickCnt tn_sys_time_count;
  ******************************************************************************/
 
 /**
- * Checks whether given timer object is valid 
- * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
+ * Returns current value of system tick counter.
  */
 static _TN_INLINE TN_SysTickCnt _tn_timer_sys_time_get(void)
 {

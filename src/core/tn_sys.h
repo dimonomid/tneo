@@ -520,7 +520,25 @@ struct TN_Task *tn_cur_task_get(void);
 TN_TaskBody *tn_cur_task_body_get(void);
 
 
-#if TN_DYNAMIC_TICK
+#if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
+/**
+ * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+ *
+ * Set callbacks related to dynamic tick.
+ *
+ * \attention This function should be called <b>before</b> `tn_sys_start()`,
+ * otherwise, you'll run into run-time error `_TN_FATAL_ERROR()`.
+ *
+ * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param cb_tick_schedule
+ *    Pointer to callback function to schedule next time to call
+ *    `tn_tick_int_processing()`, see `#TN_CBTickSchedule` for the prototype.
+ * @param cb_tick_cnt_get
+ *    Pointer to callback function to get current system tick counter value,
+ *    see `#TN_CBTickCntGet` for the prototype.
+ */
 void tn_callback_dyn_tick_set(
       TN_CBTickSchedule   *cb_tick_schedule,
       TN_CBTickCntGet     *cb_tick_cnt_get

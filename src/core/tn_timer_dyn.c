@@ -63,7 +63,10 @@
  *    PUBLIC DATA
  ******************************************************************************/
 
+//-- see comments in the file _tn_timer_dyn.h
 TN_CBTickSchedule      *_tn_cb_tick_schedule = TN_NULL;
+
+//-- see comments in the file _tn_timer_dyn.h
 TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
 
 
