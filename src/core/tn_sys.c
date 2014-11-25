@@ -161,7 +161,11 @@ static void _idle_task_body(void *par)
  */
 #if TN_DYNAMIC_TICK
 
-static _TN_INLINE void _round_robin_manage(void) {/*TODO*/}
+static _TN_INLINE void _round_robin_manage(void) {
+   /*TODO: round-robin should be powered by timers mechanism.
+    * So, when round-robin is active, the system isn't so "tickless".
+    */
+}
 
 #else
 

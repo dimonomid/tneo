@@ -271,23 +271,24 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    } else {
 
       //-- if timer is active, cancel it first
-      rc = _tn_timer_cancel(timer);
+      if ((rc = _tn_timer_cancel(timer)) == TN_RC_OK){
 
-      if (timeout < TN_TICK_LISTS_CNT){
-         //-- timer should be added to the one of "tick" lists.
-         int tick_list_index = _TICK_LIST_INDEX(timeout);
-         timer->timeout_cur = tick_list_index;
+         if (timeout < TN_TICK_LISTS_CNT){
+            //-- timer should be added to the one of "tick" lists.
+            int tick_list_index = _TICK_LIST_INDEX(timeout);
+            timer->timeout_cur = tick_list_index;
 
-         _tn_list_add_tail(
-               &tn_timer_list__tick[ tick_list_index ],
-               &(timer->timer_queue)
-               );
-      } else {
-         //-- timer should be added to the "generic" list.
-         //   We should set timeout_cur adding current "tick" index to it.
-         timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
+            _tn_list_add_tail(
+                  &tn_timer_list__tick[ tick_list_index ],
+                  &(timer->timer_queue)
+                  );
+         } else {
+            //-- timer should be added to the "generic" list.
+            //   We should set timeout_cur adding current "tick" index to it.
+            timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
 
-         _tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
+            _tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
+         }
       }
    }
 
@@ -325,69 +326,9 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 /**
  * See comments in the _tn_timer.h file.
  */
-enum TN_RCode _tn_timer_create(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
-      )
-{
-   enum TN_RCode rc = _tn_timer_set_func(timer, func, p_user_data);
-
-   if (rc != TN_RC_OK){
-      //-- just return rc as it is
-   } else {
-
-      _tn_list_reset(&(timer->timer_queue));
-
-      timer->timeout_cur   = 0;
-      timer->id_timer      = TN_ID_TIMER;
-
-   }
-   return rc;
-}
-
-/**
- * See comments in the _tn_timer.h file.
- */
-enum TN_RCode _tn_timer_set_func(
-      struct TN_Timer  *timer,
-      TN_TimerFunc     *func,
-      void             *p_user_data
-      )
-{
-   enum TN_RCode rc = TN_RC_OK;
-
-   if (func == TN_NULL){
-      rc = TN_RC_WPARAM;
-   } else {
-      timer->func          = func;
-      timer->p_user_data   = p_user_data;
-   }
-
-   return rc;
-}
-
-/**
- * See comments in the _tn_timer.h file.
- */
-TN_BOOL _tn_timer_is_active(struct TN_Timer *timer)
-{
-#if TN_DEBUG
-   //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
-
-   return (!_tn_list_is_empty(&(timer->timer_queue)));
-}
-
-/**
- * See comments in the _tn_timer.h file.
- */
 TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
-   TN_Timeout time_left = 0;
+   TN_Timeout time_left = TN_WAIT_INFINITE;
 
 #if TN_DEBUG
    //-- interrupts should be disabled here

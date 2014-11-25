@@ -54,6 +54,7 @@
 #include "../arch/tn_arch.h"
 #include "tn_cfg_dispatch.h"
 
+#include "tn_timer.h"
 
 
 

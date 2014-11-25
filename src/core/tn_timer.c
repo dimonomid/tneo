@@ -42,9 +42,10 @@
 #include "tn_common.h"
 #include "tn_sys.h"
 
+
 //-- internal tnkernel headers
 #include "_tn_timer.h"
-
+#include "_tn_list.h"
 
 
 
@@ -252,5 +253,65 @@ enum TN_RCode tn_timer_time_left(
  *    PROTECTED FUNCTIONS
  ******************************************************************************/
 
+
+/**
+ * See comments in the _tn_timer.h file.
+ */
+enum TN_RCode _tn_timer_create(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      )
+{
+   enum TN_RCode rc = _tn_timer_set_func(timer, func, p_user_data);
+
+   if (rc != TN_RC_OK){
+      //-- just return rc as it is
+   } else {
+
+      _tn_list_reset(&(timer->timer_queue));
+
+      timer->timeout_cur   = 0;
+      timer->id_timer      = TN_ID_TIMER;
+
+   }
+   return rc;
+}
+
+/**
+ * See comments in the _tn_timer.h file.
+ */
+enum TN_RCode _tn_timer_set_func(
+      struct TN_Timer  *timer,
+      TN_TimerFunc     *func,
+      void             *p_user_data
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (func == TN_NULL){
+      rc = TN_RC_WPARAM;
+   } else {
+      timer->func          = func;
+      timer->p_user_data   = p_user_data;
+   }
+
+   return rc;
+}
+
+/**
+ * See comments in the _tn_timer.h file.
+ */
+TN_BOOL _tn_timer_is_active(struct TN_Timer *timer)
+{
+#if TN_DEBUG
+   //-- interrupts should be disabled here
+   if (!TN_IS_INT_DISABLED()){
+      _TN_FATAL_ERROR("");
+   }
+#endif
+
+   return (!_tn_list_is_empty(&(timer->timer_queue)));
+}
 
 

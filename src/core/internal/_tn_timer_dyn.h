@@ -79,6 +79,8 @@ extern TN_CBTickSchedule      *_tn_cb_tick_schedule;
 /// See `#TN_CBTickCntGet` for the prototype.
 extern TN_CBTickCntGet        *_tn_cb_tick_cnt_get;
 
+extern struct TN_ListItem      _tn_timer_list__gen;
+extern struct TN_ListItem      _tn_timer_list__fire;
 
 
 
