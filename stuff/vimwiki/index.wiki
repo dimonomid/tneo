@@ -28,8 +28,9 @@
 
 === dynamic tick ===
 
-   * [ ] make TN_DYNAMIC_TICK off by default
-   * [ ] round_robin if TN_DYNAMIC_TICK is on
+   * [X] make TN_DYNAMIC_TICK off by default
+   * [ ] probably, make round_robin unsupported if TN_DYNAMIC_TICK is on? it makes a little sense to bother with dynamic tick, and then wake up regularly for round robin
+   * [ ] think carefully what happens if system tick count changes after we get it in tn_tick_int_processing(), and then, some timer function gets executed and it calls tn_timer_start()
 
 
 === PIC24/dsPIC port ===
