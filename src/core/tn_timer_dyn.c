@@ -79,15 +79,21 @@ struct TN_ListItem      _tn_timer_list__fire;
 
 
 volatile TN_SysTickCnt           _last_sys_tick_cnt;
-volatile TN_Timeout              _last_min_timeout;
 
 //TODO: get rid of it
-int                              _tmp_min_timeout = 0;
+//int                              _tmp_min_timeout = 0;
 
 
 /*******************************************************************************
  *    DEFINITIONS
  ******************************************************************************/
+
+/**
+ * Get pointer to `struct #TN_Task` by pointer to the `task_queue` member
+ * of the `struct #TN_Task`.
+ */
+#define _tn_get_timer_by_timer_queue(que)                               \
+   (que ? container_of(que, struct TN_Timer, timer_queue) : 0)
 
 
 
@@ -97,7 +103,31 @@ int                              _tmp_min_timeout = 0;
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static TN_Timeout _handle_timers(void)
+static void _next_tick_schedule(void)
+{
+   TN_Timeout next_timeout;
+
+   if (!_tn_list_is_empty(&_tn_timer_list__fire)){
+      //-- need to execute tn_tick_int_processing() as soon as possible
+      next_timeout = 0;
+   } else if (!_tn_list_is_empty(&_tn_timer_list__gen)){
+      //-- need to get first timer from the list and get its timeout
+      struct TN_Timer *timer_next = _tn_get_timer_by_timer_queue(
+            _tn_timer_list__gen.next
+            );
+
+      next_timeout = timer_next->timeout_cur;
+   } else {
+      //-- no timers are active, so, no ticks needed
+      next_timeout = TN_WAIT_INFINITE;
+   }
+
+   //-- schedule next tick
+   _tn_cb_tick_schedule(next_timeout);
+}
+
+
+static struct TN_ListItem *_handle_timers(TN_Timeout timeout_to_add)
 {
    //-- get current time (tick count)
    TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
@@ -106,7 +136,7 @@ static TN_Timeout _handle_timers(void)
    //   last time
    TN_SysTickCnt diff = cur_sys_tick_cnt - _last_sys_tick_cnt;
 
-   TN_Timeout min_timeout = TN_WAIT_INFINITE;
+   struct TN_ListItem *ret_item = &_tn_timer_list__gen;
 
 #if TN_DEBUG
    //-- interrupts should be disabled here
@@ -136,9 +166,9 @@ static TN_Timeout _handle_timers(void)
          if (timer->timeout_cur > diff){
             timer->timeout_cur -= diff;
 
-            //-- remember min timeout
-            if (timer->timeout_cur < min_timeout){
-               min_timeout = timer->timeout_cur;
+            //-- find correct place to insert new timer
+            if (timer->timeout_cur < timeout_to_add){
+               ret_item = &timer->timer_queue;
             }
 
          } else {
@@ -153,15 +183,12 @@ static TN_Timeout _handle_timers(void)
 
       }
 
-      _last_min_timeout = min_timeout;
-   } else {
-      min_timeout = _last_min_timeout;
    }
 
    //-- update last system tick count
    _last_sys_tick_cnt = cur_sys_tick_cnt;
 
-   return min_timeout;
+   return ret_item;
 }
 
 static void _timer_cancel(struct TN_Timer *timer)
@@ -213,8 +240,6 @@ void _tn_timers_init(void)
    //-- set last system tick count to zero
    _last_sys_tick_cnt = 0;
 
-   _last_min_timeout = TN_WAIT_INFINITE;
-
    //-- reset "generic" timers list
    _tn_list_reset(&_tn_timer_list__gen);
 
@@ -228,7 +253,7 @@ void _tn_timers_init(void)
  */
 void _tn_timers_tick_proceed(void)
 {
-   _tmp_min_timeout = _handle_timers();
+   _handle_timers(0);
 
    //-- handle "fire" timer list
    {
@@ -248,8 +273,7 @@ void _tn_timers_tick_proceed(void)
       }
    }
 
-   //-- schedule next tick
-   _tn_cb_tick_schedule(_tmp_min_timeout);
+   _next_tick_schedule();
 }
 
 /**
@@ -269,26 +293,16 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
    } else {
-
       //-- cancel the timer
       _timer_cancel(timer);
 
-      _tmp_min_timeout = _handle_timers();
-
-      if (!_tn_list_is_empty(&_tn_timer_list__fire)){
-         _tmp_min_timeout = 0;
-      }
-
-      //-- don't forget to check if timeout of new timer is the minimal one.
-      if (timeout < _tmp_min_timeout){
-         _tmp_min_timeout = timeout;
-      }
+      struct TN_ListItem *list_item = _handle_timers(timeout);
 
       timer->timeout_cur = timeout;
-      _tn_list_add_tail(&_tn_timer_list__gen, &(timer->timer_queue));
+      _tn_list_add_head(list_item, &(timer->timer_queue));
 
       //-- schedule next tick
-      _tn_cb_tick_schedule(_tmp_min_timeout);
+      _next_tick_schedule();
    }
 
    return rc;
@@ -315,14 +329,13 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 
       //-- after timer is cancelled, walk through all remaining active timers,
       //   update their timeouts, and find new _tmp_min_timeout
-      _tmp_min_timeout = _handle_timers();
+      _handle_timers(0);
 
-      if (!_tn_list_is_empty(&_tn_timer_list__fire)){
-         _tmp_min_timeout = 0;
-      }
-
-      //-- schedule next tick
-      _tn_cb_tick_schedule(_tmp_min_timeout);
+      //TODO: in _next_tick_schedule(), remember which timer is next,
+      //      and here in _tn_timer_cancel() check if we're going to cancel
+      //      next timer. If we don't, then don't call _handle_timers()
+      //      and _next_tick_schedule() at all.
+      _next_tick_schedule();
    }
 
    return rc;
