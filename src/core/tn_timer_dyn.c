@@ -82,7 +82,6 @@ volatile TN_SysTickCnt           _last_sys_tick_cnt;
 volatile TN_Timeout              _last_min_timeout;
 
 //TODO: get rid of it
-int                              _tmp_flag = 0;
 int                              _tmp_min_timeout = 0;
 
 
@@ -98,8 +97,15 @@ int                              _tmp_min_timeout = 0;
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
-static TN_Timeout _handle_timers(TN_SysTickCnt diff)
+static TN_Timeout _handle_timers(void)
 {
+   //-- get current time (tick count)
+   TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
+
+   //-- get how much time was passed since _last_sys_tick_cnt was updated
+   //   last time
+   TN_SysTickCnt diff = cur_sys_tick_cnt - _last_sys_tick_cnt;
+
    TN_Timeout min_timeout = TN_WAIT_INFINITE;
 
 #if TN_DEBUG
@@ -151,6 +157,9 @@ static TN_Timeout _handle_timers(TN_SysTickCnt diff)
    } else {
       min_timeout = _last_min_timeout;
    }
+
+   //-- update last system tick count
+   _last_sys_tick_cnt = cur_sys_tick_cnt;
 
    return min_timeout;
 }
@@ -219,17 +228,7 @@ void _tn_timers_init(void)
  */
 void _tn_timers_tick_proceed(void)
 {
-   //-- get current time (tick count)
-   TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
-
-   //-- get how much time was passed since _last_sys_tick_cnt was updated
-   //   last time
-   TN_SysTickCnt diff = cur_sys_tick_cnt - _last_sys_tick_cnt;
-
-   _tmp_min_timeout = _handle_timers(diff);
-
-   //-- update last system tick count
-   _last_sys_tick_cnt = cur_sys_tick_cnt;
+   _tmp_min_timeout = _handle_timers();
 
    //-- handle "fire" timer list
    {
@@ -244,10 +243,8 @@ void _tn_timers_tick_proceed(void)
          //   callback function could start it again if it wants to.
          _timer_cancel(timer);
 
-         _tmp_flag = 1;
          //-- call user callback function
          timer->func(timer, timer->p_user_data);
-         _tmp_flag = 0;
       }
    }
 
@@ -276,17 +273,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
       //-- cancel the timer
       _timer_cancel(timer);
 
-      //-- get current time (tick count)
-      TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
-
-      //-- get how much time was passed since _last_sys_tick_cnt was updated
-      //   last time
-      TN_SysTickCnt diff = cur_sys_tick_cnt - _last_sys_tick_cnt;
-
-      _tmp_min_timeout = _handle_timers(diff);
-
-      //-- update last system tick count
-      _last_sys_tick_cnt = cur_sys_tick_cnt;
+      _tmp_min_timeout = _handle_timers();
 
       if (!_tn_list_is_empty(&_tn_timer_list__fire)){
          _tmp_min_timeout = 0;
@@ -326,19 +313,9 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
       //-- cancel the timer
       _timer_cancel(timer);
 
-      //-- get current time (tick count)
-      TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
-
-      //-- get how much time was passed since _last_sys_tick_cnt was updated
-      //   last time
-      TN_SysTickCnt diff = cur_sys_tick_cnt - _last_sys_tick_cnt;
-
       //-- after timer is cancelled, walk through all remaining active timers,
       //   update their timeouts, and find new _tmp_min_timeout
-      _tmp_min_timeout = _handle_timers(diff);
-
-      //-- update last system tick count
-      _last_sys_tick_cnt = cur_sys_tick_cnt;
+      _tmp_min_timeout = _handle_timers();
 
       if (!_tn_list_is_empty(&_tn_timer_list__fire)){
          _tmp_min_timeout = 0;
