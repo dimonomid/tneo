@@ -183,6 +183,9 @@
 #endif
 
 /**
+ * <I>Takes effect if only \link TN_DYNAMIC_TICK <code>TN_DYNAMIC_TICK</code>
+ * \endlink is <B>not set</B>.</I>
+ *
  * Number of "tick" lists of timers, must be a power or two; minimum value:
  * `2`; typical values: `4`, `8` or `16`.
  *
@@ -246,10 +249,7 @@
 #endif
 
 
-/**
- * Don't change it, it is still under construction!
- * The only valid value of `TN_DYNAMIC_TICK` is 0.
- */
+//TODO: comment
 #ifndef TN_DYNAMIC_TICK
 #  define TN_DYNAMIC_TICK        0
 #endif

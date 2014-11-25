@@ -233,7 +233,14 @@ struct TN_Timer {
  *
  * @param timeout 
  *    Timeout after which `tn_tick_int_processing()` should be called next
- *    time.
+ *    time. Note the following:
+ *    - It might be `#TN_WAIT_INFINITE`, which means that there are no active
+ *      timeouts, and so, there's no need for tick interrupt at all.
+ *    - It might be `0`; in this case, it's <i>already</i> time to call
+ *      `tn_tick_int_processing()`. You might want to set interrupt request
+ *      bit then, in order to get to it as soon as possible.
+ *    - In other cases, the function should schedule next call to
+ *      `tn_tick_int_processing()` in the `timeout` tick periods.
  *
  */
 typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
