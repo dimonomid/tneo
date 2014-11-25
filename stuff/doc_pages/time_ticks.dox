@@ -1,0 +1,56 @@
+/**
+\page time_ticks Time ticks
+
+\tableofcontents
+
+The kernel needs to calculate timeouts. There are two schemes available: 
+<i>static tick</i> and <i>dynamic tick</i>. 
+
+\section time_ticks__static_tick Static tick
+
+Static tick is the easiest way to implement timeouts: there should be just some
+kind of hardware timer that generates interrupts periodically. Throughout this
+text, this timer is referred to as *system timer*.  The period of this timer is
+determined by user (typically 1 ms, but user is free to set different value).
+In the ISR for this timer, it is only necessary to call the
+`tn_tick_int_processing()` function:
+
+\code{.c}
+//-- example for PIC32, hardware timer 5 interrupt:
+tn_p32_soft_isr(_TIMER_5_VECTOR)
+{
+   INTClearFlag(INT_T5);
+   tn_tick_int_processing();
+}
+\endcode
+
+But for some applications that spends a lot of time doing nothing this could be
+far from perfect: instead of being constantly in the power-saving mode, the CPU
+needs to wake up regularly for no good reason. So, <i>dynamic tick</i> scheme
+was implemented:
+
+\section time_ticks__dynamic_tick Dynamic tick
+
+The general idea is that there should be no useless calls to
+`tn_tick_int_processing()`. If the kernel needs to wake up after 100 system ticks,
+then, `tn_tick_int_processing()` should be called exactly after 100 periods of
+system tick (but external asynchronous events still can happen and re-schedule
+that, of course).
+
+To this end, the kernel should be able to communicate with the application:
+
+- To schedule next call to `tn_tick_int_processing()` after `N` ticks;
+- To ask what time is now (i.e. get current system ticks count)
+
+To use dynamic tick, turn the option `#TN_DYNAMIC_TICK` to `1`.
+
+Then, a couple of callback prototypes becomes available: 
+
+- `#TN_CBTickSchedule`;
+- `#TN_CBTickCntGet`.
+
+And you must provide these callbacks to `#tn_callback_dyn_tick_set()`
+<b>before</b> starting the system (i.e. before calling `#tn_sys_start()`)
+
+
+*/

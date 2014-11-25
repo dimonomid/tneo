@@ -36,24 +36,13 @@ That's all; you can use it in your project now. See below how to do this.
 library after editing `tn_cfg.h`. Refer to the page \ref building for details.
 
 
-\section time_ticks Time ticks
+\section quick_guide__time_ticks Time ticks
 
-For the purpose of calculating timeouts, the kernel uses a time tick timer.  In
-TNeoKernel, this time tick timer must to be a some kind of hardware timer that
-produces interrupt for time ticks processing. Throughout this text, this timer
-is referred to as *system timer*. The period of this timer  is determined by
-user (typically 1 ms, but user is free to set different value). In the ISR for
-this timer, it is only necessary to call the `tn_tick_int_processing()`
-function:
+The kernel needs to calculate timeouts. There are two schemes available:
+<i>static tick</i> and <i>dynamic tick</i>. For a quick guide, it's quite
+enough to just read about static tick, so, for the details on it, refer to the
+section \ref time_ticks__static_tick and then return back here.
 
-\code{.c}
-//-- example for PIC32, hardware timer 5 interrupt:
-tn_p32_soft_isr(_TIMER_5_VECTOR)
-{
-   INTClearFlag(INT_T5);
-   tn_tick_int_processing();
-}
-\endcode
 
 \section starting_the_kernel Starting the kernel
 

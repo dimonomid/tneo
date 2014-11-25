@@ -22,6 +22,7 @@ Related pages:
 
   - \ref foreword
   - \ref quick_guide
+  - \ref time_ticks
   - \ref interrupts
   - \ref building
   - \ref arch_specific

@@ -183,8 +183,8 @@
 #endif
 
 /**
- * <I>Takes effect if only \link TN_DYNAMIC_TICK <code>TN_DYNAMIC_TICK</code>
- * \endlink is <B>not set</B>.</I>
+ *
+ * <i>Takes effect if only `#TN_DYNAMIC_TICK` is <B>not set</B></i>.
  *
  * Number of "tick" lists of timers, must be a power or two; minimum value:
  * `2`; typical values: `4`, `8` or `16`.
@@ -249,7 +249,10 @@
 #endif
 
 
-//TODO: comment
+/**
+ * Whether the kernel should use \ref time_ticks__dynamic_tick scheme instead of
+ * \ref time_ticks__static_tick.
+ */
 #ifndef TN_DYNAMIC_TICK
 #  define TN_DYNAMIC_TICK        0
 #endif
