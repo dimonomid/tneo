@@ -60,8 +60,8 @@ extern "C"  {     /*}*/
 
 /**
  * Magic number for object validity verification
- * TODO: use TN_UWord here instead of unsigned int
  */
+// TODO: use TN_UWord here instead of unsigned int
 enum TN_ObjId {
    TN_ID_NONE           = (unsigned int)0x0,         //!< id for invalid object
    TN_ID_TASK           = (unsigned int)0x47ABCF69,  //!< id for tasks
