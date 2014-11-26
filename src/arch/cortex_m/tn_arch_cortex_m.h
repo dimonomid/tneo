@@ -142,7 +142,7 @@ int ffs_asm(int x);
 #  define TN_ARCH_STK_ATTR_BEFORE      __align(8)
 #  define TN_ARCH_STK_ATTR_AFTER
 
-#elif defined(__TN_COMPILER_GCC__)
+#elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
 
 #  define TN_ARCH_STK_ATTR_BEFORE
 #  define TN_ARCH_STK_ATTR_AFTER       __attribute__((aligned(0x08)))
@@ -295,7 +295,7 @@ typedef  unsigned int               TN_UIntPtr;
 #  define _TN_INLINE   inline //-- to make it work, we need to build
                               //   the kernel with --c99 key.
 #  define _TN_VOLATILE_WORKAROUND   /* nothing */
-#elif defined(__TN_COMPILER_GCC__)
+#elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
 #  define _TN_INLINE   inline
 #  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_IAR__)

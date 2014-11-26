@@ -114,8 +114,17 @@
 
 #elif defined(__TN_COMPILER_GCC__)
 
-//#  define   _TN_NAME(x)             _ ## x
 #  define   _TN_NAME(x)             x
+#  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
+#  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
+#  define   _TN_EQU(symbol, value)  .equ symbol, value
+#  define   _TN_LABEL(label)        _TN_NAME(label):
+#  define   _TN_END()               /* nothing */
+#  define   _TN_THUMB_FUNC()        .thumb_func
+
+#elif defined(__TN_COMPILER_CLANG__)
+
+#  define   _TN_NAME(x)             _ ## x
 #  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
@@ -149,7 +158,7 @@
    REQUIRE8
    PRESERVE8
 
-#elif defined(__TN_COMPILER_GCC__)
+#elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
 
    .text
    .syntax unified

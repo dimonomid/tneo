@@ -66,6 +66,7 @@
 #undef __TN_COMPILER_ARMCC__
 #undef __TN_COMPILER_IAR__
 #undef __TN_COMPILER_GCC__
+#undef __TN_COMPILER_CLANG__
 
 
 
@@ -169,10 +170,16 @@
 
 #elif defined(__GNUC__)
 
-#  define __TN_ARCH_CORTEX_M__
-#  define __TN_COMPILER_GCC__
+#  if defined(__clang__)
+#     define __TN_COMPILER_CLANG__
+#  else
+#     define __TN_COMPILER_GCC__
+#  endif
 
 #  if defined(__ARM_ARCH)
+
+#     define __TN_ARCH_CORTEX_M__
+
 #     if defined(__ARM_ARCH_6M__)
 #        define __TN_ARCH_CORTEX_M0__
 #        define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
