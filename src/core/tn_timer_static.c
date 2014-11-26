@@ -338,7 +338,7 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 #endif
 
    if (_tn_timer_is_active(timer)){
-      int tick_list_index = _TICK_LIST_INDEX(0);
+      TN_Timeout tick_list_index = _TICK_LIST_INDEX(0);
 
       if (timer->timeout_cur > tick_list_index){
          time_left = timer->timeout_cur - tick_list_index;

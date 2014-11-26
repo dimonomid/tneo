@@ -412,7 +412,7 @@ void tn_sys_start(
       TN_CBIdle           *cb_idle
       )
 {
-   int i;
+   unsigned int i;
    enum TN_RCode rc;
 
    //-- init timers
