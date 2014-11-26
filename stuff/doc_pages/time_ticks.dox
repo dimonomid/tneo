@@ -24,10 +24,10 @@ tn_p32_soft_isr(_TIMER_5_VECTOR)
 }
 \endcode
 
-But for some applications that spends a lot of time doing nothing this could be
-far from perfect: instead of being constantly in the power-saving mode, the CPU
-needs to wake up regularly for no good reason. So, <i>dynamic tick</i> scheme
-was implemented:
+But for some applications that spend a lot of time doing nothing this could be
+far from perfect: instead of being constantly in the power-saving mode while
+there's nothing to do, the CPU needs to wake up regularly.  So, <i>dynamic
+tick</i> scheme was implemented:
 
 \section time_ticks__dynamic_tick Dynamic tick
 

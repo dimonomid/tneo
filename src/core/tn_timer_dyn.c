@@ -79,7 +79,7 @@ TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
 ///
 /// List of active non-expired timers. Timers are sorted in ascending order
 /// by the value of `timeout_cur`
-struct TN_ListItem      _timer_list__gen;
+static struct TN_ListItem     _timer_list__gen;
 
 
 /// List of expired timers, it is typically used only inside
@@ -90,13 +90,13 @@ struct TN_ListItem      _timer_list__gen;
 /// In this case, `_tn_cb_tick_schedule()` will be called with argument `0`,
 /// which means that `tn_tick_int_processing()` should be called by application
 /// as soon as possible.
-struct TN_ListItem      _timer_list__fire;
+static struct TN_ListItem     _timer_list__fire;
 
 
 ///
 /// The value returned by `_tn_timer_sys_time_get()`, relative to which
 /// all the timeouts of timers in the `_timer_list__gen` list are specified
-TN_SysTickCnt           _last_sys_tick_cnt;
+static TN_SysTickCnt          _last_sys_tick_cnt;
 
 
 
