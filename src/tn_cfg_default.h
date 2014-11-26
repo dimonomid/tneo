@@ -183,6 +183,9 @@
 #endif
 
 /**
+ *
+ * <i>Takes effect if only `#TN_DYNAMIC_TICK` is <B>not set</B></i>.
+ *
  * Number of "tick" lists of timers, must be a power or two; minimum value:
  * `2`; typical values: `4`, `8` or `16`.
  *
@@ -247,8 +250,8 @@
 
 
 /**
- * Don't change it, it is still under construction!
- * The only valid value of `TN_DYNAMIC_TICK` is 0.
+ * Whether the kernel should use \ref time_ticks__dynamic_tick scheme instead of
+ * \ref time_ticks__static_tick.
  */
 #ifndef TN_DYNAMIC_TICK
 #  define TN_DYNAMIC_TICK        0

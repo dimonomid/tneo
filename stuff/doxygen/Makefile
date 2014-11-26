@@ -53,7 +53,10 @@ TN_SYS_TIMER_LINK     = <I>\ref time_ticks "system timer"</I>
 # --- Warning that symbol is available if only TN_DYNAMIC_TICK is set
 
 export TN_IF_ONLY_DYNAMIC_TICK_SET
-TN_IF_ONLY_DYNAMIC_TICK_SET   = <I>Available if only \link TN_DYNAMIC_TICK <code>TN_DYNAMIC_TICK</code> \endlink is <B>set</B>.</I>
+TN_IF_ONLY_DYNAMIC_TICK_SET      = <I>Available if only \link TN_DYNAMIC_TICK <code>TN_DYNAMIC_TICK</code> \endlink is <B>set</B>.</I>
+
+export TN_IF_ONLY_DYNAMIC_TICK_NOT_SET
+TN_IF_ONLY_DYNAMIC_TICK_NOT_SET  = <I>Available if only \link TN_DYNAMIC_TICK <code>TN_DYNAMIC_TICK</code> \endlink is <B>not set</B>.</I>
 
 
 # --- Links to task states

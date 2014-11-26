@@ -11,6 +11,7 @@
    * [ ] Exchange object
    * [ ] rename tn_callback_... to _tn_cb_....
    * [X] check_param functions: make them take pointer to `const` struct.
+   * [ ] remove "public data" sections, there might be protected or private data only.
 
 
 === profiler ===
@@ -29,8 +30,12 @@
 === dynamic tick ===
 
    * [X] make TN_DYNAMIC_TICK off by default
+   * [X] at the quick_guide page, add something about dynamic tick.
+   * [X] document TN_DYNAMIC_TICK
    * [ ] probably, make round_robin unsupported if TN_DYNAMIC_TICK is on? it makes a little sense to bother with dynamic tick, and then wake up regularly for round robin
    * [ ] think carefully what happens if system tick count changes after we get it in tn_tick_int_processing(), and then, some timer function gets executed and it calls tn_timer_start()
+   * [ ] timers_implementation: move to tn_timer_static.c or create tn_timer_static.h and move there
+   * [ ] at the page time_ticks.dox, probably show easy yet not so efficient implementation with dynamic tick
 
 
 === PIC24/dsPIC port ===
