@@ -94,15 +94,17 @@
 
 #if defined(__TN_COMPILER_ARMCC__)
 
-#  define   _TN_EXTERN(x)           IMPORT x
-#  define   _TN_GLOBAL(x)           EXPORT x
+#  define   _TN_NAME(x)             x
+#  define   _TN_EXTERN(x)           IMPORT _TN_NAME(x)
+#  define   _TN_GLOBAL(x)           EXPORT _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  symbol EQU value
-#  define   _TN_LABEL(label)        label
+#  define   _TN_LABEL(label)        _TN_NAME(label)
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_IAR__)
 
+#  define   _TN_NAME(x)             x
 #  define   _TN_EXTERN(x)           IMPORT x
 #  define   _TN_GLOBAL(x)           EXPORT x
 #  define   _TN_EQU(symbol, value)  symbol EQU value
@@ -112,10 +114,12 @@
 
 #elif defined(__TN_COMPILER_GCC__)
 
-#  define   _TN_EXTERN(x)           .extern x
-#  define   _TN_GLOBAL(x)           .global x
+//#  define   _TN_NAME(x)             _ ## x
+#  define   _TN_NAME(x)             x
+#  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
+#  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
-#  define   _TN_LABEL(label)        label:
+#  define   _TN_LABEL(label)        _TN_NAME(label):
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
@@ -236,7 +240,7 @@ _TN_LABEL(ffs_asm)
       mov      r1, r0                  //-- tmp = in
       rsbs     r0, r1, #0              //-- in = -in
       ands     r0, r0, r1              //-- in = in & tmp
-      clz.w    r0, r0
+      clz      r0, r0
       rsb      r0, r0, #0x20           //-- 32 - in
       bx       lr
 #endif
@@ -246,7 +250,7 @@ _TN_LABEL(ffs_asm)
 _TN_THUMB_FUNC()
 _TN_LABEL(PendSV_Handler)
 
-      cpsid    I                       //-- Disable core int
+      cpsid    i                       //-- Disable core int
 
       //-- Now, PSP contains task's stack pointer.
       //   We need to get it and save callee-saved registers to stack.
@@ -280,8 +284,8 @@ _TN_LABEL(PendSV_Handler)
 
       //-- get stack pointer of preempted task and save it in the
       //   tn_curr_run_task->stack_top
-      ldr      r5, =tn_curr_run_task   //-- r5 = &tn_curr_run_task
-      ldr      r6, =tn_next_task_to_run//-- r6 = &tn_next_task_to_run
+      ldr      r5, =_TN_NAME(tn_curr_run_task)   //-- r5 = &tn_curr_run_task
+      ldr      r6, =_TN_NAME(tn_next_task_to_run)//-- r6 = &tn_next_task_to_run
       ldr      r0, [r5]                //-- r0 =  tn_curr_run_task
       ldr      r1, [r6]                //-- r1 =  tn_next_task_to_run
       str      r2, [r0]                //-- tn_curr_run_task->stack_top = SP
@@ -293,7 +297,7 @@ _TN_LABEL(PendSV_Handler)
        * - r0: tn_curr_run_task
        * - r1: tn_next_task_to_run
        */
-      bl       _tn_sys_on_context_switch
+      bl       _TN_NAME(_tn_sys_on_context_switch)
 #endif
 
       //-- tn_curr_run_task = tn_next_task_to_run
@@ -337,7 +341,7 @@ _TN_LABEL(__context_restore)  //-- if you branch here, r4 should be tn_curr_run_
 
       msr      PSP, r0        //-- update PSP to stack of newly activated task
 
-      cpsie    I              //-- enable core int
+      cpsie    i              //-- enable core int
       bx       lr
 
 
@@ -408,7 +412,7 @@ _TN_LABEL(_tn_arch_context_switch_now_nosave)
       //-- we should enable core int because we're going to
       //   call SVC. If interrupts are disabled,
       //   a call to SVC causes HardFault exception.
-      cpsie    I
+      cpsie    i
 
       //-- perform SVC
       svc      #0x00
@@ -421,12 +425,12 @@ _TN_LABEL(SVC_Handler)
       //-- there is just one service possible: context_switch_now_nosave,
       //   so, we don't check params.
 
-      cpsid    I              //-- Disable core int
+      cpsid    i              //-- Disable core int
 
-      ldr      r5, =tn_curr_run_task      //-- r5 = &tn_curr_run_task
-      ldr      r6, =tn_next_task_to_run   //-- r6 = &tn_next_task_to_run
-      ldr      r0, [r5]                   //-- r0 =  tn_curr_run_task
-      ldr      r1, [r6]                   //-- r1 =  tn_next_task_to_run
+      ldr      r5, =_TN_NAME(tn_curr_run_task)     //-- r5 = &tn_curr_run_task
+      ldr      r6, =_TN_NAME(tn_next_task_to_run)  //-- r6 = &tn_next_task_to_run
+      ldr      r0, [r5]                            //-- r0 =  tn_curr_run_task
+      ldr      r1, [r6]                            //-- r1 =  tn_next_task_to_run
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
       /* 
@@ -434,7 +438,7 @@ _TN_LABEL(SVC_Handler)
        * - r0: tn_curr_run_task
        * - r1: tn_next_task_to_run
        */
-      bl       _tn_sys_on_context_switch
+      bl       _TN_NAME(_tn_sys_on_context_switch)
 #endif
 
       ldr      r4, [r6]                   //-- r4 =  tn_next_task_to_run
@@ -443,14 +447,14 @@ _TN_LABEL(SVC_Handler)
       //-- r4 is now tn_curr_run_task
 
       //-- proceed to context restore (r4 must be set to tn_curr_run_task)
-      b        __context_restore
+      b        _TN_NAME(__context_restore)
 
       
 
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_dis)
 
-      cpsid    I
+      cpsid    i
       bx       lr
 
 
@@ -458,7 +462,7 @@ _TN_LABEL(tn_arch_int_dis)
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_en)
 
-      cpsie    I
+      cpsie    i
       bx       lr
 
 
@@ -466,7 +470,7 @@ _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sr_save_int_dis)
 
       mrs      r0, PRIMASK
-      cpsid    I
+      cpsid    i
       bx       lr
 
 
