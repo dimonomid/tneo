@@ -123,6 +123,10 @@ TN_SysTickCnt           _last_sys_tick_cnt;
  * Find out when the kernel needs `tn_tick_int_processing()` to be called next
  * time, and eventually call application callback `_tn_cb_tick_schedule()`
  * with found value.
+ *
+ * NOTE WELL that this function may be called if only _last_sys_tick_cnt
+ * represents current time, and therefore all timeouts represents
+ * actual timeout from now; otherwise, tick will be scheduled at wrong timeout.
  */
 static void _next_tick_schedule(void)
 {
@@ -383,24 +387,20 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
       //-- cancel the timer
       _timer_cancel(timer);
 
-      //-- Note: we don't need to call _handle_timers(0) here, because
+      //-- Note: we don't have to call _handle_timers(0) here, because
       //   nothing will break if we just remove one timer from the list.
       //   We don't need to recalculate all timeouts.
-      //   But if we've just removed timer that was the next one,
-      //   then we need to find out new next timer. For that,
-      //   we call _next_tick_schedule().
       //
-      //   But DO NOTE that even if we don't call _next_tick_schedule(),
-      //   nothing will break, anyway! In that case, we might just have one
-      //   useless call to `tn_tick_int_processing()`, but inside that call,
-      //   we will found out that there's nothing to do, and that's it.
+      //   The only little thing is that if we remove the timer that
+      //   was the next one, then we will have one useless scheduled call to
+      //   `tn_tick_int_processing()`, but it isn't so much overhead.
       //
-      //   Probably it's a good idea to avoid useless interrupt, so, we call
-      //   `_next_tick_schedule()` here.
-
-      //-- find out when `tn_tick_int_processing()` should be called next time,
-      //   and tell that to application
-      _next_tick_schedule();
+      //   To avoid this, we can call here two functions:
+      //
+      //   _handle_timers(0);
+      //   _next_tick_schedule();
+      //
+      //   but I decided that it's better to not call them.
    }
 
    return rc;
