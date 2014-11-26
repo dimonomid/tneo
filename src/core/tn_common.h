@@ -72,7 +72,7 @@ enum TN_ObjId {
    TN_ID_MUTEX          = (unsigned int)0x17129E45,  //!< id for mutexes
    TN_ID_TIMER          = (unsigned int)0x1A937FBC,  //!< id for timers
    TN_ID_EXCHANGE       = (unsigned int)0x32b7c072,  //!< id for exchange objects
-   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange objects
+   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange link
 };
 
 /**
