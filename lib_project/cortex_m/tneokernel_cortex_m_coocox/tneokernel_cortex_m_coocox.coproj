@@ -71,13 +71,15 @@
   </Target>
   <Components path="./"/>
   <Files>
+    <File name="core/tn_timer_dyn.c" path="../../../src/core/tn_timer_dyn.c" type="1"/>
     <File name="core/tn_eventgrp.c" path="../../../src/core/tn_eventgrp.c" type="1"/>
+    <File name="core/tn_timer_static.c" path="../../../src/core/tn_timer_static.c" type="1"/>
     <File name="arch/tn_arch_cortex_m_c.c" path="../../../src/arch/cortex_m/tn_arch_cortex_m_c.c" type="1"/>
     <File name="core/tn_list.c" path="../../../src/core/tn_list.c" type="1"/>
     <File name="arch" path="" type="2"/>
     <File name="core/tn_mutex.c" path="../../../src/core/tn_mutex.c" type="1"/>
-    <File name="core/tn_sys.c" path="../../../src/core/tn_sys.c" type="1"/>
     <File name="core/tn_timer.c" path="../../../src/core/tn_timer.c" type="1"/>
+    <File name="core/tn_sys.c" path="../../../src/core/tn_sys.c" type="1"/>
     <File name="core/tn_dqueue.c" path="../../../src/core/tn_dqueue.c" type="1"/>
     <File name="core/tn_fmem.c" path="../../../src/core/tn_fmem.c" type="1"/>
     <File name="core/tn_tasks.c" path="../../../src/core/tn_tasks.c" type="1"/>
