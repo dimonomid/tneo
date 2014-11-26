@@ -453,6 +453,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\src\core\tn_tasks.c</FilePath>
             </File>
+            <File>
+              <FileName>tn_timer_static.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\src\core\tn_timer_static.c</FilePath>
+            </File>
+            <File>
+              <FileName>tn_timer_dyn.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\src\core\tn_timer_dyn.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
