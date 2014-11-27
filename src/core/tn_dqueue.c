@@ -265,7 +265,7 @@ static void _cb_before_task_wait_complete__receive_timeout(
 
 /**
  * Actual worker function that sends new data through the queue. Eventually
- * called when user calls on of these functions:
+ * called when user calls one of these functions:
  *
  * - `tn_queue_send()`
  * - `tn_queue_send_polling()`
@@ -319,7 +319,7 @@ static enum TN_RCode _queue_send(
 
 /**
  * Actual worker function that receives data from the queue. 
- * Eventually called when user calls on of these functions:
+ * Eventually called when user calls one of these functions:
  *
  * - `tn_queue_receive()`
  * - `tn_queue_receive_polling()`
