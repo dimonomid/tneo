@@ -60,6 +60,10 @@
  *    PRIVATE TYPES
  ******************************************************************************/
 
+/**
+ * Type of job: send data or receive data. Given to `_dqueue_job_perform()`
+ * and `_dqueue_job_iperform()`.
+ */
 enum _JobType {
    _JOB_TYPE__SEND,
    _JOB_TYPE__RECEIVE,
@@ -121,6 +125,19 @@ static _TN_INLINE enum TN_RCode _check_param_read(
 
 //-- Data queue storage FIFO processing {{{
 
+/**
+ * Try to put data to the FIFO.
+ *
+ * If there is a room in the FIFO, data is written, and `#TN_RC_OK` is
+ * returned; otherwise, `#TN_RC_TIMEOUT` is returned, and this case can 
+ * be handled by the caller.
+ *
+ * @param dque
+ *    Data queue in which data should be written
+ * @param p_data
+ *    Data to write (just a pointer itself is written to the FIFO, not the data
+ *    which is pointed to by `p_data`)
+ */
 static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -147,6 +164,18 @@ static enum TN_RCode _fifo_write(struct TN_DQueue *dque, void *p_data)
 }
 
 
+/**
+ * Try to read data from the FIFO.
+ *
+ * If there is some data in the FIFO, data is read, and `#TN_RC_OK` is
+ * returned; otherwise, `#TN_RC_TIMEOUT` is returned, and this case can 
+ * be handled by the caller.
+ *
+ * @param dque
+ *    Data queue from which data should be read
+ * @param p_data
+ *    Pointer to the place at which new data should be read.
+ */
 static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
 {
    enum TN_RCode rc = _check_param_read(pp_data);
@@ -177,6 +206,12 @@ static enum TN_RCode _fifo_read(struct TN_DQueue *dque, void **pp_data)
 }
 // }}}
 
+/**
+ * Callback function that is given to `_tn_task_first_wait_complete()`
+ * when task finishes waiting for new messages in the queue.
+ *
+ * See `#_TN_CBBeforeTaskWaitComplete` for details on function signature.
+ */
 static void _cb_before_task_wait_complete__send(
       struct TN_Task   *task,
       void             *user_data_1,
@@ -187,6 +222,12 @@ static void _cb_before_task_wait_complete__send(
    task->subsys_wait.dqueue.data_elem = user_data_1;
 }
 
+/**
+ * Callback function that is given to `_tn_task_first_wait_complete()`
+ * when task finishes waiting for free item in the queue.
+ *
+ * See `#_TN_CBBeforeTaskWaitComplete` for details on function signature.
+ */
 static void _cb_before_task_wait_complete__receive_ok(
       struct TN_Task   *task,
       void             *user_data_1,
@@ -202,6 +243,12 @@ static void _cb_before_task_wait_complete__receive_ok(
    }
 }
 
+/**
+ * Callback function that is given to `_tn_task_first_wait_complete()`
+ * when `items_cnt` is 0.
+ *
+ * See `#_TN_CBBeforeTaskWaitComplete` for details on function signature.
+ */
 static void _cb_before_task_wait_complete__receive_timeout(
       struct TN_Task   *task,
       void             *user_data_1,
@@ -216,6 +263,31 @@ static void _cb_before_task_wait_complete__receive_timeout(
 }
 
 
+/**
+ * Actual worker function that sends new data through the queue. Eventually
+ * called when user calls on of these functions:
+ *
+ * - `tn_queue_send()`
+ * - `tn_queue_send_polling()`
+ * - `tn_queue_isend_polling()`
+ *
+ *
+ * First of all, it checks whether there are tasks that wait for new data. If
+ * so, the data is given to that task, and task is woken up. FIFO stays
+ * untouched.
+ *
+ * Otherwise, it calls `_fifo_write()` which tries to put data to the FIFO.
+ * If there is a room in the FIFO, data is written, and `#TN_RC_OK` is
+ * returned; otherwise, `#TN_RC_TIMEOUT` is returned, and this case is 
+ * probably handled by the caller (`_dqueue_job_perform()` or
+ * `_dqueue_job_iperform()`) depending on requested `timeout` value.
+ *
+ * @param dque
+ *    Data queue in which data should be written
+ * @param p_data
+ *    Data to write (just a pointer itself is written to the FIFO, not the data
+ *    which is pointed to by `p_data`)
+ */
 static enum TN_RCode _queue_send(
       struct TN_DQueue *dque,
       void *p_data
@@ -245,6 +317,30 @@ static enum TN_RCode _queue_send(
    return rc;
 }
 
+/**
+ * Actual worker function that receives data from the queue. 
+ * Eventually called when user calls on of these functions:
+ *
+ * - `tn_queue_receive()`
+ * - `tn_queue_receive_polling()`
+ * - `tn_queue_ireceive_polling()`
+ *
+ * First of all, it tries to read data from the queue by calling
+ * `_fifo_read()`. In case of success, it checks whether there are tasks that
+ * wait for the free space in the queue, and wakes up the first task, if any.
+ *
+ * Otherwise (queue is empty, so, read is failed), it checks for the rare case
+ * if there are tasks that wait to write to the queue. It may happen if only
+ * `items_cnt` is 0. If there are such tasks, data is received from the first
+ * task from the queue. Otherwise, `#TN_RC_TIMEOUT` is returned, and this can
+ * be handled by the caller (`_dqueue_job_perform()` or
+ * `_dqueue_job_iperform()`) depending on requested `timeout` value.
+ *
+ * @param dque
+ *    Data queue from which data should be read
+ * @param p_data
+ *    Pointer to the place at which new data should be read.
+ */
 static enum TN_RCode _queue_receive(
       struct TN_DQueue *dque,
       void **pp_data
@@ -252,6 +348,7 @@ static enum TN_RCode _queue_receive(
 {
    enum TN_RCode rc = TN_RC_OK;
 
+   //-- try to read data from the queue
    rc = _fifo_read(dque, pp_data);
 
    switch (rc){
@@ -297,6 +394,30 @@ static enum TN_RCode _queue_receive(
 }
 
 
+/**
+ * Intermediary function that is called by task-related services
+ * (`tn_queue_send()`, `tn_queue_receive()`, etc), which performs all necessary
+ * housekeeping and eventually calls actual worker function depending on given
+ * `job_type`.
+ *
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param dque
+ *    Data queue on which job should be performed.
+ * @param job_type
+ *    Type of job to perform, depending on it, appropriate worker function
+ *    will be called (`_queue_send()` or `_queue_receive()`).
+ * @param p_data
+ *    Depends on given job_type:
+ *
+ *    - `_JOB_TYPE__SEND`: data to send;
+ *    - `_JOB_TYPE__RECEIVE`: pointer at which data should be received.
+ * @param timeout
+ *    Refer to `#TN_Timeout`.
+ */
 static enum TN_RCode _dqueue_job_perform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
@@ -384,6 +505,14 @@ static enum TN_RCode _dqueue_job_perform(
    return rc;
 }
 
+/**
+ * The same as `_dqueue_job_perform()` with zero timeout, but for using in the
+ * ISR.
+ *
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CAN_SWITCH_CONTEXT)
+ * $(TN_LEGEND_LINK)
+ */
 static enum TN_RCode _dqueue_job_iperform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
