@@ -36,6 +36,7 @@
    * [ ] think carefully what happens if system tick count changes after we get it in tn_tick_int_processing(), and then, some timer function gets executed and it calls tn_timer_start()
    * [ ] timers_implementation: move to tn_timer_static.c or create tn_timer_static.h and move there
    * [ ] at the page time_ticks.dox, probably show easy yet not so efficient implementation with dynamic tick
+   * [ ] test overflow of the tick count (init it to something like 0xffffff00)
 
 
 === PIC24/dsPIC port ===
