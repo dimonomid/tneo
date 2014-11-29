@@ -115,6 +115,17 @@ static _TN_INLINE enum TN_RCode _check_param_create(
 // }}}
 
 
+/**
+ * Check if condition is satisfied: check events mask against given pattern.
+ *
+ * @param eventgrp
+ *    Event group to check for condition
+ * @param wait_mode
+ *    Waiting mode: all specified flags or just any of them; see `enum
+ *    #TN_EGrpWaitMode`
+ * @param wait_pattern
+ *    Pattern to check against
+ */
 static TN_BOOL _cond_check(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpWaitMode wait_mode,
@@ -137,7 +148,7 @@ static TN_BOOL _cond_check(
          break;
 #if TN_DEBUG
       default:
-         _TN_FATAL_ERROR("");
+         _TN_FATAL_ERROR("invalid wait_mode");
          break;
 #endif
    }
@@ -145,6 +156,9 @@ static TN_BOOL _cond_check(
    return cond;
 }
 
+/**
+ * To be implemented or removed, not sure yet.
+ */
 static void _clear_pattern_if_needed(
       struct TN_EventGrp     *eventgrp,
       enum TN_EGrpWaitMode    wait_mode,
@@ -155,6 +169,14 @@ static void _clear_pattern_if_needed(
    //   TN_EVENTGRP_WMODE_CLR, and if it is set, then clear pattern here
 }
 
+
+/**
+ * Walk through all tasks waiting for some event, wake up tasks whose waiting
+ * condition is already satisfied.
+ *
+ * @param eventgrp
+ *    Event group to handle.
+ */
 static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 {
    //-- interrupts should be disabled here
@@ -163,8 +185,8 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
    struct TN_Task *task;
    struct TN_Task *tmp_task;
 
-   // checking ALL of the tasks waiting on the event.
-
+   //-- Walk through all tasks waiting for some event, checking
+   //   if each particular condition is satisfied
    _tn_list_for_each_entry_safe(
          task, struct TN_Task, tmp_task, &(eventgrp->wait_queue), task_queue
          )
@@ -177,10 +199,14 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
                )
          )
       {
-         //-- Condition to finish the waiting
+         //-- Condition is satisfied, so, wake the task up.
+         //   We should also remember actual pattern that caused
+         //   task to wake up.
+
          task->subsys_wait.eventgrp.actual_pattern = eventgrp->pattern;
          _tn_task_wait_complete(task, TN_RC_OK);
 
+         //-- This isn't yet implemented, just a stub for the future (maybe).
          _clear_pattern_if_needed(
                eventgrp,
                task->subsys_wait.eventgrp.wait_mode,
@@ -191,6 +217,16 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
 }
 
 
+/**
+ * Actual worker function that is eventually called when user calls
+ * `tn_eventgrp_wait()` and friends. It never sleeps; if condition isn't met,
+ * then `#TN_RC_TIMEOUT` is returned, and the caller may sleep then (it
+ * depends).
+ *
+ * If condition is met, `#TN_RC_OK` is returned, and the caller will not sleep.
+ *
+ * For params documentation, refer to the `tn_eventgrp_wait()`.
+ */
 static enum TN_RCode _eventgrp_wait(
       struct TN_EventGrp  *eventgrp,
       TN_UWord             wait_pattern,
@@ -210,12 +246,19 @@ static enum TN_RCode _eventgrp_wait(
       //-- Check release condition
 
       if (_cond_check(eventgrp, wait_mode, wait_pattern)){
+         //-- condition is met, so, return `#TN_RC_OK`, and we don't need to
+         //   wait.
+
          if (p_flags_pattern != TN_NULL){
             *p_flags_pattern = eventgrp->pattern;
          }
+
+         //-- This isn't yet implemented, just a stub for the future (maybe).
          _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
          rc = TN_RC_OK;
       } else {
+         //-- The condition isn't met, so, return appropriate code,
+         //   and the caller may sleep if it is needed.
          rc = TN_RC_TIMEOUT;
       }
 
@@ -223,6 +266,19 @@ static enum TN_RCode _eventgrp_wait(
    return rc;
 }
 
+/**
+ * Actual worker function that is eventually called when user calls
+ * `tn_eventgrp_modify()` or `tn_eventgrp_imodify()`.
+ *
+ * Modify current events pattern: set, clear or toggle flags. 
+ *
+ * If flags are cleared, there aren't any side effects: flags are just got
+ * cleared. If, however, flags are set or toggled, then all the tasks waiting
+ * for some particular event are checked whether the condition is met now. It
+ * is done by `_scan_event_waitqueue()`.
+ *
+ * For params documentation, refer to `tn_eventgrp_modify()`.
+ */
 static enum TN_RCode _eventgrp_modify(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpOp       operation,
@@ -234,17 +290,24 @@ static enum TN_RCode _eventgrp_modify(
 
    switch (operation){
       case TN_EVENTGRP_OP_CLEAR:
+         //-- clear flags: there aren't any side effects: just clear flags.
          eventgrp->pattern &= ~pattern;
          break;
 
       case TN_EVENTGRP_OP_SET:
+         //-- set flags: do that if only given flags aren't already set.
+         //   (otherwise, there's no need to spend time walking through
+         //   all the waiting tasks)
          if ((eventgrp->pattern & pattern) != pattern){
+            //-- flags aren't already set: so, set flags and check all tasks.
+
             eventgrp->pattern |= pattern;
             _scan_event_waitqueue(eventgrp);
          }
          break;
 
       case TN_EVENTGRP_OP_TOGGLE:
+         //-- toggle flags: after flags are toggled, check all waiting tasks.
          eventgrp->pattern ^= pattern;
          _scan_event_waitqueue(eventgrp);
          break;
@@ -302,6 +365,8 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp)
 
       TN_INT_DIS_SAVE();
 
+      // remove all waiting tasks from wait list (if any), returning the
+      // TN_RC_DELETED code.
       _tn_wait_queue_notify_deleted(&(eventgrp->wait_queue));
 
       eventgrp->id_event = TN_ID_NONE; //-- event does not exist now
@@ -340,9 +405,15 @@ enum TN_RCode tn_eventgrp_wait(
 
       TN_INT_DIS_SAVE();
 
+      //-- call worker function that actually performs needed check
+      //   and return result
       rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
       if (rc == TN_RC_TIMEOUT && timeout != 0){
+         //-- condition isn't met, and user wants to wait in this case.
+         //   So, remember waiting parameters (mode, pattern), and put
+         //   current task to wait.
+
          tn_curr_run_task->subsys_wait.eventgrp.wait_mode = wait_mode;
          tn_curr_run_task->subsys_wait.eventgrp.wait_pattern = wait_pattern;
          _tn_task_curr_to_wait_action(
@@ -361,7 +432,9 @@ enum TN_RCode tn_eventgrp_wait(
 
       TN_INT_RESTORE();
       _tn_context_switch_pend_if_needed();
+
       if (waited_for_event){
+         //-- task was waiting for event, and now it just woke up.
          //-- get wait result
          rc = tn_curr_run_task->task_wait_rc;
 
@@ -398,7 +471,11 @@ enum TN_RCode tn_eventgrp_wait_polling(
       TN_INTSAVE_DATA;
 
       TN_INT_DIS_SAVE();
+
+      //-- call worker function that actually performs needed check
+      //   and return result
       rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
+
       TN_INT_RESTORE();
    }
    return rc;
@@ -426,6 +503,8 @@ enum TN_RCode tn_eventgrp_iwait_polling(
 
       TN_INT_IDIS_SAVE();
 
+      //-- call worker function that actually performs needed check
+      //   and return result
       rc = _eventgrp_wait(eventgrp, wait_pattern, wait_mode, p_flags_pattern);
 
       TN_INT_IRESTORE();
@@ -456,6 +535,7 @@ enum TN_RCode tn_eventgrp_modify(
 
       TN_INT_DIS_SAVE();
 
+      //-- call worker function that actually modifies the events pattern
       rc = _eventgrp_modify(eventgrp, operation, pattern);
 
       TN_INT_RESTORE();
@@ -486,6 +566,7 @@ enum TN_RCode tn_eventgrp_imodify(
 
       TN_INT_IDIS_SAVE();
 
+      //-- call worker function that actually modifies the events pattern
       rc = _eventgrp_modify(eventgrp, operation, pattern);
 
       TN_INT_IRESTORE();
@@ -549,7 +630,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
-      TN_BOOL                 set
+      TN_BOOL              set
       )
 {
    //-- interrupts should be disabled here
