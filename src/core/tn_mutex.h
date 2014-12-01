@@ -37,24 +37,24 @@
 /**
  * \file
  *
- * A mutex is an object used to protect shared resource.
+ * A mutex is an object used to protect shared resources.
  *
- * There is a lot of confusion about differences between semaphores and
- * mutexes, so, it's quite recommended to read small article by Michael Barr:
- * [Mutexes and Semaphores Demystified](http://goo.gl/YprPBW).
+ * There is a lot of confusion about the differences between semaphores and
+ * mutexes, so, it's highly recommended that you read a small article by 
+ * Michael Barr: [Mutexes and Semaphores Demystified](http://goo.gl/YprPBW).
  * 
  * Very short:
  *
- * While mutex is seemingly similar to a semaphore with maximum count of `1`
+ * While a mutex is seemingly similar to a semaphore with a maximum count of `1`
  * (the so-called binary semaphore), their usage is very different: the purpose
- * of mutex is to protect shared resource. A locked mutex is "owned" by the
- * task that locked it, and only the same task may unlock it. This ownership
- * allows to implement algorithms to prevent priority inversion.  So, mutex is
- * a *locking mechanism*.
+ * of mutex is to protect a shared resource. A locked mutex is "owned" by the
+ * task that locked it, and only that same task may unlock it. This ownership
+ * allows you to implement algorithms to prevent priority inversion.  So, 
+ * a mutex is a *locking mechanism*.
  *
- * Semaphore, on the other hand, is *signaling mechanism*. It's quite legal and
- * encouraged for semaphore to be acquired in the task A, and then signaled
- * from task B or even from ISR. It may be used in situations like "producer
+ * A semaphore, on the other hand, is a *signaling mechanism*. It's quite legal
+ * and encouraged for a semaphore to be acquired in task A, and then signaled
+ * from task B or even from an ISR. It may be used in situations like "producer
  * and consumer", etc.
  *
  * In addition to the article mentioned above, you may want to look at the
@@ -70,12 +70,12 @@
  *      inheritance and priority ceiling.
  *
  *
- * A discussion about strengths and weaknesses of each protocol as
- * well as priority inversions problem is beyond the scope of this document.
+ * A discussion about the strengths and weaknesses of each protocol as
+ * well as the priority inversions problem is beyond the scope of this document.
  *
- * The priority inheritance protocol solves the priority inversions problem but
- * doesn't prevents deadlocks, although the kernel can notify you if a deadlock
- * has occured (see `#TN_MUTEX_DEADLOCK_DETECT`).
+ * The priority inheritance protocol solves the priority inversion problem, but
+ * doesn't prevent deadlocks. However, the kernel can notify you if a deadlock
+ * has occurred (see `#TN_MUTEX_DEADLOCK_DETECT`).
  *
  * The priority ceiling protocol prevents deadlocks and chained blocking but it
  * is slower than the priority inheritance protocol.
