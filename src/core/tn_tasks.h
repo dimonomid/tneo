@@ -63,7 +63,7 @@
  *
  * \section tn_tasks__creating Creating/starting tasks
  *
- * Create task and delete task are two separate actions; although you can
+ * Create task and start task are two separate actions; although you can
  * perform both of them in one step by passing `#TN_TASK_CREATE_OPT_START` flag
  * to the `tn_task_create()` function.
  *
