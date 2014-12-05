@@ -271,7 +271,12 @@ enum TN_RCode _tn_timer_create(
 
       _tn_list_reset(&(timer->timer_queue));
 
+#if TN_DYNAMIC_TICK
+      timer->timeout = 0;
+      timer->start_tick_cnt = 0;
+#else
       timer->timeout_cur   = 0;
+#endif
       timer->id_timer      = TN_ID_TIMER;
 
    }
