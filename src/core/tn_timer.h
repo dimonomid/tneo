@@ -209,6 +209,7 @@ struct TN_Timer {
    ///
    /// User data pointer that is given to user-provided `func`.
    void *p_user_data;
+
 #if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
    ///
    /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
@@ -217,11 +218,12 @@ struct TN_Timer {
    TN_SysTickCnt start_tick_cnt;
    ///
    /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
-   //
+   ///
    /// Timeout value (it is set just once, and stays unchanged until timer is
    /// expired, cancelled or restarted)
    TN_Timeout timeout;
 #endif
+
 #if !TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
    ///
    /// $(TN_IF_ONLY_DYNAMIC_TICK_NOT_SET)
@@ -229,6 +231,7 @@ struct TN_Timer {
    /// Current (left) timeout value
    TN_Timeout timeout_cur;
 #endif
+
    ///
    /// id for object validity verification
    enum TN_ObjId id_timer;

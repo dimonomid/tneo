@@ -78,25 +78,14 @@ TN_CBTickCntGet        *_tn_cb_tick_cnt_get  = TN_NULL;
 
 ///
 /// List of active non-expired timers. Timers are sorted in ascending order
-/// by the value of `timeout_cur`
+/// by the timeout value.
 static struct TN_ListItem     _timer_list__gen;
 
 
-/// List of expired timers, it is typically used only inside
-/// `_tn_timers_tick_proceed()` (it is filled and emptied there),
-/// but if it isn't called in time for some reason, then this list
-/// might be filled with timers when some new timer is added.
-///
-/// In this case, `_tn_cb_tick_schedule()` will be called with argument `0`,
-/// which means that `tn_tick_int_processing()` should be called by application
-/// as soon as possible.
+/// List of expired timers; after it is initialized, it is used only inside
+/// `_tn_timers_tick_proceed()`
 static struct TN_ListItem     _timer_list__fire;
 
-
-///
-/// The value returned by `_tn_timer_sys_time_get()`, relative to which
-/// all the timeouts of timers in the `_timer_list__gen` list are specified
-//static TN_SysTickCnt          _last_sys_tick_cnt;
 
 
 
@@ -119,6 +108,10 @@ static struct TN_ListItem     _timer_list__fire;
  *    PRIVATE FUNCTIONS
  ******************************************************************************/
 
+/**
+ * Get expiration time left. If timer is expired, 0 is returned, no matter
+ * how much it is expired.
+ */
 static TN_Timeout _time_left_get(
       struct TN_Timer *timer,
       TN_SysTickCnt cur_sys_tick_cnt
@@ -143,20 +136,12 @@ static TN_Timeout _time_left_get(
  * Find out when the kernel needs `tn_tick_int_processing()` to be called next
  * time, and eventually call application callback `_tn_cb_tick_schedule()` with
  * found value.
- *
- * NOTE WELL that this function may be called if only _last_sys_tick_cnt
- * represents current time, and therefore all timeouts represent actual timeout
- * from now; otherwise, tick will be scheduled at wrong timeout.
  */
 static void _next_tick_schedule(TN_SysTickCnt cur_sys_tick_cnt)
 {
    TN_Timeout next_timeout;
 
-   if (!_tn_list_is_empty(&_timer_list__fire)){
-      //-- need to execute tn_tick_int_processing() as soon as possible
-      //   (TODO: well, now this should never happen actually)
-      next_timeout = 0;
-   } else if (!_tn_list_is_empty(&_timer_list__gen)){
+   if (!_tn_list_is_empty(&_timer_list__gen)){
       //-- need to get first timer from the list and get its timeout
       //   (this list is sorted, so, the first timer is the one with 
       //   minimum timeout value)
@@ -175,87 +160,16 @@ static void _next_tick_schedule(TN_SysTickCnt cur_sys_tick_cnt)
 }
 
 
-#if 0
 /**
- * Walk through all the active timers, updating their timeouts and probably
- * find the place where new timer should be added (depending on the timeout
- * value).
- *
- * For each timer in the list:
- *
- * - If it's time to fire timer right now, move that timer to the "fire" list;
- * - If it's not, just update its `timeout_cur` so that it represents
- *   timeout from now;
- * - Check if given `timeout_to_add` is more than timer's timeout;
- *   if so, it's probably the place where new timer should be added
+ * Cancel the timer: the main thing is that timer is removed from the linked
+ * list.
  */
-static struct TN_ListItem *_handle_timers(TN_Timeout timeout_to_add)
-{
-   //-- get current time (tick count)
-   TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
-
-   struct TN_ListItem *ret_item = &_timer_list__gen;
-
-#if TN_DEBUG
-   //-- interrupts should be disabled here
-   _TN_BUG_ON(_TN_FATAL_ERROR(""));
-#endif
-
-   //-- walk through all active timers, updating their timeouts to represent
-   //   actual timeout fom now, and moving expired timers to the "fire" list
-   //   _timer_list__fire.
-   {
-      struct TN_Timer *timer;
-      struct TN_Timer *tmp_timer;
-
-      _tn_list_for_each_entry_safe(
-            timer, struct TN_Timer, tmp_timer,
-            &_timer_list__gen, timer_queue
-            )
-      {
-#if TN_DEBUG
-         //-- timeout value should never be TN_WAIT_INFINITE.
-         _TN_BUG_ON(timer->timeout_cur == TN_WAIT_INFINITE);
-#endif
-         if (
-               (TN_SysTickCnt)(timer->start_tick_cnt + timer->timeout)
-               <= cur_sys_tick_cnt 
-            )
-         {
-            //-- it's not time to fire the timer right now, so, just
-            //   update timeout_cur so that it represents actual timeout
-            //   from now (to be precise, from `_last_sys_tick_cnt`).
-
-            timer->timeout_cur -= diff;
-
-            //-- check if this is a place where new timer (with timeout 
-            //   `timeout_to_add`) should be placed
-            if (timer->timeout_cur < timeout_to_add){
-               ret_item = &timer->timer_queue;
-            }
-
-         } else {
-            //-- it's time to fire the timer, so, move it to the "fire" list
-            //   _timer_list__fire
-            _tn_list_remove_entry(&(timer->timer_queue));
-            _tn_list_add_tail(&_timer_list__fire, &(timer->timer_queue));
-
-            //-- set its timeout to zero
-            timer->timeout_cur = 0;
-         }
-
-      }
-
-   }
-
-   return ret_item;
-}
-#endif
-
 static void _timer_cancel(struct TN_Timer *timer)
 {
-   //-- reset timeout to zero (but this is actually not necessary)
+   //-- reset timeout and start_tick_cnt to zero (but this is actually not
+   //   necessary)
    timer->timeout = 0;
+   timer->start_tick_cnt = 0;
 
    //-- remove entry from timer queue
    _tn_list_remove_entry(&(timer->timer_queue));
@@ -314,12 +228,19 @@ void _tn_timers_init(void)
  */
 void _tn_timers_tick_proceed(void)
 {
-   //-- walk through all active timers, moving expired ones to the
-   //   "fire" list (`_timer_list__fire`).
-   //_handle_timers(0);
+   //-- Since user is allowed to manage timers from timer callbacks, we can't
+   //   just iterate through timers list and fire expired timers, because
+   //   timers list could change under our feet then.
+   //
+   //   Instead, we should first move all expired timers to the dedicated
+   //   "fire" list, and then, as a second step, fire all the timers from this
+   //   list.
 
+   //-- First of all, get current time
    TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
 
+   //-- Now, walk through timers list from start until we get non-expired timer
+   //   (timers list is sorted)
    {
       struct TN_Timer *timer;
       struct TN_Timer *tmp_timer;
@@ -334,16 +255,18 @@ void _tn_timers_tick_proceed(void)
 
          if (_time_left_get(timer, cur_sys_tick_cnt) == 0){
             //-- it's time to fire the timer, so, move it to the "fire" list
-            //   _timer_list__fire
+            //   `_timer_list__fire`
             _tn_list_remove_entry(&(timer->timer_queue));
             _tn_list_add_tail(&_timer_list__fire, &(timer->timer_queue));
          } else {
+            //-- We've got non-expired timer, therefore there are no more
+            //   expired timers.
             break;
          }
       }
    }
 
-   //-- now, we have "fire" list containing expired timers. Let's walk
+   //-- Now, we have "fire" list containing expired timers. Let's walk
    //   through them, firing each one.
    {
       struct TN_Timer *timer;
@@ -362,7 +285,7 @@ void _tn_timers_tick_proceed(void)
       }
    }
 
-   //-- find out when `tn_tick_int_processing()` should be called next time,
+   //-- Find out when `tn_tick_int_processing()` should be called next time,
    //   and tell that to application
    _next_tick_schedule(cur_sys_tick_cnt);
 }
@@ -390,10 +313,15 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
       //-- walk through active timers list and get the position at which
       //   new timer should be placed. Also note that `timeout_cur` value
       //   of each timer is updated so that it represents timeout from now.
-      //struct TN_ListItem *list_item = _handle_timers(timeout);
 
+      //-- First of all, get current time
       TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
 
+      //-- Since timers list is sorted, we need to find the correct place
+      //   to put new timer at.
+      //
+      //   Initially, we set it to the head of the list, and then walk
+      //   through timers until we found needed place (or until list is over)
       struct TN_ListItem *list_item = &_timer_list__gen;
       {
          struct TN_Timer *timer;
@@ -407,21 +335,23 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
             //-- timeout value should never be TN_WAIT_INFINITE.
             _TN_BUG_ON(timer->timeout == TN_WAIT_INFINITE);
 
-            //-- check if this is a place where new timer (with timeout 
-            //   `timeout_to_add`) should be placed
             if (_time_left_get(timer, cur_sys_tick_cnt) < timeout){
+               //-- Probably this is the place for new timer..
                list_item = &timer->timer_queue;
             } else {
+               //-- Found timer with larger timeout than that of new timer.
+               //   So, list_item now contains the correct place for new timer.
                break;
             }
          }
       }
 
-      //-- place timer object at the right position.
+      //-- put timer object at the right position.
+      _tn_list_add_head(list_item, &(timer->timer_queue));
+
+      //-- initialize timer with given timeout
       timer->timeout = timeout;
       timer->start_tick_cnt = cur_sys_tick_cnt;
-
-      _tn_list_add_head(list_item, &(timer->timer_queue));
 
       //-- find out when `tn_tick_int_processing()` should be called next time,
       //   and tell that to application
@@ -450,20 +380,8 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
       //-- cancel the timer
       _timer_cancel(timer);
 
-      //-- Note: we don't have to call _handle_timers(0) here, because
-      //   nothing will break if we just remove one timer from the list.
-      //   We don't need to recalculate all timeouts.
-      //
-      //   The only little thing is that if we remove the timer that
-      //   was the next one, then we will have one useless scheduled call to
-      //   `tn_tick_int_processing()`, but it isn't so much overhead.
-      //
-      //   To avoid this, we can call here two functions:
-      //
-      //   _handle_timers(0);
-      //
-      //   but I decided that it's better to not call them.
-
+      //-- find out when `tn_tick_int_processing()` should be called next time,
+      //   and tell that to application
       _next_tick_schedule( _tn_timer_sys_time_get() );
    }
 
