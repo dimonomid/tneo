@@ -416,13 +416,13 @@ static enum TN_RCode _queue_receive(
  *    - `_JOB_TYPE__SEND`: data to send;
  *    - `_JOB_TYPE__RECEIVE`: pointer at which data should be received.
  * @param timeout
- *    Refer to `#TN_Timeout`.
+ *    Refer to `#TN_TickCnt`.
  */
 static enum TN_RCode _dqueue_job_perform(
       struct TN_DQueue *dque,
       enum _JobType job_type,
       void *p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    TN_BOOL waited = TN_FALSE;
@@ -636,7 +636,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue * dque)
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__SEND, p_data, timeout);
@@ -667,7 +667,7 @@ enum TN_RCode tn_queue_isend_polling(struct TN_DQueue *dque, void *p_data)
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    return _dqueue_job_perform(dque, _JOB_TYPE__RECEIVE, pp_data, timeout);

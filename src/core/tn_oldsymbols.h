@@ -328,8 +328,11 @@ typedef struct TN_Sem         TN_SEM;
 
 
 
-/// old name for `TN_STACK_ARR_DEF`
+/// old name for `#TN_STACK_ARR_DEF`
 #define  TN_TASK_STACK_DEF             TN_STACK_ARR_DEF
+
+/// old name for `#TN_TickCnt`
+#define  TN_Timeout                    TN_TickCnt
 
 
 /*******************************************************************************

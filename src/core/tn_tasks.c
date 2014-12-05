@@ -575,7 +575,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task)
 /*
  * See comments in the header file (tn_tasks.h)
  */
-enum TN_RCode tn_task_sleep(TN_Timeout timeout)
+enum TN_RCode tn_task_sleep(TN_TickCnt timeout)
 {
    enum TN_RCode rc;
 
@@ -936,7 +936,7 @@ void _tn_task_set_waiting(
       struct TN_Task *task,
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
 #if TN_DEBUG

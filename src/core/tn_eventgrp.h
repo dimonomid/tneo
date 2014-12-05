@@ -252,7 +252,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 /**
  * Wait for specified event(s) in the event group. If the specified event
  * is already active, function returns `#TN_RC_OK` immediately. Otherwise,
- * behavior depends on `timeout` value: refer to `#TN_Timeout`.
+ * behavior depends on `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -272,14 +272,14 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  *    that caused task to stop waiting will be stored.
  *    May be `TN_NULL`.
  * @param timeout
- *    refer to `#TN_Timeout`
+ *    refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if specified event is active (so the task can check 
  *      variable pointed to by `p_flags_pattern` if it wasn't `TN_NULL`).
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
@@ -288,7 +288,7 @@ enum TN_RCode tn_eventgrp_wait(
       TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       TN_UWord            *p_flags_pattern,
-      TN_Timeout           timeout
+      TN_TickCnt           timeout
       );
 
 /**

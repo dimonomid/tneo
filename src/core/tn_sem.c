@@ -116,12 +116,12 @@ static _TN_INLINE enum TN_RCode _check_param_create(
  *
  * @param sem        semaphore to perform job on
  * @param p_worker   pointer to actual worker function
- * @param timeout    see `#TN_Timeout`
+ * @param timeout    see `#TN_TickCnt`
  */
 static _TN_INLINE enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       enum TN_RCode (p_worker)(struct TN_Sem *sem),
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
@@ -316,7 +316,7 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout)
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_TickCnt timeout)
 {
    return _sem_job_perform(sem, _sem_wait, timeout);
 }

@@ -112,16 +112,16 @@ static struct TN_ListItem     _timer_list__fire;
  * Get expiration time left. If timer is expired, 0 is returned, no matter
  * how much it is expired.
  */
-static TN_Timeout _time_left_get(
+static TN_TickCnt _time_left_get(
       struct TN_Timer *timer,
-      TN_SysTickCnt cur_sys_tick_cnt
+      TN_TickCnt cur_sys_tick_cnt
       )
 {
-   TN_Timeout time_left;
+   TN_TickCnt time_left;
 
-   //-- Since return value type `TN_Timeout` is unsigned, we should check if 
+   //-- Since return value type `TN_TickCnt` is unsigned, we should check if 
    //   it is going to be negative. If it is, then return 0.
-   TN_SysTickCnt time_elapsed = cur_sys_tick_cnt - timer->start_tick_cnt;
+   TN_TickCnt time_elapsed = cur_sys_tick_cnt - timer->start_tick_cnt;
 
    if (time_elapsed <= timer->timeout){
       time_left = timer->timeout - time_elapsed;
@@ -137,9 +137,9 @@ static TN_Timeout _time_left_get(
  * time, and eventually call application callback `_tn_cb_tick_schedule()` with
  * found value.
  */
-static void _next_tick_schedule(TN_SysTickCnt cur_sys_tick_cnt)
+static void _next_tick_schedule(TN_TickCnt cur_sys_tick_cnt)
 {
-   TN_Timeout next_timeout;
+   TN_TickCnt next_timeout;
 
    if (!_tn_list_is_empty(&_timer_list__gen)){
       //-- need to get first timer from the list and get its timeout
@@ -237,7 +237,7 @@ void _tn_timers_tick_proceed(void)
    //   list.
 
    //-- First of all, get current time
-   TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
+   TN_TickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
 
    //-- Now, walk through timers list from start until we get non-expired timer
    //   (timers list is sorted)
@@ -293,7 +293,7 @@ void _tn_timers_tick_proceed(void)
 /*
  * See comments in the _tn_timer.h file.
  */
-enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -311,7 +311,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
       //   of each timer is updated so that it represents timeout from now.
 
       //-- First of all, get current time
-      TN_SysTickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
+      TN_TickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
 
       //-- Since timers list is sorted, we need to find the correct place
       //   to put new timer at.
@@ -383,9 +383,9 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 /*
  * See comments in the _tn_timer.h file.
  */
-TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
+TN_TickCnt _tn_timer_time_left(struct TN_Timer *timer)
 {
-   TN_Timeout time_left = TN_WAIT_INFINITE;
+   TN_TickCnt time_left = TN_WAIT_INFINITE;
 
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );

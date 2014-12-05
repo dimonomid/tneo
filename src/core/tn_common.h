@@ -83,8 +83,8 @@ enum TN_RCode {
    /// Successful operation
    TN_RC_OK                   =   0,
    ///
-   /// Timeout (consult `#TN_Timeout` for details).
-   /// @see `#TN_Timeout`
+   /// Timeout (consult `#TN_TickCnt` for details).
+   /// @see `#TN_TickCnt`
    TN_RC_TIMEOUT              =  -1,
    ///
    /// This code is returned in the following cases:
@@ -146,7 +146,11 @@ typedef void (TN_TaskBody)(void *param);
 
 
 /**
- * The value representing maximum number of system ticks to wait.
+ * Type for system tick count, it is used by the kernel to represent absolute
+ * tick count value as well as relative timeouts.
+ *
+ * When it is used as a timeout value, it represents the maximum number of
+ * system ticks to wait.
  *
  * Assume user called some system function, and it can't perform its job 
  * immediately (say, it needs to lock mutex but it is already locked, etc).
@@ -181,21 +185,7 @@ typedef void (TN_TaskBody)(void *param);
  *   returned by the waiting function.  (the usage of the
  *   `tn_task_release_wait()` function is discouraged though)
  */
-typedef unsigned long TN_Timeout;
-
-/**
- * Type for internal kernel tick counter; the value of current tick count
- * is returned by `tn_sys_time_get()`.
- *
- * If profiler is used (see `#TN_PROFILER`), it is important to make
- * `TN_SysTickCnt` large enough to keep maximum time between task getting
- * running or non-running. That is, when task gets running, profiler calculates
- * time it was non-running; and if this time is more than `TN_SysTickCnt`
- * count, data will be wrong. The same when task gets non-running, of course.
- *
- * 32-bit integer seems pretty enough, so, `unsigned long` is used here.
- */
-typedef unsigned long TN_SysTickCnt;
+typedef unsigned long TN_TickCnt;
 
 /*******************************************************************************
  *    GLOBAL VARIABLES

@@ -482,7 +482,7 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 
 static _TN_INLINE void _add_curr_task_to_mutex_wait_queue(
       struct TN_Mutex *mutex,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    enum TN_WaitReason wait_reason;
@@ -728,7 +728,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 /*
  * See comments in the header file (tn_mutex.h)
  */
-enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
 {
    enum TN_RCode rc = _check_param_generic(mutex);
    TN_BOOL waited_for_mutex = TN_FALSE;

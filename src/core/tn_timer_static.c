@@ -70,7 +70,7 @@ struct TN_ListItem tn_timer_list__gen;
 struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 //-- see comments in the file _tn_timer_static.h
-volatile TN_SysTickCnt tn_sys_time_count;
+volatile TN_TickCnt tn_sys_time_count;
 
 
 /*******************************************************************************
@@ -105,7 +105,7 @@ volatile TN_SysTickCnt tn_sys_time_count;
  * @param timeout    should be < TN_TICK_LISTS_CNT
  */
 #define _TICK_LIST_INDEX(timeout)    \
-   (((TN_Timeout)tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
+   (((TN_TickCnt)tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
 
 
 
@@ -243,7 +243,7 @@ void _tn_timers_tick_proceed(void)
 /**
  * See comments in the _tn_timer.h file.
  */
-enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -306,15 +306,15 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 /**
  * See comments in the _tn_timer.h file.
  */
-TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
+TN_TickCnt _tn_timer_time_left(struct TN_Timer *timer)
 {
-   TN_Timeout time_left = TN_WAIT_INFINITE;
+   TN_TickCnt time_left = TN_WAIT_INFINITE;
 
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (_tn_timer_is_active(timer)){
-      TN_Timeout tick_list_index = _TICK_LIST_INDEX(0);
+      TN_TickCnt tick_list_index = _TICK_LIST_INDEX(0);
 
       if (timer->timeout_cur > tick_list_index){
          time_left = timer->timeout_cur - tick_list_index;

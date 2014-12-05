@@ -202,7 +202,7 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * and `#TN_RC_OK` is returned. Otherwise, behavior depends on `timeout` value:
  * task might switch to $(TN_TASK_STATE_WAIT) state until someone \ref
  * tn_sem_signal "signaled" the semaphore or until the `timeout` expired. refer
- * to `#TN_Timeout`.
+ * to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -210,16 +210,16 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem);
  * $(TN_LEGEND_LINK)
  *
  * @param sem     semaphore to wait for
- * @param timeout refer to `#TN_Timeout`
+ * @param timeout refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if waiting was successfull
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
-enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout);
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_TickCnt timeout);
 
 /**
  * The same as `tn_sem_wait()` with zero timeout.

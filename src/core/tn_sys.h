@@ -421,7 +421,7 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks);
  * @return
  *    Current system ticks count. 
  */
-TN_SysTickCnt tn_sys_time_get(void);
+TN_TickCnt tn_sys_time_get(void);
 
 
 /**

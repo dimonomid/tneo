@@ -218,7 +218,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *    * If the mutex is already locked by the same task, lock count is merely
  *      incremented and `#TN_RC_OK` is returned immediately.
  *    * If the mutex is locked by different task, behavior depends on
- *      `timeout` value: refer to `#TN_Timeout`.
+ *      `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -226,7 +226,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  * $(TN_LEGEND_LINK)
  *
  * @param mutex      mutex to lock
- * @param timeout    refer to `#TN_Timeout`
+ * @param timeout    refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if mutex is successfully locked or if lock count was
@@ -240,13 +240,13 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *       * if recursive locking is disabled (see `#TN_MUTEX_REC`)
  *         and the mutex is already locked by calling task
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
  * @see `#TN_MutexProtocol`
  */
-enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout);
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout);
 
 /**
  * The same as `tn_mutex_lock()` with zero timeout

@@ -99,7 +99,7 @@ void _tn_timers_tick_proceed(void);
  * Actual worker function that is called by `#tn_timer_start()`.
  * Interrupts should be disabled when calling it.
  */
-enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout);
 
 /**
  * Actual worker function that is called by `#tn_timer_cancel()`.
@@ -135,7 +135,7 @@ TN_BOOL _tn_timer_is_active(struct TN_Timer *timer);
  * Actual worker function that is called by `#tn_timer_time_left()`.
  * Interrupts should be disabled when calling it.
  */
-TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
+TN_TickCnt _tn_timer_time_left(struct TN_Timer *timer);
 
 
 

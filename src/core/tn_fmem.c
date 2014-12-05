@@ -310,7 +310,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
       void **p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    TN_BOOL waited_for_data = TN_FALSE;

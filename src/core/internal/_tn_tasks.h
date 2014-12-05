@@ -140,7 +140,7 @@ void _tn_task_set_waiting(
       struct TN_Task      *task,
       struct TN_ListItem  *wait_que,
       enum TN_WaitReason   wait_reason,
-      TN_Timeout           timeout
+      TN_TickCnt           timeout
       );
 
 /**
@@ -290,7 +290,7 @@ static _TN_INLINE void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCod
 static _TN_INLINE void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
       enum TN_WaitReason wait_reason,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    _tn_task_clear_runnable(tn_curr_run_task);

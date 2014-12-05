@@ -215,13 +215,13 @@ struct TN_Timer {
    /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
    /// 
    /// Tick count value when timer was started
-   TN_SysTickCnt start_tick_cnt;
+   TN_TickCnt start_tick_cnt;
    ///
    /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
    ///
    /// Timeout value (it is set just once, and stays unchanged until timer is
    /// expired, cancelled or restarted)
-   TN_Timeout timeout;
+   TN_TickCnt timeout;
 #endif
 
 #if !TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
@@ -229,7 +229,7 @@ struct TN_Timer {
    /// $(TN_IF_ONLY_DYNAMIC_TICK_NOT_SET)
    ///
    /// Current (left) timeout value
-   TN_Timeout timeout_cur;
+   TN_TickCnt timeout_cur;
 #endif
 
    ///
@@ -263,7 +263,7 @@ struct TN_Timer {
  *      `tn_tick_int_processing()` in the `timeout` tick periods.
  *
  */
-typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
+typedef void (TN_CBTickSchedule)(TN_TickCnt timeout);
 
 /**
  * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
@@ -275,7 +275,7 @@ typedef void (TN_CBTickSchedule)(TN_Timeout timeout);
  *
  * @return current system tick counter value.
  */
-typedef TN_SysTickCnt (TN_CBTickCntGet)(void);
+typedef TN_TickCnt (TN_CBTickCntGet)(void);
 
 #endif
 
@@ -362,7 +362,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
  *      is available: `#TN_RC_INVALID_OBJ`.
  */
-enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout);
 
 /**
  * If timer is active, cancel it. If timer is already inactive, nothing is
@@ -437,7 +437,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active);
  * @param timer
  *    Pointer to timer
  * @param p_time_left
- *    Pointer to `#TN_Timeout` variable in which resulting value should be
+ *    Pointer to `#TN_TickCnt` variable in which resulting value should be
  *    stored
  *
  * @return
@@ -446,7 +446,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active);
  */
 enum TN_RCode tn_timer_time_left(
       struct TN_Timer *timer,
-      TN_Timeout *p_time_left
+      TN_TickCnt *p_time_left
       );
 
 #ifdef __cplusplus

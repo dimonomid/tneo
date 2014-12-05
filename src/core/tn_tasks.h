@@ -293,7 +293,7 @@ struct TN_TaskTiming {
 struct _TN_TaskProfiler {
    ///
    /// Tick count of when the task got running or non-running last time.
-   TN_SysTickCnt        last_tick_cnt;
+   TN_TickCnt        last_tick_cnt;
    ///
    /// Value of `task->task_wait_reason` when task got non-running last time.
    enum TN_WaitReason   last_wait_reason;
@@ -381,7 +381,7 @@ struct TN_Task {
    enum TN_RCode task_wait_rc;
    //
    // remaining time until timeout; may be `#TN_WAIT_INFINITE`.
-   //TN_Timeout tick_count;
+   //TN_TickCnt tick_count;
    ///
    /// time slice counter
    int tslice_count;
@@ -597,7 +597,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * $(TN_LEGEND_LINK)
  *
  * @param timeout
- *    Refer to `#TN_Timeout`
+ *    Refer to `#TN_TickCnt`
  *
  * @returns
  *    * `#TN_RC_TIMEOUT` if task has slept specified timeout;
@@ -606,9 +606,9 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  *       `tn_task_release_wait()`
  *    * `#TN_RC_WCONTEXT` if called from wrong context
  *
- * @see TN_Timeout
+ * @see TN_TickCnt
  */
-enum TN_RCode tn_task_sleep(TN_Timeout timeout);
+enum TN_RCode tn_task_sleep(TN_TickCnt timeout);
 
 /**
  * Wake up task from sleep.

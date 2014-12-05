@@ -228,7 +228,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       _TN_FATAL_ERROR("");
    }
 #endif
-   TN_SysTickCnt cur_tick_cnt = _tn_timer_sys_time_get();
+   TN_TickCnt cur_tick_cnt = _tn_timer_sys_time_get();
 
    //-- handle task_prev (the one that was running and going to wait) {{{
    {
@@ -241,8 +241,8 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
 
       //-- get difference between current time and last saved time:
       //   this is the time task was running.
-      TN_SysTickCnt cur_run_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
+      TN_TickCnt cur_run_time
+         = (TN_TickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
 
       //-- add it to total run time
       task_prev->profiler.timing.total_run_time += cur_run_time;
@@ -269,8 +269,8 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
 
       //-- get difference between current time and last saved time:
       //   this is the time task was waiting.
-      TN_SysTickCnt cur_wait_time
-         = (TN_SysTickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
+      TN_TickCnt cur_wait_time
+         = (TN_TickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
 
       //-- add it to total total_wait_time for particular wait reason
       task_new->profiler.timing.total_wait_time
@@ -557,9 +557,9 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 /*
  * See comments in the header file (tn_sys.h)
  */
-TN_SysTickCnt tn_sys_time_get(void)
+TN_TickCnt tn_sys_time_get(void)
 {
-   TN_SysTickCnt ret;
+   TN_TickCnt ret;
    TN_INTSAVE_DATA;
 
    TN_INT_DIS_SAVE();

@@ -156,7 +156,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
 /*
  * See comments in the header file (tn_timer.h)
  */
-enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
+enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
 {
    int sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
@@ -230,7 +230,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active)
  */
 enum TN_RCode tn_timer_time_left(
       struct TN_Timer *timer,
-      TN_Timeout *p_time_left
+      TN_TickCnt *p_time_left
       )
 {
    int sr_saved;

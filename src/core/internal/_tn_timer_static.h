@@ -71,7 +71,7 @@ extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 ///
 /// system time that can be returned by `tn_sys_time_get()`; it is also used
 /// by tn_timer.h subsystem.
-extern volatile TN_SysTickCnt tn_sys_time_count;
+extern volatile TN_TickCnt tn_sys_time_count;
 
 
 
@@ -97,7 +97,7 @@ extern volatile TN_SysTickCnt tn_sys_time_count;
 /**
  * Returns current value of system tick counter.
  */
-static _TN_INLINE TN_SysTickCnt _tn_timer_sys_time_get(void)
+static _TN_INLINE TN_TickCnt _tn_timer_sys_time_get(void)
 {
    return tn_sys_time_count;
 }

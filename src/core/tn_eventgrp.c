@@ -390,7 +390,7 @@ enum TN_RCode tn_eventgrp_wait(
       TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       TN_UWord            *p_flags_pattern,
-      TN_Timeout           timeout
+      TN_TickCnt           timeout
       )
 {
    TN_BOOL waited_for_event = TN_FALSE;
