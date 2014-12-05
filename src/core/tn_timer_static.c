@@ -154,12 +154,8 @@ void _tn_timers_tick_proceed(void)
 
    int tick_list_index = _TICK_LIST_INDEX(0);
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (tick_list_index == 0){
       //-- it happens each TN_TICK_LISTS_CNT-th system tick:
@@ -178,17 +174,14 @@ void _tn_timers_tick_proceed(void)
                &tn_timer_list__gen, timer_queue
                )
          {
-#if TN_DEBUG
-            if (     timer->timeout_cur == TN_WAIT_INFINITE 
+
+            //-- timeout value should always be >= TN_TICK_LISTS_CNT here.
+            //   And it should never be TN_WAIT_INFINITE.
+            _TN_BUG_ON(0
+                  || timer->timeout_cur == TN_WAIT_INFINITE 
                   || timer->timeout_cur < TN_TICK_LISTS_CNT
-               )
-            {
-               //-- should never be here: timeout value should always
-               //   be >= TN_TICK_LISTS_CNT here.
-               //   And it should never be TN_WAIT_INFINITE.
-               _TN_FATAL_ERROR();
-            }
-#endif
+                  );
+
             timer->timeout_cur -= TN_TICK_LISTS_CNT;
 
             if (timer->timeout_cur < TN_TICK_LISTS_CNT){
@@ -242,12 +235,7 @@ void _tn_timers_tick_proceed(void)
          timer->func(timer, timer->p_user_data);
       }
 
-#if TN_DEBUG
-      //-- current "tick" list should be empty now
-      if (!_tn_list_is_empty(p_cur_timer_list)){
-         _TN_FATAL_ERROR("");
-      }
-#endif
+      _TN_BUG_ON( !_tn_list_is_empty(p_cur_timer_list) );
    }
    // }}}
 }
@@ -259,12 +247,8 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
@@ -302,12 +286,8 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (_tn_timer_is_active(timer)){
       //-- reset timeout to zero (but this is actually not necessary)
@@ -330,12 +310,8 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
    TN_Timeout time_left = TN_WAIT_INFINITE;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (_tn_timer_is_active(timer)){
       TN_Timeout tick_list_index = _TICK_LIST_INDEX(0);

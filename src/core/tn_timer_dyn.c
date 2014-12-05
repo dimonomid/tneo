@@ -297,12 +297,8 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (timeout == TN_WAIT_INFINITE || timeout == 0){
       rc = TN_RC_WPARAM;
@@ -368,12 +364,8 @@ enum TN_RCode _tn_timer_cancel(struct TN_Timer *timer)
 {
    enum TN_RCode rc = TN_RC_OK;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (_tn_timer_is_active(timer)){
 
@@ -395,12 +387,8 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer)
 {
    TN_Timeout time_left = TN_WAIT_INFINITE;
 
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    if (_tn_timer_is_active(timer)){
       //-- get current time (tick count)

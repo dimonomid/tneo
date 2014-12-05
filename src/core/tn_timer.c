@@ -309,12 +309,8 @@ enum TN_RCode _tn_timer_set_func(
  */
 TN_BOOL _tn_timer_is_active(struct TN_Timer *timer)
 {
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
    return (!_tn_list_is_empty(&(timer->timer_queue)));
 }
