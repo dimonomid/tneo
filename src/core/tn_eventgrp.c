@@ -106,9 +106,13 @@ static _TN_INLINE enum TN_RCode _check_param_create(
    }
 
 #if TN_OLD_EVENT_API
-   if (!(attr & (TN_EVENTGRP_OPT_SINGLE | TN_EVENTGRP_OPT_MULTI))){
+   if (!(attr & (TN_EVENTGRP_ATTR_SINGLE | TN_EVENTGRP_ATTR_MULTI))){
       rc = TN_RC_WPARAM;
-   } else if (!(attr & TN_EVENTGRP_OPT_SINGLE) && (attr & TN_EVENTGRP_OPT_CLR)){
+   } else if (1
+         && !(attr & TN_EVENTGRP_ATTR_SINGLE)
+         &&  (attr & TN_EVENTGRP_ATTR_CLR)
+         )
+   {
       rc = TN_RC_WPARAM;
    }
 #endif
@@ -172,7 +176,7 @@ static void _clear_pattern_if_needed(
       )
 {
 #if TN_OLD_EVENT_API
-   if (eventgrp->attr & TN_EVENTGRP_OPT_CLR){
+   if (eventgrp->attr & TN_EVENTGRP_ATTR_CLR){
       eventgrp->pattern = 0;
    }
 #endif
@@ -252,10 +256,10 @@ static enum TN_RCode _eventgrp_wait(
    } else {
 
 #if TN_OLD_EVENT_API
-      //-- Old TNKernel behavior: if `TN_EVENTGRP_OPT_SINGLE` flag is set,
+      //-- Old TNKernel behavior: if `TN_EVENTGRP_ATTR_SINGLE` flag is set,
       //   only one task can wait for that event group
       if (
-            (eventgrp->attr & TN_EVENTGRP_OPT_SINGLE) 
+            (eventgrp->attr & TN_EVENTGRP_ATTR_SINGLE) 
             &&
             !_tn_list_is_empty(&(eventgrp->wait_queue))
          )

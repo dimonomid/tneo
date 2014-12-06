@@ -156,11 +156,11 @@ enum TN_EGrpOp {
 
 enum TN_EGrpAttr {
 #if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
-   TN_EVENTGRP_OPT_SINGLE    = (1 << 0),
-   TN_EVENTGRP_OPT_MULTI     = (1 << 1),
-   TN_EVENTGRP_OPT_CLR       = (1 << 2),
+   TN_EVENTGRP_ATTR_SINGLE    = (1 << 0),
+   TN_EVENTGRP_ATTR_MULTI     = (1 << 1),
+   TN_EVENTGRP_ATTR_CLR       = (1 << 2),
 #else
-   TN_EVENTGRP_OPT_NONE      = (0),
+   TN_EVENTGRP_ATTR_NONE      = (0),
 #endif
 };
 
@@ -255,7 +255,7 @@ static inline enum TN_RCode tn_eventgrp_create(
    return tn_eventgrp_create_wattr(
          eventgrp,
 #if TN_OLD_EVENT_API
-         (TN_EVENTGRP_OPT_MULTI),
+         (TN_EVENTGRP_ATTR_MULTI),
 #else
          (0),
 #endif
