@@ -281,6 +281,13 @@ typedef void (TN_CBUserTaskCreate)(void);
  */
 typedef void (TN_CBIdle)(void);
 
+/**
+ * User-provided callback function that is called when the kernel detects stack
+ * overflow (see `#TN_STACK_OVERFLOW_CHECK`).
+ *
+ * @param task
+ *    Task whose stack is overflowed
+ */
 typedef void (TN_CBStackOverflow)(struct TN_Task *task);
 
 /**
@@ -445,6 +452,12 @@ TN_TickCnt tn_sys_time_get(void);
  */
 void tn_callback_deadlock_set(TN_CBDeadlock *cb);
 
+/**
+ * Set callback function that is called when the kernel detects stack overflow
+ * (see `#TN_STACK_OVERFLOW_CHECK`).
+ *
+ * For function prototype, refer to `#TN_CBStackOverflow`.
+ */
 void tn_callback_stack_overflow_set(TN_CBStackOverflow *cb);
 
 /**

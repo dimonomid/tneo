@@ -258,6 +258,16 @@
 #endif
 
 
+/**
+ * Whether software stack overflow check is enabled.  Enabling this option adds
+ * small overhead to context switching and system tick processing
+ * (`#tn_tick_int_processing()`). When stack overflow happens, the kernel calls
+ * user-provided callback (see `#tn_callback_stack_overflow_set()`); if this
+ * callback is undefined, the kernel calls `#_TN_FATAL_ERROR()`.
+ *
+ * This option is on by default for all architectures except PIC24/dsPIC, 
+ * since this architecture has hardware stack pointer limit.
+ */
 #ifndef TN_STACK_OVERFLOW_CHECK
 #  if defined(__TN_ARCH_PIC24_DSPIC__)
 /*
