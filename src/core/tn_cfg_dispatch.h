@@ -129,6 +129,10 @@
 #  error TN_PROFILER is not defined
 #endif
 
+#if !defined(TN_STACK_OVERFLOW_CHECK)
+#  error TN_STACK_OVERFLOW_CHECK is not defined
+#endif
+
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if !defined(TN_P24_SYS_IPL)
 #     error TN_P24_SYS_IPL is not defined
@@ -163,7 +167,6 @@
 //-- NOTE: TN_API_MAKE_ALIG_ARG is checked in tn_common.h
 
 
-
 /**
  * Internal kernel definition: set to non-zero if `_tn_sys_on_context_switch()`
  * should be called on context switch. 
@@ -172,7 +175,7 @@
  * #TN_PROFILER).  In the future, software stack overflow check will be
  * implemented as well.
  */
-#if TN_PROFILER /* TODO: when stack check is implemented, add it here with || */
+#if TN_PROFILER || TN_STACK_OVERFLOW_CHECK
 #  define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
 #else
 #  define   _TN_ON_CONTEXT_SWITCH_HANDLER  0

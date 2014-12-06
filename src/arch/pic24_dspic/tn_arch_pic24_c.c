@@ -96,6 +96,18 @@ TN_UWord *_tn_arch_stack_top_get(
 
 
 /*
+ * See comments in the `tn_arch.h` file
+ */
+TN_UWord *_tn_arch_stack_bottom_empty_get(
+      TN_UWord      *stack_top,
+      int            stack_size
+      )
+{
+   return (stack_top + stack_size - 1);
+}
+
+
+/*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(

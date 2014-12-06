@@ -175,13 +175,20 @@ TN_UWord *_tn_arch_stack_top_get(
       int stack_size
       )
 {
-   //-- on MIPS, stack grows from high address to low address, so,
+   //-- on MIPS, stack is "full descending stack", so
    //   we return highest stack address plus one.
-   //
-   //   **NOTE** that returned *top of the stack* is NOT the address which may
-   //   be used for storing the new data. Instead, it is the *previous*
-   //   address.
    return stack_low_address + stack_size;
+}
+
+/*
+ * See comments in the `tn_arch.h` file
+ */
+TN_UWord *_tn_arch_stack_bottom_empty_get(
+      TN_UWord      *stack_top,
+      int            stack_size
+      )
+{
+   return (stack_top - stack_size);
 }
 
 

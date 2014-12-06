@@ -281,6 +281,8 @@ typedef void (TN_CBUserTaskCreate)(void);
  */
 typedef void (TN_CBIdle)(void);
 
+typedef void (TN_CBStackOverflow)(struct TN_Task *task);
+
 /**
  * User-provided callback function that is called whenever 
  * deadlock becomes active or inactive.

@@ -117,6 +117,8 @@ static void _idle_task_body(void * par);
  */
 TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
 
+TN_CBStackOverflow  *tn_callback_stack_overflow = TN_NULL;
+
 /**
  * User-provided callback function that is called whenever 
  * event occurs (say, deadlock becomes active or inactive)
@@ -222,12 +224,9 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       struct TN_Task *task_new
       )
 {
-#if TN_DEBUG
    //-- interrupts should be disabled here
-   if (!TN_IS_INT_DISABLED()){
-      _TN_FATAL_ERROR("");
-   }
-#endif
+   _TN_BUG_ON(!TN_IS_INT_DISABLED());
+
    TN_TickCnt cur_tick_cnt = _tn_timer_sys_time_get();
 
    //-- handle task_prev (the one that was running and going to wait) {{{
@@ -306,6 +305,47 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       )
 {}
 #endif
+#endif
+
+
+#if TN_STACK_OVERFLOW_CHECK
+/**
+ * if `#TN_STACK_OVERFLOW_CHECK` is non-zero, this function is called at every
+ * context switch as well as inside `#tn_tick_int_processing()`.
+ *
+ * @param task
+ *    Task to check
+ */
+static _TN_INLINE void _tn_sys_stack_overflow_check(
+      struct TN_Task *task
+      )
+{
+   //-- interrupts should be disabled here
+   _TN_BUG_ON(!TN_IS_INT_DISABLED());
+
+   //-- check that stack bottom has the value `TN_FILL_STACK_VAL`
+
+   TN_UWord *p_word = _tn_arch_stack_bottom_empty_get(
+         task->base_stack_top, task->stack_size
+         );
+
+   if (*p_word != TN_FILL_STACK_VAL){
+      if (tn_callback_stack_overflow != NULL){
+         tn_callback_stack_overflow(task);
+      } else {
+         _TN_FATAL_ERROR("stack overflow");
+      }
+   }
+}
+#else
+
+/**
+ * Stub empty function, it is needed when `#TN_STACK_OVERFLOW_CHECK` is zero.
+ */
+static _TN_INLINE void _tn_sys_stack_overflow_check(
+      struct TN_Task *task
+      )
+{}
 #endif
 
 /**
@@ -516,6 +556,9 @@ enum TN_RCode tn_tick_int_processing(void)
       TN_INTSAVE_DATA_INT;
 
       TN_INT_IDIS_SAVE();
+
+      //-- check stack overflow
+      _tn_sys_stack_overflow_check(tn_curr_run_task);
 
       //-- manage timers
       _tn_timers_tick_proceed();
@@ -729,8 +772,8 @@ void _tn_sys_on_context_switch(
       struct TN_Task *task_new
       )
 {
+   _tn_sys_stack_overflow_check(task_prev);
    _tn_sys_on_context_switch_profiler(task_prev, task_new);
-   //TODO: stack overflow check
 }
 #endif
 

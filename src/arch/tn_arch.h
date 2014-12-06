@@ -127,7 +127,7 @@ void tn_arch_sr_restore(TN_UWord sr);
  * - How the stack grows:
  *   - *Descending stack*: The stack grows downward (i.e., toward lower memory
  *     addresses);
- *   - *Ascending stack*: The stack grows upward (i.e., toward lower higher
+ *   - *Ascending stack*: The stack grows upward (i.e., toward higher memory
  *     addresses).
  *
  * So, depending on the stack implementation used in the particular
@@ -147,6 +147,31 @@ void tn_arch_sr_restore(TN_UWord sr);
 TN_UWord *_tn_arch_stack_top_get(
       TN_UWord   *stack_low_address,
       int         stack_size
+      );
+
+/**
+ * This function should return address of bottom empty element of stack, it is
+ * needed for software stack overflow control (see `#TN_STACK_OVERFLOW_CHECK`).
+ *
+ * For details on various hardware stack implementations, refer to
+ * `#_tn_arch_stack_top_get()`.
+ *
+ * Depending on the stack implementation used in the particular architecture,
+ * the value returned from this function can be one of the following:
+ *
+ * - `(stack_top - stack_size)` (*Full descending stack*)
+ * - `(stack_top + stack_size)` (*Full ascending stack*)
+ * - `(stack_top - stack_size + 1)` (*Empty descending stack*)
+ * - `(stack_top + stack_size - 1)` (*Empty ascending stack*)
+ *
+ * @param stack_top
+ *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
+ * @param stack_size
+ *    Size of the stack in `#TN_UWord`-s, not in bytes.
+ */
+TN_UWord *_tn_arch_stack_bottom_empty_get(
+      TN_UWord      *stack_top,
+      int            stack_size
       );
 
 /**
@@ -179,6 +204,8 @@ TN_UWord *_tn_arch_stack_init(
       int            stack_size,
       void          *param
       );
+
+
 
 /**
  * Should return 1 if <i>system ISR</i> is currently running, 0 otherwise.

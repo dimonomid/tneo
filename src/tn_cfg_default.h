@@ -69,6 +69,15 @@
 
 
 /*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
+//-- some defaults depend on architecture, so we should include
+//   `tn_arch_detect.h`
+#include "arch/tn_arch_detect.h"
+
+
+/*******************************************************************************
  *    USER-DEFINED OPTIONS
  ******************************************************************************/
 
@@ -246,6 +255,22 @@
  */
 #ifndef TN_PROFILER
 #  define TN_PROFILER            0
+#endif
+
+
+#ifndef TN_STACK_OVERFLOW_CHECK
+#  if defined(__TN_ARCH_PIC24_DSPIC__)
+/*
+ * On PIC24/dsPIC, we have hardware stack pointer limit, so, no need for
+ * software check
+ */
+#     define TN_STACK_OVERFLOW_CHECK   0
+#  else
+/*
+ * On all other architectures, software stack overflow check is ON by default
+ */
+#     define TN_STACK_OVERFLOW_CHECK   1
+#  endif
 #endif
 
 
