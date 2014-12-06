@@ -1089,6 +1089,13 @@ void _tn_task_clear_dormant(struct TN_Task *task)
          );
 
    task->task_state &= ~TN_TASK_STATE_DORMANT;
+
+
+#if TN_PROFILER
+   //-- If profiler is present, set last tick count
+   //   to current tick count value
+   task->profiler.last_tick_cnt = _tn_timer_sys_time_get();
+#endif
 }
 
 /**
