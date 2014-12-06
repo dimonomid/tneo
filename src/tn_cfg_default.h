@@ -247,9 +247,10 @@
 
 /**
  * Whether profiler functionality should be enabled.
- * Enabling this option adds overhead to context switching and bumps
- * the size of `#TN_Task` structure by more than 120 bytes.
+ * Enabling this option adds overhead to context switching and increases
+ * the size of `#TN_Task` structure by about 20 bytes.
  *
+ * @see `#TN_PROFILER_WAIT_TIME`
  * @see `#tn_task_profiler_timing_get()`
  * @see `struct #TN_TaskTiming`
  */
@@ -257,6 +258,13 @@
 #  define TN_PROFILER            0
 #endif
 
+/**
+ * Whether profiler should store wait time for each wait reason. Enabling this
+ * option bumps the size of `#TN_Task` structure by more than 100 bytes,
+ * see `struct #TN_TaskTiming`.
+ *
+ * Relevant if only `#TN_PROFILER` is non-zero.
+ */
 #ifndef TN_PROFILER_WAIT_TIME
 #  define TN_PROFILER_WAIT_TIME  0
 #endif
