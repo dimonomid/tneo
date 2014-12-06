@@ -92,9 +92,11 @@ typedef struct TN_FMem        TN_FMP;
 typedef struct TN_Sem         TN_SEM;
 
 
-//there's no compatibility with TNKernel's event object,
-//so, this one is commented
-//typedef struct TN_EventGrp    TN_EVENT;
+#if TN_OLD_EVENT_API
+/// old TNKernel name of `#TN_EventGrp`
+/// available if only `#TN_OLD_EVENT_API` is non-zero
+typedef struct TN_EventGrp    TN_EVENT;
+#endif
 
 
 
@@ -128,9 +130,11 @@ typedef struct TN_Sem         TN_SEM;
 /// old TNKernel struct name of `#TN_Sem`
 #define  _TN_SEM        TN_Sem
 
-//there's no compatibility with TNKernel's event object,
-//so, this one is commented
-//#define  _TN_EVENT      TN_EventGrp
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+/// old TNKernel struct name of `#TN_EventGrp`,
+/// available if only `#TN_OLD_EVENT_API` is non-zero
+#  define  _TN_EVENT      TN_EventGrp
+#endif
 
 /// old TNKernel name of `#TN_MAKE_ALIG` macro
 ///
@@ -334,6 +338,31 @@ typedef struct TN_Sem         TN_SEM;
 /// old name for `#TN_TickCnt`
 #define  TN_Timeout                    TN_TickCnt
 
+
+
+//-- event stuff {{{
+
+#if TN_OLD_EVENT_API
+
+#define  TN_EVENT_ATTR_SINGLE          TN_EVENTGRP_OPT_SINGLE
+#define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_OPT_MULTI
+#define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_OPT_CLR
+
+#define  tn_event_create               tn_eventgrp_create_wattr
+#define  tn_event_delete               tn_eventgrp_delete
+#define  tn_event_wait                 tn_eventgrp_wait
+#define  tn_event_wait_polling         tn_eventgrp_wait_polling
+#define  tn_event_iwait                tn_eventgrp_iwait_polling
+#define  tn_event_set(ev, pattern)     tn_eventgrp_modify (ev, TN_EVENTGRP_OP_SET, pattern)
+#define  tn_event_iset(ev, pattern)    tn_eventgrp_imodify(ev, TN_EVENTGRP_OP_SET, pattern)
+#define  tn_event_clear(ev, pattern)   tn_eventgrp_modify (ev, TN_EVENTGRP_OP_CLEAR, pattern)
+#define  tn_event_iclear(ev, pattern)  tn_eventgrp_imodify(ev, TN_EVENTGRP_OP_CLEAR, pattern)
+
+#else
+//-- no compatibility with event API
+#endif
+
+//}}}
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

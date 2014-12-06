@@ -153,6 +153,18 @@ enum TN_EGrpOp {
    TN_EVENTGRP_OP_TOGGLE,
 };
 
+
+enum TN_EGrpAttr {
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   TN_EVENTGRP_OPT_SINGLE    = (1 << 0),
+   TN_EVENTGRP_OPT_MULTI     = (1 << 1),
+   TN_EVENTGRP_OPT_CLR       = (1 << 2),
+#else
+   TN_EVENTGRP_OPT_NONE      = (0),
+#endif
+};
+
+
 /**
  * Event group
  */
@@ -160,6 +172,11 @@ struct TN_EventGrp {
    struct TN_ListItem   wait_queue; //!< task wait queue
    TN_UWord             pattern;    //!< current flags pattern
    enum TN_ObjId        id_event;   //!< id for object validity verification
+
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   enum TN_EGrpAttr     attr;
+#endif
+
 };
 
 /**
@@ -206,6 +223,12 @@ struct TN_EGrpLink {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+enum TN_RCode tn_eventgrp_create_wattr(
+      struct TN_EventGrp  *eventgrp,
+      enum TN_EGrpAttr     attr,
+      TN_UWord             initial_pattern
+      );
+
 /**
  * Construct event group. `id_event` field should not contain `#TN_ID_EVENTGRP`,
  * otherwise, `#TN_RC_WPARAM` is returned.
@@ -224,10 +247,21 @@ struct TN_EGrpLink {
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
  *      is available: `#TN_RC_WPARAM`.
  */
-enum TN_RCode tn_eventgrp_create(
+static inline enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp  *eventgrp,
       TN_UWord             initial_pattern
-      );
+      )
+{
+   return tn_eventgrp_create_wattr(
+         eventgrp,
+#if TN_OLD_EVENT_API
+         (TN_EVENTGRP_OPT_MULTI),
+#else
+         (0),
+#endif
+         initial_pattern
+         );
+}
 
 /**
  * Destruct event group.

@@ -305,6 +305,9 @@
 #endif
 
 
+#ifndef TN_OLD_EVENT_API
+#  define TN_OLD_EVENT_API       0
+#endif
 
 
 

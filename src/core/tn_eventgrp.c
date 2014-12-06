@@ -95,7 +95,8 @@ static _TN_INLINE enum TN_RCode _check_param_job_perform(
 }
 
 static _TN_INLINE enum TN_RCode _check_param_create(
-      const struct TN_EventGrp  *eventgrp
+      const struct TN_EventGrp  *eventgrp,
+      enum TN_EGrpAttr           attr
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -103,6 +104,14 @@ static _TN_INLINE enum TN_RCode _check_param_create(
    if (eventgrp == TN_NULL || _tn_eventgrp_is_valid(eventgrp)){
       rc = TN_RC_WPARAM;
    }
+
+#if TN_OLD_EVENT_API
+   if (!(attr & (TN_EVENTGRP_OPT_SINGLE | TN_EVENTGRP_OPT_MULTI))){
+      rc = TN_RC_WPARAM;
+   } else if (!(attr & TN_EVENTGRP_OPT_SINGLE) && (attr & TN_EVENTGRP_OPT_CLR)){
+      rc = TN_RC_WPARAM;
+   }
+#endif
 
    return rc;
 }
@@ -156,17 +165,17 @@ static TN_BOOL _cond_check(
    return cond;
 }
 
-/**
- * To be implemented or removed, not sure yet.
- */
 static void _clear_pattern_if_needed(
       struct TN_EventGrp     *eventgrp,
       enum TN_EGrpWaitMode    wait_mode,
       TN_UWord                pattern
       )
 {
-   //-- probably, we should add one more wait mode flag, like 
-   //   TN_EVENTGRP_WMODE_CLR, and if it is set, then clear pattern here
+#if TN_OLD_EVENT_API
+   if (eventgrp->attr & TN_EVENTGRP_OPT_CLR){
+      eventgrp->pattern = 0;
+   }
+#endif
 }
 
 
@@ -206,7 +215,6 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
          task->subsys_wait.eventgrp.actual_pattern = eventgrp->pattern;
          _tn_task_wait_complete(task, TN_RC_OK);
 
-         //-- This isn't yet implemented, just a stub for the future (maybe).
          _clear_pattern_if_needed(
                eventgrp,
                task->subsys_wait.eventgrp.wait_mode,
@@ -243,6 +251,19 @@ static enum TN_RCode _eventgrp_wait(
       //-- just return rc as it is
    } else {
 
+#if TN_OLD_EVENT_API
+      //-- Old TNKernel behavior: if `TN_EVENTGRP_OPT_SINGLE` flag is set,
+      //   only one task can wait for that event group
+      if (
+            (eventgrp->attr & TN_EVENTGRP_OPT_SINGLE) 
+            &&
+            !_tn_list_is_empty(&(eventgrp->wait_queue))
+         )
+      {
+         rc = TN_RC_ILLEGAL_USE;
+      } else
+#endif
+
       //-- Check release condition
 
       if (_cond_check(eventgrp, wait_mode, wait_pattern)){
@@ -253,7 +274,6 @@ static enum TN_RCode _eventgrp_wait(
             *p_flags_pattern = eventgrp->pattern;
          }
 
-         //-- This isn't yet implemented, just a stub for the future (maybe).
          _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
          rc = TN_RC_OK;
       } else {
@@ -328,12 +348,13 @@ static enum TN_RCode _eventgrp_modify(
 /*
  * See comments in the header file (tn_eventgrp.h)
  */
-enum TN_RCode tn_eventgrp_create(
+enum TN_RCode tn_eventgrp_create_wattr(
       struct TN_EventGrp  *eventgrp,
+      enum TN_EGrpAttr     attr,
       TN_UWord             initial_pattern //-- initial value of the pattern
       )  
 {
-   enum TN_RCode rc = _check_param_create(eventgrp);
+   enum TN_RCode rc = _check_param_create(eventgrp, attr);
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
@@ -343,6 +364,9 @@ enum TN_RCode tn_eventgrp_create(
 
       eventgrp->pattern    = initial_pattern;
       eventgrp->id_event   = TN_ID_EVENTGRP;
+#if TN_OLD_EVENT_API
+      eventgrp->attr       = attr;
+#endif
 
    }
    return rc;
