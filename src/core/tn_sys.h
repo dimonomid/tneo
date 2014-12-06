@@ -445,6 +445,8 @@ TN_TickCnt tn_sys_time_get(void);
  */
 void tn_callback_deadlock_set(TN_CBDeadlock *cb);
 
+void tn_callback_stack_overflow_set(TN_CBStackOverflow *cb);
+
 /**
  * Returns current system state flags
  *

@@ -631,6 +631,14 @@ void tn_callback_deadlock_set(TN_CBDeadlock *cb)
 /*
  * See comment in tn_sys.h file
  */
+void tn_callback_stack_overflow_set(TN_CBStackOverflow *cb)
+{
+   tn_callback_stack_overflow = cb;
+}
+
+/*
+ * See comment in tn_sys.h file
+ */
 enum TN_Context tn_sys_context_get(void)
 {
    enum TN_Context ret;
