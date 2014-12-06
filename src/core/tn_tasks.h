@@ -260,6 +260,17 @@ struct TN_TaskTiming {
    /// but is still in the $(TN_TASK_STATE_RUNNABLE) state.
    unsigned long long   total_run_time;
    ///
+   /// How many times task got running. It is useful to find an average
+   /// value of consecutive running time: `(total_run_time / got_running_cnt)`
+   unsigned long long   got_running_cnt;
+   ///
+   /// Maximum consecutive time task was running.
+   unsigned long        max_consecutive_run_time;
+
+#if TN_PROFILER_WAIT_TIME || DOXYGEN_ACTIVE
+   ///
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
+   ///
    /// Total time when task was not running; time is broken down by reasons of
    /// waiting. 
    ///
@@ -271,18 +282,14 @@ struct TN_TaskTiming {
    /// 
    unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
    ///
-   /// How many times task got running. It is useful to find an average
-   /// value of consecutive running time: `(total_run_time / got_running_cnt)`
-   unsigned long long   got_running_cnt;
-   ///
-   /// Maximum consecutive time task was running.
-   unsigned long        max_consecutive_run_time;
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
    ///
    /// Maximum consecutive time task was not running; time is broken down by
    /// reasons of waiting.
    ///
    /// @see `total_wait_time`
    unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
+#endif
 };
 
 /**
@@ -294,9 +301,14 @@ struct _TN_TaskProfiler {
    ///
    /// Tick count of when the task got running or non-running last time.
    TN_TickCnt        last_tick_cnt;
+#if TN_PROFILER_WAIT_TIME || DOXYGEN_ACTIVE
+   ///
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
    ///
    /// Value of `task->task_wait_reason` when task got non-running last time.
    enum TN_WaitReason   last_wait_reason;
+#endif
+
 #if TN_DEBUG
    ///
    /// For internal profiler self-check only: indicates whether task is 

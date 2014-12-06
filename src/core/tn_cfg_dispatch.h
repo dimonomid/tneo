@@ -129,6 +129,10 @@
 #  error TN_PROFILER is not defined
 #endif
 
+#if !defined(TN_PROFILER_WAIT_TIME)
+#  error TN_PROFILER_WAIT_TIME is not defined
+#endif
+
 #if !defined(TN_STACK_OVERFLOW_CHECK)
 #  error TN_STACK_OVERFLOW_CHECK is not defined
 #endif

@@ -253,7 +253,9 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
 
       //-- update current task state
       task_prev->profiler.last_tick_cnt      = cur_tick_cnt;
+#if TN_PROFILER_WAIT_TIME
       task_prev->profiler.last_wait_reason   = task_prev->task_wait_reason;
+#endif
    }
    // }}}
 
@@ -266,6 +268,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
       task_new->profiler.is_running = 1;
 #endif
 
+#if TN_PROFILER_WAIT_TIME
       //-- get difference between current time and last saved time:
       //   this is the time task was waiting.
       TN_TickCnt cur_wait_time
@@ -285,6 +288,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
          task_new->profiler.timing.max_consecutive_wait_time
             [ task_new->profiler.last_wait_reason ] = cur_wait_time;
       }
+#endif
 
       //-- increment the counter of times task got running
       task_new->profiler.timing.got_running_cnt++;

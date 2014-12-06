@@ -257,6 +257,10 @@
 #  define TN_PROFILER            0
 #endif
 
+#ifndef TN_PROFILER_WAIT_TIME
+#  define TN_PROFILER_WAIT_TIME  0
+#endif
+
 
 /**
  * Whether software stack overflow check is enabled.  Enabling this option adds
