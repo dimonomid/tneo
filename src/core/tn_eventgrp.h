@@ -247,7 +247,7 @@ enum TN_RCode tn_eventgrp_create_wattr(
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
  *      is available: `#TN_RC_WPARAM`.
  */
-static inline enum TN_RCode tn_eventgrp_create(
+static _TN_INLINE enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp  *eventgrp,
       TN_UWord             initial_pattern
       )

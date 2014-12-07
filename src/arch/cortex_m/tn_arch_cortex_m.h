@@ -292,8 +292,7 @@ typedef  unsigned int               TN_UIntPtr;
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #if defined(__TN_COMPILER_ARMCC__)
-#  define _TN_INLINE   inline //-- to make it work, we need to build
-                              //   the kernel with --c99 key.
+#  define _TN_INLINE   __inline
 #  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
 #  define _TN_INLINE   inline

@@ -344,9 +344,9 @@ typedef struct TN_EventGrp    TN_EVENT;
 
 #if TN_OLD_EVENT_API
 
-#define  TN_EVENT_ATTR_SINGLE          TN_EVENTGRP_OPT_SINGLE
-#define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_OPT_MULTI
-#define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_OPT_CLR
+#define  TN_EVENT_ATTR_SINGLE          TN_EVENTGRP_ATTR_SINGLE
+#define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_ATTR_MULTI
+#define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_ATTR_CLR
 
 #define  tn_event_create               tn_eventgrp_create_wattr
 #define  tn_event_delete               tn_eventgrp_delete
