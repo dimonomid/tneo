@@ -151,6 +151,10 @@
 #  error TN_DYNAMIC_TICK is not defined
 #endif
 
+#if !defined(TN_OLD_EVENT_API)
+#  error TN_OLD_EVENT_API is not defined
+#endif
+
 
 // }}}
 
