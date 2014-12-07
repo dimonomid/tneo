@@ -348,7 +348,8 @@ typedef struct TN_EventGrp    TN_EVENT;
 #define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_ATTR_MULTI
 #define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_ATTR_CLR
 
-#define  tn_event_create               tn_eventgrp_create_wattr
+#define  tn_event_create(ev, attr, pattern)  \
+         tn_eventgrp_create_wattr(ev, (enum TN_EGrpAttr)(attr), pattern)
 #define  tn_event_delete               tn_eventgrp_delete
 #define  tn_event_wait                 tn_eventgrp_wait
 #define  tn_event_wait_polling         tn_eventgrp_wait_polling
