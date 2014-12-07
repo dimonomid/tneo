@@ -55,6 +55,9 @@
 
 
 
+//TODO: remove
+#define  _X96_HACKS  0
+
 /*******************************************************************************
  *    PRIVATE TYPES
  ******************************************************************************/
@@ -177,7 +180,11 @@ static void _clear_pattern_if_needed(
 {
 #if TN_OLD_EVENT_API
    if (eventgrp->attr & TN_EVENTGRP_ATTR_CLR){
+#if _X96_HACKS
+      eventgrp->pattern &= ~pattern;
+#else
       eventgrp->pattern = 0;
+#endif
    }
 #endif
 }
@@ -276,6 +283,10 @@ static enum TN_RCode _eventgrp_wait(
 
          if (p_flags_pattern != TN_NULL){
             *p_flags_pattern = eventgrp->pattern;
+
+#if _X96_HACKS
+            *p_flags_pattern = eventgrp->pattern & wait_pattern;
+#endif
          }
 
          _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
@@ -471,6 +482,13 @@ enum TN_RCode tn_eventgrp_wait(
          if (rc == TN_RC_OK && p_flags_pattern != TN_NULL ){
             *p_flags_pattern = 
                tn_curr_run_task->subsys_wait.eventgrp.actual_pattern;
+
+#if _X96_HACKS
+            *p_flags_pattern = 
+               tn_curr_run_task->subsys_wait.eventgrp.actual_pattern
+               & wait_pattern
+               ;
+#endif
          }
       }
 
