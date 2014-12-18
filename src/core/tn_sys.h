@@ -97,61 +97,25 @@ struct TN_Mutex;
  * values. This macro is used by `#_TN_BUILD_CFG_DEFINE()` only.
  */
 #if defined (__TN_ARCH_PIC24_DSPIC__)
-#if 0
-#  define _TN_BUILD_CFG_ARCH_DEFINE()                             \
-         .p24 = {                                                 \
-            .p24_sys_ipl         = TN_P24_SYS_IPL,                \
-         },
-
-#endif
-
 
 #  define _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct)               \
 {                                                                 \
    (_p_struct)->arch.p24.p24_sys_ipl = TN_P24_SYS_IPL;            \
 }
 
-
 #else
-#if 0
-#  define _TN_BUILD_CFG_ARCH_DEFINE()     .dummy = 0,
-#endif
-
 #  define _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct)
 #endif
 
 
-#if 0
+
+
 /**
- * For internal kernel usage: define structure `#_TN_BuildCfg` with
+ * For internal kernel usage: fill the structure `#_TN_BuildCfg` with
  * current build-time configuration values.
  *
- * @param modifiers     Variable modifiers, like `static const`
- * @param name          Variable name
+ * @param _p_struct     Pointer to struct `#_TN_BuildCfg`
  */
-#define  _TN_BUILD_CFG_DEFINE(modifiers, name)                    \
-   modifiers struct _TN_BuildCfg name = {                         \
-      .priorities_cnt            = TN_PRIORITIES_CNT,             \
-      .check_param               = TN_CHECK_PARAM,                \
-      .debug                     = TN_DEBUG,                      \
-      .use_mutexes               = TN_USE_MUTEXES,                \
-      .mutex_rec                 = TN_MUTEX_REC,                  \
-      .mutex_deadlock_detect     = TN_MUTEX_DEADLOCK_DETECT,      \
-      .tick_lists_cnt_minus_one  = (TN_TICK_LISTS_CNT - 1),       \
-      .api_make_alig_arg         = TN_API_MAKE_ALIG_ARG,          \
-      .profiler                  = TN_PROFILER,                   \
-      .dynamic_tick              = TN_DYNAMIC_TICK,               \
-      .arch = {                                                   \
-         _TN_BUILD_CFG_ARCH_DEFINE()                              \
-      },                                                          \
-   };
-
-#endif
-
-
-
-
-
 #define  _TN_BUILD_CFG_STRUCT_FILL(_p_struct)                           \
 {                                                                       \
    memset((_p_struct), 0x00, sizeof(*(_p_struct)));                     \
@@ -172,8 +136,6 @@ struct TN_Mutex;
 
 
 #else
-
-//#define  _TN_BUILD_CFG_DEFINE(modifiers, name)    /* nothing */
 
 #define  _TN_BUILD_CFG_STRUCT_FILL(_p_struct)   /* nothing */
 

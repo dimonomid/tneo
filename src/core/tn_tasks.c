@@ -467,9 +467,11 @@ enum TN_RCode tn_task_create(
    //-- init timer that is needed to implement task wait timeout
    _tn_timer_create(&task->timer, _task_wait_timeout, task);
 
+   //-- init auxiliary lists needed for tasks
    _init_mutex_queue(task);
    _init_deadlock_list(task);
 
+   //-- Set initial task state: `TN_TASK_STATE_DORMANT`
    _tn_task_set_dormant(task);
 
    //-- Add task to created task queue

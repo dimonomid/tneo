@@ -64,7 +64,11 @@
  *    PRIVATE DATA
  ******************************************************************************/
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 static struct _TN_BuildCfg _build_cfg;
+
+#endif   // DOXYGEN_SHOULD_SKIP_THIS
 
 
 
