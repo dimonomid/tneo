@@ -248,7 +248,8 @@ enum TN_TaskExitOpt {
  * `#tn_task_profiler_timing_get()` function. This structure is contained in
  * each `struct #TN_Task` structure. 
  *
- * Available if only `#TN_PROFILER` option is non-zero.
+ * Available if only `#TN_PROFILER` option is non-zero, also depends on
+ * `#TN_PROFILER_WAIT_TIME`.
  */
 struct TN_TaskTiming {
    ///
@@ -257,7 +258,8 @@ struct TN_TaskTiming {
    /// \attention
    /// This is NOT the time that task was in $(TN_TASK_STATE_RUNNABLE) state:
    /// if task A is preempted by high-priority task B, task A is not running,
-   /// but is still in the $(TN_TASK_STATE_RUNNABLE) state.
+   /// but is still in the $(TN_TASK_STATE_RUNNABLE) state. This counter
+   /// represents the time task was actually <b>running</b>.
    unsigned long long   total_run_time;
    ///
    /// How many times task got running. It is useful to find an average
