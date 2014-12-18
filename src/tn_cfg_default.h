@@ -308,6 +308,9 @@
 /**
  * Whether the old TNKernel events API compatibility mode is active.
  *
+ * \warning Use it if only you're porting your existing TNKernel project on
+ * TNeoKernel. Otherwise, usage of this option is strongly discouraged.
+ *
  * Actually, events are the most incompatible thing between TNeoKernel and
  * TNKernel (for some details, refer to the section \ref tnkernel_diff_event)
  *
