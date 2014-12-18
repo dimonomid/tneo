@@ -16,14 +16,14 @@ TNeoKernel changelog
     Should work but not tested carefully:
     - clang
     - IAR
+  - Software task stack overflow check (optionally), see
+    `#TN_STACK_OVERFLOW_CHECK` for details.
+  - Dynamic tick (optionally): refer to the page \ref time_ticks for details.
   - Profiler (optionally): allows to see how much time task was running, how much
     time it was waiting and for what it was waiting, and so on. Refer to the
     documentation of `struct #TN_TaskTiming` for details.
-  - Dynamic tick (optionally): refer to the page \ref time_ticks for details.
-  - Implemented old TNKernel events compatibility mode, see `#TN_OLD_EVENT_API`
-    for details.
-  - Software task stack overflow check (optionally), see
-    `#TN_STACK_OVERFLOW_CHECK` for details.
+  - Old TNKernel events compatibility mode, see `#TN_OLD_EVENT_API` for
+    details.
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.
