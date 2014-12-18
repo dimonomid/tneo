@@ -93,8 +93,8 @@ struct TN_Mutex;
 #if TN_CHECK_BUILD_CFG
 
 /**
- * For internal kernel usage: helper macro that defines architecture-dependent
- * values. This macro is used by `#_TN_BUILD_CFG_DEFINE()` only.
+ * For internal kernel usage: helper macro that fills architecture-dependent
+ * values. This macro is used by `#_TN_BUILD_CFG_STRUCT_FILL()` only.
  */
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 
