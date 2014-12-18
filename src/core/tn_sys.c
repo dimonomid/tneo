@@ -60,7 +60,8 @@
 #include "tn_timer.h"
 
 
-//-- for memcmp()
+//-- for memcmp() and memset() that is used inside the macro
+//   `_TN_BUILD_CFG_STRUCT_FILL()`
 #include <string.h>
 
 //-- self-check 
@@ -129,8 +130,6 @@ TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 /*******************************************************************************
  *    PRIVATE DATA
  ******************************************************************************/
-
-_TN_BUILD_CFG_DEFINE(static const, _build_cfg);
 
 
 
@@ -375,49 +374,52 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
 #if TN_CHECK_BUILD_CFG
 static void _build_cfg_check(void)
 {
+   struct _TN_BuildCfg kernel_build_cfg;
+   _TN_BUILD_CFG_STRUCT_FILL(&kernel_build_cfg);
+
    const struct _TN_BuildCfg *app_build_cfg = tn_app_build_cfg_get();
-   if (_build_cfg.priorities_cnt != app_build_cfg->priorities_cnt){
+   if (kernel_build_cfg.priorities_cnt != app_build_cfg->priorities_cnt){
       _TN_FATAL_ERROR("TN_PRIORITIES_CNT doesn't match");
    }
 
-   if (_build_cfg.check_param != app_build_cfg->check_param){
+   if (kernel_build_cfg.check_param != app_build_cfg->check_param){
       _TN_FATAL_ERROR("TN_CHECK_PARAM doesn't match");
    }
 
-   if (_build_cfg.debug != app_build_cfg->debug){
+   if (kernel_build_cfg.debug != app_build_cfg->debug){
       _TN_FATAL_ERROR("TN_DEBUG doesn't match");
    }
 
-   if (_build_cfg.use_mutexes != app_build_cfg->use_mutexes){
+   if (kernel_build_cfg.use_mutexes != app_build_cfg->use_mutexes){
       _TN_FATAL_ERROR("TN_USE_MUTEXES doesn't match");
    }
 
-   if (_build_cfg.mutex_rec != app_build_cfg->mutex_rec){
+   if (kernel_build_cfg.mutex_rec != app_build_cfg->mutex_rec){
       _TN_FATAL_ERROR("TN_MUTEX_REC doesn't match");
    }
 
-   if (_build_cfg.mutex_deadlock_detect != app_build_cfg->mutex_deadlock_detect){
+   if (kernel_build_cfg.mutex_deadlock_detect != app_build_cfg->mutex_deadlock_detect){
       _TN_FATAL_ERROR("TN_MUTEX_DEADLOCK_DETECT doesn't match");
    }
 
-   if (_build_cfg.tick_lists_cnt_minus_one != app_build_cfg->tick_lists_cnt_minus_one){
+   if (kernel_build_cfg.tick_lists_cnt_minus_one != app_build_cfg->tick_lists_cnt_minus_one){
       _TN_FATAL_ERROR("TN_TICK_LISTS_CNT doesn't match");
    }
 
-   if (_build_cfg.api_make_alig_arg != app_build_cfg->api_make_alig_arg){
+   if (kernel_build_cfg.api_make_alig_arg != app_build_cfg->api_make_alig_arg){
       _TN_FATAL_ERROR("TN_API_MAKE_ALIG_ARG doesn't match");
    }
 
-   if (_build_cfg.profiler != app_build_cfg->profiler){
+   if (kernel_build_cfg.profiler != app_build_cfg->profiler){
       _TN_FATAL_ERROR("TN_PROFILER doesn't match");
    }
 
-   if (_build_cfg.dynamic_tick != app_build_cfg->dynamic_tick){
+   if (kernel_build_cfg.dynamic_tick != app_build_cfg->dynamic_tick){
       _TN_FATAL_ERROR("TN_DYNAMIC_TICK doesn't match");
    }
 
 #if defined (__TN_ARCH_PIC24_DSPIC__)
-   if (_build_cfg.arch.p24.p24_sys_ipl != app_build_cfg->arch.p24.p24_sys_ipl){
+   if (kernel_build_cfg.arch.p24.p24_sys_ipl != app_build_cfg->arch.p24.p24_sys_ipl){
       _TN_FATAL_ERROR("TN_P24_SYS_IPL doesn't match");
    }
 #endif
@@ -425,7 +427,7 @@ static void _build_cfg_check(void)
 
    //-- for the case I forgot to add some param above, perform generic check
    TN_BOOL cfg_match = 
-      !memcmp(&_build_cfg, app_build_cfg, sizeof(_build_cfg));
+      !memcmp(&kernel_build_cfg, app_build_cfg, sizeof(kernel_build_cfg));
 
    if (!cfg_match){
       _TN_FATAL_ERROR("configuration mismatch");

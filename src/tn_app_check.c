@@ -51,6 +51,11 @@
 
 #include "tn.h"
 
+//-- std header for memset() that is used inside the macro
+//   `_TN_BUILD_CFG_STRUCT_FILL()`
+#include <string.h>
+
+
 
 #if TN_CHECK_BUILD_CFG
 
@@ -59,11 +64,8 @@
  *    PRIVATE DATA
  ******************************************************************************/
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+static struct _TN_BuildCfg _build_cfg;
 
-_TN_BUILD_CFG_DEFINE(static const, _build_cfg);
-
-#endif   // DOXYGEN_SHOULD_SKIP_THIS
 
 
 /*******************************************************************************
@@ -83,6 +85,7 @@ _TN_BUILD_CFG_DEFINE(static const, _build_cfg);
  */
 const struct _TN_BuildCfg *tn_app_build_cfg_get(void)
 {
+   _TN_BUILD_CFG_STRUCT_FILL(&_build_cfg);
    return &_build_cfg;
 }
 

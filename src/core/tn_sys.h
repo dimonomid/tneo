@@ -97,16 +97,31 @@ struct TN_Mutex;
  * values. This macro is used by `#_TN_BUILD_CFG_DEFINE()` only.
  */
 #if defined (__TN_ARCH_PIC24_DSPIC__)
+#if 0
 #  define _TN_BUILD_CFG_ARCH_DEFINE()                             \
          .p24 = {                                                 \
             .p24_sys_ipl         = TN_P24_SYS_IPL,                \
          },
 
-#else
-#  define _TN_BUILD_CFG_ARCH_DEFINE()     .dummy = 0,
 #endif
 
 
+#  define _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct)               \
+{                                                                 \
+   (_p_struct)->arch.p24.p24_sys_ipl = TN_P24_SYS_IPL;            \
+}
+
+
+#else
+#if 0
+#  define _TN_BUILD_CFG_ARCH_DEFINE()     .dummy = 0,
+#endif
+
+#  define _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct)
+#endif
+
+
+#if 0
 /**
  * For internal kernel usage: define structure `#_TN_BuildCfg` with
  * current build-time configuration values.
@@ -131,9 +146,36 @@ struct TN_Mutex;
       },                                                          \
    };
 
+#endif
+
+
+
+
+
+#define  _TN_BUILD_CFG_STRUCT_FILL(_p_struct)                           \
+{                                                                       \
+   memset((_p_struct), 0x00, sizeof(*(_p_struct)));                     \
+                                                                        \
+   (_p_struct)->priorities_cnt            = TN_PRIORITIES_CNT;          \
+   (_p_struct)->check_param               = TN_CHECK_PARAM;             \
+   (_p_struct)->debug                     = TN_DEBUG;                   \
+   (_p_struct)->use_mutexes               = TN_USE_MUTEXES;             \
+   (_p_struct)->mutex_rec                 = TN_MUTEX_REC;               \
+   (_p_struct)->mutex_deadlock_detect     = TN_MUTEX_DEADLOCK_DETECT;   \
+   (_p_struct)->tick_lists_cnt_minus_one  = (TN_TICK_LISTS_CNT - 1);    \
+   (_p_struct)->api_make_alig_arg         = TN_API_MAKE_ALIG_ARG;       \
+   (_p_struct)->profiler                  = TN_PROFILER;                \
+   (_p_struct)->dynamic_tick              = TN_DYNAMIC_TICK;            \
+                                                                        \
+   _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct);                           \
+}
+
+
 #else
 
-#define  _TN_BUILD_CFG_DEFINE(modifiers, name)    /* nothing */
+//#define  _TN_BUILD_CFG_DEFINE(modifiers, name)    /* nothing */
+
+#define  _TN_BUILD_CFG_STRUCT_FILL(_p_struct)   /* nothing */
 
 #endif   // TN_CHECK_BUILD_CFG
 
