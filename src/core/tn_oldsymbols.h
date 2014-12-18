@@ -344,19 +344,85 @@ typedef struct TN_EventGrp    TN_EVENT;
 
 #if TN_OLD_EVENT_API
 
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_SINGLE`,
 #define  TN_EVENT_ATTR_SINGLE          TN_EVENTGRP_ATTR_SINGLE
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_MULTI`,
 #define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_ATTR_MULTI
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_CLR`,
 #define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_ATTR_CLR
 
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_create_wattr()`,
 #define  tn_event_create(ev, attr, pattern)  \
          tn_eventgrp_create_wattr((ev), (enum TN_EGrpAttr)(attr), (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_delete()`,
 #define  tn_event_delete               tn_eventgrp_delete
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_wait()`,
 #define  tn_event_wait                 tn_eventgrp_wait
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_wait_polling()`,
 #define  tn_event_wait_polling         tn_eventgrp_wait_polling
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_iwait_polling()`,
 #define  tn_event_iwait                tn_eventgrp_iwait_polling
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_modify (event,
+/// #TN_EVENTGRP_OP_SET, pattern)`
 #define  tn_event_set(ev, pattern)     tn_eventgrp_modify ((ev), TN_EVENTGRP_OP_SET, (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_imodify (event,
+/// #TN_EVENTGRP_OP_SET, pattern)`
 #define  tn_event_iset(ev, pattern)    tn_eventgrp_imodify((ev), TN_EVENTGRP_OP_SET, (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_modify (event,
+/// #TN_EVENTGRP_OP_CLEAR, (~pattern))`
+///
+/// \attention Unlike `#tn_eventgrp_modify()`, the pattern should be inverted!
 #define  tn_event_clear(ev, pattern)   tn_eventgrp_modify ((ev), TN_EVENTGRP_OP_CLEAR, (~(pattern)))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_imodify (event,
+/// #TN_EVENTGRP_OP_CLEAR, (~pattern))`
+///
+/// \attention Unlike `#tn_eventgrp_modify()`, the pattern should be inverted!
 #define  tn_event_iclear(ev, pattern)  tn_eventgrp_imodify((ev), TN_EVENTGRP_OP_CLEAR, (~(pattern)))
 
 #else

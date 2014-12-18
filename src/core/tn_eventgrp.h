@@ -154,12 +154,45 @@ enum TN_EGrpOp {
 };
 
 
+/**
+ * Attributes that could be given to the event group object.
+ *
+ * Makes sense if only `#TN_OLD_EVENT_API` option is non-zero; otherwise,
+ * there's just one dummy attribute available: `#TN_EVENTGRP_ATTR_NONE`.
+ */
 enum TN_EGrpAttr {
 #if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
+   /// non-zero.
+   ///
+   /// Indicates that only one task could wait for events in this event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_ATTR_MULTI` flag.
    TN_EVENTGRP_ATTR_SINGLE    = (1 << 0),
+   ///
+   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
+   /// non-zero.
+   ///
+   /// Indicates that multiple tasks could wait for events in this event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_ATTR_SINGLE` flag.
    TN_EVENTGRP_ATTR_MULTI     = (1 << 1),
+   ///
+   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
+   /// non-zero.
+   ///
+   /// Can be specified only in conjunction with `#TN_EVENTGRP_ATTR_SINGLE`
+   /// flag. Indicates that <b>ALL</b> flags in this event group should be
+   /// cleared when task successfully waits for any event in it.
+   ///
+   /// This actually makes little sense to clear ALL events, but this is what
+   /// compatibility mode is for (see `#TN_OLD_EVENT_API`)
    TN_EVENTGRP_ATTR_CLR       = (1 << 2),
-#else
+#endif
+
+#if !TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   ///
+   /// Dummy attribute that does not change anything. It is needed only for
+   /// the assistance of the events compatibility mode (see
+   /// `#TN_OLD_EVENT_API`)
    TN_EVENTGRP_ATTR_NONE      = (0),
 #endif
 };
@@ -174,6 +207,9 @@ struct TN_EventGrp {
    enum TN_ObjId        id_event;   //!< id for object validity verification
 
 #if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   ///
+   /// Attributes that are given to that events group,
+   /// available if only `#TN_OLD_EVENT_API` option is non-zero.
    enum TN_EGrpAttr     attr;
 #endif
 
@@ -223,6 +259,18 @@ struct TN_EGrpLink {
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
 
+/**
+ * The same as `#tn_eventgrp_create()`, but takes additional argument: `attr`.
+ * It makes sense if only `#TN_OLD_EVENT_API` option is non-zero.
+ *
+ * @param eventgrp
+ *    Pointer to already allocated struct TN_EventGrp
+ * @param attr    
+ *    Attributes for that particular event group object, see `struct
+ *    #TN_EGrpAttr`
+ * @param initial_pattern
+ *    Initial events pattern.
+ */
 enum TN_RCode tn_eventgrp_create_wattr(
       struct TN_EventGrp  *eventgrp,
       enum TN_EGrpAttr     attr,

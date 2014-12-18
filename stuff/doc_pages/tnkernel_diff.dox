@@ -116,6 +116,8 @@ In original TNKernel, `tn_task_sleep()` always returns `#TERR_NO_ERR`, independe
 
 \subsection tnkernel_diff_event Events API is changed almost completely
 
+Note: for old TNKernel projects, there is a compatibility mode, see `#TN_OLD_EVENT_API`.
+
 In original TNKernel, I always found events API somewhat confusing. Why is this object named "event", but there are many flags inside, so that they can actually represent many events?
 
 Meanwhile, attributes like `TN_EVENT_ATTR_SINGLE`, `TN_EVENT_ATTR_CLR` imply that "event" object is really just a single event, since it makes no sense to clear just **all** event bits when some particular event happened.

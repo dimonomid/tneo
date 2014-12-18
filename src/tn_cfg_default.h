@@ -305,6 +305,34 @@
 #endif
 
 
+/**
+ * Whether the old TNKernel events API compatibility mode is active.
+ *
+ * Actually, events are the most incompatible thing between TNeoKernel and
+ * TNKernel (for some details, refer to the section \ref tnkernel_diff_event)
+ *
+ * This option is quite useful when you're porting your existing TNKernel app 
+ * to TNeoKernel. When it is non-zero, old events symbols are available and
+ * behave just like they do in TNKernel.
+ *
+ * The full list of what becomes available:
+ *
+ * - Event group attributes:
+ *   - `#TN_EVENT_ATTR_SINGLE`
+ *   - `#TN_EVENT_ATTR_MULTI`
+ *   - `#TN_EVENT_ATTR_CLR`
+ *
+ * - Functions:
+ *   - `#tn_event_create()`
+ *   - `#tn_event_delete()`
+ *   - `#tn_event_wait()`
+ *   - `#tn_event_wait_polling()`
+ *   - `#tn_event_iwait()`
+ *   - `#tn_event_set()`
+ *   - `#tn_event_iset()`
+ *   - `#tn_event_clear()`
+ *   - `#tn_event_iclear()`
+ */
 #ifndef TN_OLD_EVENT_API
 #  define TN_OLD_EVENT_API       0
 #endif
