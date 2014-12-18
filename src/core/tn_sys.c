@@ -414,8 +414,20 @@ static void _build_cfg_check(void)
       _TN_FATAL_ERROR("TN_PROFILER doesn't match");
    }
 
+   if (kernel_build_cfg.profiler_wait_time != app_build_cfg->profiler_wait_time){
+      _TN_FATAL_ERROR("TN_PROFILER_WAIT_TIME doesn't match");
+   }
+
+   if (kernel_build_cfg.stack_overflow_check != app_build_cfg->stack_overflow_check){
+      _TN_FATAL_ERROR("TN_STACK_OVERFLOW_CHECK doesn't match");
+   }
+
    if (kernel_build_cfg.dynamic_tick != app_build_cfg->dynamic_tick){
       _TN_FATAL_ERROR("TN_DYNAMIC_TICK doesn't match");
+   }
+
+   if (kernel_build_cfg.old_events_api != app_build_cfg->old_events_api){
+      _TN_FATAL_ERROR("TN_OLD_EVENT_API doesn't match");
    }
 
 #if defined (__TN_ARCH_PIC24_DSPIC__)

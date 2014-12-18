@@ -22,6 +22,8 @@ TNeoKernel changelog
   - Dynamic tick (optionally): refer to the page \ref time_ticks for details.
   - Implemented old TNKernel events compatibility mode, see `#TN_OLD_EVENT_API`
     for details.
+  - Software task stack overflow check (optionally), see
+    `#TN_STACK_OVERFLOW_CHECK` for details.
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.

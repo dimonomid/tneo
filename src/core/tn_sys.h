@@ -129,7 +129,10 @@ struct TN_Mutex;
    (_p_struct)->tick_lists_cnt_minus_one  = (TN_TICK_LISTS_CNT - 1);    \
    (_p_struct)->api_make_alig_arg         = TN_API_MAKE_ALIG_ARG;       \
    (_p_struct)->profiler                  = TN_PROFILER;                \
+   (_p_struct)->profiler_wait_time        = TN_PROFILER_WAIT_TIME;      \
+   (_p_struct)->stack_overflow_check      = TN_STACK_OVERFLOW_CHECK;    \
    (_p_struct)->dynamic_tick              = TN_DYNAMIC_TICK;            \
+   (_p_struct)->old_events_api            = TN_OLD_EVENT_API;           \
                                                                         \
    _TN_BUILD_CFG_ARCH_STRUCT_FILL(_p_struct);                           \
 }
@@ -183,8 +186,17 @@ struct _TN_BuildCfg {
    /// Value of `#TN_PROFILER`
    unsigned          profiler                   : 1;
    ///
+   /// Value of `#TN_PROFILER_WAIT_TIME`
+   unsigned          profiler_wait_time         : 1;
+   ///
+   /// Value of `#TN_STACK_OVERFLOW_CHECK`
+   unsigned          stack_overflow_check       : 1;
+   ///
    /// Value of `#TN_DYNAMIC_TICK`
    unsigned          dynamic_tick               : 1;
+   ///
+   /// Value of `#TN_OLD_EVENT_API`
+   unsigned          old_events_api             : 1;
    ///
    /// Architecture-dependent values
    union {
