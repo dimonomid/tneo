@@ -395,7 +395,7 @@ static enum TN_RCode _queue_receive(
 
 
 /**
- * Intermediary function that is called by task-related services
+ * Intermediary function that is called by queue-related services
  * (`tn_queue_send()`, `tn_queue_receive()`, etc), which performs all necessary
  * housekeeping and eventually calls actual worker function depending on given
  * `job_type`.
