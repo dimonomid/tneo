@@ -490,6 +490,31 @@ enum TN_RCode tn_task_create(
 }
 
 
+enum TN_RCode tn_task_create_wname(
+      struct TN_Task         *task,
+      TN_TaskBody            *task_func,
+      int                     priority,
+      TN_UWord               *task_stack_low_addr,
+      int                     task_stack_size,
+      void                   *param,
+      enum TN_TaskCreateOpt   opts,
+      const char             *name
+      )
+{
+   enum TN_RCode ret = tn_task_create(
+         task, task_func, priority, task_stack_low_addr, task_stack_size,
+         param, opts
+         );
+
+   //-- if task was successfully created, set the name
+   if (ret == TN_RC_OK){
+      task->name = name;
+   }
+
+   return ret;
+}
+
+
 
 /*
  * See comments in the header file (tn_tasks.h)

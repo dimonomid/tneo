@@ -537,6 +537,7 @@ struct TN_Task {
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * `#TN_RC_WPARAM` if wrong params were given;
  *
+ * @see `#tn_task_create_wname()`
  * @see `#TN_ARCH_STK_ATTR_BEFORE`
  * @see `#TN_ARCH_STK_ATTR_AFTER`
  */
@@ -550,6 +551,21 @@ enum TN_RCode tn_task_create(
       enum TN_TaskCreateOpt   opts
       );
 
+
+/**
+ * The same as `tn_task_create()` but with additional argument `name`,
+ * which could be very useful for debug.
+ */
+enum TN_RCode tn_task_create_wname(
+      struct TN_Task         *task,
+      TN_TaskBody            *task_func,
+      int                     priority,
+      TN_UWord               *task_stack_low_addr,
+      int                     task_stack_size,
+      void                   *param,
+      enum TN_TaskCreateOpt   opts,
+      const char             *name
+      );
 
 /**
  * If the task is $(TN_TASK_STATE_RUNNABLE), it is moved to the
