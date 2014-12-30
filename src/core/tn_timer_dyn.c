@@ -307,8 +307,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
       _timer_cancel(timer);
 
       //-- walk through active timers list and get the position at which
-      //   new timer should be placed. Also note that `timeout_cur` value
-      //   of each timer is updated so that it represents timeout from now.
+      //   new timer should be placed.
 
       //-- First of all, get current time
       TN_TickCnt cur_sys_tick_cnt = _tn_timer_sys_time_get();
