@@ -91,7 +91,7 @@ void _tn_timers_init(void);
  * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
  * necessary timers housekeeping: moving them between lists, firing them, etc.
  *
- * See \ref timers_implementation for details.
+ * See \ref timers_static_implementation for details.
  */
 void _tn_timers_tick_proceed(void);
 

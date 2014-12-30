@@ -62,7 +62,7 @@
 #  error TN_OLD_TNKERNEL_NAMES is not defined
 #endif
 
-#if TN_OLD_TNKERNEL_NAMES
+#if TN_OLD_TNKERNEL_NAMES || DOXYGEN_ACTIVE
 
 
 #ifdef __cplusplus
@@ -342,7 +342,7 @@ typedef struct TN_EventGrp    TN_EVENT;
 
 //-- event stuff {{{
 
-#if TN_OLD_EVENT_API
+#if TN_OLD_EVENT_API || DOXYGEN_ACTIVE
 
 /// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
 /// non-zero.

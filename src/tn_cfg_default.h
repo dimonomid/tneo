@@ -198,7 +198,7 @@
  * Number of "tick" lists of timers, must be a power or two; minimum value:
  * `2`; typical values: `4`, `8` or `16`.
  *
- * Refer to the \ref timers_implementation for details.
+ * Refer to the \ref timers_static_implementation for details.
  *
  * Shortly: this value represents number of elements in the array of 
  * `struct TN_ListItem`, on 32-bit system each element takes 8 bytes.

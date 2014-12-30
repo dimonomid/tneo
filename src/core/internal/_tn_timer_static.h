@@ -63,10 +63,12 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 ///
-/// "generic" list of timers, for details, refer to \ref timers_implementation
+/// "generic" list of timers, for details, refer to \ref 
+/// timers_static_implementation
 extern struct TN_ListItem tn_timer_list__gen;
 ///
-/// "tick" lists of timers, for details, refer to \ref timers_implementation
+/// "tick" lists of timers, for details, refer to \ref 
+/// timers_static_implementation
 extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 ///
 /// system time that can be returned by `tn_sys_time_get()`; it is also used

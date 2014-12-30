@@ -242,7 +242,7 @@ enum TN_TaskExitOpt {
    TN_TASK_EXIT_OPT_DELETE = (1 << 0),
 };
 
-#if TN_PROFILER
+#if TN_PROFILER || DOXYGEN_ACTIVE
 /**
  * Timing structure that is managed by profiler and can be read by
  * `#tn_task_profiler_timing_get()` function. This structure is contained in
@@ -423,7 +423,7 @@ struct TN_Task {
    ///
    /// Task name for debug purposes, user may want to set it by hand
    const char *name;          
-#if TN_PROFILER
+#if TN_PROFILER || DOXYGEN_ACTIVE
    /// Profiler data, available if only `#TN_PROFILER` is non-zero.
    struct _TN_TaskProfiler    profiler;
 #endif
@@ -844,7 +844,7 @@ enum TN_RCode tn_task_state_get(
       enum TN_TaskState *p_state
       );
 
-#if TN_PROFILER
+#if TN_PROFILER || DOXYGEN_ACTIVE
 /**
  * Read profiler timing data of the task. See `struct #TN_TaskTiming` for
  * details on timing data.

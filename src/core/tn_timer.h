@@ -76,7 +76,10 @@
  * See `#TN_TimerFunc` for the prototype of the function that could be
  * scheduled.
  *
- * \section timers_implementation Implementation of timers
+ * TNeoKernel offers two implementations of timers: static and dynamic. Refer
+ * to the page \ref time_ticks for details.
+ *
+ * \section timers_static_implementation Implementation of static timers
  *
  * Although you don't have to understand the implementation of timers to use
  * them, it is probably worth knowing, particularly because the kernel have an
