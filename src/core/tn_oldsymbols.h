@@ -325,9 +325,14 @@ typedef struct TN_EventGrp    TN_EVENT;
 /// old TNKernel name of `#TN_INT_WIDTH`
 #define  _TN_BITS_IN_INT                TN_INT_WIDTH
 
-
 /// old TNKernel name for `sizeof(#TN_UWord)`
 #define  TN_ALIG                       sizeof(TN_UWord)
+
+/// old TNKernel name for `#TN_NO_TIME_SLICE`
+#define  NO_TIME_SLICE                 TN_NO_TIME_SLICE
+
+/// old TNKernel name for `#TN_MAX_TIME_SLICE`
+#define  MAX_TIME_SLICE                TN_MAX_TIME_SLICE
 
 
 
