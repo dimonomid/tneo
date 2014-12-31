@@ -341,12 +341,12 @@ enum TN_RCode tn_fmem_get(
       if (waited_for_data){
 
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
 
          //-- if wait result is TN_RC_OK, copy memory block pointer to the
          //   user's location
          if (rc == TN_RC_OK){
-            *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
+            *p_data = _tn_curr_run_task->subsys_wait.fmem.data_elem;
          }
 
       }

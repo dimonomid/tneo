@@ -51,8 +51,8 @@
 
       /* External references */
 
-      .extern  tn_curr_run_task
-      .extern  tn_next_task_to_run
+      .extern  _tn_curr_run_task
+      .extern  _tn_next_task_to_run
       .extern  IFS0
       .extern  __tn_sys_on_context_switch
 
@@ -82,13 +82,13 @@ __tn_arch_context_switch_now_nosave:
 
       /* call on-context-switch handler, if needed */
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      mov      _tn_curr_run_task, w0         ; w0 = tn_curr_run_task
-      mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
+      mov      _tn_curr_run_task, w0         ; w0 = _tn_curr_run_task
+      mov      _tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
       /* 
        * arguments are set:
-       * - w0: tn_curr_run_task
-       * - w1: tn_next_task_to_run
+       * - w0: _tn_curr_run_task
+       * - w1: _tn_next_task_to_run
        */
       call     __tn_sys_on_context_switch
       nop
@@ -100,11 +100,11 @@ __tn_arch_context_switch_now_nosave:
 
 
       /* set pointer to new task and its stack */
-      mov      _tn_next_task_to_run, w1   ; w1 = tn_next_task_to_run
-      mov      #_tn_curr_run_task, w0     ; w0 = &tn_curr_run_task
+      mov      _tn_next_task_to_run, w1   ; w1 = _tn_next_task_to_run
+      mov      #_tn_curr_run_task, w0     ; w0 = &_tn_curr_run_task
 
-      mov      w1, [w0]                ; tn_curr_run_task = tn_next_task_to_run
-      mov      [w1], w15               ; SP = *tn_next_task_to_run
+      mov      w1, [w0]                ; _tn_curr_run_task = _tn_next_task_to_run
+      mov      [w1], w15               ; SP = *_tn_next_task_to_run
 
       bra      __tn_context_restore
 
@@ -124,7 +124,7 @@ __tn_arch_context_switch_pend:
 
 /*
  * ISR for INT0, which belongs to the kernel.
- * Performs context switch to the task pointed to by `tn_next_task_to_run`.
+ * Performs context switch to the task pointed to by `_tn_next_task_to_run`.
  */
 __INT0Interrupt:
 
@@ -154,8 +154,8 @@ __INT0Interrupt:
 
       /* store sp in preemted task's TCB */
 
-      mov      _tn_curr_run_task, w0   ; w0 = tn_curr_run_task;
-      mov      w15, [w0]               ; tn_curr_run_task->stack_top = SR;
+      mov      _tn_curr_run_task, w0   ; w0 = _tn_curr_run_task;
+      mov      w15, [w0]               ; _tn_curr_run_task->stack_top = SR;
 
       /* save SR in w10 */
       mov      _SR, w10
@@ -168,13 +168,13 @@ __INT0Interrupt:
 
       /* call on-context-switch handler, if needed */
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      mov      _tn_curr_run_task,      w0    ; w0 = tn_curr_run_task
-      mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
+      mov      _tn_curr_run_task,      w0    ; w0 = _tn_curr_run_task
+      mov      _tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
       /* 
        * arguments are set:
-       * - w0: tn_curr_run_task
-       * - w1: tn_next_task_to_run
+       * - w0: _tn_curr_run_task
+       * - w1: _tn_next_task_to_run
        */
       call     __tn_sys_on_context_switch
       nop
@@ -185,17 +185,17 @@ __INT0Interrupt:
       mov      #0xffff, w2
       mov      w2,      _SPLIM
 
-      /* tn_curr_run_task = tn_next_task_to_run */
+      /* _tn_curr_run_task = _tn_next_task_to_run */
 
-      mov      _tn_next_task_to_run, w9    ; w9 = tn_next_task_to_run
-      mov      #_tn_curr_run_task,   w2    ; w2 = &tn_curr_run_task
+      mov      _tn_next_task_to_run, w9    ; w9 = _tn_next_task_to_run
+      mov      #_tn_curr_run_task,   w2    ; w2 = &_tn_curr_run_task
 
-      mov      w9, [w2]          ; tn_curr_run_task = tn_next_task_to_run
+      mov      w9, [w2]          ; _tn_curr_run_task = _tn_next_task_to_run
 
 
       /* Set new stack pointer (from newly activated task) */
 
-      mov      [w9], w15         ; SP = *tn_next_task_to_run
+      mov      [w9], w15         ; SP = *_tn_next_task_to_run
 
 
       /* clear INT0 pending bit */

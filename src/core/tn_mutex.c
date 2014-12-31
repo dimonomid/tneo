@@ -491,8 +491,8 @@ static _TN_INLINE void _add_curr_task_to_mutex_wait_queue(
       //-- Priority inheritance protocol
 
       //-- if run_task curr priority higher holder's curr priority
-      if (tn_curr_run_task->priority < mutex->holder->priority){
-         _task_priority_elevate(mutex->holder, tn_curr_run_task->priority);
+      if (_tn_curr_run_task->priority < mutex->holder->priority){
+         _task_priority_elevate(mutex->holder, _tn_curr_run_task->priority);
       }
 
       wait_reason = TN_WAIT_REASON_MUTEX_I;
@@ -504,7 +504,7 @@ static _TN_INLINE void _add_curr_task_to_mutex_wait_queue(
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
 
    //-- check if there is deadlock
-   _check_deadlock_active(mutex, tn_curr_run_task);
+   _check_deadlock_active(mutex, _tn_curr_run_task);
 }
 
 /**
@@ -693,7 +693,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
       TN_INT_DIS_SAVE();
 
       //-- mutex can be deleted if only it isn't held 
-      if (mutex->holder != TN_NULL && mutex->holder != tn_curr_run_task){
+      if (mutex->holder != TN_NULL && mutex->holder != _tn_curr_run_task){
          rc = TN_RC_ILLEGAL_USE;
       } else {
 
@@ -742,7 +742,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
 
       TN_INT_DIS_SAVE();
 
-      if (tn_curr_run_task == mutex->holder){
+      if (_tn_curr_run_task == mutex->holder){
          //-- mutex is already locked by current task
          //   if recursive locking enabled (TN_MUTEX_REC), increment lock count,
          //   otherwise error is returned
@@ -751,7 +751,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
 
       } else if (
             mutex->protocol == TN_MUTEX_PROT_CEILING
-            && tn_curr_run_task->base_priority < mutex->ceil_priority
+            && _tn_curr_run_task->base_priority < mutex->ceil_priority
             )
       {
          //-- base priority of current task higher
@@ -768,7 +768,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
          //   and if that flag is false, _find_max_priority_by_mutex() should not
          //   call _find_max_blocked_priority().
          //   We could save about 30 cycles then. =)
-         _mutex_do_lock(mutex, tn_curr_run_task);
+         _mutex_do_lock(mutex, _tn_curr_run_task);
 
       } else {
          //-- mutex is already locked
@@ -782,7 +782,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
 
             waited_for_mutex = TN_TRUE;
 
-            //-- rc will be set later to tn_curr_run_task->task_wait_rc;
+            //-- rc will be set later to _tn_curr_run_task->task_wait_rc;
          }
       }
 
@@ -796,7 +796,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
       _tn_context_switch_pend_if_needed();
       if (waited_for_mutex){
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
       }
    }
 
@@ -829,7 +829,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
       TN_INT_DIS_SAVE();
 
       //-- unlocking is enabled only for the owner and already locked mutex
-      if (tn_curr_run_task != mutex->holder){
+      if (_tn_curr_run_task != mutex->holder){
          rc = TN_RC_ILLEGAL_USE;
       } else {
 

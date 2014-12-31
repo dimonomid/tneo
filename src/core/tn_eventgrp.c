@@ -487,8 +487,8 @@ enum TN_RCode tn_eventgrp_wait(
          //   So, remember waiting parameters (mode, pattern), and put
          //   current task to wait.
 
-         tn_curr_run_task->subsys_wait.eventgrp.wait_mode = wait_mode;
-         tn_curr_run_task->subsys_wait.eventgrp.wait_pattern = wait_pattern;
+         _tn_curr_run_task->subsys_wait.eventgrp.wait_mode = wait_mode;
+         _tn_curr_run_task->subsys_wait.eventgrp.wait_pattern = wait_pattern;
          _tn_task_curr_to_wait_action(
                &(eventgrp->wait_queue),
                TN_WAIT_REASON_EVENT,
@@ -505,17 +505,17 @@ enum TN_RCode tn_eventgrp_wait(
       if (waited_for_event){
          //-- task was waiting for event, and now it has just woke up.
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
 
          //-- if wait result is TN_RC_OK, and p_flags_pattern is provided,
          //   copy actual_pattern there
          if (rc == TN_RC_OK && p_flags_pattern != TN_NULL ){
             *p_flags_pattern = 
-               tn_curr_run_task->subsys_wait.eventgrp.actual_pattern;
+               _tn_curr_run_task->subsys_wait.eventgrp.actual_pattern;
 
 #if _X96_HACKS
             *p_flags_pattern = 
-               tn_curr_run_task->subsys_wait.eventgrp.actual_pattern
+               _tn_curr_run_task->subsys_wait.eventgrp.actual_pattern
                & wait_pattern
                ;
 #endif

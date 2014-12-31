@@ -436,6 +436,31 @@ typedef struct TN_EventGrp    TN_EVENT;
 
 //}}}
 
+
+//-- Internal implementation details {{{
+
+//-- Exclude it from doxygen-generated docs
+#if !DOXYGEN_SHOULD_SKIP_THIS
+
+#define tn_ready_list         _tn_tasks_ready_list
+#define tn_create_queue       _tn_tasks_created_list
+#define tn_created_tasks_cnt  _tn_tasks_created_cnt
+
+#define tn_tslice_ticks       _tn_tslice_ticks
+
+#define tn_sys_state          _tn_sys_state
+
+#define tn_next_task_to_run   _tn_next_task_to_run
+#define tn_curr_run_task      _tn_curr_run_task
+
+#define tn_ready_to_run_bmp   _tn_ready_to_run_bmp
+
+#define tn_idle_task          _tn_idle_task
+
+#endif
+
+//}}}
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

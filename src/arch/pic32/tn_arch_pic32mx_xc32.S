@@ -43,9 +43,9 @@
 
     /* External references */
 
-    .extern  tn_curr_run_task, 4
-    .extern  tn_next_task_to_run, 4
-    .extern  tn_sys_state, 4
+    .extern  _tn_curr_run_task, 4
+    .extern  _tn_next_task_to_run, 4
+    .extern  _tn_sys_state, 4
     .extern  _tn_sys_on_context_switch, 4
 
     /* Public functions declared in this file */
@@ -75,27 +75,27 @@ _tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
-    la      $s0, tn_curr_run_task       /* s0 = &tn_curr_run_task */
-    lw      $s1, tn_next_task_to_run    /* s1 =  tn_next_task_to_run */
+    la      $s0, _tn_curr_run_task      /* s0 = &_tn_curr_run_task */
+    lw      $s1, _tn_next_task_to_run   /* s1 =  _tn_next_task_to_run */
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-    lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
-    addiu   $a1, $s1, 0                 /* a1 =  tn_next_task_to_run */
+    lw      $a0, 0($s0)                 /* a0 =  _tn_curr_run_task */
+    addiu   $a1, $s1, 0                 /* a1 =  _tn_next_task_to_run */
 
     /* NOTE: next instruction is executed BEFORE call, so,
-       SP is updated to tn_next_task_to_run->stack_top before call */
+       SP is updated to _tn_next_task_to_run->stack_top before call */
 
     /* 
      * arguments are set:
-     * - a0: tn_curr_run_task
-     * - a1: tn_next_task_to_run
+     * - a0: _tn_curr_run_task
+     * - a1: _tn_next_task_to_run
      */
     jal     _tn_sys_on_context_switch
 #endif
 
-    lw      $sp, 0($s1)                 /* sp = *tn_next_task_to_run */
+    lw      $sp, 0($s1)                 /* sp = *_tn_next_task_to_run */
     j       tn_restore_context
-    sw      $s1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    sw      $s1, 0($s0)                 /* _tn_curr_run_task = _tn_next_task_to_run */
 
     .end _tn_arch_context_switch_now_nosave
 
@@ -175,8 +175,8 @@ cs0_int_handler:
     sw      $t0, 4($sp)
     sw      $t1, 0($sp)
 
-    la      $s0, tn_curr_run_task       /* s0 = &tn_curr_run_task */
-    lw      $a0, 0($s0)                 /* a0 =  tn_curr_run_task */
+    la      $s0, _tn_curr_run_task      /* s0 = &_tn_curr_run_task */
+    lw      $a0, 0($s0)                 /* a0 =  _tn_curr_run_task */
     sw      $sp, 0($a0)                 /* store sp in preempted task's TCB */
 
 
@@ -184,23 +184,23 @@ cs0_int_handler:
     di      $t2                         /* disable interrupts */
     ehb
 
-    lw      $s1, tn_next_task_to_run    /* s1 =  tn_next_task_to_run */
-    addiu   $a1, $s1, 0                 /* a1 =  tn_next_task_to_run */
+    lw      $s1, _tn_next_task_to_run   /* s1 =  _tn_next_task_to_run */
+    addiu   $a1, $s1, 0                 /* a1 =  _tn_next_task_to_run */
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
     /* NOTE: next instruction is executed BEFORE call, so,
-       SP is updated to tn_next_task_to_run->stack_top before call */
+       SP is updated to _tn_next_task_to_run->stack_top before call */
 
    /* 
     * arguments are set:
-    * - a0: tn_curr_run_task
-    * - a1: tn_next_task_to_run
+    * - a0: _tn_curr_run_task
+    * - a1: _tn_next_task_to_run
     */
     jal     _tn_sys_on_context_switch
 #endif
 
-    lw      $sp, 0($s1)                 /* sp = *tn_next_task_to_run */
-    sw      $s1, 0($s0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    lw      $sp, 0($s1)                 /* sp = *_tn_next_task_to_run */
+    sw      $s1, 0($s0)                 /* _tn_curr_run_task = _tn_next_task_to_run */
 
     lui     $k0, %hi(IFS0CLR)           /* clear cs0 pending bit */
     ori     $k1, $zero, 2

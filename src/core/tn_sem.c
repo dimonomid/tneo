@@ -158,7 +158,7 @@ static _TN_INLINE enum TN_RCode _sem_job_perform(
       _tn_context_switch_pend_if_needed();
       if (waited_for_sem){
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
       }
 
    }

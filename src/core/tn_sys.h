@@ -237,7 +237,7 @@ enum TN_StateFlag {
 enum TN_Context {
    ///
    /// None: this code is possible if only system is not running
-   /// (flag (`#TN_STATE_FLAG__SYS_RUNNING` is not set in the `tn_sys_state`))
+   /// (flag (`#TN_STATE_FLAG__SYS_RUNNING` is not set in the `_tn_sys_state`))
    TN_CONTEXT_NONE,
    ///
    /// Task context

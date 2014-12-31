@@ -84,23 +84,29 @@
  *    PROTECTED DATA
  ******************************************************************************/
 
-/*
- * For comments on these variables, please see _tn_sys.h file.
- */
-struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
-struct TN_ListItem tn_create_queue;
-volatile int tn_created_tasks_cnt;
+// See comments in the internal/_tn_sys.h file
+struct TN_ListItem _tn_tasks_ready_list[TN_PRIORITIES_CNT];
 
-unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
+// See comments in the internal/_tn_sys.h file
+struct TN_ListItem _tn_tasks_created_list;
 
-volatile enum TN_StateFlag tn_sys_state;
+// See comments in the internal/_tn_sys.h file
+volatile int _tn_tasks_created_cnt;
 
-struct TN_Task *tn_next_task_to_run;
-struct TN_Task *tn_curr_run_task;
+// See comments in the internal/_tn_sys.h file
+volatile enum TN_StateFlag _tn_sys_state;
 
-volatile unsigned int tn_ready_to_run_bmp;
+// See comments in the internal/_tn_sys.h file
+struct TN_Task *_tn_next_task_to_run;
 
-struct TN_Task tn_idle_task;
+// See comments in the internal/_tn_sys.h file
+struct TN_Task *_tn_curr_run_task;
+
+// See comments in the internal/_tn_sys.h file
+volatile unsigned int _tn_ready_to_run_bmp;
+
+// See comments in the internal/_tn_sys.h file
+struct TN_Task _tn_idle_task;
 
 
 
@@ -130,7 +136,8 @@ TN_CBStackOverflow *_tn_callback_stack_overflow = TN_NULL;
 /// (see `#TN_MUTEX_DEADLOCK_DETECT`)
 TN_CBDeadlock *_tn_callback_deadlock = TN_NULL;
 
-
+/// Time slice values for each available priority, in system ticks.
+unsigned short _tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 #if TN_MUTEX_DEADLOCK_DETECT
 /// Number of deadlocks active at the moment. Normally it is equal to 0.
@@ -187,15 +194,15 @@ static _TN_INLINE void _round_robin_manage(void)
    //   IAR(c) compiler's high optimization mode problem
    _TN_VOLATILE_WORKAROUND struct TN_ListItem *curr_que;
    _TN_VOLATILE_WORKAROUND struct TN_ListItem *pri_queue;
-   _TN_VOLATILE_WORKAROUND int priority = tn_curr_run_task->priority;
+   _TN_VOLATILE_WORKAROUND int priority = _tn_curr_run_task->priority;
 
-   if (tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
-      tn_curr_run_task->tslice_count++;
+   if (_tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
+      _tn_curr_run_task->tslice_count++;
 
-      if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
-         tn_curr_run_task->tslice_count = 0;
+      if (_tn_curr_run_task->tslice_count > _tn_tslice_ticks[priority]){
+         _tn_curr_run_task->tslice_count = 0;
 
-         pri_queue = &(tn_ready_list[priority]);
+         pri_queue = &(_tn_tasks_ready_list[priority]);
          //-- If ready queue is not empty and there are more than 1 
          //   task in the queue
          if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
@@ -205,9 +212,9 @@ static _TN_INLINE void _round_robin_manage(void)
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
-            curr_que = _tn_list_remove_head(&(tn_ready_list[priority]));
+            curr_que = _tn_list_remove_head(&(_tn_tasks_ready_list[priority]));
             _tn_list_add_tail(
-                  &(tn_ready_list[priority]),
+                  &(_tn_tasks_ready_list[priority]),
                   (struct TN_ListItem *)curr_que
                   );
          }
@@ -371,7 +378,7 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
       )
 {
    return tn_task_create(
-         (struct TN_Task*)&tn_idle_task,  //-- task TCB
+         (struct TN_Task*)&_tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_PRIORITIES_CNT - 1,           //-- task priority
          idle_task_stack,                 //-- task stack
@@ -495,23 +502,23 @@ void tn_sys_start(
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
-      _tn_list_reset(&(tn_ready_list[i]));
-      tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
+      _tn_list_reset(&(_tn_tasks_ready_list[i]));
+      _tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
    //-- reset generic task queue and task count to 0
-   _tn_list_reset(&tn_create_queue);
-   tn_created_tasks_cnt = 0;
+   _tn_list_reset(&_tn_tasks_created_list);
+   _tn_tasks_created_cnt = 0;
 
    //-- initial system flags: no flags set (see enum TN_StateFlag)
-   tn_sys_state = (enum TN_StateFlag)(0);  
+   _tn_sys_state = (enum TN_StateFlag)(0);  
 
    //-- reset bitmask of priorities with runnable tasks
-   tn_ready_to_run_bmp = 0;
+   _tn_ready_to_run_bmp = 0;
 
    //-- reset pointers to currently running task and next task to run
-   tn_next_task_to_run = TN_NULL;
-   tn_curr_run_task    = TN_NULL;
+   _tn_next_task_to_run = TN_NULL;
+   _tn_curr_run_task    = TN_NULL;
 
    //-- remember user-provided callbacks
    _tn_callback_idle_hook = cb_idle;
@@ -523,7 +530,7 @@ void tn_sys_start(
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
-    *       because otherwise tn_next_task_to_run would point on the task
+    *       because otherwise _tn_next_task_to_run would point on the task
     *       that isn't yet created, and it produces issues
     *       with order of task creation.
     *
@@ -538,19 +545,19 @@ void tn_sys_start(
    }
 
    //-- Just for the _tn_task_set_runnable() proper operation
-   tn_next_task_to_run = &tn_idle_task; 
+   _tn_next_task_to_run = &_tn_idle_task; 
 
    //-- make system tasks runnable
-   rc = _tn_task_activate(&tn_idle_task);
+   rc = _tn_task_activate(&_tn_idle_task);
    if (rc != TN_RC_OK){
       _TN_FATAL_ERROR("failed to activate idle task");
    }
 
-   //-- set tn_curr_run_task to idle task
-   tn_curr_run_task = &tn_idle_task;
+   //-- set _tn_curr_run_task to idle task
+   _tn_curr_run_task = &_tn_idle_task;
 #if TN_PROFILER
 #if TN_DEBUG
-   tn_idle_task.profiler.is_running = 1;
+   _tn_idle_task.profiler.is_running = 1;
 #endif
 #endif
 
@@ -560,7 +567,7 @@ void tn_sys_start(
 
    //-- set flag that system is running
    //   (well, it will be running soon actually)
-   tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
+   _tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
 
    //-- call architecture-dependent initialization and run the kernel:
    //   (perform first context switch)
@@ -587,7 +594,7 @@ enum TN_RCode tn_tick_int_processing(void)
       TN_INT_IDIS_SAVE();
 
       //-- check stack overflow
-      _tn_sys_stack_overflow_check(tn_curr_run_task);
+      _tn_sys_stack_overflow_check(_tn_curr_run_task);
 
       //-- manage timers
       _tn_timers_tick_proceed();
@@ -620,7 +627,7 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
       TN_INTSAVE_DATA;
 
       TN_INT_DIS_SAVE();
-      tn_tslice_ticks[priority] = ticks;
+      _tn_tslice_ticks[priority] = ticks;
       TN_INT_RESTORE();
    }
    return rc;
@@ -642,11 +649,11 @@ TN_TickCnt tn_sys_time_get(void)
 }
 
 /*
- * Returns current state flags (tn_sys_state)
+ * Returns current state flags (_tn_sys_state)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void)
 {
-   return tn_sys_state;
+   return _tn_sys_state;
 }
 
 /*
@@ -672,7 +679,7 @@ enum TN_Context tn_sys_context_get(void)
 {
    enum TN_Context ret;
 
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+   if (_tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
       ret = _tn_arch_inside_isr()
          ? TN_CONTEXT_ISR
          : TN_CONTEXT_TASK;
@@ -688,7 +695,7 @@ enum TN_Context tn_sys_context_get(void)
  */
 struct TN_Task *tn_cur_task_get(void)
 {
-   return tn_curr_run_task;
+   return _tn_curr_run_task;
 }
 
 /*
@@ -696,7 +703,7 @@ struct TN_Task *tn_cur_task_get(void)
  */
 TN_TaskBody *tn_cur_task_body_get(void)
 {
-   return tn_curr_run_task->task_func_addr;
+   return _tn_curr_run_task->task_func_addr;
 }
 
 
@@ -753,8 +760,8 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
  */
 enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 {
-   enum TN_StateFlag ret = tn_sys_state;
-   tn_sys_state |= flags;
+   enum TN_StateFlag ret = _tn_sys_state;
+   _tn_sys_state |= flags;
    return ret;
 }
 
@@ -763,8 +770,8 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 {
-   enum TN_StateFlag ret = tn_sys_state;
-   tn_sys_state &= ~flags;
+   enum TN_StateFlag ret = _tn_sys_state;
+   _tn_sys_state &= ~flags;
    return ret;
 }
 

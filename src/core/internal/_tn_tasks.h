@@ -93,7 +93,7 @@ extern "C"  {     /*}*/
  * put task on the 'ready queue' for its priority,
  *
  * if priority of given `task` is higher than priority of
- * `tn_next_task_to_run`, then set `tn_next_task_to_run` to given `task`.
+ * `_tn_next_task_to_run`, then set `_tn_next_task_to_run` to given `task`.
  */
 void _tn_task_set_runnable(struct TN_Task *task);
 
@@ -102,7 +102,7 @@ void _tn_task_set_runnable(struct TN_Task *task);
  * Should be called when task_state has just single RUNNABLE bit set.
  *
  * Clear RUNNABLE bit, remove task from 'ready queue', determine and set
- * new `#tn_next_task_to_run`.
+ * new `#_tn_next_task_to_run`.
  */
 void _tn_task_clear_runnable(struct TN_Task *task);
 
@@ -285,7 +285,7 @@ static _TN_INLINE void _tn_task_wait_complete(struct TN_Task *task, enum TN_RCod
  * Should be called when task starts waiting for anything.
  *
  * It merely calls `#_tn_task_clear_runnable()` and then
- * `#_tn_task_set_waiting()` for current task (`#tn_curr_run_task`).
+ * `#_tn_task_set_waiting()` for current task (`#_tn_curr_run_task`).
  */
 static _TN_INLINE void _tn_task_curr_to_wait_action(
       struct TN_ListItem *wait_que,
@@ -293,8 +293,8 @@ static _TN_INLINE void _tn_task_curr_to_wait_action(
       TN_TickCnt timeout
       )
 {
-   _tn_task_clear_runnable(tn_curr_run_task);
-   _tn_task_set_waiting(tn_curr_run_task, wait_que, wait_reason, timeout);
+   _tn_task_clear_runnable(_tn_curr_run_task);
+   _tn_task_set_waiting(_tn_curr_run_task, wait_que, wait_reason, timeout);
 }
 
 
@@ -316,7 +316,7 @@ void _tn_change_task_priority(struct TN_Task *task, int new_priority);
 void  _tn_change_running_task_priority(struct TN_Task *task, int new_priority);
 
 #if 0
-#define _tn_task_set_last_rc(rc)  { tn_curr_run_task = (rc); }
+#define _tn_task_set_last_rc(rc)  { _tn_curr_run_task = (rc); }
 
 /**
  * If given return code is not `#TN_RC_OK`, save it in the task's structure

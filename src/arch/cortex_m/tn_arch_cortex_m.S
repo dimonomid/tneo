@@ -175,8 +175,8 @@
  *    EXTERN SYMBOLS
  ******************************************************************************/
 
-   _TN_EXTERN(tn_curr_run_task)
-   _TN_EXTERN(tn_next_task_to_run)
+   _TN_EXTERN(_tn_curr_run_task)
+   _TN_EXTERN(_tn_next_task_to_run)
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
    _TN_EXTERN(_tn_sys_on_context_switch)
 #endif
@@ -292,34 +292,34 @@ _TN_LABEL(PendSV_Handler)
       // }}}
 
       //-- get stack pointer of preempted task and save it in the
-      //   tn_curr_run_task->stack_top
-      ldr      r5, =_TN_NAME(tn_curr_run_task)   //-- r5 = &tn_curr_run_task
-      ldr      r6, =_TN_NAME(tn_next_task_to_run)//-- r6 = &tn_next_task_to_run
-      ldr      r0, [r5]                //-- r0 =  tn_curr_run_task
-      ldr      r1, [r6]                //-- r1 =  tn_next_task_to_run
-      str      r2, [r0]                //-- tn_curr_run_task->stack_top = SP
+      //   _tn_curr_run_task->stack_top
+      ldr      r5, =_TN_NAME(_tn_curr_run_task)   //-- r5 = &_tn_curr_run_task
+      ldr      r6, =_TN_NAME(_tn_next_task_to_run)//-- r6 = &_tn_next_task_to_run
+      ldr      r0, [r5]                //-- r0 =  _tn_curr_run_task
+      ldr      r1, [r6]                //-- r1 =  _tn_next_task_to_run
+      str      r2, [r0]                //-- _tn_curr_run_task->stack_top = SP
 
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
       /* 
        * arguments are set:
-       * - r0: tn_curr_run_task
-       * - r1: tn_next_task_to_run
+       * - r0: _tn_curr_run_task
+       * - r1: _tn_next_task_to_run
        */
       bl       _TN_NAME(_tn_sys_on_context_switch)
 #endif
 
-      //-- tn_curr_run_task = tn_next_task_to_run
-      ldr      r4, [r6]                //-- r4 =  tn_next_task_to_run
-      str      r4, [r5]                //-- tn_curr_run_task = tn_next_task_to_run
+      //-- _tn_curr_run_task = _tn_next_task_to_run
+      ldr      r4, [r6]                //-- r4 =  _tn_next_task_to_run
+      str      r4, [r5]                //-- _tn_curr_run_task = _tn_next_task_to_run
 
-      //-- r4 is now tn_curr_run_task
+      //-- r4 is now _tn_curr_run_task
 
 _TN_THUMB_FUNC()
-_TN_LABEL(__context_restore)  //-- if you branch here, r4 should be tn_curr_run_task
+_TN_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run_task
 
       //-- load stack pointer of newly activated task to r0
-      ldr      r0, [r4]       //-- r0 = tn_curr_run_task->stack_top
+      ldr      r0, [r4]       //-- r0 = _tn_curr_run_task->stack_top
 
       //-- restore callee-saved registers {{{
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
@@ -436,26 +436,26 @@ _TN_LABEL(SVC_Handler)
 
       cpsid    i              //-- Disable core int
 
-      ldr      r5, =_TN_NAME(tn_curr_run_task)     //-- r5 = &tn_curr_run_task
-      ldr      r6, =_TN_NAME(tn_next_task_to_run)  //-- r6 = &tn_next_task_to_run
-      ldr      r0, [r5]                            //-- r0 =  tn_curr_run_task
-      ldr      r1, [r6]                            //-- r1 =  tn_next_task_to_run
+      ldr      r5, =_TN_NAME(_tn_curr_run_task)    //-- r5 = &_tn_curr_run_task
+      ldr      r6, =_TN_NAME(_tn_next_task_to_run) //-- r6 = &_tn_next_task_to_run
+      ldr      r0, [r5]                            //-- r0 =  _tn_curr_run_task
+      ldr      r1, [r6]                            //-- r1 =  _tn_next_task_to_run
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
       /* 
        * arguments are set:
-       * - r0: tn_curr_run_task
-       * - r1: tn_next_task_to_run
+       * - r0: _tn_curr_run_task
+       * - r1: _tn_next_task_to_run
        */
       bl       _TN_NAME(_tn_sys_on_context_switch)
 #endif
 
-      ldr      r4, [r6]                   //-- r4 =  tn_next_task_to_run
-      str      r4, [r5]                   //-- tn_curr_run_task = tn_next_task_to_run
+      ldr      r4, [r6]                   //-- r4 =  _tn_next_task_to_run
+      str      r4, [r5]                   //-- _tn_curr_run_task = _tn_next_task_to_run
 
-      //-- r4 is now tn_curr_run_task
+      //-- r4 is now _tn_curr_run_task
 
-      //-- proceed to context restore (r4 must be set to tn_curr_run_task)
+      //-- proceed to context restore (r4 must be set to _tn_curr_run_task)
       b        _TN_NAME(__context_restore)
 
       

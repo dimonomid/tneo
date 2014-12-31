@@ -62,32 +62,32 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /// list of all ready to run (TN_TASK_STATE_RUNNABLE) tasks
-extern struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
+extern struct TN_ListItem _tn_tasks_ready_list[TN_PRIORITIES_CNT];
 
 /// list all created tasks (now it is used for statictic only)
-extern struct TN_ListItem tn_create_queue;
+extern struct TN_ListItem _tn_tasks_created_list;
 
 /// count of created tasks
-extern volatile int tn_created_tasks_cnt;           
+extern volatile int _tn_tasks_created_cnt;           
 
 /// system state flags
-extern volatile enum TN_StateFlag tn_sys_state;
+extern volatile enum TN_StateFlag _tn_sys_state;
 
 /// task that is running now
-extern struct TN_Task *tn_curr_run_task;
+extern struct TN_Task *_tn_curr_run_task;
 
 /// task that should run as soon as possible (if it isn't equal to
-/// tn_curr_run_task, context switch is needed)
-extern struct TN_Task *tn_next_task_to_run;
+/// _tn_curr_run_task, context switch is needed)
+extern struct TN_Task *_tn_next_task_to_run;
 
 /// bitmask of priorities with runnable tasks.
 /// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,
 /// since this priority is used by idle task which should be always runnable,
 /// by design.
-extern volatile unsigned int tn_ready_to_run_bmp;
+extern volatile unsigned int _tn_ready_to_run_bmp;
 
 /// idle task structure
-extern struct TN_Task tn_idle_task;
+extern struct TN_Task _tn_idle_task;
 
 
 
@@ -139,7 +139,7 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue);
  * Set system flags by bitmask.
  * Given flags value will be OR-ed with existing flags.
  *
- * @return previous tn_sys_state value.
+ * @return previous _tn_sys_state value.
  */
 enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
 
@@ -147,7 +147,7 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags);
  * Clear flags by bitmask
  * Given flags value will be inverted and AND-ed with existing flags.
  *
- * @return previous tn_sys_state value.
+ * @return previous _tn_sys_state value.
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags);
 
@@ -208,7 +208,7 @@ void _tn_sys_on_context_switch(
  */
 static _TN_INLINE TN_BOOL _tn_need_context_switch(void)
 {
-   return (tn_curr_run_task != tn_next_task_to_run);
+   return (_tn_curr_run_task != _tn_next_task_to_run);
 }
 
 /**

@@ -236,19 +236,19 @@ int _tn_arch_is_int_disabled(void);
  * **Preconditions:**
  *
  * - interrupts are enabled;
- * - `tn_curr_run_task` points to currently running (preempted) task;
- * - `tn_next_task_to_run` points to new task to run.
+ * - `_tn_curr_run_task` points to currently running (preempted) task;
+ * - `_tn_next_task_to_run` points to new task to run.
  *    
  * **Actions to perform in actual context switching routine:**
  *
  * - save context of the preempted task to its stack;
  * - if preprocessor macro `#_TN_ON_CONTEXT_SWITCH_HANDLER` is non-zero, call 
- *   `_tn_sys_on_context_switch(tn_curr_run_task, tn_next_task_to_run);`.
- * - set `tn_curr_run_task` to `tn_next_task_to_run`;
+ *   `_tn_sys_on_context_switch(_tn_curr_run_task, _tn_next_task_to_run);`.
+ * - set `_tn_curr_run_task` to `_tn_next_task_to_run`;
  * - restore context of the newly activated task from its stack.
  *
- * @see `tn_curr_run_task`
- * @see `tn_next_task_to_run`
+ * @see `_tn_curr_run_task`
+ * @see `_tn_next_task_to_run`
  */
 void _tn_arch_context_switch_pend(void);
 
@@ -265,22 +265,22 @@ void _tn_arch_context_switch_pend(void);
  * **Preconditions:**
  *
  * - interrupts are disabled;
- * - `tn_next_task_to_run` is already set to needed task.
+ * - `_tn_next_task_to_run` is already set to needed task.
  *    
  * **Actions to perform:**
  *
  * - if preprocessor macro `#_TN_ON_CONTEXT_SWITCH_HANDLER` is non-zero, call 
- *   `_tn_sys_on_context_switch(tn_curr_run_task, tn_next_task_to_run);`.
- * - set `tn_curr_run_task` to `tn_next_task_to_run`;
+ *   `_tn_sys_on_context_switch(_tn_curr_run_task, _tn_next_task_to_run);`.
+ * - set `_tn_curr_run_task` to `_tn_next_task_to_run`;
  * - restore context of the newly activated task from its stack.
  *
- * @see `tn_curr_run_task`
- * @see `tn_next_task_to_run`
+ * @see `_tn_curr_run_task`
+ * @see `_tn_next_task_to_run`
  */
 void _tn_arch_context_switch_now_nosave(void);
 
 /**
- * Performs first context switch to the first task (`tn_next_task_to_run` is 
+ * Performs first context switch to the first task (`_tn_next_task_to_run` is 
  * already set to needed task).
  *
  * Typically, this function just calls `_tn_arch_context_switch_now_nosave()`,
