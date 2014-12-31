@@ -153,7 +153,7 @@ static TN_BOOL _cond_check(
 
    TN_BOOL cond = TN_FALSE;
 
-   switch (wait_mode){
+   switch (wait_mode & (TN_EVENTGRP_WMODE_OR | TN_EVENTGRP_WMODE_AND)){
       case TN_EVENTGRP_WMODE_OR:
          //-- any bit set is enough for release condition
          cond = ((eventgrp->pattern & wait_pattern) != 0);
@@ -172,13 +172,28 @@ static TN_BOOL _cond_check(
    return cond;
 }
 
+/**
+ * Check if we need to autoclear flag(s), and clear them if we do.
+ * This function should be called whenever task successfully ends waiting
+ * for flag(s).
+ *
+ * @param eventgrp
+ *    Event group object
+ * @param wait_mode
+ *    Wait mode, see `enum #TN_EGrpWaitMode`
+ * @param pattern
+ *    Pattern to clear if we need to.
+ */
 static void _clear_pattern_if_needed(
       struct TN_EventGrp     *eventgrp,
       enum TN_EGrpWaitMode    wait_mode,
       TN_UWord                pattern
       )
 {
+
 #if TN_OLD_EVENT_API
+   //-- Old TNKernel behavior: there is a flag `TN_EVENTGRP_ATTR_CLR`
+   //   belonging to the whole eventgrp object
    if (eventgrp->attr & TN_EVENTGRP_ATTR_CLR){
 #if _X96_HACKS
       eventgrp->pattern &= ~pattern;
@@ -187,6 +202,13 @@ static void _clear_pattern_if_needed(
 #endif
    }
 #endif
+
+   //-- New TNeoKernel behavior: there is a flag `TN_EVENTGRP_WMODE_AUTOCLR`
+   //   belonging to the particular wait call, so it is specified in
+   //   `wait_mode`. See `tnum TN_EGrpWaitMode`.
+   if (wait_mode & TN_EVENTGRP_WMODE_AUTOCLR){
+      eventgrp->pattern &= ~pattern;
+   }
 }
 
 
@@ -226,6 +248,7 @@ static void _scan_event_waitqueue(struct TN_EventGrp *eventgrp)
          task->subsys_wait.eventgrp.actual_pattern = eventgrp->pattern;
          _tn_task_wait_complete(task, TN_RC_OK);
 
+         //-- Atomically clear flag(s) if we need to.
          _clear_pattern_if_needed(
                eventgrp,
                task->subsys_wait.eventgrp.wait_mode,
@@ -289,6 +312,7 @@ static enum TN_RCode _eventgrp_wait(
 #endif
          }
 
+         //-- Atomically clear flag(s) if we need to.
          _clear_pattern_if_needed(eventgrp, wait_mode, wait_pattern);
          rc = TN_RC_OK;
       } else {

@@ -125,11 +125,16 @@ enum TN_EGrpWaitMode {
    ///
    /// Task waits for **any** of the event bits from the `wait_pattern` 
    /// to be set in the event group
-   TN_EVENTGRP_WMODE_OR     = (1 << 0),
+   TN_EVENTGRP_WMODE_OR       = (1 << 0),
    ///
    /// Task waits for **all** of the event bits from the `wait_pattern` 
    /// to be set in the event group
-   TN_EVENTGRP_WMODE_AND    = (1 << 1),
+   TN_EVENTGRP_WMODE_AND      = (1 << 1),
+   ///
+   /// When a task <b>successfully</b> ends waiting for event bit(s), these
+   /// bits get cleared atomically and automatically. Other bits stay
+   /// unchanged.
+   TN_EVENTGRP_WMODE_AUTOCLR  = (1 << 2),
 };
 
 /**
@@ -147,6 +152,7 @@ enum TN_EGrpOp {
    /// This operation can **not** lead to the context switch, 
    /// since tasks can't wait for events to be cleared.
    TN_EVENTGRP_OP_CLEAR,
+   ///
    /// Toggle flags that are set in the given `pattern` argument. Note that this
    /// operation can lead to the context switch, since other high-priority 
    /// task(s) might wait for the event that was just set (if any).
