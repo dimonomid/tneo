@@ -60,7 +60,7 @@
 
 
 /*******************************************************************************
- *    PUBLIC DATA
+ *    PROTECTED DATA
  ******************************************************************************/
 
 //-- see comments in the file _tn_timer_static.h
@@ -71,6 +71,8 @@ struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 //-- see comments in the file _tn_timer_static.h
 volatile TN_TickCnt tn_sys_time_count;
+
+
 
 
 /*******************************************************************************

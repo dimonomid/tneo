@@ -142,7 +142,10 @@ void _tn_list_remove_entry(struct TN_ListItem *entry)
 /*
  * See comments in the header file tn_list.h
  */
-TN_BOOL _tn_list_contains_entry(struct TN_ListItem *list, struct TN_ListItem *entry)
+TN_BOOL _tn_list_contains_entry(
+      struct TN_ListItem *list,
+      struct TN_ListItem *entry
+      )
 {
    TN_BOOL ret = TN_FALSE;
    struct TN_ListItem *item;
