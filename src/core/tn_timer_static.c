@@ -64,13 +64,13 @@
  ******************************************************************************/
 
 //-- see comments in the file _tn_timer_static.h
-struct TN_ListItem tn_timer_list__gen;
+struct TN_ListItem _tn_timer_list__gen;
 
 //-- see comments in the file _tn_timer_static.h
-struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+struct TN_ListItem _tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 
 //-- see comments in the file _tn_timer_static.h
-volatile TN_TickCnt tn_sys_time_count;
+volatile TN_TickCnt _tn_sys_time_count;
 
 
 
@@ -102,12 +102,12 @@ volatile TN_TickCnt tn_sys_time_count;
 
 
 /**
- * Return index in the array `#tn_timer_list__tick`, based on given timeout.
+ * Return index in the array `#_tn_timer_list__tick`, based on given timeout.
  *
  * @param timeout    should be < TN_TICK_LISTS_CNT
  */
 #define _TICK_LIST_INDEX(timeout)    \
-   (((TN_TickCnt)tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
+   (((TN_TickCnt)_tn_sys_time_count + timeout) & TN_TICK_LISTS_MASK)
 
 
 
@@ -135,14 +135,14 @@ void _tn_timers_init(void)
    int i;
 
    //-- reset system time
-   tn_sys_time_count = 0;
+   _tn_sys_time_count = 0;
 
    //-- reset "generic" timers list
-   _tn_list_reset(&tn_timer_list__gen);
+   _tn_list_reset(&_tn_timer_list__gen);
 
    //-- reset all "tick" timer lists
    for (i = 0; i < TN_TICK_LISTS_CNT; i++){
-      _tn_list_reset(&tn_timer_list__tick[i]);
+      _tn_list_reset(&_tn_timer_list__tick[i]);
    }
 }
 
@@ -152,7 +152,7 @@ void _tn_timers_init(void)
 void _tn_timers_tick_proceed(void)
 {
    //-- first of all, increment system timer
-   tn_sys_time_count++;
+   _tn_sys_time_count++;
 
    int tick_list_index = _TICK_LIST_INDEX(0);
 
@@ -173,7 +173,7 @@ void _tn_timers_tick_proceed(void)
 
          _tn_list_for_each_entry_safe(
                timer, struct TN_Timer, tmp_timer,
-               &tn_timer_list__gen, timer_queue
+               &_tn_timer_list__gen, timer_queue
                )
          {
 
@@ -190,7 +190,7 @@ void _tn_timers_tick_proceed(void)
                //-- it's time to move this timer to the "tick" list
                _tn_list_remove_entry(&(timer->timer_queue));
                _tn_list_add_tail(
-                     &tn_timer_list__tick[_TICK_LIST_INDEX(timer->timeout_cur)],
+                     &_tn_timer_list__tick[_TICK_LIST_INDEX(timer->timeout_cur)],
                      &(timer->timer_queue)
                      );
             }
@@ -208,7 +208,7 @@ void _tn_timers_tick_proceed(void)
       struct TN_Timer *timer;
 
       struct TN_ListItem *p_cur_timer_list = 
-         &tn_timer_list__tick[ tick_list_index ];
+         &_tn_timer_list__tick[ tick_list_index ];
 
       //-- now, p_cur_timer_list is a list of timers that we should
       //   fire NOW, unconditionally.
@@ -265,7 +265,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
             timer->timeout_cur = tick_list_index;
 
             _tn_list_add_tail(
-                  &tn_timer_list__tick[ tick_list_index ],
+                  &_tn_timer_list__tick[ tick_list_index ],
                   &(timer->timer_queue)
                   );
          } else {
@@ -273,7 +273,7 @@ enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
             //   We should set timeout_cur adding current "tick" index to it.
             timer->timeout_cur = timeout + _TICK_LIST_INDEX(0);
 
-            _tn_list_add_tail(&tn_timer_list__gen, &(timer->timer_queue));
+            _tn_list_add_tail(&_tn_timer_list__gen, &(timer->timer_queue));
          }
       }
    }

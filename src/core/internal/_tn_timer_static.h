@@ -65,15 +65,15 @@ extern "C"  {     /*}*/
 ///
 /// "generic" list of timers, for details, refer to \ref 
 /// timers_static_implementation
-extern struct TN_ListItem tn_timer_list__gen;
+extern struct TN_ListItem _tn_timer_list__gen;
 ///
 /// "tick" lists of timers, for details, refer to \ref 
 /// timers_static_implementation
-extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+extern struct TN_ListItem _tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
 ///
 /// system time that can be returned by `tn_sys_time_get()`; it is also used
 /// by tn_timer.h subsystem.
-extern volatile TN_TickCnt tn_sys_time_count;
+extern volatile TN_TickCnt _tn_sys_time_count;
 
 
 
@@ -101,7 +101,7 @@ extern volatile TN_TickCnt tn_sys_time_count;
  */
 static _TN_INLINE TN_TickCnt _tn_timer_sys_time_get(void)
 {
-   return tn_sys_time_count;
+   return _tn_sys_time_count;
 }
 
 
