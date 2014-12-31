@@ -85,13 +85,21 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
 
 static _TN_INLINE enum TN_RCode _check_param_job_perform(
       const struct TN_EventGrp  *eventgrp,
-      TN_UWord             pattern
+      enum TN_EGrpWaitMode       wait_mode,
+      TN_UWord                   pattern
       )
 {
    enum TN_RCode rc = TN_RC_OK;
 
    if (pattern == 0){
       rc = TN_RC_WPARAM;
+   } else {
+      wait_mode &= (TN_EVENTGRP_WMODE_OR | TN_EVENTGRP_WMODE_AND);
+      if (     wait_mode != TN_EVENTGRP_WMODE_OR
+            && wait_mode != TN_EVENTGRP_WMODE_AND)
+      {
+         rc = TN_RC_WPARAM;
+      }
    }
 
    return rc;
@@ -124,9 +132,9 @@ static _TN_INLINE enum TN_RCode _check_param_create(
 }
 
 #else
-#  define _check_param_generic(event)                 (TN_RC_OK)
-#  define _check_param_job_perform(event, pattern)    (TN_RC_OK)
-#  define _check_param_create(event)                  (TN_RC_OK)
+#  define _check_param_generic(event)                             (TN_RC_OK)
+#  define _check_param_job_perform(event, wait_mode, pattern)     (TN_RC_OK)
+#  define _check_param_create(event)                              (TN_RC_OK)
 #endif
 // }}}
 
@@ -279,7 +287,9 @@ static enum TN_RCode _eventgrp_wait(
    //-- interrupts should be disabled here
    _TN_BUG_ON( !TN_IS_INT_DISABLED() );
 
-   enum TN_RCode rc = _check_param_job_perform(eventgrp, wait_pattern);
+   enum TN_RCode rc = _check_param_job_perform(
+         eventgrp, wait_mode, wait_pattern
+         );
 
    if (rc != TN_RC_OK){
       //-- just return rc as it is
