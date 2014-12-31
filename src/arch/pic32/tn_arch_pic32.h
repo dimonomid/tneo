@@ -152,7 +152,7 @@ extern void *tn_p32_int_sp;
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          36
+#define  TN_MIN_STACK_SIZE          (36 + _TN_STACK_OVERFLOW_SIZE_ADD)
 
 /**
  * Width of `int` type.

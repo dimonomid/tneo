@@ -159,7 +159,7 @@ int ffs_asm(int x);
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          36 //TODO: set precisely
+#define  TN_MIN_STACK_SIZE          (17 + _TN_STACK_OVERFLOW_SIZE_ADD)
 
 /**
  * Width of `int` type.

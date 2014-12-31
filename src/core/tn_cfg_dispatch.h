@@ -189,6 +189,12 @@
 #  define   _TN_ON_CONTEXT_SWITCH_HANDLER  0
 #endif
 
+/**
+ * If `#TN_STACK_OVERFLOW_CHECK` is set, we have 1-word overhead for each
+ * task stack.
+ */
+#define _TN_STACK_OVERFLOW_SIZE_ADD    (TN_STACK_OVERFLOW_CHECK ? 1 : 0)
+
 #endif // _TN_CFG_DISPATCH_H
 
 
