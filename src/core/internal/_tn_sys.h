@@ -58,7 +58,7 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /// list of all ready to run (TN_TASK_STATE_RUNNABLE) tasks
@@ -73,18 +73,19 @@ extern volatile int tn_created_tasks_cnt;
 /// system state flags
 extern volatile enum TN_StateFlag tn_sys_state;
 
-/// task that runs now
+/// task that is running now
 extern struct TN_Task *tn_curr_run_task;
 
-/// task that should run as soon as possible (after context switch)
+/// task that should run as soon as possible (if it isn't equal to
+/// tn_curr_run_task, context switch is needed)
 extern struct TN_Task *tn_next_task_to_run;
 
 /// bitmask of priorities with runnable tasks.
 /// lowest priority bit (1 << (TN_PRIORITIES_CNT - 1)) should always be set,
-/// since this priority is used by idle task and it is always runnable.
+/// since this priority is used by idle task which should be always runnable,
+/// by design.
 extern volatile unsigned int tn_ready_to_run_bmp;
 
-///
 /// idle task structure
 extern struct TN_Task tn_idle_task;
 
@@ -103,10 +104,14 @@ extern struct TN_Task tn_idle_task;
 #endif
 
 
+//-- Check whether `TN_DEBUG` is defined
+//   (it must be defined to either 0 or 1)
 #ifndef TN_DEBUG
 #  error TN_DEBUG is not defined
 #endif
 
+//-- Depending on `TN_DEBUG` value, define `_TN_BUG_ON()` macro,
+//   which generates runtime fatal error if given condition is true
 #if TN_DEBUG
 #define  _TN_BUG_ON(cond, ...){              \
    if (cond){                                \
@@ -114,7 +119,7 @@ extern struct TN_Task tn_idle_task;
    }                                         \
 }
 #else
-#define  _TN_BUG_ON(cond)     /* nothing */
+#define  _TN_BUG_ON(cond)     /* `TN_DEBUG` is 0, so, nothing to do here */
 #endif
 
 

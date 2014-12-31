@@ -100,31 +100,42 @@ struct TN_Task *tn_curr_run_task;
 
 volatile unsigned int tn_ready_to_run_bmp;
 
+struct TN_Task tn_idle_task;
+
+
+
+
+
+/*******************************************************************************
+ *    PRIVATE DATA
+ ******************************************************************************/
+
+/*
+ * NOTE: as long as these variables are private, they could be declared as
+ * `static` actually, but for easier debug they are left global.
+ */
+
+
+/// Pointer to user idle callback function, it is called regularly
+/// from the idle task.
+TN_CBIdle *_tn_callback_idle_hook = TN_NULL;
+
+/// Pointer to stack overflow callback function. When stack overflow
+/// is detected by the kernel, this function is called.
+/// (see `#TN_STACK_OVERFLOW_CHECK`)
+TN_CBStackOverflow *_tn_callback_stack_overflow = TN_NULL;
+
+/// User-provided callback function that is called whenever 
+/// mutex deadlock occurs.
+/// (see `#TN_MUTEX_DEADLOCK_DETECT`)
+TN_CBDeadlock *_tn_callback_deadlock = TN_NULL;
+
 
 
 #if TN_MUTEX_DEADLOCK_DETECT
-volatile int tn_deadlocks_cnt = 0;
+/// Number of deadlocks active at the moment. Normally it is equal to 0.
+int _tn_deadlocks_cnt = 0;
 #endif
-
-//-- System tasks
-
-//-- idle task - priority (TN_PRIORITIES_CNT - 1) - lowest
-
-struct TN_Task  tn_idle_task;
-static void _idle_task_body(void * par);
-
-/**
- * Pointer to user idle loop function
- */
-TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
-
-TN_CBStackOverflow  *tn_callback_stack_overflow = TN_NULL;
-
-/**
- * User-provided callback function that is called whenever 
- * event occurs (say, deadlock becomes active or inactive)
- */
-TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
 
 
 /*******************************************************************************
@@ -153,7 +164,7 @@ static void _idle_task_body(void *par)
    //-- enter endless loop with calling user-provided hook function
    for(;;)
    {
-      tn_callback_idle_hook();
+      _tn_callback_idle_hook();
    }
 }
 
@@ -333,8 +344,8 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
          );
 
    if (*p_word != TN_FILL_STACK_VAL){
-      if (tn_callback_stack_overflow != NULL){
-         tn_callback_stack_overflow(task);
+      if (_tn_callback_stack_overflow != NULL){
+         _tn_callback_stack_overflow(task);
       } else {
          _TN_FATAL_ERROR("stack overflow");
       }
@@ -503,7 +514,7 @@ void tn_sys_start(
    tn_curr_run_task    = TN_NULL;
 
    //-- remember user-provided callbacks
-   tn_callback_idle_hook = cb_idle;
+   _tn_callback_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
    for (i = 0; i < int_stack_size; i++){
@@ -643,7 +654,7 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
  */
 void tn_callback_deadlock_set(TN_CBDeadlock *cb)
 {
-   tn_callback_deadlock = cb;
+   _tn_callback_deadlock = cb;
 }
 
 /*
@@ -651,7 +662,7 @@ void tn_callback_deadlock_set(TN_CBDeadlock *cb)
  */
 void tn_callback_stack_overflow_set(TN_CBStackOverflow *cb)
 {
-   tn_callback_stack_overflow = cb;
+   _tn_callback_stack_overflow = cb;
 }
 
 /*
@@ -766,24 +777,24 @@ void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *ta
 {
    if (active){
       //-- deadlock just became active
-      if (tn_deadlocks_cnt == 0){
+      if (_tn_deadlocks_cnt == 0){
          _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
       }
 
-      tn_deadlocks_cnt++;
+      _tn_deadlocks_cnt++;
    } else {
       //-- deadlock just became inactive
-      tn_deadlocks_cnt--;
+      _tn_deadlocks_cnt--;
 
-      if (tn_deadlocks_cnt == 0){
+      if (_tn_deadlocks_cnt == 0){
          _tn_sys_state_flags_clear(TN_STATE_FLAG__DEADLOCK);
       }
    }
 
    //-- if user has specified callback function for deadlock detection,
    //   notify him by calling this function
-   if (tn_callback_deadlock != TN_NULL){
-      tn_callback_deadlock(active, mutex, task);
+   if (_tn_callback_deadlock != TN_NULL){
+      _tn_callback_deadlock(active, mutex, task);
    }
 
 }
