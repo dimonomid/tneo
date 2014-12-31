@@ -155,11 +155,21 @@ int ffs_asm(int x);
 #endif
 
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
+#  define _TN_CORTEX_FPU_CONTEXT_SIZE 32 /* FPU registers: S0 .. S31 */
+#else
+#  define _TN_CORTEX_FPU_CONTEXT_SIZE 0  /* no FPU registers */
+#endif
+
+
 /**
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          (17 + _TN_STACK_OVERFLOW_SIZE_ADD)
+#define  TN_MIN_STACK_SIZE          (17 /* context: 17 words */   \
+      + _TN_STACK_OVERFLOW_SIZE_ADD                               \
+      + _TN_CORTEX_FPU_CONTEXT_SIZE                               \
+      )
 
 /**
  * Width of `int` type.
