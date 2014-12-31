@@ -463,17 +463,13 @@ enum TN_RCode tn_eventgrp_wait(
          waited_for_event = TN_TRUE;
       }
 
-#if TN_DEBUG
-      if (!_tn_need_context_switch() && waited_for_event){
-         _TN_FATAL_ERROR("");
-      }
-#endif
+      _TN_BUG_ON(!_tn_need_context_switch() && waited_for_event);
 
       TN_INT_RESTORE();
       _tn_context_switch_pend_if_needed();
 
       if (waited_for_event){
-         //-- task was waiting for event, and now it just woke up.
+         //-- task was waiting for event, and now it has just woke up.
          //-- get wait result
          rc = tn_curr_run_task->task_wait_rc;
 
