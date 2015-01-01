@@ -34,10 +34,58 @@ supports symbolic links, copy it somewhere to your main project's directory
 Default configuration file contains detailed comments, so you can read them
 and configure behavior as you like.
 
-\section building_generic__lib_project Library projects
+\section building_generic__makefile_lib_project Makefile or library projects
 
 If you need to build TNeoKernel with some non-default configuration, the
-easiest way is to use ready-made library project.
+easiest way is to use ready-made Makefile or library project.
+
+\subsection building_generic__makefile Makefile
+
+It is tested only in Unix-like environment, so that you can't use makefile to
+build the kernel with Keil Realview or IAR. For Keil Realview or IAR, use
+library project (see the section below).
+
+There are two makefiles available: `Makefile-all-arch` and `Makefile`.
+
+The first one is used to build all possible targets at once, so it is more for
+the kernel developer than for kernel user. The second one is used to build the
+kernel for some particular architecture, and it takes two params: `TN_ARCH` and
+`TN_COMPILER`.
+
+Valid values for `TN_ARCH` are:
+
+- `cortex_m0` - for Cortex-M0 architecture,
+- `cortex_m0plus` - for Cortex-M0+ architecture,
+- `cortex_m1` - for Cortex-M1 architecture,
+- `cortex_m3` - for Cortex-M3 architecture,
+- `cortex_m4` - for Cortex-M4 architecture,
+- `cortex_m4f` - for Cortex-M4F architecture,
+- `pic32mx` - for PIC32MX architecture,
+- `pic24_dspic_noeds` - for PIC24/dsPIC architecture without EDS (Extended Data Space),
+- `pic24_dspic_eds` - for PIC24/dsPIC architecture with EDS.
+
+Valid values for `TN_COMPILER` depend on architecture. For Cortex-M series, they
+are:
+
+- `arm-none-eabi-gcc` (you need for [GNU ARM Embedded toolchain](https://launchpad.net/~terry.guo/+archive/ubuntu/gcc-arm-embedded))
+- `clang` (you need for [LLVM clang](http://clang.llvm.org/))
+
+For PIC32, just one value is valid:
+
+- `xc32` (you need for [Microchip XC32](http://www.microchip.com/xc32))
+
+For PIC24/dsPIC, just one value is valid:
+
+- `xc16` (you need for [Microchip XC16](http://www.microchip.com/xc16))
+
+Example invocation (from the TNeoKernel's root directory) :
+
+`$ make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc`
+
+
+
+
+\subsection building_generic__lib_project Library project
 
 In the root of TNeoKernel repository, there is a directory `lib_project`
 which contains ready-made projects for various platforms. You may use it
