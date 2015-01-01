@@ -27,46 +27,18 @@ fi
 # clone it from the current one
 hg clone $repo_path $tmp_repo_path
 
-# generate pic32 binary {{{
-
-pic32_bin="$tmp_repo_path/bin/pic32"
-
-pushd lib_project/pic32/tneokernel_pic32.X
-make
-
-# in the target temp dir, create "bin" dir
-mkdir -p "$pic32_bin"
-
-# copy binary there
-cp dist/default/production/tneokernel_pic32.X.a "$pic32_bin"
-
-# cd back
-popd
-
-# }}}
-
-# generate pic24/dspic binaries {{{
-
-pic24_bin="$tmp_repo_path/bin/pic24_dspic"
-
-pushd lib_project/pic24_dspic/tneokernel_pic24_dspic.X
-make all
-
-# in the target temp dir, create "bin" dir
-mkdir -p "$pic24_bin"
-
-# copy binaries there
-cp dist/eds/production/tneokernel_pic24_dspic.X.a    "$pic24_bin/tneokernel_pic24_dspic_eds.X.a"
-cp dist/no_eds/production/tneokernel_pic24_dspic.X.a "$pic24_bin/tneokernel_pic24_dspic_no_eds.X.a"
-
-# cd back
-popd
-
-# }}}
-
-
 # cd to temp dir
 cd $tmp_repo_path
+
+# copy default cfg as tn_cfg.h
+cp src/tn_cfg_default.h src/tn_cfg.h
+
+# make all targets
+make -f Makefile-all-arch
+
+# delete tn_cfg.h
+rm src/tn_cfg.h
+
 
 # cd to doxygen dir
 cd stuff/doxygen
