@@ -178,9 +178,8 @@ endif
 
 
 SOURCE_DIR     = src
-BIN_DIR        = bin
-ARCH_BIN_DIR   = $(BIN_DIR)/$(TN_ARCH)/$(TN_COMPILER)
-OBJ_DIR        = $(ARCH_BIN_DIR)/obj
+BIN_DIR        = bin/$(TN_ARCH)/$(TN_COMPILER)
+OBJ_DIR        = _obj/$(TN_ARCH)/$(TN_COMPILER)
 
 CPPFLAGS = -I${SOURCE_DIR} -I${SOURCE_DIR}/core -I${SOURCE_DIR}/core/internal -I${SOURCE_DIR}/arch
 
@@ -194,16 +193,25 @@ SOURCES  := $(wildcard $(SOURCE_DIR)/core/*.c $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/
 OBJS     := $(patsubst %.c,$(OBJ_DIR)/%.o,$(patsubst %.S,$(OBJ_DIR)/%.o,$(notdir $(SOURCES))))
 
 # generate binary library file
-BINARY = $(ARCH_BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
+BINARY = $(BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
 
 # command that creates necessary directories, must be used in rules below
 MKDIR_P_CMD = @mkdir -p $(@D)
 
-README_FILE = $(ARCH_BIN_DIR)/readme.txt
+README_FILE = $(BIN_DIR)/readme.txt
+BUILD_LOG_FILE = $(BIN_DIR)/build_log.txt
+
+REDIRECT_CMD = | tee $(BUILD_LOG_FILE)
 
 
+# this rule is needed to redirect build log to a file
+all: 
+	mkdir -p $(BIN_DIR)
+	touch $(BUILD_LOG_FILE)
+	$(MAKE) all-actual $(REDIRECT_CMD)
 
-all: $(BINARY)
+# this is actual 'all' rule
+all-actual: $(BINARY)
 
 #-- for simplicity, every object file just depends on any header file
 $(OBJS): $(HEADERS)
@@ -211,16 +219,16 @@ $(OBJS): $(HEADERS)
 $(BINARY): $(OBJS)
 	$(MKDIR_P_CMD)
 	$(BINARY_CMD)
-	echo "" > $(README_FILE)
-	echo "\nTNeoKernel version:" >> $(README_FILE)
-	bash stuff/scripts/hg_ver_echo.sh >> $(README_FILE)
-	echo "" >> $(README_FILE)
-	echo "\nArchitecture:" >> $(README_FILE)
-	echo "$(TN_ARCH)" >> $(README_FILE)
-	echo "\nCompiler:" >> $(README_FILE)
-	echo "$(TN_COMPILER)" >> $(README_FILE)
-	echo "\nCompiler version:" >> $(README_FILE)
-	$(TN_COMPILER_VERSION_CMD) >> $(README_FILE)
+	@echo "" > $(README_FILE)
+	@echo "\nTNeoKernel version:" >> $(README_FILE)
+	@bash stuff/scripts/hg_ver_echo.sh >> $(README_FILE)
+	@echo "" >> $(README_FILE)
+	@echo "\nArchitecture:" >> $(README_FILE)
+	@echo "$(TN_ARCH)" >> $(README_FILE)
+	@echo "\nCompiler:" >> $(README_FILE)
+	@echo "$(TN_COMPILER)" >> $(README_FILE)
+	@echo "\nCompiler version:" >> $(README_FILE)
+	@$(TN_COMPILER_VERSION_CMD) >> $(README_FILE)
 
 $(OBJ_DIR)/%.o : $(SOURCE_DIR)/core/%.c
 	$(MKDIR_P_CMD)
