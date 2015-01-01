@@ -117,18 +117,17 @@ BINARY = $(BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
 
 MKDIR_P_CMD = @mkdir -p $(@D)
 
+
+
+
 all: $(BINARY)
 
-# TODO: makedepend doesn't work
--include Makefile.deps
+#-- for simplicity, every object file just depends on any header file
+$(OBJS): $(HEADERS)
 
-$(BINARY): Makefile.deps $(OBJS) 
+$(BINARY): $(OBJS)
 	$(MKDIR_P_CMD)
 	$(BINARY_CMD)
-
-Makefile.deps: $(SOURCES) $(HEADERS)
-	makedepend -- $(CFLAGS) -- $(SOURCES) -f- > Makefile.deps
-
 
 $(OBJ_DIR)/%.o : $(SOURCE_DIR)/core/%.c
 	$(MKDIR_P_CMD)
