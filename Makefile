@@ -177,9 +177,10 @@ endif
 
 
 
-SOURCE_DIR=src
-OBJ_DIR=bin/build/$(TN_ARCH)_$(TN_COMPILER)
-BIN_DIR=bin
+SOURCE_DIR     = src
+BIN_DIR        = bin
+ARCH_BIN_DIR   = $(BIN_DIR)/$(TN_ARCH)/$(TN_COMPILER)
+OBJ_DIR        = $(ARCH_BIN_DIR)/obj
 
 CPPFLAGS = -I${SOURCE_DIR} -I${SOURCE_DIR}/core -I${SOURCE_DIR}/core/internal -I${SOURCE_DIR}/arch
 
@@ -193,7 +194,7 @@ SOURCES  := $(wildcard $(SOURCE_DIR)/core/*.c $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/
 OBJS     := $(patsubst %.c,$(OBJ_DIR)/%.o,$(patsubst %.S,$(OBJ_DIR)/%.o,$(notdir $(SOURCES))))
 
 # generate binary library file
-BINARY = $(BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
+BINARY = $(ARCH_BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
 
 # command that creates necessary directories, must be used in rules below
 MKDIR_P_CMD = @mkdir -p $(@D)

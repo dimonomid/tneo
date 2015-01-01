@@ -82,6 +82,8 @@ Example invocation (from the TNeoKernel's root directory) :
 
 `$ make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc`
 
+As a result, there will be archive library file
+`bin/cortex_m3/arm-none-eabi-gcc/tneokernel_cortex_m3_arm-none-eabi-gcc.a`
 
 
 
