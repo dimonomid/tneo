@@ -1,17 +1,17 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation 
+ *    TNeo was born as a thorough review and re-implementation 
  *    of TNKernel. New kernel has well-formed code, bugs of ancestor are fixed
  *    as well as new features added, and it is tested carefully with unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -211,7 +211,7 @@ static void _clear_pattern_if_needed(
    }
 #endif
 
-   //-- New TNeoKernel behavior: there is a flag `TN_EVENTGRP_WMODE_AUTOCLR`
+   //-- New TNeo behavior: there is a flag `TN_EVENTGRP_WMODE_AUTOCLR`
    //   belonging to the particular wait call, so it is specified in
    //   `wait_mode`. See `tnum TN_EGrpWaitMode`.
    if (wait_mode & TN_EVENTGRP_WMODE_AUTOCLR){

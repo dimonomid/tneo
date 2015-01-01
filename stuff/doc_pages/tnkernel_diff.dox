@@ -33,7 +33,7 @@ tn_task_create(/* ... several arguments omitted ... */
                /* ... several arguments omitted ... */);
 \endcode
 
-TNeoKernel uses the second way (i.e. the way used in the port by Alex Borisov), and it does so independently of the architecture being used.
+TNeo uses the second way (i.e. the way used in the port by Alex Borisov), and it does so independently of the architecture being used.
 
 \subsection tnkernel_diff_wakeup_count Task wakeup count, activate count, suspend count
 
@@ -45,7 +45,7 @@ All of this seems to me as a complete dirty hack, it probably might be used as a
 
 It just encourages programmer to go with hacky approach, instead of creating straightforward semaphore and provide proper synchronization.
 
-In TNeoKernel these "features" are removed, and if you try to wake up non-sleeping task, or try to resume non-suspended task, `#TN_RC_WSTATE` is returned.
+In TNeo these "features" are removed, and if you try to wake up non-sleeping task, or try to resume non-suspended task, `#TN_RC_WSTATE` is returned.
 
 By the way, `suspend_count` is present in `TCB` structure, but is never used, so, it is just removed. And comments for `wakeup_count`, `activate_count`, `suspend_count` suggested that these fields are used for statistics, which is clearly not true. 
 
@@ -56,9 +56,9 @@ In original TNKernel it's illegal to pass `block_size` that is less than `sizeof
 
 Why I don't like it: firstly, silent behavior like this is generally bad practice that leads to hard-to-catch bugs. Secondly, it is inconsistency again: why is it legal for `block_size` not to be multiple of `sizeof(int)`, but it is illegal for it to be less than `sizeof(int)`? After all, the latter is the partucular case of the former.
 
-So, TNeoKernel returns `#TN_RC_WPARAM` in these cases. User must provide `start_addr` and `block_size` that are properly aligned. 
+So, TNeo returns `#TN_RC_WPARAM` in these cases. User must provide `start_addr` and `block_size` that are properly aligned. 
 
-TNeoKernel also provides convenience macro `TN_FMEM_BUF_DEF()` for buffer definition, so, as a generic rule, it is good practice to define buffers for memory pool like this:
+TNeo also provides convenience macro `TN_FMEM_BUF_DEF()` for buffer definition, so, as a generic rule, it is good practice to define buffers for memory pool like this:
 
 \code{.c}
    //-- number of blocks in the pool
@@ -100,7 +100,7 @@ In original TNKernel, `#TERR_WCONTEXT` is returned in the following cases:
   - call to `tn_task_wakeup()`/`tn_task_iwakeup()` for terminated task;
   - call to `tn_task_release_wait()`/`tn_task_irelease_wait()` for terminated task.
 
-The actual error is, of course, wrong state, not wrong context; so, TNeoKernel returns `#TN_RC_WSTATE` in these cases.
+The actual error is, of course, wrong state, not wrong context; so, TNeo returns `#TN_RC_WSTATE` in these cases.
 
 \subsection tnkernel_diff_release_wait Force task releasing from wait
 
@@ -108,7 +108,7 @@ In original TNKernel, a call to `tn_task_release_wait()` / `tn_task_irelease_wai
 
 \subsection tnkernel_diff_task_sleep Return code of tn_task_sleep()
 
-In original TNKernel, `tn_task_sleep()` always returns `#TERR_NO_ERR`, independently of what actually happened. In TNeoKernel, there are three possible return codes:
+In original TNKernel, `tn_task_sleep()` always returns `#TERR_NO_ERR`, independently of what actually happened. In TNeo, there are three possible return codes:
 
   - `#TN_RC_TIMEOUT` if timeout is actually in effect;
   - `#TN_RC_OK` if task was woken up by some other task with `tn_task_wakeup()`;
@@ -124,15 +124,15 @@ Meanwhile, attributes like `TN_EVENT_ATTR_SINGLE`, `TN_EVENT_ATTR_CLR` imply tha
 
 After all, when we call `tn_event_clear(&my_event_obj, flags)`, we might expect that `flags` argument actually specifies flags to clear. But in fact, we must invert it, to make it work: `~flags`. This is really confusing.
 
-In TNeoKernel, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. Instead, you may set the flag `#TN_EVENTGRP_WMODE_AUTOCLR` when task is going to wait for some event bit(s), and then these event bit(s) will be atomically cleared automatically when task successfully finishes waiting for these bits.
+In TNeo, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. Instead, you may set the flag `#TN_EVENTGRP_WMODE_AUTOCLR` when task is going to wait for some event bit(s), and then these event bit(s) will be atomically cleared automatically when task successfully finishes waiting for these bits.
 
-TNeoKernel also offers a very useful feature: connecting an event group to other kernel objects. Read \ref tnkernel_new_features__eventgrp_conn "below".
+TNeo also offers a very useful feature: connecting an event group to other kernel objects. Read \ref tnkernel_new_features__eventgrp_conn "below".
 
 For detailed API reference, refer to the `tn_eventgrp.h`.
 
 \subsection tnkernel_diff_zero_timeout Zero timeout given to system functions
 
-In original TNKernel, system functions refused to perform job and returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually neither convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeoKernel system functions allows timeout to be zero: in this case, function doesn't wait.
+In original TNKernel, system functions refused to perform job and returned `#TERR_WRONG_PARAM` if `timeout` is 0, but it is actually neither convenient nor intuitive: it is much better if the function behaves just like `...polling()` version of the function. All TNeo system functions allows timeout to be zero: in this case, function doesn't wait.
 
 \section tnkernel_new_features New features
 
@@ -158,7 +158,7 @@ context switches, and response for the message gets much slower. Actually, we
 lost the main goal of the preemptive kernel when we use polling services like
 that.
 
-TNeoKernel (since \ref changelog_v1_03) offers a solution: an event group can
+TNeo (since \ref changelog_v1_03) offers a solution: an event group can
 be connected to other kernel objects, and these objects will maintain certain
 flags inside that event group automatically.
 
@@ -166,7 +166,7 @@ Refer to the section \ref eventgrp_connect for details.
 
 \subsection tnkernel_new_features__timer Timers
 
-Support of timers was added since TNeoKernel \ref changelog_v1_02.
+Support of timers was added since TNeo \ref changelog_v1_02.
 
 Timer is a kernel object that is used to ask the kernel to call some user-provided function at a particular time in the future, based on the $(TN_SYS_TIMER_LINK) tick.
 
@@ -186,7 +186,7 @@ Sometimes they are really useful though (say, if you want to use some third-part
 
 \subsection tnkernel_diff_mutex_deadlock Mutex deadlock detection
 
-TNeoKernel can notify you by calling your callback function if deadlock occurs. See:
+TNeo can notify you by calling your callback function if deadlock occurs. See:
 
   - compile-time option `#TN_MUTEX_DEADLOCK_DETECT`,
   - `tn_callback_deadlock_set()`, 
@@ -214,7 +214,7 @@ When I was moving from the port by AlexB to another one, do you have any idea ho
 
 By the way, additional strange thing: why doesn't this macro have any prefix like `TN_`?
 
-TNeoKernel provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
+TNeo provides macro `TN_MAKE_ALIG_SIZE()` whose argument is **size**, so, its usage is as follows: `TN_MAKE_ALIG_SIZE(sizeof(struct MyStruct))`. This macro is preferred.
 
 But for compatibility with messy `MAKE_ALIG()` from original TNKernel, there is an option `#TN_API_MAKE_ALIG_ARG` with two possible values;
 

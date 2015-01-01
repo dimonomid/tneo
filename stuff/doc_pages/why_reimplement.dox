@@ -200,7 +200,7 @@ code.
     And then, when we need to move task from one state to another, we typically
     should just call two functions: one for clearing current state, and one
     for settine a new one. It **is** consistent, and of course this approach
-    is used in TNeoKernel.
+    is used in TNeo.
 
 As a result of the violation of the rule *Don't repeat yourself*, when we need
 to change something, we need to change it in several places. Needless to say,
@@ -321,7 +321,7 @@ TNKernel 2.7 has several bugs, which are caught by detailed unit tests and fixed
     the buffer is less by 1 than user has specified and allocated
   - Event: if `TN_EVENT_ATTR_CLR` flag is set, and the task that is
     waiting for event is suspended, this flag `TN_EVENT_ATTR_CLR` is ignored
-    (pattern is not reset). I can't say this bug is "fixed" because TNeoKernel
+    (pattern is not reset). I can't say this bug is "fixed" because TNeo
     has \ref tnkernel_diff_event "event groups instead of events", and there is
     no `TN_EVENT_ATTR_CLR` flag.
 

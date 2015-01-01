@@ -38,12 +38,12 @@ cd ..
 
 # compare it
 if [[ "$new_commit_message" == "$last_commit_message" ]]; then
-   echo "tneokernel repository has not changed, exiting"
+   echo "tneo repository has not changed, exiting"
    exit 0
 fi
 
 
-# ---- tneokernel repo has changed, so, continue ----
+# ---- tneo repo has changed, so, continue ----
 
 # remove all current output
 rm -r ./output
@@ -55,8 +55,8 @@ make
 cd output/latex
 make
 
-# rename refman to tneokernel.pdf
-mv refman.pdf tneokernel.pdf
+# rename refman to tneo.pdf
+mv refman.pdf tneo.pdf
 
 # go back
 cd ../..

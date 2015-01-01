@@ -414,9 +414,9 @@
               <FilePath>..\tn_stm32f4_example_basic.c</FilePath>
             </File>
             <File>
-              <FileName>tneokernel_cortex_m4f_keil5.lib</FileName>
+              <FileName>tneo_cortex_m4f_keil5.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\tneokernel_cortex_m4f_keil5.lib</FilePath>
+              <FilePath>..\tneo_cortex_m4f_keil5.lib</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>tneokernel_cortex_m_eclipse</name>
+	<name>tneo_cortex_m_eclipse</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -25,19 +25,19 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>tneokernel</name>
+			<name>tneo</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>tneokernel/src</name>
+			<name>tneo/src</name>
 			<type>2</type>
-			<locationURI>TNEOKERNEL_SRC</locationURI>
+			<locationURI>TNEO_SRC</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
-			<name>TNEOKERNEL_SRC</name>
+			<name>TNEO_SRC</name>
 			<value>$%7BPARENT-3-PROJECT_LOC%7D/src</value>
 		</variable>
 	</variableList>

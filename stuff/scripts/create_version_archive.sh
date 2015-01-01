@@ -16,7 +16,7 @@ cd ../..
 repo_path="$(pwd)"
 
 # generate path to temp repo dir
-tmp_repo_path="/tmp/tneokernel_tmp_$target_tag_name"
+tmp_repo_path="/tmp/tneo_tmp_$target_tag_name"
 
 # remove it if it already exists
 if test -d "$tmp_repo_path"; then
@@ -50,7 +50,7 @@ hg up $target_tag_name
 version_string="$(bash ../scripts/hg_ver_echo.sh)"
 
 # generate archive name (and directory name)
-archive_name="tneokernel-$version_string"
+archive_name="tneo-$version_string"
 
 # get full path to output archive
 archive_full_name="/tmp/$archive_name"
@@ -68,8 +68,8 @@ make
 cd output/latex
 make
 
-# rename refman to tneokernel.pdf
-mv refman.pdf tneokernel.pdf
+# rename refman to tneo.pdf
+mv refman.pdf tneo.pdf
 
 # go back
 cd ../..
@@ -103,7 +103,7 @@ mkdir -p doc/{html,pdf}
 cp -r stuff/doxygen/output/html/* doc/html
 
 # copy pdf
-cp stuff/doxygen/output/latex/tneokernel.pdf doc/pdf
+cp stuff/doxygen/output/latex/tneo.pdf doc/pdf
 
 # delete doxygen output dir
 rm -r stuff/doxygen/output

@@ -22,10 +22,10 @@ sets.
 
 Multi-vectored interrupt mode should be enabled.
 
-\attention if tneokernel is built as a separate library (which is typically the
+\attention if tneo is built as a separate library (which is typically the
 case), then the file `src/arch/pic32/tn_arch_pic32_int_vec1.S` must be included
 in the main project itself, in order to dispatch vector1 (core software
-interrupt 0) correctly. Do note that if we include this file in the TNeoKernel
+interrupt 0) correctly. Do note that if we include this file in the TNeo
 library project, it doesn't work for vector, unfortunately.
 
 \attention If you forgot to include this file, you got an error on the link step,
@@ -38,7 +38,7 @@ it's time to switch context.
 
 \subsection pic32_interrupts Interrupts
 
-For generic information about interrupts in TNeoKernel, refer to the page \ref
+For generic information about interrupts in TNeo, refer to the page \ref
 interrupts.
 
 PIC32 port has <i>system interrupts</i> only, there are no <i>user interrupts</i>.
@@ -100,16 +100,16 @@ consider the following:
 
 \subsection pic32_building Building
 
-For generic information on building TNeoKernel, refer to the page \ref building.
+For generic information on building TNeo, refer to the page \ref building.
 
 MPLABX project for PIC32 port resides in the
-`lib_project/pic32/tneokernel_pic32.X` directory.  This is a *library project*
+`lib_project/pic32/tneo_pic32.X` directory.  This is a *library project*
 in terms of MPLABX, so if you use MPLABX you can easily add it to your
 application project by right-clicking `Libraries -> Add Library Project ...`.
 Alternatively, of course you can just build it and use resulting
-`tneokernel_pic32.X.a` file in whatever way you like.
+`tneo_pic32.X.a` file in whatever way you like.
 
-If you want to build TNeoKernel manually, refer to the section \ref
+If you want to build TNeo manually, refer to the section \ref
 building_generic__manual for generic notes about it, and there is a couple of
 arch-dependent sources you need to add to the project:
 
@@ -132,10 +132,10 @@ is handled completely by the kernel, application should never touch it.
 
 \subsection pic24_interrupts Interrupts
 
-For generic information about interrupts in TNeoKernel, refer to the page \ref
+For generic information about interrupts in TNeo, refer to the page \ref
 interrupts.
 
-PIC24/dsPIC TNeoKernel port supports nested interrupts. It allows to specify
+PIC24/dsPIC TNeo port supports nested interrupts. It allows to specify
 the range of *system interrupt priorities*. Refer to the subsection \ref
 interrupt_types for details on what is <i>system interrupt</i>.
 
@@ -205,7 +205,7 @@ resulting data could be corrupted. PIC24/dsPIC port provides several macros
 that offer atomic access to the structure bit field.
 
 The kernel would not probably provide that kind of functionality, but 
-TNeoKernel itself needs it, so, it is made public so that application can
+TNeo itself needs it, so, it is made public so that application can
 use it too.
 
 Refer to the page \ref tn_arch_pic24_bfa.h "Atomic bit-field access macros"
@@ -214,10 +214,10 @@ for details.
 
 \subsection pic24_building Building
 
-For generic information on building TNeoKernel, refer to the page \ref building.
+For generic information on building TNeo, refer to the page \ref building.
 
 MPLABX project for PIC24/dsPIC port resides in the
-`lib_project/pic24_dspic/tneokernel_pic24_dspic.X` directory. This is a *library
+`lib_project/pic24_dspic/tneo_pic24_dspic.X` directory. This is a *library
 project* in terms of MPLABX, so if you use MPLABX you can easily add it to your
 main project by right-clicking `Libraries -> Add Library Project ...`.  
 
@@ -230,7 +230,7 @@ When you add library project to your application project, you should select
 correct configuration for your device; otherwise, you get "undefined reference"
 errors at linker step.
 
-If you want to build TNeoKernel manually, refer to the section \ref
+If you want to build TNeo manually, refer to the section \ref
 building_generic__manual for generic notes about it, and additionally you should
 add arch-dependent sources: all `.c` and `.S` files from `src/arch/pic24_dspic`
 
@@ -252,7 +252,7 @@ the kernel to the lowest priority.
 
 \subsection cortex_m_interrupts Interrupts
 
-For generic information about interrupts in TNeoKernel, refer to the page \ref
+For generic information about interrupts in TNeo, refer to the page \ref
 interrupts.
 
 Cortex-M port has <i>system interrupts</i> only, there are no <i>user
@@ -268,7 +268,7 @@ easier and make OS operations more efficient.
 
 \subsection cortex_m_building Building
 
-For generic information on building TNeoKernel, refer to the page \ref building.
+For generic information on building TNeo, refer to the page \ref building.
 
 There are many environments for building for Cortex-M CPUs (Keil, Eclipse,
 CooCox), all available projects reside in `lib_project/cortex_m` directory.

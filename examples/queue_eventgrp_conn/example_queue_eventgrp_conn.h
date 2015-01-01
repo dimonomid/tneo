@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * Example project that demonstrates usage of queues in TNeoKernel.
+ * Example project that demonstrates usage of queues in TNeo.
  */
 
 #ifndef _EXAMPLE_QUEUE_EVENTGRP_CONN_H

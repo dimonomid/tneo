@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -37,7 +37,7 @@
 /**
  * \file
  *
- * TNeoKernel default configuration file, to be copied as `tn_cfg.h`.
+ * TNeo default configuration file, to be copied as `tn_cfg.h`.
  *
  * This project is intended to be built as a library, separately from main
  * project (although nothing prevents you from bundling things together, if you
@@ -54,9 +54,9 @@
  * might want to copy it as `tn_cfg.h`. Or even better, if your filesystem
  * supports symbolic links, copy it somewhere to your main project's directory
  * (so that you can add it to your VCS there), and create symlink to it named
- * `tn_cfg.h` in the TNeoKernel source directory, like this:
+ * `tn_cfg.h` in the TNeo source directory, like this:
  *
- *     $ cd /path/to/tneokernel/src
+ *     $ cd /path/to/tneo/src
  *     $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
  *     $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
  *
@@ -95,8 +95,8 @@
  * will get run-time error (`_TN_FATAL_ERROR()`) inside `tn_sys_start()`, which
  * is much more informative than weird bugs caused by configuration mismatch.
  *
- * <b>Note</b>: turning this option on makes sense if only you use TNeoKernel
- * as a separate library. If you build TNeoKernel together with the
+ * <b>Note</b>: turning this option on makes sense if only you use TNeo
+ * as a separate library. If you build TNeo together with the
  * application, both the kernel and the application always use the same
  * `tn_cfg.h` file, therefore this option is useless.
  *
@@ -149,7 +149,7 @@
 
 /**
  * Allows additional internal self-checking, useful to catch internal
- * TNeoKernel bugs as well as illegal kernel usage (e.g. sleeping in the idle 
+ * TNeo bugs as well as illegal kernel usage (e.g. sleeping in the idle 
  * task callback). Produces a couple of extra instructions which usually just
  * causes debugger to stop if something goes wrong.
  */
@@ -161,7 +161,7 @@
  * Whether old TNKernel names (definitions, functions, etc) should be
  * available.  If you're porting your existing application written for
  * TNKernel, it is definitely worth enabling.  If you start new project with
- * TNeoKernel from scratch, it's better to avoid old names.
+ * TNeo from scratch, it's better to avoid old names.
  */
 #ifndef TN_OLD_TNKERNEL_NAMES
 #  define TN_OLD_TNKERNEL_NAMES  1
@@ -309,13 +309,13 @@
  * Whether the old TNKernel events API compatibility mode is active.
  *
  * \warning Use it if only you're porting your existing TNKernel project on
- * TNeoKernel. Otherwise, usage of this option is strongly discouraged.
+ * TNeo. Otherwise, usage of this option is strongly discouraged.
  *
- * Actually, events are the most incompatible thing between TNeoKernel and
+ * Actually, events are the most incompatible thing between TNeo and
  * TNKernel (for some details, refer to the section \ref tnkernel_diff_event)
  *
  * This option is quite useful when you're porting your existing TNKernel app 
- * to TNeoKernel. When it is non-zero, old events symbols are available and
+ * to TNeo. When it is non-zero, old events symbols are available and
  * behave just like they do in TNKernel.
  *
  * The full list of what becomes available:

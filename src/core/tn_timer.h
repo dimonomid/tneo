@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -52,7 +52,7 @@
  *
  * The timer callback approach provides ultimate flexibility.
  *
- * In the spirit of TNeoKernel, timers are as lightweight as possible. That's
+ * In the spirit of TNeo, timers are as lightweight as possible. That's
  * why there is only one type of timer: the single-shot timer. If you need your
  * timer to fire repeatedly, you can easily restart it from the timer function
  * by the `tn_timer_start()`, so it's not a problem.
@@ -76,7 +76,7 @@
  * See `#TN_TimerFunc` for the prototype of the function that could be
  * scheduled.
  *
- * TNeoKernel offers two implementations of timers: static and dynamic. Refer
+ * TNeo offers two implementations of timers: static and dynamic. Refer
  * to the page \ref time_ticks for details.
  *
  * \section timers_static_implementation Implementation of static timers
@@ -119,7 +119,7 @@
  *
  * This book is freely available at http://lwn.net/Kernel/LDD3/ .
  *
- * So, TNeoKernel's implementation:
+ * So, TNeo's implementation:
  *
  * We have configurable value `N` that is a power of two, typical values are
  * `4`, `8` or `16`.
@@ -150,7 +150,7 @@
  * to the current "tick" list while we are iterating through it. 
  * (although timer can be deleted from that list, but it's ok)
  *
- * The `N` in the TNeoKernel is configured by the compile-time option
+ * The `N` in the TNeo is configured by the compile-time option
  * `#TN_TICK_LISTS_CNT`.
  */
 

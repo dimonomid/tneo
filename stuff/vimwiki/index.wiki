@@ -1,5 +1,5 @@
 
-= tneokernel dev =
+= tneo dev =
 
 [[how_to_release]]
 [[thoughts]]

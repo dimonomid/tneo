@@ -5,7 +5,7 @@
 
 \section interrupt_stack Interrupt stack
 
-TNeoKernel provides a separate stack for interrupt handlers. This approach
+TNeo provides a separate stack for interrupt handlers. This approach
 could save a lot of RAM: interrupt can happen at any moment of time, and if
 there's no separate interrupt stack, then each task should have enough stack
 space for the worse case of interrupt nesting.

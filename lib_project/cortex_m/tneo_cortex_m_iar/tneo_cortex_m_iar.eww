@@ -2,7 +2,7 @@
 
 <workspace>
   <project>
-    <path>$WS_DIR$\tneokernel_cortex_m_iar.ewp</path>
+    <path>$WS_DIR$\tneo_cortex_m_iar.ewp</path>
   </project>
   <batchBuild/>
 </workspace>

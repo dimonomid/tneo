@@ -193,7 +193,7 @@ SOURCES  := $(wildcard $(SOURCE_DIR)/core/*.c $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/
 OBJS     := $(patsubst %.c,$(OBJ_DIR)/%.o,$(patsubst %.S,$(OBJ_DIR)/%.o,$(notdir $(SOURCES))))
 
 # generate binary library file
-BINARY = $(BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
+BINARY = $(BIN_DIR)/tneo_$(TN_ARCH)_$(TN_COMPILER).a
 
 # command that creates necessary directories, must be used in rules below
 MKDIR_P_CMD = @mkdir -p $(@D)
@@ -220,7 +220,7 @@ $(BINARY): $(OBJS)
 	$(MKDIR_P_CMD)
 	$(BINARY_CMD)
 	@echo "" > $(README_FILE)
-	@echo "\nTNeoKernel version:" >> $(README_FILE)
+	@echo "\nTNeo version:" >> $(README_FILE)
 	@bash stuff/scripts/hg_ver_echo.sh >> $(README_FILE)
 	@echo "" >> $(README_FILE)
 	@echo "\nArchitecture:" >> $(README_FILE)

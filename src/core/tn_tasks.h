@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -39,14 +39,14 @@
  *
  * \section tn_tasks__tasks Task
  *
- * In TNeoKernel, a task is a branch of code that runs concurrently with other
+ * In TNeo, a task is a branch of code that runs concurrently with other
  * tasks from the programmer's point of view. Indeed, tasks are actually
  * executed using processor time sharing.  Each task can be considered to be an
  * independed program, which executes in its own context (processor registers,
  * stack pointer, etc.).
  *
  * Actually, the term <i>thread</i> is more accurate than <i>task</i>, but the
- * term <i>task</i> historically was used in TNKernel, so TNeoKernel keeps this
+ * term <i>task</i> historically was used in TNKernel, so TNeo keeps this
  * convention.
  *
  * When kernel decides that it's time to run another task, it performs
@@ -84,7 +84,7 @@
  *
  * \section tn_tasks__scheduling Scheduling rules
  *
- * TNeoKernel always runs the most privileged task in state
+ * TNeo always runs the most privileged task in state
  * $(TN_TASK_STATE_RUNNABLE). In no circumstances can task run while there is
  * at least one task is in the $(TN_TASK_STATE_RUNNABLE) state with higher
  * priority. Task will run until:
@@ -99,7 +99,7 @@
  *
  * \section tn_tasks__idle Idle task
  *
- * TNeoKernel has one system task: an idle task, which has lowest priority.
+ * TNeo has one system task: an idle task, which has lowest priority.
  * It is always in the state $(TN_TASK_STATE_RUNNABLE), and it runs only when
  * there are no other runnable tasks.
  *

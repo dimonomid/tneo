@@ -43,20 +43,20 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
+              <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneo_pic24_dspic.X"
                             CT="3"
                             CN="no_eds"
                             AC="false"
                             BL="true"
-                            WD="../../../../../src/arch/pic24_dspic/tneokernel_pic24_dspic.X"
+                            WD="../../../../../src/arch/pic24_dspic/tneo_pic24_dspic.X"
                             BC="${MAKE}  -f Makefile CONF=no_eds"
                             DBC="${MAKE}  -f Makefile CONF=no_eds TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/no_eds&quot; &quot;dist/no_eds&quot;"
-                            OP="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
-                            DOP="dist/no_eds/debug/tneokernel_pic24_dspic.X.a"
-                            FL="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
-                            PD="dist/no_eds/production/tneokernel_pic24_dspic.X.a"
-                            DD="dist/no_eds/debug/tneokernel_pic24_dspic.X.a">
+                            OP="dist/no_eds/production/tneo_pic24_dspic.X.a"
+                            DOP="dist/no_eds/debug/tneo_pic24_dspic.X.a"
+                            FL="dist/no_eds/production/tneo_pic24_dspic.X.a"
+                            PD="dist/no_eds/production/tneo_pic24_dspic.X.a"
+                            DD="dist/no_eds/debug/tneo_pic24_dspic.X.a">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>

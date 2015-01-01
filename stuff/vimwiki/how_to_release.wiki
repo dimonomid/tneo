@@ -1,5 +1,5 @@
 
-= tneokernel dev / how to release =
+= tneo dev / how to release =
 
   * recheck plans page: probably you have already implemented something?
   * make sure ALL binaries are built with default configuration
@@ -44,7 +44,7 @@
      * `$ hg ci -m"index.html : added link to docs vX.XX"`
  
   * push docs: `$ hg push`
-  * cd back to tneokernel repo: `$ cd ../..`
+  * cd back to tneo repo: `$ cd ../..`
   * create downloadable archive: `$ bash ./create_version_archive.sh vX.XX`
   * go to https://bitbucket.org/dfrank/tneokernel/downloads and upload new archive there
   * push repo to the bitbucket `$ hg push https://dfrank@bitbucket.org/dfrank/tneokernel`

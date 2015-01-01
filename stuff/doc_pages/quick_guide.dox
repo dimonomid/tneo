@@ -5,7 +5,7 @@
 
 This page contains quick guide on system startup and important implementation details.
 
-\section usage_generic Using TNeoKernel in your application
+\section usage_generic Using TNeo in your application
 
 The easiest way is to download version archive from [downloads page]
 (https://bitbucket.org/dfrank/tneokernel/downloads): it contains `bin` folder
@@ -15,18 +15,18 @@ configuration_file).
 
 If you use MPLABX, it is probably better to add <i>library project</i> to your
 main project instead; library projects reside in the
-`<tneokernel_path>/lib_project` directory.
+`<tneo_path>/lib_project` directory.
 
 In either case, all you need is the following:
 
 - Add library file for appropriate platform to your project (or probably
   <i>library project</i> in case of MPLABX);
-- Add C include path: `<tneokernel_path>/src`;
+- Add C include path: `<tneo_path>/src`;
 - Copy default configuration file as current configuration file: `cp
-  <tneokernel_path>/src/tn_cfg_default.h <tneokernel_path>/src/tn_cfg.h`
+  <tneo_path>/src/tn_cfg_default.h <tneo_path>/src/tn_cfg.h`
   (for more information about configuration file and better ways to manage it,
   refer to the section \ref configuration_file)
-- Add the file `<tneokernel_path>/src/tn_app_check.c` to your application
+- Add the file `<tneo_path>/src/tn_app_check.c` to your application
   project (see `#TN_CHECK_BUILD_CFG` for details on it).
 
 That's all; you can use it in your project now. See below how to do this.
@@ -85,14 +85,14 @@ section \ref time_ticks__static_tick and then return back here.
 
 ### Basic example for PIC32
 
-This example project can be found in the TNeoKernel repository, in the
+This example project can be found in the TNeo repository, in the
 `examples/basic/arch/pic32` directory.
 
 \attention Before trying to build examples, please read \ref building page
-carefully: you need to copy configuration file in the tneokernel directory to
+carefully: you need to copy configuration file in the tneo directory to
 build it. Each example has `tn_cfg_appl.h` file, and you should either create 
-a symbolic link to this file from `tneokernel/src/tn_cfg.h` or just copy
-this file as `tneokernel/src/tn_cfg.h`.
+a symbolic link to this file from `tneo/src/tn_cfg.h` or just copy
+this file as `tneo/src/tn_cfg.h`.
 
 \include basic/arch/pic32/tn_pic32_example_basic.c
 

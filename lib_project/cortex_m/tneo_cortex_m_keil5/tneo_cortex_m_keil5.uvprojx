@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>tneokernel_cortex_m_keil5</TargetName>
+      <TargetName>tneo_cortex_m_keil5</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -47,7 +47,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>tneokernel_cortex_m_keil5</OutputName>
+          <OutputName>tneo_cortex_m_keil5</OutputName>
           <CreateExecutable>0</CreateExecutable>
           <CreateLib>1</CreateLib>
           <CreateHexFile>0</CreateHexFile>

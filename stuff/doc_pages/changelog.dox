@@ -3,7 +3,7 @@
 
 \tableofcontents
 
-TNeoKernel changelog
+TNeo changelog
 
 \section changelog_current Current development version (BETA)
 
@@ -31,13 +31,13 @@ TNeoKernel changelog
   - Added run-time check which ensures that build-time options for the kernel
     match ones for the application. For details, refer to the option
     `#TN_CHECK_BUILD_CFG`. <b>Note</b>: in your existing project that uses
-    TNeoKernel as a separate library, you need either:
-    - Include the file `<tneokernel_path>/src/tn_app_check.c` to the
+    TNeo as a separate library, you need either:
+    - Include the file `<tneo_path>/src/tn_app_check.c` to the
       application project (recommended);
     - In your `tn_cfg.h` file, set `#TN_CHECK_BUILD_CFG` to `0` and rebuild 
       the kernel with the new configuration (not recommended).
 
-    But if you build TNeoKernel together with the application, this option
+    But if you build TNeo together with the application, this option
     is useless, so then just set `#TN_CHECK_BUILD_CFG` to `0`.
 
   - MPLABX projects for PIC32 and PIC24/dsPIC moved to `lib_project`
@@ -59,8 +59,8 @@ Release date: 2014-11-04.
 	 because non-prefixed symbols may be defined by some other program module,
 	 which leads to conflicts. The easiest and robust way is to add unique
 	 prefix.
-  - Refactor: PIC32 MPLABX project renamed from `tneokernel.X` to
-    `tneokernel_pic32.X`.
+  - Refactor: PIC32 MPLABX project renamed from `tneo.X` to
+    `tneo_pic32.X`.
   - Refactor: PIC32 ISR macros renamed: `tn_soft_isr()` ->
     `tn_p32_soft_isr()`, `tn_srs_isr()` -> `tn_p32_srs_isr()`. It is much
     easier to maintain documentation for different macros if they have
@@ -88,7 +88,7 @@ Release date: 2014-10-20.
 	 either ISR, you can call the same set of kernel services. Refer
 	 to the page \ref interrupts for details.
   - Priority 0 is now allowed to use by application (in the original TNKernel,
-    it was reserved for the timer task, but TNeoKernel \ref
+    it was reserved for the timer task, but TNeo \ref
     tnkernel_diff_timer_task "does not have timer task")
   - Application is now available to specify how many priority levels does it
     need for, it helps to save a bit of RAM. For details, refer to
@@ -104,7 +104,7 @@ Release date: 2014-10-14.
   - Added \ref tn_timer.h "timers": kernel objects that are used to ask the
     kernel to call some user-provided function at a particular time in the
     future;
-  - Removed `tn_sys_time_set()` function, because now TNeoKernel uses internal
+  - Removed `tn_sys_time_set()` function, because now TNeo uses internal
     system tick count for timers, and modifying system tick counter by user
     is a *really* bad idea.
 
@@ -126,7 +126,7 @@ Release date: 2014-10-09.
 
 Release date: 2014-10-01.
 
-  - Initial stable version of TNeoKernel. Lots of work done: thorough review
+  - Initial stable version of TNeo. Lots of work done: thorough review
     and re-implementation of TNKernel 2.7, implemented detailed unit tests, and
     so on.
 

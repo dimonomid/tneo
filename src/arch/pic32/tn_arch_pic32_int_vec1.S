@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -48,14 +48,14 @@
 
 
 /*
- * Self-check for the application that uses TNeoKernel:
+ * Self-check for the application that uses TNeo:
  *
  *  PIC32 application must include the file tn_arch_pic32_int_vec1.S
  * in order to dispatch vector_1 correctly, but if it is forgotten,
  * no error is generated at the build time: we just get to the 
  * _DefaultInterrupt when we should switch context.
  *
- * Note that we can't include that file to the TNeoKernel library
+ * Note that we can't include that file to the TNeo library
  * project: it doesn't work.
  *
  * So, dummy function was invented, and if we forgot to 

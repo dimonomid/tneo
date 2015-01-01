@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -355,7 +355,7 @@ typedef void (TN_CBDeadlock)(
  ******************************************************************************/
 
 /**
- * Initial TNeoKernel system start function, never returns. Typically called
+ * Initial TNeo system start function, never returns. Typically called
  * from main().
  *
  * Refer to the \ref starting_the_kernel "Starting the kernel" section for the

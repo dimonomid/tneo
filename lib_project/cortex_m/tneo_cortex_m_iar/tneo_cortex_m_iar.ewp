@@ -630,7 +630,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>tneokernel_cortex_m_iar.out</state>
+          <state>tneo_cortex_m_iar.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
@@ -912,7 +912,7 @@
         </option>
         <option>
           <name>IarchiveOutput</name>
-          <state>G:\RTOS_CHECK\lib\mc\TNKERNEL_DF\LIB_PROJECT\cortex_m\TNEOKERNEL_CORTEX_M_IAR\Debug\Exe\tneokernel_cortex_m_iar.a</state>
+          <state>G:\RTOS_CHECK\lib\mc\TNKERNEL_DF\LIB_PROJECT\cortex_m\TNEO_CORTEX_M_IAR\Debug\Exe\tneo_cortex_m_iar.a</state>
         </option>
       </data>
     </settings>
@@ -1546,7 +1546,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>tneokernel_cortex_m_iar.out</state>
+          <state>tneo_cortex_m_iar.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>

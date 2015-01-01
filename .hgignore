@@ -29,16 +29,16 @@ Makefile\-genesis\.properties
 \.uvguix\.
 \.uvoptx
 
-tneokernel_cortex_m_eclipse[/\\]Debug
-tneokernel_cortex_m_eclipse[/\\]Release
+tneo_cortex_m_eclipse[/\\]Debug
+tneo_cortex_m_eclipse[/\\]Release
 
-tneokernel_cortex_m_coocox[/\\]Debug
+tneo_cortex_m_coocox[/\\]Debug
 \.xcodeproj$
 \.cogui$
 \.comarker$
 
-tneokernel_cortex_m_iar[/\\]Debug
-tneokernel_cortex_m_iar[/\\]settings
+tneo_cortex_m_iar[/\\]Debug
+tneo_cortex_m_iar[/\\]settings
 \.dep$
 \.ewd$
 

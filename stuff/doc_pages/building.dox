@@ -1,17 +1,17 @@
 /**
-\page building Building TNeoKernel
+\page building Building TNeo
 
 \tableofcontents
 
 Some notes on building the project.
 
-Note: you don't <i>have</i> to build TNeoKernel to use it. If you want to just
+Note: you don't <i>have</i> to build TNeo to use it. If you want to just
 use pre-built library (with default configuration), refer to the section \ref
 usage_generic.
 
 \section configuration_file Configuration file
 
-TNeoKernel is intended to be built as a library, separately from main project
+TNeo is intended to be built as a library, separately from main project
 (although nothing prevents you from bundling things together, if you want to).
 
 There are various options available which affects API and behavior of the
@@ -25,9 +25,9 @@ which isn't included in the repository (even more, it is added to
 might want to copy it as `tn_cfg.h`. Or even better, if your filesystem
 supports symbolic links, copy it somewhere to your main project's directory
 (so that you can add it to your VCS there), and create symlink to it named
-`tn_cfg.h` in the TNeoKernel source directory, like this:
+`tn_cfg.h` in the TNeo source directory, like this:
 
-    $ cd /path/to/tneokernel/src
+    $ cd /path/to/tneo/src
     $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
     $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
 
@@ -36,7 +36,7 @@ and configure behavior as you like.
 
 \section building_generic__makefile_lib_project Makefile or library projects
 
-If you need to build TNeoKernel with some non-default configuration, the
+If you need to build TNeo with some non-default configuration, the
 easiest way is to use ready-made Makefile or library project.
 
 \subsection building_generic__makefile Makefile
@@ -78,18 +78,18 @@ For PIC24/dsPIC, just one value is valid:
 
 - `xc16` (you need [Microchip XC16 compiler](http://www.microchip.com/xc16))
 
-Example invocation (from the TNeoKernel's root directory) :
+Example invocation (from the TNeo's root directory) :
 
 `$ make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc`
 
 As a result, there will be archive library file
-`bin/cortex_m3/arm-none-eabi-gcc/tneokernel_cortex_m3_arm-none-eabi-gcc.a`
+`bin/cortex_m3/arm-none-eabi-gcc/tneo_cortex_m3_arm-none-eabi-gcc.a`
 
 
 
 \subsection building_generic__lib_project Library project
 
-In the root of TNeoKernel repository, there is a directory `lib_project`
+In the root of TNeo repository, there is a directory `lib_project`
 which contains ready-made projects for various platforms. You may use it
 for building library, and then use resulting library file in your project.
 
@@ -102,13 +102,13 @@ build library file as a separate step.
 \section building_generic__manual Building manually
 
 If you want to create library project yourself (say, in some different IDE, or
-anything), or if you want to build TNeoKernel as a direct part of your project,
+anything), or if you want to build TNeo as a direct part of your project,
 there are some generic requirements (there might be additional
 architecture-dependent requirements, see links below):
 
 - <b>Core sources</b>: add all `.c` files from `src/core` directory to the
   project.
-- <b>C99</b>: TNeoKernel uses some features of C99, such as `static inline`
+- <b>C99</b>: TNeo uses some features of C99, such as `static inline`
   functions and variable declarations not at the start of a compound statement.
   So, C99 is a requirement.
 - <b>C Include directories</b> (relative to the root of the repository) :
@@ -132,7 +132,7 @@ architecture-dependent requirements, see links below):
   option like "remove unused sections", and save notable amount of flash
   memory.
 
-For arch-dependent information on building TNeoKernel, please refer to the
+For arch-dependent information on building TNeo, please refer to the
 appropriate section:
 
 - \ref pic24_building "Building for PIC24/dsPIC"
