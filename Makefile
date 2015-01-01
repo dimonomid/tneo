@@ -1,6 +1,9 @@
 BIN_DIR=bin
 
-#TODO: autogenerate this makefile from some kind of list, like:
+#TODO: 
+# - autogenerate this makefile from some kind of list
+# - makedepend doesn't work actually, need to do it differently
+#
 
 
 all:  \
