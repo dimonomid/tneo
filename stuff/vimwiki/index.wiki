@@ -13,6 +13,10 @@
    * [X] check_param functions: make them take pointer to `const` struct.
    * [X] remove "public data" sections, there might be protected or private data only.
    * [X] add comments to _tn_list.h suggesting that macros were changed because the kernel can't use gcc-specific extensions such as typeof().
+   * [ ] Before release 1.05
+      * [ ] implement Makefile generation
+      * [ ] test gcc- and clang-generated libs in keil project
+      * [ ] modify docs about "building the kernel" accordingly to Makefile
 
 
 === profiler ===
