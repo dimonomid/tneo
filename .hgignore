@@ -15,6 +15,7 @@ vimprj[/\\].+_tags
 .*\.map$
 .*\.elf$
 .*\.bin$
+^bin[/\\]
 \.disasm$
 \-build\-
 nbproject[/\\]private

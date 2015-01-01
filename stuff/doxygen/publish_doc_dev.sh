@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # get version string
-version_string="$(bash ./hg_ver_echo.sh)"
+version_string="$(bash ../scripts/hg_ver_echo.sh)"
 
 # generate commit message
 new_commit_message="docs updated: $version_string"

@@ -75,7 +75,7 @@ cd stuff/doxygen
 hg up $target_tag_name
 
 # get version string
-version_string="$(bash ./hg_ver_echo.sh)"
+version_string="$(bash ../scripts/hg_ver_echo.sh)"
 
 # generate archive name (and directory name)
 archive_name="tneokernel-$version_string"

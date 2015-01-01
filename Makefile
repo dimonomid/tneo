@@ -72,7 +72,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
          AR = arm-none-eabi-ar
          CFLAGS = $(CORTEX_M_FLAGS) -mthumb -Os -fsigned-char -ffunction-sections -fdata-sections -g3 -Wall
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
-         TN_COMPILER_VERSION := $(shell $(CC) --version | grep '^gcc' | sed 's/^.* //g')
+         TN_COMPILER_VERSION_CMD := $(CC) --version
 
          BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
       endif
@@ -82,7 +82,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
          AR = ar  #TODO: probably use clang archiver?
          CFLAGS = $(CORTEX_M_FLAGS) -target arm-none-eabi -mthumb -Os -fsigned-char -ffunction-sections -fdata-sections -g3 -Wall
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
-         TN_COMPILER_VERSION := 
+         TN_COMPILER_VERSION_CMD := $(CC) --version
 
          BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
       endif
@@ -111,7 +111,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
          AR = xc32-ar
          CFLAGS = $(PIC32MX_FLAGS) -g -x c -Os -ffunction-sections -fdata-sections -Wall
          ASFLAGS = $(PIC32MX_FLAGS)
-         TN_COMPILER_VERSION := $(shell $(CC) --version | grep '^xc32-gcc' | sed -r 's/^.*(v[0-9.]+).*/\\1/g')
+         TN_COMPILER_VERSION_CMD := $(CC) --version
 
          BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
       endif
@@ -142,7 +142,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic24_dspic_noeds pic24_dspic_eds))
          AR = xc16-ar
          CFLAGS = $(PIC24_DSPIC_FLAGS) -Os -ffunction-sections -fdata-sections -mlarge-code -mlarge-data -mconst-in-code -msmart-io=1 -msfr-warn=off -Wall -omf=elf
          ASFLAGS = $(CFLAGS)
-         TN_COMPILER_VERSION := $(shell $(CC) --version | grep '^xc16-gcc' | sed -r 's/^.*(v[0-9.]+).*/\\1/g')
+         TN_COMPILER_VERSION_CMD := $(CC) --version
 
          BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
       endif
@@ -199,6 +199,7 @@ BINARY = $(ARCH_BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
 # command that creates necessary directories, must be used in rules below
 MKDIR_P_CMD = @mkdir -p $(@D)
 
+README_FILE = $(ARCH_BIN_DIR)/readme.txt
 
 
 
@@ -210,6 +211,16 @@ $(OBJS): $(HEADERS)
 $(BINARY): $(OBJS)
 	$(MKDIR_P_CMD)
 	$(BINARY_CMD)
+	echo "" > $(README_FILE)
+	echo "\nTNeoKernel version:" >> $(README_FILE)
+	bash stuff/scripts/hg_ver_echo.sh >> $(README_FILE)
+	echo "" >> $(README_FILE)
+	echo "\nArchitecture:" >> $(README_FILE)
+	echo "$(TN_ARCH)" >> $(README_FILE)
+	echo "\nCompiler:" >> $(README_FILE)
+	echo "$(TN_COMPILER)" >> $(README_FILE)
+	echo "\nCompiler version:" >> $(README_FILE)
+	$(TN_COMPILER_VERSION_CMD) >> $(README_FILE)
 
 $(OBJ_DIR)/%.o : $(SOURCE_DIR)/core/%.c
 	$(MKDIR_P_CMD)
