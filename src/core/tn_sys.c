@@ -155,7 +155,8 @@ int _tn_deadlocks_cnt = 0;
  *    EXTERNAL FUNCTION PROTOTYPES
  ******************************************************************************/
 
-const struct _TN_BuildCfg *tn_app_build_cfg_get(void);
+extern const struct _TN_BuildCfg *tn_app_build_cfg_get(void);
+extern you_should_add_file___tn_app_check_c___to_the_project(void);
 
 
 
@@ -395,7 +396,15 @@ static void _build_cfg_check(void)
    struct _TN_BuildCfg kernel_build_cfg;
    _TN_BUILD_CFG_STRUCT_FILL(&kernel_build_cfg);
 
+   //-- call dummy function that helps user to undefstand that
+   //   he/she forgot to add file tn_app_check.c to the project
+   you_should_add_file___tn_app_check_c___to_the_project();
+
+   //-- get application build cfg
    const struct _TN_BuildCfg *app_build_cfg = tn_app_build_cfg_get();
+
+   //-- now, check each option
+
    if (kernel_build_cfg.priorities_cnt != app_build_cfg->priorities_cnt){
       _TN_FATAL_ERROR("TN_PRIORITIES_CNT doesn't match");
    }
