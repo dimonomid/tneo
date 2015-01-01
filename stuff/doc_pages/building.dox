@@ -67,16 +67,16 @@ Valid values for `TN_ARCH` are:
 Valid values for `TN_COMPILER` depend on architecture. For Cortex-M series, they
 are:
 
-- `arm-none-eabi-gcc` (you need for [GNU ARM Embedded toolchain](https://launchpad.net/~terry.guo/+archive/ubuntu/gcc-arm-embedded))
-- `clang` (you need for [LLVM clang](http://clang.llvm.org/))
+- `arm-none-eabi-gcc` (you need [GNU ARM Embedded toolchain](https://launchpad.net/~terry.guo/+archive/ubuntu/gcc-arm-embedded))
+- `clang` (you need [LLVM clang](http://clang.llvm.org/))
 
 For PIC32, just one value is valid:
 
-- `xc32` (you need for [Microchip XC32](http://www.microchip.com/xc32))
+- `xc32` (you need [Microchip XC32 compiler](http://www.microchip.com/xc32))
 
 For PIC24/dsPIC, just one value is valid:
 
-- `xc16` (you need for [Microchip XC16](http://www.microchip.com/xc16))
+- `xc16` (you need [Microchip XC16 compiler](http://www.microchip.com/xc16))
 
 Example invocation (from the TNeoKernel's root directory) :
 

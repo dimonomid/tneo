@@ -82,8 +82,8 @@ __tn_arch_context_switch_now_nosave:
 
       /* call on-context-switch handler, if needed */
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      mov      _tn_curr_run_task, w0         ; w0 = _tn_curr_run_task
-      mov      _tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
+      mov      __tn_curr_run_task, w0         ; w0 = _tn_curr_run_task
+      mov      __tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
       /* 
        * arguments are set:
@@ -100,8 +100,8 @@ __tn_arch_context_switch_now_nosave:
 
 
       /* set pointer to new task and its stack */
-      mov      _tn_next_task_to_run, w1   ; w1 = _tn_next_task_to_run
-      mov      #_tn_curr_run_task, w0     ; w0 = &_tn_curr_run_task
+      mov      __tn_next_task_to_run, w1   ; w1 = _tn_next_task_to_run
+      mov      #__tn_curr_run_task, w0     ; w0 = &_tn_curr_run_task
 
       mov      w1, [w0]                ; _tn_curr_run_task = _tn_next_task_to_run
       mov      [w1], w15               ; SP = *_tn_next_task_to_run
@@ -154,7 +154,7 @@ __INT0Interrupt:
 
       /* store sp in preemted task's TCB */
 
-      mov      _tn_curr_run_task, w0   ; w0 = _tn_curr_run_task;
+      mov      __tn_curr_run_task, w0  ; w0 = _tn_curr_run_task;
       mov      w15, [w0]               ; _tn_curr_run_task->stack_top = SR;
 
       /* save SR in w10 */
@@ -168,8 +168,8 @@ __INT0Interrupt:
 
       /* call on-context-switch handler, if needed */
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      mov      _tn_curr_run_task,      w0    ; w0 = _tn_curr_run_task
-      mov      _tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
+      mov      __tn_curr_run_task,      w0    ; w0 = _tn_curr_run_task
+      mov      __tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
       /* 
        * arguments are set:
@@ -187,8 +187,8 @@ __INT0Interrupt:
 
       /* _tn_curr_run_task = _tn_next_task_to_run */
 
-      mov      _tn_next_task_to_run, w9    ; w9 = _tn_next_task_to_run
-      mov      #_tn_curr_run_task,   w2    ; w2 = &_tn_curr_run_task
+      mov      __tn_next_task_to_run, w9    ; w9 = _tn_next_task_to_run
+      mov      #__tn_curr_run_task,   w2    ; w2 = &_tn_curr_run_task
 
       mov      w9, [w2]          ; _tn_curr_run_task = _tn_next_task_to_run
 
