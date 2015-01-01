@@ -516,7 +516,7 @@ _TN_LABEL(_tn_arch_inside_isr)
       bne      __ne
       movs     r0, #1      //-- SPSEL bit is clear: return true
       bx       lr
-__ne
+_TN_LABEL(__ne)
       movs     r0, #0      //-- SPSEL bit is set: return false
       bx       lr
 #endif
