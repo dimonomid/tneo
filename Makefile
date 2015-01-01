@@ -34,6 +34,8 @@ all:                                                           \
 	$(BIN_DIR)/tneokernel_pic24_dspic_eds_xc16.a                \
 	$(BIN_DIR)/tneokernel_pic24_dspic_noeds_xc16.a
 
+.PHONY: clean
+
 
 $(BIN_DIR)/tneokernel_cortex_m0_arm-none-eabi-gcc.a :
 	make -f Makefile-single TN_ARCH=cortex_m0 TN_COMPILER=arm-none-eabi-gcc
@@ -81,4 +83,6 @@ $(BIN_DIR)/tneokernel_pic24_dspic_noeds_xc16.a :
 	make -f Makefile-single TN_ARCH=pic24_dspic_noeds TN_COMPILER=xc16
 
 
+clean:
+	rm -rf $(BIN_DIR)
 

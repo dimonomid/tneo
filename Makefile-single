@@ -1,5 +1,8 @@
-#TN_ARCH = pic32mx
-#TN_COMPILER = xc32
+# params:
+#  TN_ARCH
+#  TN_COMPILER
+#
+# For example invocation, see Makefile.
 
 
 
@@ -62,8 +65,8 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
       ifeq ($(TN_COMPILER), xc32)
          CC = xc32-gcc
          AR = xc32-ar
-         CFLAGS = $(PIC32MX_FLAGS) -Os -ffunction-sections -fdata-sections -Wall
-         ASFLAGS = $(CFLAGS)
+         CFLAGS = $(PIC32MX_FLAGS) -g -x c -Os -ffunction-sections -fdata-sections -Wall
+         ASFLAGS = $(PIC32MX_FLAGS)
          TN_COMPILER_VERSION := $(shell $(CC) --version | grep '^xc32-gcc' | sed -r 's/^.*(v[0-9.]+).*/\\1/g')
 
          BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
@@ -139,6 +142,6 @@ $(OBJ_DIR)/%.o : $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/%.c
 
 $(OBJ_DIR)/%.o : $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/%.S
 	$(MKDIR_P_CMD)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(ASFLAGS) -c -o $@ $<
 
 
