@@ -1,10 +1,47 @@
-# params:
-#  TN_ARCH
-#  TN_COMPILER
+# This makefile accepts two params: TN_ARCH and TN_COMPILER. Both are mandatory.
 #
-# For example invocation, see Makefile.
+#  TN_ARCH: the following values are valid:
+# 
+#     cortex_m0
+#     cortex_m0plus
+#     cortex_m1
+#     cortex_m3
+#     cortex_m4
+#     cortex_m4f
+#
+#     pic32mx
+#
+#     pic24_dspic_noeds
+#     pic24_dspic_eds     
+#
+#  TN_COMPILER: depends on TN_ARCH.
+#     For cortex-m series, the following values are valid:
+#
+#        arm-none-eabi-gcc
+#        clang
+#
+#     For pic32mx, just one value is valid:
+#
+#        xc32
+#
+#     For pic24/dspic, just one value is valid:
+#
+#        xc16
+#
+#
+#
+#  Example invocation:
+#
+#     $ make -f Makefile-single TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc
+#
 
 
+
+
+
+#---------------------------------------------------------------------------
+# Cortex-M series
+#---------------------------------------------------------------------------
 
 ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_m3 cortex_m4 cortex_m4f))
    TN_ARCH_DIR = cortex_m
@@ -42,7 +79,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
 
       ifeq ($(TN_COMPILER), clang)
          CC = clang
-         AR = ar  #TODO: probably use clang archiver somehow?
+         AR = ar  #TODO: probably use clang archiver?
          CFLAGS = $(CORTEX_M_FLAGS) -target arm-none-eabi -mthumb -Os -fsigned-char -ffunction-sections -fdata-sections -g3 -Wall
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
          TN_COMPILER_VERSION := 
@@ -52,6 +89,13 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
    endif
 
 endif
+
+
+
+
+#---------------------------------------------------------------------------
+# PIC32 series
+#---------------------------------------------------------------------------
 
 ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
    TN_ARCH_DIR = pic32
@@ -74,6 +118,12 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
 
    endif
 endif
+
+
+
+#---------------------------------------------------------------------------
+# PIC24/dsPIC series
+#---------------------------------------------------------------------------
 
 ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic24_dspic_noeds pic24_dspic_eds))
    TN_ARCH_DIR = pic24_dspic
@@ -100,7 +150,28 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic24_dspic_noeds pic24_dspic_eds))
    endif
 endif
 
+ERR_MSG_STD = See comments in the Makefile-single for usage notes
 
+
+
+
+# check if TN_ARCH and TN_COMPILER values were recognized
+
+ifeq ($(TN_ARCH),)
+   $(error TN_ARCH is undefined. $(ERR_MSG_STD))
+endif
+
+ifeq ($(TN_COMPILER),)
+   $(error TN_COMPILER is undefined. $(ERR_MSG_STD))
+endif
+
+ifndef TN_ARCH_DIR
+   $(error TN_ARCH has invalid value. $(ERR_MSG_STD))
+endif
+
+ifndef BINARY_CMD
+   $(error TN_COMPILER has invalid value. $(ERR_MSG_STD))
+endif
 
 
 
@@ -112,12 +183,19 @@ BIN_DIR=bin
 
 CPPFLAGS = -I${SOURCE_DIR} -I${SOURCE_DIR}/core -I${SOURCE_DIR}/core/internal -I${SOURCE_DIR}/arch
 
+# get just all headers
 HEADERS  := $(shell find ${SOURCE_DIR}/ -name "*.h")
+
+# get all core sources plus sources for needed platform
 SOURCES  := $(wildcard $(SOURCE_DIR)/core/*.c $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/*.c $(SOURCE_DIR)/arch/$(TN_ARCH_DIR)/*.S)
+
+# generate list of all object files from source files
 OBJS     := $(patsubst %.c,$(OBJ_DIR)/%.o,$(patsubst %.S,$(OBJ_DIR)/%.o,$(notdir $(SOURCES))))
 
+# generate binary library file
 BINARY = $(BIN_DIR)/tneokernel_$(TN_ARCH)_$(TN_COMPILER).a
 
+# command that creates necessary directories, must be used in rules below
 MKDIR_P_CMD = @mkdir -p $(@D)
 
 
