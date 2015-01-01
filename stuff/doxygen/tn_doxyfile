@@ -762,6 +762,7 @@ WARN_LOGFILE           =
 INPUT                  =   ../../src                                       \
                            ../../stuff/doc_pages/mainpage.dox              \
                            ../../stuff/doc_pages/foreword.dox              \
+                           ../../stuff/doc_pages/features.dox              \
                            ../../stuff/doc_pages/quick_guide.dox           \
                            ../../stuff/doc_pages/time_ticks.dox            \
                            ../../stuff/doc_pages/interrupts.dox            \

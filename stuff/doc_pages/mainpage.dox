@@ -23,6 +23,7 @@ TNeo is hosted at bitbucket: http://bitbucket.org/dfrank/tneokernel
 Related pages:
 
   - \ref foreword
+  - \ref features
   - \ref quick_guide
   - \ref time_ticks
   - \ref interrupts
@@ -46,7 +47,7 @@ API reference:
   - \ref tn_tasks.h "Tasks"
   - \ref tn_mutex.h "Mutexes"
   - \ref tn_sem.h "Semaphores"
-  - \ref tn_fmem.h "Fixed-memory blocks pool"
+  - \ref tn_fmem.h "Fixed-size memory blocks"
   - \ref tn_eventgrp.h "Event groups"
   - \ref tn_dqueue.h "Data queues"
   - \ref tn_timer.h "Timers"

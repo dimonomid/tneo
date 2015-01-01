@@ -186,6 +186,7 @@
  * via callback
  *
  * @see see `tn_callback_deadlock_set()`
+ * @see see `#TN_CBDeadlock`
  */
 #ifndef TN_MUTEX_DEADLOCK_DETECT
 #  define TN_MUTEX_DEADLOCK_DETECT  1

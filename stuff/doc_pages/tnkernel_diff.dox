@@ -126,7 +126,7 @@ After all, when we call `tn_event_clear(&my_event_obj, flags)`, we might expect 
 
 In TNeo, there is no such *event* object. Instead, there is object *events group*. Attributes like `...SINGLE`, `...MULTI`, `...CLR` are removed, since they make no sense for events group. Instead, you may set the flag `#TN_EVENTGRP_WMODE_AUTOCLR` when task is going to wait for some event bit(s), and then these event bit(s) will be atomically cleared automatically when task successfully finishes waiting for these bits.
 
-TNeo also offers a very useful feature: connecting an event group to other kernel objects. Read \ref tnkernel_new_features__eventgrp_conn "below".
+TNeo also offers a very useful feature: connecting an event group to other kernel objects. Refer to the section \ref eventgrp_connect.
 
 For detailed API reference, refer to the `tn_eventgrp.h`.
 
@@ -136,70 +136,9 @@ In original TNKernel, system functions refused to perform job and returned `#TER
 
 \section tnkernel_new_features New features
 
-\subsection tnkernel_new_features__stack_overflow_check Software stack overflow check
+Well, I'm tired of maintaining this additional list of features, so I just say that there is a lot of new features: timers, event group connection, stack overflow check, recursive mutexes, mutex deadlock detection, profiler, dynamic tick, etc.
 
-On architectures where hardware stack overflow check isn't available, software check is on by default. Refer to `#TN_STACK_OVERFLOW_CHECK` option for details.
-
-
-\subsection tnkernel_new_features__eventgrp_conn Event group connection
-
-Sometimes task needs to wait for different system events, the most common
-examples are:
-
-- wait for a message from the queue(s) plus wait for some
-  application-dependent event (such as a flag to finish the task, or
-  whatever);
-- wait for messages from multiple queues.
-
-If the kernel doesn't offer a mechanism for that, programmer usually have to
-use polling services on these queues and sleep for a few system ticks.
-Obviously, this approach has serious drawbacks: we have a lot of useless
-context switches, and response for the message gets much slower. Actually, we
-lost the main goal of the preemptive kernel when we use polling services like
-that.
-
-TNeo (since \ref changelog_v1_03) offers a solution: an event group can
-be connected to other kernel objects, and these objects will maintain certain
-flags inside that event group automatically.
-
-Refer to the section \ref eventgrp_connect for details.
-
-\subsection tnkernel_new_features__timer Timers
-
-Support of timers was added since TNeo \ref changelog_v1_02.
-
-Timer is a kernel object that is used to ask the kernel to call some user-provided function at a particular time in the future, based on the $(TN_SYS_TIMER_LINK) tick.
-
-If you need to repeatedly wake up particular task, you can create semaphore which you should \ref tn_sem_wait() "wait for" in the task, and \ref tn_sem_isignal() "signal" in the timer callback.
-
-If you need to perform rather fast action (such as toggle some pin, or the like), consider doing that right in the timer callback, in order to avoid context switch overhead.
-
-The timer callback approach provides ultimate flexibility.
-
-For details, refer to the \ref tn_timer.h "timers documentation".
-
-\subsection tnkernel_diff_mutex_rec Recursive mutexes
-
-Sometimes I feel lack of mutexes that allow recursive locking. I know there are developers who believe that recursive locking leads to the code of lower quality, and I understand it. Even Linux kernel doesn't have recursive mutexes.
-
-Sometimes they are really useful though (say, if you want to use some third-party library that requires locking primitives to be recursive), so I decided to implement an option for that: `#TN_MUTEX_REC`. If it is non-zero, mutexes allow recursive locking; otherwise you get `#TN_RC_ILLEGAL_USE` when you try to lock mutex that is already locked by this task. Default value: `1`.
-
-\subsection tnkernel_diff_mutex_deadlock Mutex deadlock detection
-
-TNeo can notify you by calling your callback function if deadlock occurs. See:
-
-  - compile-time option `#TN_MUTEX_DEADLOCK_DETECT`,
-  - `tn_callback_deadlock_set()`, 
-  - `#TN_CBDeadlock`.
-
-\subsection tnkernel_diff_new_functions New system services added
-
-Several system services were added:
-
-  - `tn_cur_task_get()` : return a pointer to the `struct TN_Task` of the currently running task;
-  - `tn_cur_task_body_get()` : return pointer to the currently running task body function;
-  - `tn_task_state_get()` : get state of the task.
-
+Refer to the generic \ref features "feature list".
 
 
 \section tnkernel_new_api Compatible API changes
