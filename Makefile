@@ -20,6 +20,21 @@ all:                                                           \
 	$(BIN_DIR)/tneokernel_pic24_dspic_eds_xc16.a                \
 	$(BIN_DIR)/tneokernel_pic24_dspic_noeds_xc16.a
 
+.PHONY:                                                        \
+	$(BIN_DIR)/tneokernel_cortex_m0_arm-none-eabi-gcc.a         \
+	$(BIN_DIR)/tneokernel_cortex_m0plus_arm-none-eabi-gcc.a     \
+	$(BIN_DIR)/tneokernel_cortex_m1_arm-none-eabi-gcc.a         \
+	$(BIN_DIR)/tneokernel_cortex_m3_arm-none-eabi-gcc.a         \
+	$(BIN_DIR)/tneokernel_cortex_m4_arm-none-eabi-gcc.a         \
+	$(BIN_DIR)/tneokernel_cortex_m4f_arm-none-eabi-gcc.a        \
+	$(BIN_DIR)/tneokernel_cortex_m0_clang.a                     \
+	$(BIN_DIR)/tneokernel_cortex_m3_clang.a                     \
+	$(BIN_DIR)/tneokernel_cortex_m4_clang.a                     \
+	$(BIN_DIR)/tneokernel_pic32mx_xc32.a                        \
+	$(BIN_DIR)/tneokernel_pic24_dspic_eds_xc16.a                \
+	$(BIN_DIR)/tneokernel_pic24_dspic_noeds_xc16.a
+
+
 $(BIN_DIR)/tneokernel_cortex_m0_arm-none-eabi-gcc.a :
 	make -f Makefile-single TN_ARCH=cortex_m0 TN_COMPILER=arm-none-eabi-gcc
 
