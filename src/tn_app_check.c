@@ -88,7 +88,7 @@ static struct _TN_BuildCfg _build_cfg;
  * Dummy function that helps user to undefstand that he/she forgot to add file
  * tn_app_check.c to the project. It is called from tn_sys.c .
  */
-you_should_add_file___tn_app_check_c___to_the_project(void)
+void you_should_add_file___tn_app_check_c___to_the_project(void)
 {
 }
 

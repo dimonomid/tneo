@@ -156,7 +156,7 @@ int _tn_deadlocks_cnt = 0;
  ******************************************************************************/
 
 extern const struct _TN_BuildCfg *tn_app_build_cfg_get(void);
-extern you_should_add_file___tn_app_check_c___to_the_project(void);
+extern void you_should_add_file___tn_app_check_c___to_the_project(void);
 
 
 
