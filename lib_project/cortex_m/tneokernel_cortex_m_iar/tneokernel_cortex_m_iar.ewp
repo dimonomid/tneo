@@ -30,7 +30,7 @@
         <option>
           <name>Variant</name>
           <version>20</version>
-          <state>39</state>
+          <state>34</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -138,12 +138,12 @@
         <option>
           <name>GFPUCoreSlave</name>
           <version>20</version>
-          <state>39</state>
+          <state>34</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
           <version>20</version>
-          <state>39</state>
+          <state>34</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
@@ -912,7 +912,7 @@
         </option>
         <option>
           <name>IarchiveOutput</name>
-          <state>G:\rtos_check\lib\mc\tnkernel_df\lib_project\cortex_m\tneokernel_cortex_m_iar\Debug\Exe\tneokernel_cortex_m_iar.a</state>
+          <state>G:\RTOS_CHECK\lib\mc\TNKERNEL_DF\LIB_PROJECT\cortex_m\TNEOKERNEL_CORTEX_M_IAR\Debug\Exe\tneokernel_cortex_m_iar.a</state>
         </option>
       </data>
     </settings>
@@ -950,7 +950,7 @@
         <option>
           <name>Variant</name>
           <version>20</version>
-          <state>0</state>
+          <state>34</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -963,7 +963,7 @@
         </option>
         <option>
           <name>Input description</name>
-          <state></state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>Output variant</name>
@@ -972,7 +972,7 @@
         </option>
         <option>
           <name>Output description</name>
-          <state></state>
+          <state>Automatic choice of formatter.</state>
         </option>
         <option>
           <name>GOutputBinary</name>
@@ -999,7 +999,7 @@
         </option>
         <option>
           <name>RTDescription</name>
-          <state></state>
+          <state>Use the normal configuration of the C/C++ runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
         </option>
         <option>
           <name>OGProductVersion</name>
@@ -1007,7 +1007,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state></state>
+          <state>6.50.3.4744</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1019,7 +1019,7 @@
         </option>
         <option>
           <name>OGChipSelectEditMenu</name>
-          <state></state>
+          <state>Default	None</state>
         </option>
         <option>
           <name>GenLowLevelInterface</name>
@@ -1027,7 +1027,7 @@
         </option>
         <option>
           <name>GEndianModeBE</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>OGBufferedTerminalOutput</name>
@@ -1053,17 +1053,17 @@
         </option>
         <option>
           <name>RTConfigPath2</name>
-          <state></state>
+          <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
         </option>
         <option>
           <name>GFPUCoreSlave</name>
           <version>20</version>
-          <state>1</state>
+          <state>34</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
           <version>20</version>
-          <state>1</state>
+          <state>34</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
@@ -1197,7 +1197,7 @@
         </option>
         <option>
           <name>OutputFile</name>
-          <state></state>
+          <state>$FILE_BNAME$.o</state>
         </option>
         <option>
           <name>CCLibConfigHeader</name>
@@ -1242,7 +1242,7 @@
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>1</state>
+          <state>3</state>
         </option>
         <option>
           <name>CompilerMisraRules98</name>
@@ -1442,7 +1442,7 @@
         </option>
         <option>
           <name>AOutputFile</name>
-          <state></state>
+          <state>$FILE_BNAME$.o</state>
         </option>
         <option>
           <name>AMultibyteSupport</name>
@@ -1546,7 +1546,7 @@
         </option>
         <option>
           <name>IlinkOutputFile</name>
-          <state>###Unitialized###</state>
+          <state>tneokernel_cortex_m_iar.out</state>
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>

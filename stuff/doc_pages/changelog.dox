@@ -7,8 +7,6 @@ TNeoKernel changelog
 
 \section changelog_current Current development version (BETA)
 
-\subsection changelog_current_compatible Compatible changes
-
   - Cortex-M0/M0+/M1/M3/M4/M4F architectures are now supported. 
     - The following compilers are tested:
       - ARMCC (Keil RealView)
@@ -30,9 +28,6 @@ TNeoKernel changelog
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.
-
-\subsection changelog_current_uncompatible Unompatible changes
-
   - Added run-time check which ensures that build-time options for the kernel
     match ones for the application. For details, refer to the option
     `#TN_CHECK_BUILD_CFG`. <b>Note</b>: in your existing project that uses
