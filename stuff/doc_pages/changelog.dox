@@ -24,6 +24,9 @@ TNeoKernel changelog
     documentation of `struct #TN_TaskTiming` for details.
   - Old TNKernel events compatibility mode, see `#TN_OLD_EVENT_API` for
     details.
+  - Event groups: added `#TN_EVENTGRP_WMODE_AUTOCLR` flag which allows to 
+    clear event bits atomically when task successfully finishes waiting for 
+    these event bits.
   - PIC24/dsPIC: little optimization: ffs (find-first-set bit) is implemented
     in an efficient PIC24/dsPIC-specific way, so finding next task to run
     now works a bit faster.

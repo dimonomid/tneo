@@ -118,8 +118,8 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /**
- * Events waiting mode: wait for all flags to be set or just for any of the 
- * specified flags to be set.
+ * Events waiting mode that should be given to `#tn_eventgrp_wait()` and
+ * friends.
  */
 enum TN_EGrpWaitMode {
    ///
@@ -182,8 +182,8 @@ enum TN_EGrpAttr {
    /// This flag is mutually exclusive with `#TN_EVENTGRP_ATTR_SINGLE` flag.
    TN_EVENTGRP_ATTR_MULTI     = (1 << 1),
    ///
-   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
-   /// non-zero.
+   /// \attention strongly deprecated. Available if only `#TN_OLD_EVENT_API`
+   /// option is non-zero. Use `#TN_EVENTGRP_WMODE_AUTOCLR` instead.
    ///
    /// Can be specified only in conjunction with `#TN_EVENTGRP_ATTR_SINGLE`
    /// flag. Indicates that <b>ALL</b> flags in this event group should be
