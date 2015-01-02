@@ -115,4 +115,7 @@ In most cases, there is no reason to enable round robin scheduling. For
 applications running multiple copies of the same code, however, (GUI
 windows, etc), round robin scheduling is an acceptable solution.
 
+\attention
+Round-robin is not supported in \ref time_ticks__dynamic_tick mode.
+
 */

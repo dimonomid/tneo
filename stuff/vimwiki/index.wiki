@@ -9,24 +9,12 @@
 == Routine ==
 
    * [ ] Exchange object
+   * [ ] Make round-robin supported in dynamic tick mode (it should be powered by timers)
    * [X] rename tn_callback_... to _tn_cb_....
    * [X] check_param functions: make them take pointer to `const` struct.
    * [X] remove "public data" sections, there might be protected or private data only.
    * [X] add comments to _tn_list.h suggesting that macros were changed because the kernel can't use gcc-specific extensions such as typeof().
 
-
-=== profiler ===
-
-   * [X] profiler for all platforms
-   * [X] add TN_ON_SWITCH_CONTEXT_HANDLER_PRESENT, which should reflect TN_STACK_OVERFLOW_CHECK as well (in the future).
-   * [X] refactor profiler structure names
-   * [X] document things
-   * [X] document profiler functionality in arch-dependent functions
-   * [X] system service for getting profiler information
-   * [X] make TN_PROFILER off by default
-   * [ ] add service to set task name
-   * [ ] test without TN_PROFILER
-   * [ ] test without TN_DEBUG
 
 === dynamic tick ===
 
@@ -34,10 +22,10 @@
    * [X] at the quick_guide page, add something about dynamic tick.
    * [X] document TN_DYNAMIC_TICK
    * [X] timers_implementation: move to tn_timer_static.c or create tn_timer_static.h and move there
-   * [ ] probably, make round_robin unsupported if TN_DYNAMIC_TICK is on? it makes a little sense to bother with dynamic tick, and then wake up regularly for round robin
+   * [X] test overflow of the tick count (init it to something like 0xffffff00)
+   * [X] probably, make round_robin unsupported if TN_DYNAMIC_TICK is on? it makes a little sense to bother with dynamic tick, and then wake up regularly for round robin
    * [ ] think carefully what happens if system tick count changes after we get it in tn_tick_int_processing(), and then, some timer function gets executed and it calls tn_timer_start()
    * [ ] at the page time_ticks.dox, probably show easy yet not so efficient implementation with dynamic tick
-   * [ ] test overflow of the tick count (init it to something like 0xffffff00)
 
 
 === PIC24/dsPIC port ===
@@ -79,14 +67,11 @@
 == Plans ==
 
    * [ ] Exchange object: see AVIX User Guide & Reference Guide, 6.6.8
-   * [ ] Event group: probably, add mask of flags that should be cleared automatically when any task `wait`s for it
    * [ ] Add a destroy callback for each task, this callback (if not NULL) should be called whenever task is terminated with `tn_task_exit()` or `tn_task_terminate()`.
    * [o] Examples
       * [X] Separate platform-dependent code from the real example project code
       * [ ] Provide examples for all common system services: timers, queues, etc.
-   * [ ] Port to ARM
    * [ ] Test how much is it slower to use tn_arch_sr_save_int_dis()/tn_arch_sr_restore() instead of TN_INT_DIS_SAVE()/TN_INT_RESTORE()
-   * [ ] Optionally, check if stack pointer is overflowed on each context switch.
 
 
 

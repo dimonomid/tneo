@@ -52,5 +52,7 @@ Then, a couple of callback prototypes becomes available:
 And you must provide these callbacks to `#tn_callback_dyn_tick_set()`
 <b>before</b> starting the system (i.e. before calling `#tn_sys_start()`)
 
+\attention
+In dynamic tick mode, \ref round_robin "round-robin" is not yet supported.
 
 */
