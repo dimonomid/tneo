@@ -14,20 +14,22 @@
                    projectFiles="true">
       <logicalFolder name="arch" displayName="arch" projectFiles="true">
         <logicalFolder name="pic32" displayName="pic32" projectFiles="true">
-          <itemPath>../tn_arch_pic32.c</itemPath>
-          <itemPath>../tn_arch_pic32mx_xc32.S</itemPath>
+          <itemPath>../../../src/arch/pic32/tn_arch_pic32.c</itemPath>
+          <itemPath>../../../src/arch/pic32/tn_arch_pic32mx_xc32.S</itemPath>
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="core" displayName="core" projectFiles="true">
-        <itemPath>../../../core/tn_mutex.c</itemPath>
-        <itemPath>../../../core/tn_sem.c</itemPath>
-        <itemPath>../../../core/tn_tasks.c</itemPath>
-        <itemPath>../../../core/tn_dqueue.c</itemPath>
-        <itemPath>../../../core/tn_sys.c</itemPath>
-        <itemPath>../../../core/tn_list.c</itemPath>
-        <itemPath>../../../core/tn_eventgrp.c</itemPath>
-        <itemPath>../../../core/tn_fmem.c</itemPath>
-        <itemPath>../../../core/tn_timer.c</itemPath>
+        <itemPath>../../../src/core/tn_mutex.c</itemPath>
+        <itemPath>../../../src/core/tn_sem.c</itemPath>
+        <itemPath>../../../src/core/tn_tasks.c</itemPath>
+        <itemPath>../../../src/core/tn_dqueue.c</itemPath>
+        <itemPath>../../../src/core/tn_sys.c</itemPath>
+        <itemPath>../../../src/core/tn_list.c</itemPath>
+        <itemPath>../../../src/core/tn_eventgrp.c</itemPath>
+        <itemPath>../../../src/core/tn_fmem.c</itemPath>
+        <itemPath>../../../src/core/tn_timer.c</itemPath>
+        <itemPath>../../../src/core/tn_timer_static.c</itemPath>
+        <itemPath>../../../src/core/tn_timer_dyn.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -37,8 +39,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../../core</Elem>
-    <Elem>../..</Elem>
+    <Elem>../../../src/core</Elem>
+    <Elem>../../../src/arch</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -50,7 +52,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>1.21</languageToolchainVersion>
+        <languageToolchainVersion>1.33</languageToolchainVersion>
         <platform>2</platform>
       </toolsSet>
       <compileType>
@@ -83,7 +85,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value="../../../core;../..;../../..;../../../core/internal"/>
+                  value="../../../src/core;../../../src/arch;../../../src;../../../src/core/internal"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="true"/>
@@ -108,7 +110,8 @@
         <property key="exclude-floating-point-library" value="false"/>
         <property key="expand-macros" value="false"/>
         <property key="extra-include-directories-for-assembler" value=""/>
-        <property key="extra-include-directories-for-preprocessor" value=""/>
+        <property key="extra-include-directories-for-preprocessor"
+                  value="../../../src/core;../../../src"/>
         <property key="false-conditionals" value="false"/>
         <property key="keep-locals" value="false"/>
         <property key="list-assembly" value="false"/>
@@ -178,8 +181,10 @@
         <property key="use-indirect-calls" value="false"/>
       </C32CPP>
       <C32Global>
+        <property key="common-include-directories" value=""/>
         <property key="gp-relative-option" value=""/>
         <property key="legacy-libc" value="false"/>
+        <property key="relaxed-math" value="false"/>
         <property key="save-temps" value="false"/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
@@ -222,20 +227,29 @@
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>
         <property key="memories.configurationmemory" value="true"/>
+        <property key="memories.configurationmemory2" value="true"/>
+        <property key="memories.dataflash" value="true"/>
         <property key="memories.eeprom" value="true"/>
         <property key="memories.flashdata" value="true"/>
-        <property key="memories.id" value="true"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.end" value="0x1d07ffff"/>
+        <property key="memories.programmemory.partition2" value="true"/>
+        <property key="memories.programmemory.partition2.end"
+                  value="${memories.programmemory.partition2.end.value}"/>
+        <property key="memories.programmemory.partition2.start"
+                  value="${memories.programmemory.partition2.start.value}"/>
         <property key="memories.programmemory.start" value="0x1d000000"/>
         <property key="poweroptions.powerenable" value="false"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
+        <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preserveeeprom" value="false"/>
         <property key="programoptions.preserveprogramrange" value="false"/>
         <property key="programoptions.preserveprogramrange.end" value="0x1d07ffff"/>
         <property key="programoptions.preserveprogramrange.start" value="0x1d000000"/>
         <property key="programoptions.preserveuserid" value="false"/>
+        <property key="programoptions.programcalmem" value="false"/>
+        <property key="programoptions.programuserotp" value="false"/>
         <property key="programoptions.testmodeentrymethod" value="VPPFirst"/>
         <property key="programoptions.usehighvoltageonmclr" value="false"/>
         <property key="programoptions.uselvpprogramming" value="false"/>

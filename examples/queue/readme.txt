@@ -1,8 +1,8 @@
 
-This is an usage example of queues in TNeoKernel.
+This is an usage example of queues in TNeo.
 
 When you need to build a queue of some data objects from one task to
-another, the common pattern in the TNeoKernel is to use fixed memory pool
+another, the common pattern in the TNeo is to use fixed memory pool
 and queue together. Number of elements in the memory pool is equal to the
 number of elements in the queue. So when you need to send the message,
 you get block from the memory pool, fill it with data, and send pointer

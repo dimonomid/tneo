@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -40,7 +40,7 @@
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 //-- pointer to interrupt stack
@@ -58,7 +58,7 @@ TN_UWord *_tn_p24_int_splim            = TN_NULL;
 /*
  * See comments in the file `tn_arch.h`
  */
-void _tn_arch_sys_init(
+void _tn_arch_sys_start(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
@@ -75,6 +75,9 @@ void _tn_arch_sys_init(
                                        //   for context switch interrupt
    TN_BFA(TN_BFA_WR, IFS0, INT0IF, 0); //-- clear interrupt flag
    TN_BFA(TN_BFA_WR, IEC0, INT0IE, 1); //-- enable interrupt
+
+   //-- perform first context switch
+   _tn_arch_context_switch_now_nosave();
 }
 
 
@@ -89,6 +92,18 @@ TN_UWord *_tn_arch_stack_top_get(
    //-- on PIC24/dsPIC, stack grows from low address to high address,
    //   so, we return low address here.
    return stack_low_address;
+}
+
+
+/*
+ * See comments in the `tn_arch.h` file
+ */
+TN_UWord *_tn_arch_stack_bottom_empty_get(
+      TN_UWord      *stack_top,
+      int            stack_size
+      )
+{
+   return (stack_top + stack_size - 1);
 }
 
 
@@ -136,8 +151,7 @@ TN_UWord *_tn_arch_stack_init(
    *(stack_top++) = 0x0101;               // W01
    *(stack_top++) = 0;                    // RCOUNT
    *(stack_top++) = 0;                    // TBLPAG
-   *(stack_top++) = 0x04;                 // CORCON 
-                                          // TODO: take from real CORCON value
+   *(stack_top++) = 0x04;                 // CORCON: the PSV bit is set.
 #ifdef __HAS_EDS__
    *(stack_top++) = 0;                    // DSRPAG
    *(stack_top++) = 0;                    // DSWPAG

@@ -1,5 +1,5 @@
 
-= tneokernel dev / thoughts=
+= tneo dev / thoughts=
 
 == waiting for multiple events ==
 
@@ -50,7 +50,7 @@ Well, we want to be able to wait for multiple events atomically: say, we want to
    * pre-push: save context on the interrupt stack
    * post-push: save context on the interrupted task's stack
 
-PIC32 port of TNeoKernel uses pre-push. It doesn't allow us to immediately switch to another task after ISR returns, but instead we have the following advantages:
+PIC32 port of TNeo uses pre-push. It doesn't allow us to immediately switch to another task after ISR returns, but instead we have the following advantages:
 
    * we can use shadow register set
    * even for ISRs that don't use shadow register set, the number of registers to save is less: we shouldn't save callee-saved registers `$s0 - $s9`

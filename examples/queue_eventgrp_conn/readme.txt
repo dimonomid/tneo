@@ -1,12 +1,12 @@
 
 This is an usage example of waiting for messages from multiple queues 
-at once in TNeoKernel.
+at once in TNeo.
 
 This example is similar to the plain "queue" example (which you might 
 want to examine before this one), but in this project, task_consumer
 waits for messages from two queues at a time.
 
-To this end, TNeoKernel offers a way to connect the event group to
+To this end, TNeo offers a way to connect the event group to
 another kernel object (currently, only to queue). When an event group
 with specified flag pattern is connected to the queue, the queue maintains
 specified flag pattern automatically: if queue contains is non-empty,

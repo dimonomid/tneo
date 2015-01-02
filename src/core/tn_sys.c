@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -60,52 +60,103 @@
 #include "tn_timer.h"
 
 
+//-- for memcmp() and memset() that is used inside the macro
+//   `_TN_BUILD_CFG_STRUCT_FILL()`
+#include <string.h>
+
+//-- self-check 
+#if !defined(TN_PRIORITIES_MAX_CNT)
+#  error TN_PRIORITIES_MAX_CNT is not defined
+#endif
+
+//-- check TN_PRIORITIES_CNT
+#if (TN_PRIORITIES_CNT > TN_PRIORITIES_MAX_CNT)
+#  error TN_PRIORITIES_CNT is too large (maximum is TN_PRIORITIES_MAX_CNT)
+#endif
 
 
 /*******************************************************************************
- *    PUBLIC DATA
+ *    PRIVATE TYPES
+ ******************************************************************************/
+
+
+/*******************************************************************************
+ *    PROTECTED DATA
+ ******************************************************************************/
+
+// See comments in the internal/_tn_sys.h file
+struct TN_ListItem _tn_tasks_ready_list[TN_PRIORITIES_CNT];
+
+// See comments in the internal/_tn_sys.h file
+struct TN_ListItem _tn_tasks_created_list;
+
+// See comments in the internal/_tn_sys.h file
+volatile int _tn_tasks_created_cnt;
+
+// See comments in the internal/_tn_sys.h file
+volatile enum TN_StateFlag _tn_sys_state;
+
+// See comments in the internal/_tn_sys.h file
+struct TN_Task *_tn_next_task_to_run;
+
+// See comments in the internal/_tn_sys.h file
+struct TN_Task *_tn_curr_run_task;
+
+// See comments in the internal/_tn_sys.h file
+volatile unsigned int _tn_ready_to_run_bmp;
+
+// See comments in the internal/_tn_sys.h file
+struct TN_Task _tn_idle_task;
+
+
+
+
+
+/*******************************************************************************
+ *    PRIVATE DATA
  ******************************************************************************/
 
 /*
- * For comments on these variables, please see _tn_sys.h file.
+ * NOTE: as long as these variables are private, they could be declared as
+ * `static` actually, but for easier debug they are left global.
  */
-struct TN_ListItem tn_ready_list[TN_PRIORITIES_CNT];
-struct TN_ListItem tn_create_queue;
-volatile int tn_created_tasks_cnt;
 
-unsigned short tn_tslice_ticks[TN_PRIORITIES_CNT];
 
-volatile enum TN_StateFlag tn_sys_state;
+/// Pointer to user idle callback function, it is called regularly
+/// from the idle task.
+TN_CBIdle *_tn_cb_idle_hook = TN_NULL;
 
-struct TN_Task *tn_next_task_to_run;
-struct TN_Task *tn_curr_run_task;
+/// Pointer to stack overflow callback function. When stack overflow
+/// is detected by the kernel, this function is called.
+/// (see `#TN_STACK_OVERFLOW_CHECK`)
+TN_CBStackOverflow *_tn_cb_stack_overflow = TN_NULL;
 
-volatile unsigned int tn_ready_to_run_bmp;
+/// User-provided callback function that is called whenever 
+/// mutex deadlock occurs.
+/// (see `#TN_MUTEX_DEADLOCK_DETECT`)
+TN_CBDeadlock *_tn_cb_deadlock = TN_NULL;
 
-volatile unsigned int tn_sys_time_count;
-
+/// Time slice values for each available priority, in system ticks.
+unsigned short _tn_tslice_ticks[TN_PRIORITIES_CNT];
 
 #if TN_MUTEX_DEADLOCK_DETECT
-volatile int tn_deadlocks_cnt = 0;
+/// Number of deadlocks active at the moment. Normally it is equal to 0.
+int _tn_deadlocks_cnt = 0;
 #endif
 
-//-- System tasks
 
-//-- idle task - priority (TN_PRIORITIES_CNT - 1) - lowest
+/*******************************************************************************
+ *    PRIVATE DATA
+ ******************************************************************************/
 
-struct TN_Task  tn_idle_task;
-static void _idle_task_body(void * par);
 
-/**
- * Pointer to user idle loop function
- */
-TN_CBIdle        *tn_callback_idle_hook = TN_NULL;
 
-/**
- * User-provided callback function that is called whenever 
- * event occurs (say, deadlock becomes active or inactive)
- */
-TN_CBDeadlock    *tn_callback_deadlock = TN_NULL;
+/*******************************************************************************
+ *    EXTERNAL FUNCTION PROTOTYPES
+ ******************************************************************************/
+
+extern const struct _TN_BuildCfg *tn_app_build_cfg_get(void);
+extern void you_should_add_file___tn_app_check_c___to_the_project(void);
 
 
 
@@ -121,28 +172,38 @@ static void _idle_task_body(void *par)
    //-- enter endless loop with calling user-provided hook function
    for(;;)
    {
-      tn_callback_idle_hook();
+      _tn_cb_idle_hook();
    }
 }
 
 /**
  * Manage round-robin (if used)
  */
-static inline void _round_robin_manage(void)
+#if TN_DYNAMIC_TICK
+
+static _TN_INLINE void _round_robin_manage(void) {
+   /*TODO: round-robin should be powered by timers mechanism.
+    * So, when round-robin is active, the system isn't so "tickless".
+    */
+}
+
+#else
+
+static _TN_INLINE void _round_robin_manage(void)
 {
    //-- volatile is used here only to solve
    //   IAR(c) compiler's high optimization mode problem
-   volatile struct TN_ListItem *curr_que;
-   volatile struct TN_ListItem *pri_queue;
-   volatile int priority = tn_curr_run_task->priority;
+   _TN_VOLATILE_WORKAROUND struct TN_ListItem *curr_que;
+   _TN_VOLATILE_WORKAROUND struct TN_ListItem *pri_queue;
+   _TN_VOLATILE_WORKAROUND int priority = _tn_curr_run_task->priority;
 
-   if (tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
-      tn_curr_run_task->tslice_count++;
+   if (_tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
+      _tn_curr_run_task->tslice_count++;
 
-      if (tn_curr_run_task->tslice_count > tn_tslice_ticks[priority]){
-         tn_curr_run_task->tslice_count = 0;
+      if (_tn_curr_run_task->tslice_count > _tn_tslice_ticks[priority]){
+         _tn_curr_run_task->tslice_count = 0;
 
-         pri_queue = &(tn_ready_list[priority]);
+         pri_queue = &(_tn_tasks_ready_list[priority]);
          //-- If ready queue is not empty and there are more than 1 
          //   task in the queue
          if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
@@ -152,9 +213,9 @@ static inline void _round_robin_manage(void)
             //-- Remove task from head and add it to the tail of
             //-- ready queue for current priority
 
-            curr_que = _tn_list_remove_head(&(tn_ready_list[priority]));
+            curr_que = _tn_list_remove_head(&(_tn_tasks_ready_list[priority]));
             _tn_list_add_tail(
-                  &(tn_ready_list[priority]),
+                  &(_tn_tasks_ready_list[priority]),
                   (struct TN_ListItem *)curr_que
                   );
          }
@@ -162,25 +223,260 @@ static inline void _round_robin_manage(void)
    }
 }
 
+#endif
+
+
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+#if TN_PROFILER
+/**
+ * This function is called at every context switch, if `#TN_PROFILER` is 
+ * non-zero.
+ *
+ * @param task_prev
+ *    Task that was running, and now it is going to wait
+ * @param task_new
+ *    Task that was waiting, and now it is going to run
+ */
+static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+      struct TN_Task *task_prev,
+      struct TN_Task *task_new
+      )
+{
+   //-- interrupts should be disabled here
+   _TN_BUG_ON(!TN_IS_INT_DISABLED());
+
+   TN_TickCnt cur_tick_cnt = _tn_timer_sys_time_get();
+
+   //-- handle task_prev (the one that was running and going to wait) {{{
+   {
+#if TN_DEBUG
+      if (!task_prev->profiler.is_running){
+         _TN_FATAL_ERROR();
+      }
+      task_prev->profiler.is_running = 0;
+#endif
+
+      //-- get difference between current time and last saved time:
+      //   this is the time task was running.
+      TN_TickCnt cur_run_time
+         = (TN_TickCnt)(cur_tick_cnt - task_prev->profiler.last_tick_cnt);
+
+      //-- add it to total run time
+      task_prev->profiler.timing.total_run_time += cur_run_time;
+
+      //-- check if we should update consecutive max run time
+      if (task_prev->profiler.timing.max_consecutive_run_time < cur_run_time){
+         task_prev->profiler.timing.max_consecutive_run_time = cur_run_time;
+      }
+
+      //-- update current task state
+      task_prev->profiler.last_tick_cnt      = cur_tick_cnt;
+#if TN_PROFILER_WAIT_TIME
+      task_prev->profiler.last_wait_reason   = task_prev->task_wait_reason;
+#endif
+   }
+   // }}}
+
+   //-- handle task_new (the one that was waiting and going to run) {{{
+   {
+#if TN_DEBUG
+      if (task_new->profiler.is_running){
+         _TN_FATAL_ERROR();
+      }
+      task_new->profiler.is_running = 1;
+#endif
+
+#if TN_PROFILER_WAIT_TIME
+      //-- get difference between current time and last saved time:
+      //   this is the time task was waiting.
+      TN_TickCnt cur_wait_time
+         = (TN_TickCnt)(cur_tick_cnt - task_new->profiler.last_tick_cnt);
+
+      //-- add it to total total_wait_time for particular wait reason
+      task_new->profiler.timing.total_wait_time
+         [ task_new->profiler.last_wait_reason ] 
+         += cur_wait_time;
+
+      //-- check if we should update consecutive max wait time
+      if (
+            task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] < cur_wait_time
+         )
+      {
+         task_new->profiler.timing.max_consecutive_wait_time
+            [ task_new->profiler.last_wait_reason ] = cur_wait_time;
+      }
+#endif
+
+      //-- increment the counter of times task got running
+      task_new->profiler.timing.got_running_cnt++;
+
+      //-- update current task state
+      task_new->profiler.last_tick_cnt      = cur_tick_cnt;
+   }
+   // }}}
+}
+#else
+
+/**
+ * Stub empty function, it is needed when `#TN_PROFILER` is zero.
+ */
+static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+      struct TN_Task *task_prev, //-- task was running, going to wait
+      struct TN_Task *task_new   //-- task was waiting, going to run
+      )
+{}
+#endif
+#endif
+
+
+#if TN_STACK_OVERFLOW_CHECK
+/**
+ * if `#TN_STACK_OVERFLOW_CHECK` is non-zero, this function is called at every
+ * context switch as well as inside `#tn_tick_int_processing()`.
+ *
+ * @param task
+ *    Task to check
+ */
+static _TN_INLINE void _tn_sys_stack_overflow_check(
+      struct TN_Task *task
+      )
+{
+   //-- interrupts should be disabled here
+   _TN_BUG_ON(!TN_IS_INT_DISABLED());
+
+   //-- check that stack bottom has the value `TN_FILL_STACK_VAL`
+
+   TN_UWord *p_word = _tn_arch_stack_bottom_empty_get(
+         task->base_stack_top, task->stack_size
+         );
+
+   if (*p_word != TN_FILL_STACK_VAL){
+      if (_tn_cb_stack_overflow != NULL){
+         _tn_cb_stack_overflow(task);
+      } else {
+         _TN_FATAL_ERROR("stack overflow");
+      }
+   }
+}
+#else
+
+/**
+ * Stub empty function, it is needed when `#TN_STACK_OVERFLOW_CHECK` is zero.
+ */
+static _TN_INLINE void _tn_sys_stack_overflow_check(
+      struct TN_Task *task
+      )
+{}
+#endif
+
 /**
  * Create idle task, the task is NOT started after creation.
  */
-static inline enum TN_RCode _idle_task_create(
+static _TN_INLINE enum TN_RCode _idle_task_create(
       TN_UWord      *idle_task_stack,
       unsigned int   idle_task_stack_size
       )
 {
    return tn_task_create(
-         (struct TN_Task*)&tn_idle_task,  //-- task TCB
+         (struct TN_Task*)&_tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_PRIORITIES_CNT - 1,           //-- task priority
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
-         TN_NULL,                            //-- task function parameter
-         (TN_TASK_CREATE_OPT_IDLE)        //-- Creation option
+         TN_NULL,                         //-- task function parameter
+         (_TN_TASK_CREATE_OPT_IDLE)       //-- Creation option
          );
 }
+
+#if TN_CHECK_BUILD_CFG
+static void _build_cfg_check(void)
+{
+   struct _TN_BuildCfg kernel_build_cfg;
+   _TN_BUILD_CFG_STRUCT_FILL(&kernel_build_cfg);
+
+   //-- call dummy function that helps user to undefstand that
+   //   he/she forgot to add file tn_app_check.c to the project
+   you_should_add_file___tn_app_check_c___to_the_project();
+
+   //-- get application build cfg
+   const struct _TN_BuildCfg *app_build_cfg = tn_app_build_cfg_get();
+
+   //-- now, check each option
+
+   if (kernel_build_cfg.priorities_cnt != app_build_cfg->priorities_cnt){
+      _TN_FATAL_ERROR("TN_PRIORITIES_CNT doesn't match");
+   }
+
+   if (kernel_build_cfg.check_param != app_build_cfg->check_param){
+      _TN_FATAL_ERROR("TN_CHECK_PARAM doesn't match");
+   }
+
+   if (kernel_build_cfg.debug != app_build_cfg->debug){
+      _TN_FATAL_ERROR("TN_DEBUG doesn't match");
+   }
+
+   if (kernel_build_cfg.use_mutexes != app_build_cfg->use_mutexes){
+      _TN_FATAL_ERROR("TN_USE_MUTEXES doesn't match");
+   }
+
+   if (kernel_build_cfg.mutex_rec != app_build_cfg->mutex_rec){
+      _TN_FATAL_ERROR("TN_MUTEX_REC doesn't match");
+   }
+
+   if (kernel_build_cfg.mutex_deadlock_detect != app_build_cfg->mutex_deadlock_detect){
+      _TN_FATAL_ERROR("TN_MUTEX_DEADLOCK_DETECT doesn't match");
+   }
+
+   if (kernel_build_cfg.tick_lists_cnt_minus_one != app_build_cfg->tick_lists_cnt_minus_one){
+      _TN_FATAL_ERROR("TN_TICK_LISTS_CNT doesn't match");
+   }
+
+   if (kernel_build_cfg.api_make_alig_arg != app_build_cfg->api_make_alig_arg){
+      _TN_FATAL_ERROR("TN_API_MAKE_ALIG_ARG doesn't match");
+   }
+
+   if (kernel_build_cfg.profiler != app_build_cfg->profiler){
+      _TN_FATAL_ERROR("TN_PROFILER doesn't match");
+   }
+
+   if (kernel_build_cfg.profiler_wait_time != app_build_cfg->profiler_wait_time){
+      _TN_FATAL_ERROR("TN_PROFILER_WAIT_TIME doesn't match");
+   }
+
+   if (kernel_build_cfg.stack_overflow_check != app_build_cfg->stack_overflow_check){
+      _TN_FATAL_ERROR("TN_STACK_OVERFLOW_CHECK doesn't match");
+   }
+
+   if (kernel_build_cfg.dynamic_tick != app_build_cfg->dynamic_tick){
+      _TN_FATAL_ERROR("TN_DYNAMIC_TICK doesn't match");
+   }
+
+   if (kernel_build_cfg.old_events_api != app_build_cfg->old_events_api){
+      _TN_FATAL_ERROR("TN_OLD_EVENT_API doesn't match");
+   }
+
+#if defined (__TN_ARCH_PIC24_DSPIC__)
+   if (kernel_build_cfg.arch.p24.p24_sys_ipl != app_build_cfg->arch.p24.p24_sys_ipl){
+      _TN_FATAL_ERROR("TN_P24_SYS_IPL doesn't match");
+   }
+#endif
+
+
+   //-- for the case I forgot to add some param above, perform generic check
+   TN_BOOL cfg_match = 
+      !memcmp(&kernel_build_cfg, app_build_cfg, sizeof(kernel_build_cfg));
+
+   if (!cfg_match){
+      _TN_FATAL_ERROR("configuration mismatch");
+   }
+}
+#else 
+
+static inline void _build_cfg_check(void) {}
+
+#endif
 
 
 
@@ -201,51 +497,49 @@ void tn_sys_start(
       TN_CBIdle           *cb_idle
       )
 {
-   int i;
+   unsigned int i;
    enum TN_RCode rc;
 
-   //-- call architecture-dependent initialization
-   _tn_arch_sys_init(int_stack, int_stack_size);
+   //-- init timers
+   _tn_timers_init();
+
+   //-- check that build configuration for the kernel and application match
+   //   (if only TN_CHECK_BUILD_CFG is non-zero)
+   _build_cfg_check();
 
    //-- for each priority: 
    //   - reset list of runnable tasks with this priority
    //   - reset time slice to `#TN_NO_TIME_SLICE`
    for (i = 0; i < TN_PRIORITIES_CNT; i++){
-      _tn_list_reset(&(tn_ready_list[i]));
-      tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
+      _tn_list_reset(&(_tn_tasks_ready_list[i]));
+      _tn_tslice_ticks[i] = TN_NO_TIME_SLICE;
    }
 
    //-- reset generic task queue and task count to 0
-   _tn_list_reset(&tn_create_queue);
-   tn_created_tasks_cnt = 0;
+   _tn_list_reset(&_tn_tasks_created_list);
+   _tn_tasks_created_cnt = 0;
 
    //-- initial system flags: no flags set (see enum TN_StateFlag)
-   tn_sys_state = (0);  
+   _tn_sys_state = (enum TN_StateFlag)(0);  
 
    //-- reset bitmask of priorities with runnable tasks
-   tn_ready_to_run_bmp = 0;
-
-   //-- reset system time
-   tn_sys_time_count = 0;
+   _tn_ready_to_run_bmp = 0;
 
    //-- reset pointers to currently running task and next task to run
-   tn_next_task_to_run = TN_NULL;
-   tn_curr_run_task    = TN_NULL;
+   _tn_next_task_to_run = TN_NULL;
+   _tn_curr_run_task    = TN_NULL;
 
    //-- remember user-provided callbacks
-   tn_callback_idle_hook = cb_idle;
+   _tn_cb_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
 
-   //-- init timers
-   _tn_timers_init();
-
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
-    *       because otherwise tn_next_task_to_run would point on the task
+    *       because otherwise _tn_next_task_to_run would point on the task
     *       that isn't yet created, and it produces issues
     *       with order of task creation.
     *
@@ -260,16 +554,21 @@ void tn_sys_start(
    }
 
    //-- Just for the _tn_task_set_runnable() proper operation
-   tn_next_task_to_run = &tn_idle_task; 
+   _tn_next_task_to_run = &_tn_idle_task; 
 
    //-- make system tasks runnable
-   rc = _tn_task_activate(&tn_idle_task);
+   rc = _tn_task_activate(&_tn_idle_task);
    if (rc != TN_RC_OK){
       _TN_FATAL_ERROR("failed to activate idle task");
    }
 
-   //-- set tn_curr_run_task to idle task
-   tn_curr_run_task = &tn_idle_task;
+   //-- set _tn_curr_run_task to idle task
+   _tn_curr_run_task = &_tn_idle_task;
+#if TN_PROFILER
+#if TN_DEBUG
+   _tn_idle_task.profiler.is_running = 1;
+#endif
+#endif
 
    //-- now, we can create user's task(s)
    //   (by user-provided callback)
@@ -277,10 +576,14 @@ void tn_sys_start(
 
    //-- set flag that system is running
    //   (well, it will be running soon actually)
-   tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
+   _tn_sys_state |= TN_STATE_FLAG__SYS_RUNNING;
 
-   //-- Run OS - first context switch
-   _tn_arch_context_switch_now_nosave();
+   //-- call architecture-dependent initialization and run the kernel:
+   //   (perform first context switch)
+   _tn_arch_sys_start(int_stack, int_stack_size);
+
+   //-- should never be here
+   _TN_FATAL_ERROR("should never be here");
 }
 
 
@@ -299,14 +602,14 @@ enum TN_RCode tn_tick_int_processing(void)
 
       TN_INT_IDIS_SAVE();
 
-      //-- increment system timer
-      tn_sys_time_count++;
-
-      //-- manage round-robin (if used)
-      _round_robin_manage();
+      //-- check stack overflow
+      _tn_sys_stack_overflow_check(_tn_curr_run_task);
 
       //-- manage timers
       _tn_timers_tick_proceed();
+
+      //-- manage round-robin (if used)
+      _round_robin_manage();
 
       TN_INT_IRESTORE();
       _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
@@ -333,7 +636,7 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
       TN_INTSAVE_DATA;
 
       TN_INT_DIS_SAVE();
-      tn_tslice_ticks[priority] = ticks;
+      _tn_tslice_ticks[priority] = ticks;
       TN_INT_RESTORE();
    }
    return rc;
@@ -342,18 +645,24 @@ enum TN_RCode tn_sys_tslice_set(int priority, int ticks)
 /*
  * See comments in the header file (tn_sys.h)
  */
-unsigned int tn_sys_time_get(void)
+TN_TickCnt tn_sys_time_get(void)
 {
-   //-- NOTE: it works if only read access to unsigned int is atomic!
-   return tn_sys_time_count;
+   TN_TickCnt ret;
+   TN_INTSAVE_DATA;
+
+   TN_INT_DIS_SAVE();
+   ret = _tn_timer_sys_time_get();
+   TN_INT_RESTORE();
+
+   return ret;
 }
 
 /*
- * Returns current state flags (tn_sys_state)
+ * Returns current state flags (_tn_sys_state)
  */
 enum TN_StateFlag tn_sys_state_flags_get(void)
 {
-   return tn_sys_state;
+   return _tn_sys_state;
 }
 
 /*
@@ -361,7 +670,15 @@ enum TN_StateFlag tn_sys_state_flags_get(void)
  */
 void tn_callback_deadlock_set(TN_CBDeadlock *cb)
 {
-   tn_callback_deadlock = cb;
+   _tn_cb_deadlock = cb;
+}
+
+/*
+ * See comment in tn_sys.h file
+ */
+void tn_callback_stack_overflow_set(TN_CBStackOverflow *cb)
+{
+   _tn_cb_stack_overflow = cb;
 }
 
 /*
@@ -371,7 +688,7 @@ enum TN_Context tn_sys_context_get(void)
 {
    enum TN_Context ret;
 
-   if (tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
+   if (_tn_sys_state & TN_STATE_FLAG__SYS_RUNNING){
       ret = _tn_arch_inside_isr()
          ? TN_CONTEXT_ISR
          : TN_CONTEXT_TASK;
@@ -387,7 +704,7 @@ enum TN_Context tn_sys_context_get(void)
  */
 struct TN_Task *tn_cur_task_get(void)
 {
-   return tn_curr_run_task;
+   return _tn_curr_run_task;
 }
 
 /*
@@ -395,8 +712,21 @@ struct TN_Task *tn_cur_task_get(void)
  */
 TN_TaskBody *tn_cur_task_body_get(void)
 {
-   return tn_curr_run_task->task_func_addr;
+   return _tn_curr_run_task->task_func_addr;
 }
+
+
+#if TN_DYNAMIC_TICK
+
+void tn_callback_dyn_tick_set(
+      TN_CBTickSchedule   *cb_tick_schedule,
+      TN_CBTickCntGet     *cb_tick_cnt_get
+      )
+{
+   _tn_timer_dyn_callback_set(cb_tick_schedule, cb_tick_cnt_get);
+}
+
+#endif
 
 
 
@@ -419,7 +749,10 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
    //-- iterate through all tasks in the wait_queue,
    //   calling _tn_task_wait_complete() for each task,
    //   and setting TN_RC_DELETED as a wait return code.
-   _tn_list_for_each_entry_safe(task, tmp_task, wait_queue, task_queue){
+   _tn_list_for_each_entry_safe(
+         task, struct TN_Task, tmp_task, wait_queue, task_queue 
+         )
+   {
       //-- call _tn_task_wait_complete for every task
       _tn_task_wait_complete(task, TN_RC_DELETED);
    }
@@ -436,8 +769,8 @@ void _tn_wait_queue_notify_deleted(struct TN_ListItem *wait_queue)
  */
 enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
 {
-   enum TN_StateFlag ret = tn_sys_state;
-   tn_sys_state |= flags;
+   enum TN_StateFlag ret = _tn_sys_state;
+   _tn_sys_state |= flags;
    return ret;
 }
 
@@ -446,8 +779,8 @@ enum TN_StateFlag _tn_sys_state_flags_set(enum TN_StateFlag flags)
  */
 enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 {
-   enum TN_StateFlag ret = tn_sys_state;
-   tn_sys_state &= ~flags;
+   enum TN_StateFlag ret = _tn_sys_state;
+   _tn_sys_state &= ~flags;
    return ret;
 }
 
@@ -459,37 +792,42 @@ enum TN_StateFlag _tn_sys_state_flags_clear(enum TN_StateFlag flags)
 void _tn_cry_deadlock(TN_BOOL active, struct TN_Mutex *mutex, struct TN_Task *task)
 {
    if (active){
-      if (tn_deadlocks_cnt == 0){
+      //-- deadlock just became active
+      if (_tn_deadlocks_cnt == 0){
          _tn_sys_state_flags_set(TN_STATE_FLAG__DEADLOCK);
       }
 
-      tn_deadlocks_cnt++;
+      _tn_deadlocks_cnt++;
    } else {
-      tn_deadlocks_cnt--;
+      //-- deadlock just became inactive
+      _tn_deadlocks_cnt--;
 
-      if (tn_deadlocks_cnt == 0){
+      if (_tn_deadlocks_cnt == 0){
          _tn_sys_state_flags_clear(TN_STATE_FLAG__DEADLOCK);
       }
    }
 
-   if (tn_callback_deadlock != TN_NULL){
-      tn_callback_deadlock(active, mutex, task);
+   //-- if user has specified callback function for deadlock detection,
+   //   notify him by calling this function
+   if (_tn_cb_deadlock != TN_NULL){
+      _tn_cb_deadlock(active, mutex, task);
    }
 
 }
 #endif
 
-/**
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+/*
  * See comments in the file _tn_sys.h
  */
-void _tn_memcpy_uword(
-      TN_UWord *tgt, const TN_UWord *src, unsigned int size_uwords
+void _tn_sys_on_context_switch(
+      struct TN_Task *task_prev,
+      struct TN_Task *task_new
       )
 {
-   int i;
-   for (i = 0; i < size_uwords; i++){
-      *tgt++ = *src++;
-   }
+   _tn_sys_stack_overflow_check(task_prev);
+   _tn_sys_on_context_switch_profiler(task_prev, task_new);
 }
+#endif
 
 

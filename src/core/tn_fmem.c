@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -70,7 +70,9 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_create(
+      const struct TN_FMem *fmem
+      )
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -83,7 +85,9 @@ static inline enum TN_RCode _check_param_fmem_create(struct TN_FMem *fmem)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
+static _TN_INLINE enum TN_RCode _check_param_fmem_delete(
+      const struct TN_FMem *fmem
+      )
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -96,8 +100,8 @@ static inline enum TN_RCode _check_param_fmem_delete(struct TN_FMem *fmem)
    return rc;
 }
 
-static inline enum TN_RCode _check_param_job_perform(
-      struct TN_FMem *fmem,
+static _TN_INLINE enum TN_RCode _check_param_job_perform(
+      const struct TN_FMem *fmem,
       void *p_data
       )
 {
@@ -127,7 +131,7 @@ static void _cb_before_task_wait_complete(
    task->subsys_wait.fmem.data_elem = user_data_1;
 }
 
-static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
+static _TN_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = TN_NULL;
@@ -146,7 +150,7 @@ static inline enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
    return rc;
 }
 
-static inline enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
+static _TN_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -287,7 +291,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
       //-- remove all tasks (if any) from fmem's wait queue
       _tn_wait_queue_notify_deleted(&(fmem->wait_queue));
 
-      fmem->id_fmp = 0;   //-- Fixed-size memory pool does not exist now
+      fmem->id_fmp = TN_ID_NONE;   //-- Fixed-size memory pool does not exist now
 
       TN_INT_RESTORE();
 
@@ -306,7 +310,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem)
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
       void **p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    TN_BOOL waited_for_data = TN_FALSE;
@@ -337,12 +341,12 @@ enum TN_RCode tn_fmem_get(
       if (waited_for_data){
 
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
 
          //-- if wait result is TN_RC_OK, copy memory block pointer to the
          //   user's location
          if (rc == TN_RC_OK){
-            *p_data = tn_curr_run_task->subsys_wait.fmem.data_elem;
+            *p_data = _tn_curr_run_task->subsys_wait.fmem.data_elem;
          }
 
       }

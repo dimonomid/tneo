@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -63,8 +63,8 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_generic(
-      struct TN_Sem *sem
+static _TN_INLINE enum TN_RCode _check_param_generic(
+      const struct TN_Sem *sem
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -81,8 +81,8 @@ static inline enum TN_RCode _check_param_generic(
 /**
  * Additional param checking when creating semaphore
  */
-static inline enum TN_RCode _check_param_create(
-      struct TN_Sem *sem,
+static _TN_INLINE enum TN_RCode _check_param_create(
+      const struct TN_Sem *sem,
       int start_count,
       int max_count
       )
@@ -116,12 +116,12 @@ static inline enum TN_RCode _check_param_create(
  *
  * @param sem        semaphore to perform job on
  * @param p_worker   pointer to actual worker function
- * @param timeout    see `#TN_Timeout`
+ * @param timeout    see `#TN_TickCnt`
  */
-static inline enum TN_RCode _sem_job_perform(
+static _TN_INLINE enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
-      int (p_worker)(struct TN_Sem *sem),
-      TN_Timeout timeout
+      enum TN_RCode (p_worker)(struct TN_Sem *sem),
+      TN_TickCnt timeout
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
@@ -158,7 +158,7 @@ static inline enum TN_RCode _sem_job_perform(
       _tn_context_switch_pend_if_needed();
       if (waited_for_sem){
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
       }
 
    }
@@ -171,9 +171,9 @@ static inline enum TN_RCode _sem_job_perform(
  * @param sem        semaphore to perform job on
  * @param p_worker   pointer to actual worker function
  */
-static inline enum TN_RCode _sem_job_iperform(
+static _TN_INLINE enum TN_RCode _sem_job_iperform(
       struct TN_Sem *sem,
-      int (p_worker)(struct TN_Sem *sem)
+      enum TN_RCode (p_worker)(struct TN_Sem *sem)
       )
 {
    enum TN_RCode rc = _check_param_generic(sem);
@@ -194,7 +194,7 @@ static inline enum TN_RCode _sem_job_iperform(
    return rc;
 }
 
-static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
+static _TN_INLINE enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -217,7 +217,7 @@ static inline enum TN_RCode _sem_signal(struct TN_Sem *sem)
    return rc;
 }
 
-static inline enum TN_RCode _sem_wait(struct TN_Sem *sem)
+static _TN_INLINE enum TN_RCode _sem_wait(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -287,7 +287,7 @@ enum TN_RCode tn_sem_delete(struct TN_Sem * sem)
       //-- Remove all tasks from wait queue, returning the TN_RC_DELETED code.
       _tn_wait_queue_notify_deleted(&(sem->wait_queue));
 
-      sem->id_sem = 0;        //-- Semaphore does not exist now
+      sem->id_sem = TN_ID_NONE;        //-- Semaphore does not exist now
       TN_INT_RESTORE();
 
       //-- we might need to switch context if _tn_wait_queue_notify_deleted()
@@ -316,7 +316,7 @@ enum TN_RCode tn_sem_isignal(struct TN_Sem *sem)
 /*
  * See comments in the header file (tn_sem.h)
  */
-enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_Timeout timeout)
+enum TN_RCode tn_sem_wait(struct TN_Sem *sem, TN_TickCnt timeout)
 {
    return _sem_job_perform(sem, _sem_wait, timeout);
 }

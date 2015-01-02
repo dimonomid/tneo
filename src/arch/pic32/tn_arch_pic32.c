@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -94,7 +94,7 @@ extern unsigned long _gp;
  ******************************************************************************/
 
 /**
- * Self-check for the application that uses TNeoKernel:
+ * Self-check for the application that uses TNeo:
  *
  * PIC32 application must include the file 
  * src/arch/pic32/tn_arch_pic32_int_vec1.S to the main project,
@@ -102,7 +102,7 @@ extern unsigned long _gp;
  * no error is generated at the build time: we just get to the 
  * _DefaultInterrupt when we should switch context.
  *
- * Note that we can't include that file to the TNeoKernel library
+ * Note that we can't include that file to the TNeo library
  * project: it doesn't work.
  *
  * So, dummy function was invented, and if we forgot to 
@@ -135,7 +135,7 @@ void *tn_p32_int_sp;
  *    IMPLEMENTATION
  ******************************************************************************/
 
-void _tn_arch_sys_init(
+void _tn_arch_sys_start(
       TN_UWord            *int_stack,
       unsigned int         int_stack_size
       )
@@ -152,14 +152,16 @@ void _tn_arch_sys_init(
 
    //-- setup core software 0 interrupt, it should be set to lowest priority
    //   and should not use shadow register set.
-   //   (TNKernel-PIC32 port uses it for switch context routine)
+   //   (TNeo PIC32 port uses it for switch context routine)
 
-   //-- set priority 1 and subpriority 0;
-   IPC0CLR = 0x00001f00;   //-- initially, reset both priority and subp. to 0
-   IPC0SET = 0x00000400;   //-- then, set priority to 1
+   TN_BFA(TN_BFA_WR, IPC0, CS0IP, 1);  //-- set priority 1
+   TN_BFA(TN_BFA_WR, IPC0, CS0IS, 0);  //-- set subpriority 0
 
-   IFS0CLR = 0x00000002;   //-- clear interrupt flag
-   IEC0SET = 0x00000002;   //-- enable interrupt
+   TN_BFA(TN_BFA_WR, IFS0, CS0IF, 0);  //-- clear interrupt flag
+   TN_BFA(TN_BFA_WR, IEC0, CS0IE, 1);  //-- enable interrupt
+
+   //-- perform first context switch
+   _tn_arch_context_switch_now_nosave();
 }
 
 
@@ -173,13 +175,20 @@ TN_UWord *_tn_arch_stack_top_get(
       int stack_size
       )
 {
-   //-- on MIPS, stack grows from high address to low address, so,
+   //-- on MIPS, stack is "full descending stack", so
    //   we return highest stack address plus one.
-   //
-   //   **NOTE** that returned *top of the stack* is NOT the address which may
-   //   be used for storing the new data. Instead, it is the *previous*
-   //   address.
    return stack_low_address + stack_size;
+}
+
+/*
+ * See comments in the `tn_arch.h` file
+ */
+TN_UWord *_tn_arch_stack_bottom_empty_get(
+      TN_UWord      *stack_top,
+      int            stack_size
+      )
+{
+   return (stack_top - stack_size);
 }
 
 
@@ -196,7 +205,7 @@ TN_UWord *_tn_arch_stack_init(
    //-- if you got "undefined reference" error here, it means that you
    //   forgot to include the file 
    //
-   //   <tneokernel_path>/src/arch/pic32/tn_arch_pic32_int_vec1.S
+   //   <tneo_path>/src/arch/pic32/tn_arch_pic32_int_vec1.S
    //
    //   to the main project.
    //   This requirement is stated in the documentation, here:

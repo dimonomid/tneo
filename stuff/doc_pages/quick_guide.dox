@@ -5,24 +5,44 @@
 
 This page contains quick guide on system startup and important implementation details.
 
-\section time_ticks Time ticks
+\section usage_generic Using TNeo in your application
 
-For the purpose of calculating timeouts, the kernel uses a time tick timer.  In
-TNeoKernel, this time tick timer must to be a some kind of hardware timer that
-produces interrupt for time ticks processing. Throughout this text, this timer
-is referred to as *system timer*. The period of this timer  is determined by
-user (typically 1 ms, but user is free to set different value). In the ISR for
-this timer, it is only necessary to call the `tn_tick_int_processing()`
-function:
+The easiest way is to download version archive from [downloads page]
+(https://bitbucket.org/dfrank/tneokernel/downloads): it contains `bin` folder
+with library files for various platforms. These library files were built with
+default configuration file (`src/tn_cfg_default.h`, see the section \ref
+configuration_file).
 
-\code{.c}
-//-- example for PIC32, hardware timer 5 interrupt:
-tn_p32_soft_isr(_TIMER_5_VECTOR)
-{
-   INTClearFlag(INT_T5);
-   tn_tick_int_processing();
-}
-\endcode
+If you use MPLABX, it is probably better to add <i>library project</i> to your
+main project instead; library projects reside in the
+`<tneo_path>/lib_project` directory.
+
+In either case, all you need is the following:
+
+- Add library file for appropriate platform to your project (or probably
+  <i>library project</i> in case of MPLABX);
+- Add C include path: `<tneo_path>/src`;
+- Copy default configuration file as current configuration file: `cp
+  <tneo_path>/src/tn_cfg_default.h <tneo_path>/src/tn_cfg.h`
+  (for more information about configuration file and better ways to manage it,
+  refer to the section \ref configuration_file)
+- Add the file `<tneo_path>/src/tn_app_check.c` to your application
+  project (see `#TN_CHECK_BUILD_CFG` for details on it).
+
+That's all; you can use it in your project now. See below how to do this.
+
+\attention If you need to change the configuration, you can't just edit
+`tn_cfg.h` and keep using pre-built library file: you need to rebuild the
+library after editing `tn_cfg.h`. Refer to the page \ref building for details.
+
+
+\section quick_guide__time_ticks Time ticks
+
+The kernel needs to calculate timeouts. There are two schemes available:
+<i>static tick</i> and <i>dynamic tick</i>. For a quick guide, it's quite
+enough to just read about static tick, so, for the details on it, refer to the
+section \ref time_ticks__static_tick and then return back here.
+
 
 \section starting_the_kernel Starting the kernel
 
@@ -39,13 +59,11 @@ tn_p32_soft_isr(_TIMER_5_VECTOR)
   - You provide idle callback function to be called periodically from idle
     task. It's quite fine to leave it empty.
   - In the `main()` you should:
-    - disable interrupts globally by calling `tn_arch_int_dis()`;
+    - disable <i>system interrupts</i> by calling `tn_arch_int_dis()`;
     - perform some essential CPU configuration, such as oscillator settings and
       similar things. 
     - setup $(TN_SYS_TIMER_LINK) interrupt (from which
       `tn_tick_int_processing()` gets called)
-    - perform any platform-dependent required actions (say, on PIC32 you should
-      enable core software interrupt 0 with the lowest priority)
     - call `tn_sys_start()` providing all necessary information: pointers to
       stacks, their sizes and your callback functions.
   - Kernel acts as follows:
@@ -67,14 +85,14 @@ tn_p32_soft_isr(_TIMER_5_VECTOR)
 
 ### Basic example for PIC32
 
-This example project can be found in the TNeoKernel repository, in the
+This example project can be found in the TNeo repository, in the
 `examples/basic/arch/pic32` directory.
 
 \attention Before trying to build examples, please read \ref building page
-carefully: you need to copy configuration file in the tneokernel directory to
+carefully: you need to copy configuration file in the tneo directory to
 build it. Each example has `tn_cfg_appl.h` file, and you should either create 
-a symbolic link to this file from `tneokernel/src/tn_cfg.h` or just copy
-this file as `tneokernel/src/tn_cfg.h`.
+a symbolic link to this file from `tneo/src/tn_cfg.h` or just copy
+this file as `tneo/src/tn_cfg.h`.
 
 \include basic/arch/pic32/tn_pic32_example_basic.c
 
@@ -96,5 +114,8 @@ the task may be preempted by tasks of higher or equal priority.
 In most cases, there is no reason to enable round robin scheduling. For
 applications running multiple copies of the same code, however, (GUI
 windows, etc), round robin scheduling is an acceptable solution.
+
+\attention
+Round-robin is not supported in \ref time_ticks__dynamic_tick mode.
 
 */

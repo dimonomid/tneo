@@ -5,7 +5,7 @@
 
 \section interrupt_stack Interrupt stack
 
-TNeoKernel provides a separate stack for interrupt handlers. This approach
+TNeo provides a separate stack for interrupt handlers. This approach
 could save a lot of RAM: interrupt can happen at any moment of time, and if
 there's no separate interrupt stack, then each task should have enough stack
 space for the worse case of interrupt nesting.
@@ -19,11 +19,13 @@ With separate stack for interrupts, these 64 words should be allocated just once
 Interrupt stack array should be given to `#tn_sys_start()`. For additional
 information, refer to the section \ref starting_the_kernel.
 
-In order to make particular ISR use separate interrupt stack, this ISR should
-be defined by kernel-provided macro, which is platform-dependent: see:
+The way a separate interrupt stack is implemented is architecture-specific, as
+well as the way to define an ISR: some platforms require kernel-provided macro
+for that, some don't. Refer to the section for particular architecture:
 
 - \ref pic32_interrupts "PIC32 interrupts",
 - \ref pic24_interrupts "PIC24/dsPIC interrupts".
+- \ref cortex_m_interrupts "Cortex-M interrupts".
 
 \section interrupt_types Interrupt types
 

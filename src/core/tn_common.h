@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -60,18 +60,19 @@ extern "C"  {     /*}*/
 
 /**
  * Magic number for object validity verification
- * TODO: use TN_UWord here instead of unsigned int
  */
+// TODO: use TN_UWord here instead of unsigned int
 enum TN_ObjId {
+   TN_ID_NONE           = (unsigned int)0x0,         //!< id for invalid object
    TN_ID_TASK           = (unsigned int)0x47ABCF69,  //!< id for tasks
    TN_ID_SEMAPHORE      = (unsigned int)0x6FA173EB,  //!< id for semaphores
    TN_ID_EVENTGRP       = (unsigned int)0x5E224F25,  //!< id for event groups
-   TN_ID_DATAQUEUE      = (unsigned int)0x8C8A6C89,  //!< id for data queues
+   TN_ID_DATAQUEUE      = (unsigned int)0x0C8A6C89,  //!< id for data queues
    TN_ID_FSMEMORYPOOL   = (unsigned int)0x26B7CE8B,  //!< id for fixed memory pools
    TN_ID_MUTEX          = (unsigned int)0x17129E45,  //!< id for mutexes
-   TN_ID_TIMER          = (unsigned int)0x9A937FBC,  //!< id for timers
+   TN_ID_TIMER          = (unsigned int)0x1A937FBC,  //!< id for timers
    TN_ID_EXCHANGE       = (unsigned int)0x32b7c072,  //!< id for exchange objects
-   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange objects
+   TN_ID_EXCHANGE_LINK  = (unsigned int)0x24d36f35,  //!< id for exchange link
 };
 
 /**
@@ -82,8 +83,8 @@ enum TN_RCode {
    /// Successful operation
    TN_RC_OK                   =   0,
    ///
-   /// Timeout (consult `#TN_Timeout` for details).
-   /// @see `#TN_Timeout`
+   /// Timeout (consult `#TN_TickCnt` for details).
+   /// @see `#TN_TickCnt`
    TN_RC_TIMEOUT              =  -1,
    ///
    /// This code is returned in the following cases:
@@ -145,7 +146,11 @@ typedef void (TN_TaskBody)(void *param);
 
 
 /**
- * The value representing maximum number of system ticks to wait.
+ * Type for system tick count, it is used by the kernel to represent absolute
+ * tick count value as well as relative timeouts.
+ *
+ * When it is used as a timeout value, it represents the maximum number of
+ * system ticks to wait.
  *
  * Assume user called some system function, and it can't perform its job 
  * immediately (say, it needs to lock mutex but it is already locked, etc).
@@ -180,11 +185,10 @@ typedef void (TN_TaskBody)(void *param);
  *   returned by the waiting function.  (the usage of the
  *   `tn_task_release_wait()` function is discouraged though)
  */
-typedef unsigned long TN_Timeout;
-
+typedef unsigned long TN_TickCnt;
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************

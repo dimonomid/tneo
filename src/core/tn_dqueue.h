@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -59,7 +59,7 @@
  * "fixed memory pool", refer to the example: `examples/queue`. Be sure
  * to examine the readme there.
  *
- * TNeoKernel offers a way to wait for a message from multiple queues in just a
+ * TNeo offers a way to wait for a message from multiple queues in just a
  * single call, refer to the section \ref eventgrp_connect for details. Related
  * queue services:
  *
@@ -146,7 +146,7 @@ struct TN_DQueueTaskWait {
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -216,7 +216,7 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * If there are no tasks in the data queue's `wait_receive` list, parameter
  * `p_data` is placed to the tail of data FIFO. If the data FIFO is full,
- * behavior depends on the `timeout` value: refer to `#TN_Timeout`.
+ * behavior depends on the `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -225,22 +225,22 @@ enum TN_RCode tn_queue_delete(struct TN_DQueue *dque);
  *
  * @param dque       pointer to data queue to send data to
  * @param p_data     value to send
- * @param timeout    refer to `#TN_Timeout`
+ * @param timeout    refer to `#TN_TickCnt`
  *
  * @return  
  *    * `#TN_RC_OK`   if data was successfully sent;
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
- * @see `#TN_Timeout`
+ * @see `#TN_TickCnt`
  */
 enum TN_RCode tn_queue_send(
       struct TN_DQueue *dque,
       void *p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       );
 
 /**
@@ -277,7 +277,7 @@ enum TN_RCode tn_queue_isend_polling(
  * removed from the head of `wait_send` list, becomes runnable and puts the
  * data entry, stored in this task, to the tail of data FIFO.  If there are no
  * entries in the data FIFO and there are no tasks in the wait_send list,
- * behavior depends on the `timeout` value: refer to `#TN_Timeout`.
+ * behavior depends on the `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -286,22 +286,22 @@ enum TN_RCode tn_queue_isend_polling(
  *
  * @param dque       pointer to data queue to receive data from
  * @param pp_data    pointer to location to store the value
- * @param timeout    refer to `#TN_Timeout`
+ * @param timeout    refer to `#TN_TickCnt`
  *
  * @return  
  *    * `#TN_RC_OK`   if data was successfully received;
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
- * @see `#TN_Timeout`
+ * @see `#TN_TickCnt`
  */
 enum TN_RCode tn_queue_receive(
       struct TN_DQueue *dque,
       void **pp_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       );
 
 /**

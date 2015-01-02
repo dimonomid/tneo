@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -118,7 +118,7 @@ struct TN_FMemTaskWait {
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -244,7 +244,7 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);
  * Get memory block from the pool. Start address of the memory block is returned
  * through the `p_data` argument. The content of memory block is undefined.
  * If there is no free block in the pool, behavior depends on `timeout` value:
- * refer to `#TN_Timeout`.
+ * refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -256,20 +256,20 @@ enum TN_RCode tn_fmem_delete(struct TN_FMem *fmem);
  * @param p_data
  *    Address of the `(void *)` to which received block address will be saved
  * @param timeout    
- *    Refer to `#TN_Timeout`
+ *    Refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if block was successfully returned through `p_data`;
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
 enum TN_RCode tn_fmem_get(
       struct TN_FMem *fmem,
       void **p_data,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       );
 
 /**

@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -83,9 +83,14 @@
 
 //-- check that all options specified {{{
 
+#if !defined(TN_CHECK_BUILD_CFG)
+#  error TN_CHECK_BUILD_CFG is not defined
+#endif
+
 #if !defined(TN_PRIORITIES_CNT)
 #  error TN_PRIORITIES_CNT is not defined
 #endif
+
 
 #if !defined(TN_CHECK_PARAM)
 #  error TN_CHECK_PARAM is not defined
@@ -120,6 +125,18 @@
 #  error TN_API_MAKE_ALIG_ARG is not defined
 #endif
 
+#if !defined(TN_PROFILER)
+#  error TN_PROFILER is not defined
+#endif
+
+#if !defined(TN_PROFILER_WAIT_TIME)
+#  error TN_PROFILER_WAIT_TIME is not defined
+#endif
+
+#if !defined(TN_STACK_OVERFLOW_CHECK)
+#  error TN_STACK_OVERFLOW_CHECK is not defined
+#endif
+
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if !defined(TN_P24_SYS_IPL)
 #     error TN_P24_SYS_IPL is not defined
@@ -130,11 +147,20 @@
 #  endif
 #endif
 
+#if !defined(TN_DYNAMIC_TICK)
+#  error TN_DYNAMIC_TICK is not defined
+#endif
+
+#if !defined(TN_OLD_EVENT_API)
+#  error TN_OLD_EVENT_API is not defined
+#endif
+
+
 // }}}
 
 
 
-
+//-- check TN_P24_SYS_IPL: should be 1 .. 6.
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if TN_P24_SYS_IPL >= 7
 #     error TN_P24_SYS_IPL must be less than 7
@@ -144,8 +170,30 @@
 #  endif
 #endif
 
+//-- NOTE: TN_TICK_LISTS_CNT is checked in tn_timer_static.c
+//-- NOTE: TN_PRIORITIES_CNT is checked in tn_sys.c
+//-- NOTE: TN_API_MAKE_ALIG_ARG is checked in tn_common.h
 
 
+/**
+ * Internal kernel definition: set to non-zero if `_tn_sys_on_context_switch()`
+ * should be called on context switch. 
+ *
+ * Currently, the only actual handler is available: profiler (see
+ * #TN_PROFILER).  In the future, software stack overflow check will be
+ * implemented as well.
+ */
+#if TN_PROFILER || TN_STACK_OVERFLOW_CHECK
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
+#else
+#  define   _TN_ON_CONTEXT_SWITCH_HANDLER  0
+#endif
+
+/**
+ * If `#TN_STACK_OVERFLOW_CHECK` is set, we have 1-word overhead for each
+ * task stack.
+ */
+#define _TN_STACK_OVERFLOW_SIZE_ADD    (TN_STACK_OVERFLOW_CHECK ? 1 : 0)
 
 #endif // _TN_CFG_DISPATCH_H
 

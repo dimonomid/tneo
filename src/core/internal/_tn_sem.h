@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -62,7 +62,7 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 
@@ -79,8 +79,8 @@ extern "C"  {     /*}*/
  * Checks whether given semaphore object is valid 
  * (actually, just checks against `id_sem` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_sem_is_valid(
-      struct TN_Sem    *sem
+static _TN_INLINE TN_BOOL _tn_sem_is_valid(
+      const struct TN_Sem    *sem
       )
 {
    return (sem->id_sem == TN_ID_SEMAPHORE);

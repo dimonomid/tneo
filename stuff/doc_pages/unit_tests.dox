@@ -145,7 +145,7 @@ to keep the kernel really stable.
 \section get_tests Get unit-tests
 
 
-Currently, there is a separate repository with unit tests for TNeoKernel. 
+Currently, there is a separate repository with unit tests for TNeo. 
 
 Please note that code of unit tests project is not as polished as the code of
 the kernel itself. My open-source time is limited, and I prefer to invest it in

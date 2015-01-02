@@ -5,17 +5,21 @@
 
 There are people that I would like to thank:
 
-- **Yuri Tiomkin** - for original TNKernel. Although the implementation of TNKernel is far from perfect in my opinion, the
-ideas behind the implementation are generally really nice (that's why I decided
-to reimplement it instead of starting from scratch), and it was great entry
-point to the real-time kernels for me;
+- **Yuri Tiomkin** - for original TNKernel. Although the implementation of
+  TNKernel is far from perfect in my opinion, the ideas behind the
+  implementation are generally really nice (that's why I decided to reimplement
+  it instead of starting from scratch), and it was great entry point to the
+  real-time kernels for me;
 - **Anders Montonen** - for original implementation of TNKernel-PIC32 port;
-- **Alex Borisov** - for TNKernel port which I was using for a long time;
-- **Alexey Morozov** and **Alexey Gromov**, my chiefs in the [ORION](http://orionspb.ru/)
-company, for being flexible about my time;
-- **Robert White** - for nice ideas.
+- **Alex Borisov** - for TNKernel port which I used to use for a long time;
+- [<b>StarLine company</b>](http://starline.ru) - for being a sponsor of kernel
+  port for Cortex-M architecture as well as a couple of other \ref features
+  "features": profiler, dynamic tick.
+- **Alexey Morozov** and **Alexey Gromov**, my chiefs in the
+  [ORION](http://orionspb.ru/) company, for being flexible about my time;
+- **Robert White** - for nice ideas and participation.
 
-Thank you guys. TNeoKernel would never be what it is without you.
+Thank you guys. TNeo would never be what it is without you.
 
 */
 

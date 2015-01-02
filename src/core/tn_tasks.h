@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -39,14 +39,14 @@
  *
  * \section tn_tasks__tasks Task
  *
- * In TNeoKernel, a task is a branch of code that runs concurrently with other
+ * In TNeo, a task is a branch of code that runs concurrently with other
  * tasks from the programmer's point of view. Indeed, tasks are actually
  * executed using processor time sharing.  Each task can be considered to be an
  * independed program, which executes in its own context (processor registers,
  * stack pointer, etc.).
  *
  * Actually, the term <i>thread</i> is more accurate than <i>task</i>, but the
- * term <i>task</i> historically was used in TNKernel, so TNeoKernel keeps this
+ * term <i>task</i> historically was used in TNKernel, so TNeo keeps this
  * convention.
  *
  * When kernel decides that it's time to run another task, it performs
@@ -63,7 +63,7 @@
  *
  * \section tn_tasks__creating Creating/starting tasks
  *
- * Create task and delete task are two separate actions; although you can
+ * Create task and start task are two separate actions; although you can
  * perform both of them in one step by passing `#TN_TASK_CREATE_OPT_START` flag
  * to the `tn_task_create()` function.
  *
@@ -84,7 +84,7 @@
  *
  * \section tn_tasks__scheduling Scheduling rules
  *
- * TNeoKernel always runs the most privileged task in state
+ * TNeo always runs the most privileged task in state
  * $(TN_TASK_STATE_RUNNABLE). In no circumstances can task run while there is
  * at least one task is in the $(TN_TASK_STATE_RUNNABLE) state with higher
  * priority. Task will run until:
@@ -99,7 +99,7 @@
  *
  * \section tn_tasks__idle Idle task
  *
- * TNeoKernel has one system task: an idle task, which has lowest priority.
+ * TNeo has one system task: an idle task, which has lowest priority.
  * It is always in the state $(TN_TASK_STATE_RUNNABLE), and it runs only when
  * there are no other runnable tasks.
  *
@@ -139,6 +139,7 @@ extern "C"  {     /*}*/
  * Task state
  */
 enum TN_TaskState {
+   ///
    /// This state should never be publicly available.
    /// It may be stored in task_state only temporarily,
    /// while some system service is in progress.
@@ -161,6 +162,8 @@ enum TN_TaskState {
    ///
    /// Task isn't yet activated or it was terminated by `tn_task_terminate()`.
    TN_TASK_STATE_DORMANT      = (1 << 3),
+
+
 };
 
 
@@ -169,42 +172,47 @@ enum TN_TaskState {
  */
 enum TN_WaitReason {
    ///
-   /// task isn't waiting for anything
+   /// Task isn't waiting for anything
    TN_WAIT_REASON_NONE,
    ///
-   /// task has called `tn_task_sleep()`
+   /// Task has called `tn_task_sleep()`
    TN_WAIT_REASON_SLEEP,
    ///
-   /// task waits to acquire a semaphore
+   /// Task waits to acquire a semaphore
    /// @see tn_sem.h
    TN_WAIT_REASON_SEM,
    ///
-   /// task waits for some event in the event group to be set
+   /// Task waits for some event in the event group to be set
    /// @see tn_eventgrp.h
    TN_WAIT_REASON_EVENT,
    ///
-   /// task wants to put some data to the data queue, and there's no space
+   /// Task wants to put some data to the data queue, and there's no space
    /// in the queue.
    /// @see tn_dqueue.h
    TN_WAIT_REASON_DQUE_WSEND,
    ///
-   /// task wants to receive some data to the data queue, and there's no data
+   /// Task wants to receive some data to the data queue, and there's no data
    /// in the queue
    /// @see tn_dqueue.h
    TN_WAIT_REASON_DQUE_WRECEIVE,
    ///
-   /// task wants to lock a mutex with priority ceiling
+   /// Task wants to lock a mutex with priority ceiling
    /// @see tn_mutex.h
    TN_WAIT_REASON_MUTEX_C,
    ///
-   /// task wants to lock a mutex with priority inheritance
+   /// Task wants to lock a mutex with priority inheritance
    /// @see tn_mutex.h
    TN_WAIT_REASON_MUTEX_I,
    ///
-   /// task wants to get memory block from memory pool, and there's no free
+   /// Task wants to get memory block from memory pool, and there's no free
    /// memory blocks
    /// @see tn_fmem.h
    TN_WAIT_REASON_WFIXMEM,
+
+
+   ///
+   /// Wait reasons count
+   TN_WAIT_REASONS_CNT
 };
 
 /**
@@ -219,7 +227,7 @@ enum TN_TaskCreateOpt {
    ///
    /// for internal kernel usage only: this option must be provided
    /// when creating idle task
-   TN_TASK_CREATE_OPT_IDLE =  (1 << 1),
+   _TN_TASK_CREATE_OPT_IDLE = (1 << 1),
 };
 
 /**
@@ -234,6 +242,87 @@ enum TN_TaskExitOpt {
    TN_TASK_EXIT_OPT_DELETE = (1 << 0),
 };
 
+#if TN_PROFILER || DOXYGEN_ACTIVE
+/**
+ * Timing structure that is managed by profiler and can be read by
+ * `#tn_task_profiler_timing_get()` function. This structure is contained in
+ * each `struct #TN_Task` structure. 
+ *
+ * Available if only `#TN_PROFILER` option is non-zero, also depends on
+ * `#TN_PROFILER_WAIT_TIME`.
+ */
+struct TN_TaskTiming {
+   ///
+   /// Total time when task was running. 
+   ///
+   /// \attention
+   /// This is NOT the time that task was in $(TN_TASK_STATE_RUNNABLE) state:
+   /// if task A is preempted by high-priority task B, task A is not running,
+   /// but is still in the $(TN_TASK_STATE_RUNNABLE) state. This counter
+   /// represents the time task was actually <b>running</b>.
+   unsigned long long   total_run_time;
+   ///
+   /// How many times task got running. It is useful to find an average
+   /// value of consecutive running time: `(total_run_time / got_running_cnt)`
+   unsigned long long   got_running_cnt;
+   ///
+   /// Maximum consecutive time task was running.
+   unsigned long        max_consecutive_run_time;
+
+#if TN_PROFILER_WAIT_TIME || DOXYGEN_ACTIVE
+   ///
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
+   ///
+   /// Total time when task was not running; time is broken down by reasons of
+   /// waiting. 
+   ///
+   /// For example, to get the time task was waiting for mutexes with priority
+   /// inheritance protocol, use: `total_wait_time[ #TN_WAIT_REASON_MUTEX_I ]`
+   ///
+   /// To get the time task was runnable but preempted by another task, use:
+   /// `total_wait_time[ #TN_WAIT_REASON_NONE ]`
+   /// 
+   unsigned long long   total_wait_time[ TN_WAIT_REASONS_CNT ];
+   ///
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
+   ///
+   /// Maximum consecutive time task was not running; time is broken down by
+   /// reasons of waiting.
+   ///
+   /// @see `total_wait_time`
+   unsigned long        max_consecutive_wait_time[ TN_WAIT_REASONS_CNT ];
+#endif
+};
+
+/**
+ * Internal kernel structure for profiling data of task.
+ *
+ * Available if only `#TN_PROFILER` option is non-zero.
+ */
+struct _TN_TaskProfiler {
+   ///
+   /// Tick count of when the task got running or non-running last time.
+   TN_TickCnt        last_tick_cnt;
+#if TN_PROFILER_WAIT_TIME || DOXYGEN_ACTIVE
+   ///
+   /// Available if only `#TN_PROFILER_WAIT_TIME` option is non-zero.
+   ///
+   /// Value of `task->task_wait_reason` when task got non-running last time.
+   enum TN_WaitReason   last_wait_reason;
+#endif
+
+#if TN_DEBUG
+   ///
+   /// For internal profiler self-check only: indicates whether task is 
+   /// running or not. Available if only `#TN_DEBUG` is non-zero.
+   int                  is_running;
+#endif
+   ///
+   /// Main timing structure managed by profiler. Contents of this structure
+   /// can be read by `#tn_task_profiler_timing_get()` function.
+   struct TN_TaskTiming timing;
+};
+#endif
 
 /**
  * Task
@@ -306,7 +395,7 @@ struct TN_Task {
    enum TN_RCode task_wait_rc;
    //
    // remaining time until timeout; may be `#TN_WAIT_INFINITE`.
-   //TN_Timeout tick_count;
+   //TN_TickCnt tick_count;
    ///
    /// time slice counter
    int tslice_count;
@@ -331,10 +420,12 @@ struct TN_Task {
       /// fields specific to tn_fmem.h
       struct TN_FMemTaskWait fmem;
    } subsys_wait;
-
-#if TN_DEBUG
-   /// task name for debug purposes, user may want to set it by hand
+   ///
+   /// Task name for debug purposes, user may want to set it by hand
    const char *name;          
+#if TN_PROFILER || DOXYGEN_ACTIVE
+   /// Profiler data, available if only `#TN_PROFILER` is non-zero.
+   struct _TN_TaskProfiler    profiler;
 #endif
 
    /// Internal flag used to optimize mutex priority algorithms.
@@ -356,7 +447,7 @@ struct TN_Task {
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -446,6 +537,7 @@ struct TN_Task {
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * `#TN_RC_WPARAM` if wrong params were given;
  *
+ * @see `#tn_task_create_wname()`
  * @see `#TN_ARCH_STK_ATTR_BEFORE`
  * @see `#TN_ARCH_STK_ATTR_AFTER`
  */
@@ -459,6 +551,21 @@ enum TN_RCode tn_task_create(
       enum TN_TaskCreateOpt   opts
       );
 
+
+/**
+ * The same as `tn_task_create()` but with additional argument `name`,
+ * which could be very useful for debug.
+ */
+enum TN_RCode tn_task_create_wname(
+      struct TN_Task         *task,
+      TN_TaskBody            *task_func,
+      int                     priority,
+      TN_UWord               *task_stack_low_addr,
+      int                     task_stack_size,
+      void                   *param,
+      enum TN_TaskCreateOpt   opts,
+      const char             *name
+      );
 
 /**
  * If the task is $(TN_TASK_STATE_RUNNABLE), it is moved to the
@@ -520,7 +627,7 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  * $(TN_LEGEND_LINK)
  *
  * @param timeout
- *    Refer to `#TN_Timeout`
+ *    Refer to `#TN_TickCnt`
  *
  * @returns
  *    * `#TN_RC_TIMEOUT` if task has slept specified timeout;
@@ -529,9 +636,9 @@ enum TN_RCode tn_task_resume(struct TN_Task *task);
  *       `tn_task_release_wait()`
  *    * `#TN_RC_WCONTEXT` if called from wrong context
  *
- * @see TN_Timeout
+ * @see TN_TickCnt
  */
-enum TN_RCode tn_task_sleep(TN_Timeout timeout);
+enum TN_RCode tn_task_sleep(TN_TickCnt timeout);
 
 /**
  * Wake up task from sleep.
@@ -753,6 +860,27 @@ enum TN_RCode tn_task_state_get(
       enum TN_TaskState *p_state
       );
 
+#if TN_PROFILER || DOXYGEN_ACTIVE
+/**
+ * Read profiler timing data of the task. See `struct #TN_TaskTiming` for
+ * details on timing data.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param task
+ *    Task to get timing data of
+ * @param tgt
+ *    Target structure to fill with data, should be allocated by caller
+ */
+enum TN_RCode tn_task_profiler_timing_get(
+      const struct TN_Task *task,
+      struct TN_TaskTiming *tgt
+      );
+#endif
+
+
 /**
  * Set new priority for task.
  * If priority is 0, then task's base_priority is set.
@@ -763,8 +891,6 @@ enum TN_RCode tn_task_state_get(
  * \attention this function is obsolete and will probably be removed
  */
 enum TN_RCode tn_task_change_priority(struct TN_Task *task, int new_priority);
-
-
 
 #ifdef __cplusplus
 }  /* extern "C" */

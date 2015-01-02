@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -34,6 +34,8 @@
  *
  ******************************************************************************/
 
+#include "tn_cfg_dispatch.h"
+
     .set mips32r2
     .set nomips16
     .text
@@ -41,9 +43,10 @@
 
     /* External references */
 
-    .extern  tn_curr_run_task, 4
-    .extern  tn_next_task_to_run, 4
-    .extern  tn_sys_state, 4
+    .extern  _tn_curr_run_task, 4
+    .extern  _tn_next_task_to_run, 4
+    .extern  _tn_sys_state, 4
+    .extern  _tn_sys_on_context_switch, 4
 
     /* Public functions declared in this file */
 
@@ -72,13 +75,27 @@ _tn_arch_context_switch_now_nosave:
 
     /* get new task's sp */
 
-    lw      $t1, tn_next_task_to_run   /* t1 = tn_next_task_to_run; */
-    lw      $sp, 0($t1)                /* sp = *t1; */
-                                       /* i.e. sp = *(int *)tn_next_task_to_run; */
-    la      $t0, tn_curr_run_task      /* t0 = &tn_curr_run_task; */
+    la      $s0, _tn_curr_run_task      /* s0 = &_tn_curr_run_task */
+    lw      $s1, _tn_next_task_to_run   /* s1 =  _tn_next_task_to_run */
+
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+    lw      $a0, 0($s0)                 /* a0 =  _tn_curr_run_task */
+    addiu   $a1, $s1, 0                 /* a1 =  _tn_next_task_to_run */
+
+    /* NOTE: next instruction is executed BEFORE call, so,
+       SP is updated to _tn_next_task_to_run->stack_top before call */
+
+    /* 
+     * arguments are set:
+     * - a0: _tn_curr_run_task
+     * - a1: _tn_next_task_to_run
+     */
+    jal     _tn_sys_on_context_switch
+#endif
+
+    lw      $sp, 0($s1)                 /* sp = *_tn_next_task_to_run */
     j       tn_restore_context
-    sw      $t1, 0($t0)                /* *t0 = t1; */
-                                       /* i.e. tn_curr_run_task = tn_next_task_to_run; */
+    sw      $s1, 0($s0)                 /* _tn_curr_run_task = _tn_next_task_to_run */
 
     .end _tn_arch_context_switch_now_nosave
 
@@ -158,17 +175,32 @@ cs0_int_handler:
     sw      $t0, 4($sp)
     sw      $t1, 0($sp)
 
-    la      $t0, tn_curr_run_task
-    lw      $t1, 0($t0)
-    sw      $sp, 0($t1)                 /* store sp in preempted task's TCB */
+    la      $s0, _tn_curr_run_task      /* s0 = &_tn_curr_run_task */
+    lw      $a0, 0($s0)                 /* a0 =  _tn_curr_run_task */
+    sw      $sp, 0($a0)                 /* store sp in preempted task's TCB */
+
+
 
     di      $t2                         /* disable interrupts */
     ehb
 
-    la      $t1, tn_next_task_to_run
-    lw      $t1, 0($t1)
-    lw      $sp, 0($t1)                 /* get new task's sp */
-    sw      $t1, 0($t0)                 /* tn_curr_run_task = tn_next_task_to_run */
+    lw      $s1, _tn_next_task_to_run   /* s1 =  _tn_next_task_to_run */
+    addiu   $a1, $s1, 0                 /* a1 =  _tn_next_task_to_run */
+
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+    /* NOTE: next instruction is executed BEFORE call, so,
+       SP is updated to _tn_next_task_to_run->stack_top before call */
+
+   /* 
+    * arguments are set:
+    * - a0: _tn_curr_run_task
+    * - a1: _tn_next_task_to_run
+    */
+    jal     _tn_sys_on_context_switch
+#endif
+
+    lw      $sp, 0($s1)                 /* sp = *_tn_next_task_to_run */
+    sw      $s1, 0($s0)                 /* _tn_curr_run_task = _tn_next_task_to_run */
 
     lui     $k0, %hi(IFS0CLR)           /* clear cs0 pending bit */
     ori     $k1, $zero, 2

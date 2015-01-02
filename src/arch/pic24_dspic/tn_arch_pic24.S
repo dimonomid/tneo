@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -36,29 +36,39 @@
 
 #include "tn_cfg_dispatch.h"
 
-#define  _TN_IPL            TN_P24_SYS_IPL
+/*
+ * Maximum system interrupt priority, shifted by 5 bits, as it is 
+ * in the status register.
+ *
+ * Refer to the comments of TN_P24_SYS_IPL for details about what are
+ * system interrupts.
+ */
 #define  _TN_IPL_SHIFTED    (TN_P24_SYS_IPL << 5)
 
 
-   .text
+      .text
 
-   /* External references */
 
-   .extern  tn_curr_run_task
-   .extern  tn_next_task_to_run
-   .extern  IFS0
+      /* External references */
 
-   /* Public functions declared in this file */
+      .extern  _tn_curr_run_task
+      .extern  _tn_next_task_to_run
+      .extern  IFS0
+      .extern  __tn_sys_on_context_switch
 
-   .global  __INT0Interrupt
-   .global  __tn_arch_context_switch_now_nosave
-   .global  __tn_arch_context_switch_pend
-   .global  __tn_arch_is_int_disabled
-   .global  __tn_arch_inside_isr
-   .global  _tn_arch_sr_save_int_dis
-   .global  _tn_arch_sr_restore
-   .global  _tn_arch_int_dis
-   .global  _tn_arch_int_en
+
+      /* Public functions declared in this file */
+
+      .global  __INT0Interrupt
+      .global  __tn_arch_context_switch_now_nosave
+      .global  __tn_arch_context_switch_pend
+      .global  __tn_arch_is_int_disabled
+      .global  __tn_arch_inside_isr
+      .global  __tn_p24_ffs_asm
+      .global  _tn_arch_sr_save_int_dis
+      .global  _tn_arch_sr_restore
+      .global  _tn_arch_int_dis
+      .global  _tn_arch_int_en
 
 
 
@@ -67,22 +77,36 @@
  */
 __tn_arch_context_switch_now_nosave:
 
-   /* NOTE: interrupts should be disabled here */
+      /* NOTE: interrupts should be disabled here */
 
-   /* set SPLIM to max: effectively, turn stack pointer limit off */
 
-   mov      #0xffff, w0
-   mov      w0,      _SPLIM
+      /* call on-context-switch handler, if needed */
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+      mov      __tn_curr_run_task, w0         ; w0 = _tn_curr_run_task
+      mov      __tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
-   /* set pointer to new task and its stack */
+      /* 
+       * arguments are set:
+       * - w0: _tn_curr_run_task
+       * - w1: _tn_next_task_to_run
+       */
+      call     __tn_sys_on_context_switch
+      nop
+#endif
 
-   mov     _tn_next_task_to_run, w1    ; w1 = tn_next_task_to_run
-   mov     #_tn_curr_run_task,   w0    ; w0 = &tn_curr_run_task
+      /* set SPLIM to max: effectively, turn stack pointer limit off */
+      mov      #0xffff, w0
+      mov      w0, _SPLIM
 
-   mov      w1,      [w0]              ; tn_curr_run_task = tn_next_task_to_run
-   mov      [w1],    w15               ; SP = *tn_next_task_to_run
 
-   bra     __tn_context_restore
+      /* set pointer to new task and its stack */
+      mov      __tn_next_task_to_run, w1   ; w1 = _tn_next_task_to_run
+      mov      #__tn_curr_run_task, w0     ; w0 = &_tn_curr_run_task
+
+      mov      w1, [w0]                ; _tn_curr_run_task = _tn_next_task_to_run
+      mov      [w1], w15               ; SP = *_tn_next_task_to_run
+
+      bra      __tn_context_restore
 
 
 
@@ -91,111 +115,125 @@ __tn_arch_context_switch_now_nosave:
  */
 __tn_arch_context_switch_pend:
 
-   mov      #_IFS0,  w0
-   bset     [w0],    #0    ; IFS0bits.INT0IF = 1
+      mov      #_IFS0, w0
+      bset     [w0], #0    ; IFS0bits.INT0IF = 1
 
-   return
+      return
 
 
 
 /*
  * ISR for INT0, which belongs to the kernel.
- * Performs context switch to the task pointed to by `tn_next_task_to_run`.
+ * Performs context switch to the task pointed to by `_tn_next_task_to_run`.
  */
 __INT0Interrupt:
 
-   ;; Save current context
+      ;; Save current context
 
-   push     _SR
-   push     w14
-   push.d   w12
-   push.d   w10
-   push.d   w8
-   push.d   w6
-   push.d   w4
-   push.d   w2
-   push.d   w0
-   push     _RCOUNT
-   push     _TBLPAG
-   push     _CORCON
+      push     _SR
+      push     w14
+      push.d   w12
+      push.d   w10
+      push.d   w8
+      push.d   w6
+      push.d   w4
+      push.d   w2
+      push.d   w0
+      push     _RCOUNT
+      push     _TBLPAG
+      push     _CORCON
+   
+.ifdef __HAS_EDS
+      push     _DSRPAG
+      push     _DSWPAG
+.else
+      push     _PSVPAG
+.endif
 
-   .ifdef __HAS_EDS
-   push     _DSRPAG
-   push     _DSWPAG
-   .else
-   push     _PSVPAG
-   .endif
+      push     _SPLIM
 
-   push     _SPLIM
+      /* store sp in preemted task's TCB */
 
-   /* store sp in preemted task's TCB */
+      mov      __tn_curr_run_task, w0  ; w0 = _tn_curr_run_task;
+      mov      w15, [w0]               ; _tn_curr_run_task->stack_top = SR;
 
-   mov      _tn_curr_run_task, w0   ; w0 = tn_curr_run_task;
-   mov      w15,     [w0]           ; tn_curr_run_task->stack_top = SR;
+      /* save SR in w10 */
+      mov      _SR, w10
 
-   /* save SR in w2 */
-   mov      _SR,     w2
+      /* disable interrupts */
+      mov      _SR,              w0
+      xor      #_TN_IPL_SHIFTED, w0
+      and      #0xE0,            w0
+      xor      _SR,            /*w0*/
 
-   /* set SPLIM to max: effectively, turn stack pointer limit off */
+      /* call on-context-switch handler, if needed */
+#if _TN_ON_CONTEXT_SWITCH_HANDLER
+      mov      __tn_curr_run_task,      w0    ; w0 = _tn_curr_run_task
+      mov      __tn_next_task_to_run,   w1    ; w1 = _tn_next_task_to_run
 
-   mov      #0xffff, w0
-   mov      w0,      _SPLIM
+      /* 
+       * arguments are set:
+       * - w0: _tn_curr_run_task
+       * - w1: _tn_next_task_to_run
+       */
+      call     __tn_sys_on_context_switch
+      nop
+#endif
 
-   /* disable interrupts */
-   mov      _SR,              w0
-   xor      #_TN_IPL_SHIFTED, w0
-   and      #0xE0,            w0
-   xor      _SR
+      /* set SPLIM to max: effectively, turn stack pointer limit off */
 
-   /* tn_curr_run_task = tn_next_task_to_run */
+      mov      #0xffff, w2
+      mov      w2,      _SPLIM
 
-   mov      _tn_next_task_to_run,   w1    ; w1 = tn_next_task_to_run
-   mov      #_tn_curr_run_task,     w0    ; w0 = &tn_curr_run_task
+      /* _tn_curr_run_task = _tn_next_task_to_run */
 
-   mov      w1,      [w0]          ; tn_curr_run_task = tn_next_task_to_run
+      mov      __tn_next_task_to_run, w9    ; w9 = _tn_next_task_to_run
+      mov      #__tn_curr_run_task,   w2    ; w2 = &_tn_curr_run_task
 
-
-   /* Set new stack pointer (from newly activated task) */
-
-   mov      [w1],    w15           ; SP = *tn_next_task_to_run
+      mov      w9, [w2]          ; _tn_curr_run_task = _tn_next_task_to_run
 
 
-   /* clear INT0 pending bit */
+      /* Set new stack pointer (from newly activated task) */
 
-   mov      #_IFS0,  w0
-   bclr     [w0],    #0  ; IFS0bits.INT0IF = 0
+      mov      [w9], w15         ; SP = *_tn_next_task_to_run
 
-   /* restore SR from w2 (and therefore enable interrupts) */
 
-   mov      w2,      _SR
+      /* clear INT0 pending bit */
+
+      mov      #_IFS0, w2
+      bclr     [w2],   #0        ; IFS0bits.INT0IF = 0
+
+      /* restore SR from w10 (and therefore enable interrupts) */
+
+      mov      w10, _SR
 
 __tn_context_restore:
 
-   ; Restore context on stack pointer
+      ; Restore context on stack pointer
 
-   pop      _SPLIM
+      pop      _SPLIM
 
-   .ifdef __HAS_EDS
-   pop      _DSWPAG
-   pop      _DSRPAG
-   .else
-   pop      _PSVPAG
-   .endif
+.ifdef __HAS_EDS
+      pop      _DSWPAG
+      pop      _DSRPAG
+.else
+      pop      _PSVPAG
+.endif
 
-   pop      _CORCON
-   pop      _TBLPAG
-   pop      _RCOUNT
-   pop.d    w0
-   pop.d    w2
-   pop.d    w4
-   pop.d    w6
-   pop.d    w8
-   pop.d    w10
-   pop.d    w12
-   pop      w14
-   pop      _SR
+      pop      _CORCON
+      pop      _TBLPAG
+      pop      _RCOUNT
+      pop.d    w0
+      pop.d    w2
+      pop.d    w4
+      pop.d    w6
+      pop.d    w8
+      pop.d    w10
+      pop.d    w12
+      pop      w14
+      pop      _SR
 
-   retfie
+      retfie
 
 
 /*
@@ -203,16 +241,16 @@ __tn_context_restore:
  */
 _tn_arch_sr_save_int_dis:
 
-   mov      _SR,     w1
+      mov      _SR, w1
 
-   mov      _SR,              w0
-   xor      #_TN_IPL_SHIFTED, w0
-   and      #0xE0,            w0
-   xor      _SR
+      mov      _SR,              w0
+      xor      #_TN_IPL_SHIFTED, w0
+      and      #0xE0,            w0
+      xor      _SR             /*w0*/
 
-   mov      w1,      w0
+      mov      w1, w0
 
-   return
+      return
 
 
 /*
@@ -220,16 +258,16 @@ _tn_arch_sr_save_int_dis:
  */
 _tn_arch_sr_restore:
 
-   ; w0  - saved SR
+      ; w0  - saved SR
 
-   mov      w0,      w1
-   and      #0xE0,   w1
-   mov      _SR,     w0
-   xor      w0,      w1,      w0
-   and      #0xE0,   w0
-   xor      _SR
+      mov      w0, w1
+      and      #0xE0, w1
+      mov      _SR, w0
+      xor      w0, w1, w0
+      and      #0xE0, w0
+      xor      _SR
 
-   return
+      return
 
 
 /*
@@ -237,7 +275,7 @@ _tn_arch_sr_restore:
  */
 _tn_arch_int_dis:
 
-   goto     _tn_arch_sr_save_int_dis
+      goto     _tn_arch_sr_save_int_dis
 
 
 /*
@@ -245,27 +283,27 @@ _tn_arch_int_dis:
  */
 _tn_arch_int_en:
 
-   mov      #0xff1f, w0
-   and      _SR,     WREG
+      mov      #0xff1f, w0
+      and      _SR, WREG/*w0*/
 
-   return
+      return
 
 /*
  * See comments for _tn_arch_is_int_disabled() in tn_arch.h
  */
 __tn_arch_is_int_disabled:
 
-   mov      #0xE0,   w0
-   and      _SR,     WREG
-   lsr      w0,      #5,      w0
-   cp       w0,      #_TN_IPL
-   bra      geu,     1f
-   mov      #0,      w0
-   bra               2f
+      mov      #0xE0, w0
+      and      _SR, WREG/*w0*/
+      lsr      w0, #5, w0
+      cp       w0, #TN_P24_SYS_IPL
+      bra      geu, 1f
+      mov      #0, w0
+      bra      2f
 1:
-   mov      #1,      w0
+      mov      #1, w0
 2:
-   return
+      return
 
 
 
@@ -275,24 +313,36 @@ __tn_arch_is_int_disabled:
  */
 __tn_arch_inside_isr:
 
-   ; here, we check if SPLIM is equal to __tn_p24_int_splim.
-   ; If it is, we are inside ISR.
-   ;
-   ; NOTE: we can't check IPL from SR, because when someone disables interrupts
-   ; by calling tn_arch_sr_save_int_dis(), IPL is modified. So, if we disable
-   ; interrupts from task, then _tn_arch_inside_isr() would return true,
-   ; but it is actually should be false.
-   ;
-   ; Instead, on PIC24/dsPIC, system interrupts **must** use kernel-provided
-   ; macro tn_p32_soft_isr() for interrupt definition, and we modify SPLIM there.
-   ; So, here we check SPLIM, and if it points to _tn_p24_int_splim,
-   ; we are inside interrupt.
+      /*
+       * Here, we check if SPLIM is equal to __tn_p24_int_splim.  If it is, we
+       * are inside ISR.
+       *
+       * NOTE: we can't check IPL from SR, because when someone disables
+       * interrupts by calling tn_arch_sr_save_int_dis(), IPL is modified. So,
+       * if we disable interrupts from task, then _tn_arch_inside_isr() would
+       * return true, but it is actually should be false.
+       *
+       * Instead, on PIC24/dsPIC, system interrupts **must** use
+       * kernel-provided macro tn_p32_soft_isr() for interrupt definition, and
+       * we modify SPLIM there. So, here we check SPLIM, and if it points to
+       * _tn_p24_int_splim, we are inside interrupt.
+       */
 
-   mov      __tn_p24_int_splim, w0
-   cp       SPLIM
-   mov      #0,      w0
-   bra      nz,      1f
-   mov      #1,      w0
+      mov      __tn_p24_int_splim, w0
+      cp       SPLIM
+      mov      #0, w0
+      bra      nz, 1f
+      mov      #1, w0
 1:
-   return
+      return
+
+
+/**
+ * find-first-set bit
+ */
+__tn_p24_ffs_asm:
+
+      ff1r     w0, w0
+      return
+
 

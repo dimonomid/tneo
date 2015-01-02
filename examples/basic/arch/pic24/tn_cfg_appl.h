@@ -30,7 +30,7 @@
 
 /**
  * Allows additional internal self-checking, useful to catch internal
- * TNeoKernel bugs as well as illegal kernel usage (e.g. sleeping in the idle 
+ * TNeo bugs as well as illegal kernel usage (e.g. sleeping in the idle 
  * task callback). Produces a couple of extra instructions which usually just
  * causes debugger to stop if something goes wrong.
  */
@@ -40,7 +40,7 @@
  * Whether old TNKernel names (definitions, functions, etc) should be available.
  * If you're porting your existing application written for TNKernel,
  * it is definitely worth enabling.
- * If you start new project with TNeoKernel, it's better to avoid old names.
+ * If you start new project with TNeo, it's better to avoid old names.
  */
 #define TN_OLD_TNKERNEL_NAMES  0
 

@@ -49,20 +49,20 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic32/tneokernel_pic32.X"
+              <makeArtifact PL="../../../../../src/arch/pic32/tneo_pic32.X"
                             CT="3"
                             CN="default"
                             AC="true"
                             BL="true"
-                            WD="../../../../../src/arch/pic32/tneokernel_pic32.X"
+                            WD="../../../../../src/arch/pic32/tneo_pic32.X"
                             BC="${MAKE}  -f Makefile CONF=default"
                             DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"
-                            OP="dist/default/production/tneokernel_pic32.X.a"
-                            DOP="dist/default/debug/tneokernel_pic32.X.a"
-                            FL="dist/default/production/tneokernel_pic32.X.a"
-                            PD="dist/default/production/tneokernel_pic32.X."
-                            DD="dist/default/debug/tneokernel_pic32.X.">
+                            OP="dist/default/production/tneo_pic32.X.a"
+                            DOP="dist/default/debug/tneo_pic32.X.a"
+                            FL="dist/default/production/tneo_pic32.X.a"
+                            PD="dist/default/production/tneo_pic32.X."
+                            DD="dist/default/debug/tneo_pic32.X.">
               </makeArtifact>
             </linkerLibProjectItem>
           </linkerLibItems>

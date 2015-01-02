@@ -1,0 +1,30 @@
+BIN_DIR=bin
+
+
+.PHONY: all
+all:
+	make TN_ARCH=cortex_m0 TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m0plus TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m1 TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m4 TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m4f TN_COMPILER=arm-none-eabi-gcc
+	make TN_ARCH=cortex_m0 TN_COMPILER=clang
+	make TN_ARCH=cortex_m3 TN_COMPILER=clang
+	make TN_ARCH=cortex_m4 TN_COMPILER=clang
+	make TN_ARCH=pic32mx TN_COMPILER=xc32
+	make TN_ARCH=pic24_dspic_eds TN_COMPILER=xc16
+	make TN_ARCH=pic24_dspic_noeds TN_COMPILER=xc16
+
+
+# for some reason, clang complains about unknown targets.
+
+	#make TN_ARCH=cortex_m0plus TN_COMPILER=clang
+	#make TN_ARCH=cortex_m1 TN_COMPILER=clang
+	#make TN_ARCH=cortex_m4f TN_COMPILER=clang
+
+.PHONY: clean
+
+clean:
+	rm -rf $(BIN_DIR)
+

@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -37,7 +37,7 @@
 /**
  * \file
  *
- * TNeoKernel default configuration file, to be copied as `tn_cfg.h`.
+ * TNeo default configuration file, to be copied as `tn_cfg.h`.
  *
  * This project is intended to be built as a library, separately from main
  * project (although nothing prevents you from bundling things together, if you
@@ -54,9 +54,9 @@
  * might want to copy it as `tn_cfg.h`. Or even better, if your filesystem
  * supports symbolic links, copy it somewhere to your main project's directory
  * (so that you can add it to your VCS there), and create symlink to it named
- * `tn_cfg.h` in the TNeoKernel source directory, like this:
+ * `tn_cfg.h` in the TNeo source directory, like this:
  *
- *     $ cd /path/to/tneokernel/src
+ *     $ cd /path/to/tneo/src
  *     $ cp ./tn_cfg_default.h /path/to/main/project/lib_cfg/tn_cfg.h
  *     $ ln -s /path/to/main/project/lib_cfg/tn_cfg.h ./tn_cfg.h
  *
@@ -69,8 +69,44 @@
 
 
 /*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
+//-- some defaults depend on architecture, so we should include
+//   `tn_arch_detect.h`
+#include "arch/tn_arch_detect.h"
+
+
+/*******************************************************************************
  *    USER-DEFINED OPTIONS
  ******************************************************************************/
+
+/**
+ * This option enables run-time check which ensures that build-time options for
+ * the kernel match ones for the application.
+ *
+ * Without this check, it is possible that you change your `tn_cfg.h` file, and
+ * just rebuild your application without rebuilding the kernel. Then,
+ * application would assume that kernel behaves accordingly to `tn_cfg.h` which
+ * was included in the application, but this is actually not true: you need to
+ * rebuild the kernel for changes to take effect.
+ *
+ * With this option turned on, if build-time configurations don't match, you
+ * will get run-time error (`_TN_FATAL_ERROR()`) inside `tn_sys_start()`, which
+ * is much more informative than weird bugs caused by configuration mismatch.
+ *
+ * <b>Note</b>: turning this option on makes sense if only you use TNeo
+ * as a separate library. If you build TNeo together with the
+ * application, both the kernel and the application always use the same
+ * `tn_cfg.h` file, therefore this option is useless.
+ *
+ * \attention If this option is on, your application must include the file
+ * `tn_app_check.c`.
+ */
+#ifndef TN_CHECK_BUILD_CFG
+#  define TN_CHECK_BUILD_CFG        1
+#endif
+
 
 /**
  * Number of priorities that can be used by application, plus one for idle task
@@ -113,7 +149,7 @@
 
 /**
  * Allows additional internal self-checking, useful to catch internal
- * TNeoKernel bugs as well as illegal kernel usage (e.g. sleeping in the idle 
+ * TNeo bugs as well as illegal kernel usage (e.g. sleeping in the idle 
  * task callback). Produces a couple of extra instructions which usually just
  * causes debugger to stop if something goes wrong.
  */
@@ -125,7 +161,7 @@
  * Whether old TNKernel names (definitions, functions, etc) should be
  * available.  If you're porting your existing application written for
  * TNKernel, it is definitely worth enabling.  If you start new project with
- * TNeoKernel from scratch, it's better to avoid old names.
+ * TNeo from scratch, it's better to avoid old names.
  */
 #ifndef TN_OLD_TNKERNEL_NAMES
 #  define TN_OLD_TNKERNEL_NAMES  1
@@ -150,16 +186,20 @@
  * via callback
  *
  * @see see `tn_callback_deadlock_set()`
+ * @see see `#TN_CBDeadlock`
  */
 #ifndef TN_MUTEX_DEADLOCK_DETECT
 #  define TN_MUTEX_DEADLOCK_DETECT  1
 #endif
 
 /**
+ *
+ * <i>Takes effect if only `#TN_DYNAMIC_TICK` is <B>not set</B></i>.
+ *
  * Number of "tick" lists of timers, must be a power or two; minimum value:
  * `2`; typical values: `4`, `8` or `16`.
  *
- * Refer to the \ref timers_implementation for details.
+ * Refer to the \ref timers_static_implementation for details.
  *
  * Shortly: this value represents number of elements in the array of 
  * `struct TN_ListItem`, on 32-bit system each element takes 8 bytes.
@@ -206,6 +246,100 @@
 #endif
 
 
+/**
+ * Whether profiler functionality should be enabled.
+ * Enabling this option adds overhead to context switching and increases
+ * the size of `#TN_Task` structure by about 20 bytes.
+ *
+ * @see `#TN_PROFILER_WAIT_TIME`
+ * @see `#tn_task_profiler_timing_get()`
+ * @see `struct #TN_TaskTiming`
+ */
+#ifndef TN_PROFILER
+#  define TN_PROFILER            0
+#endif
+
+/**
+ * Whether profiler should store wait time for each wait reason. Enabling this
+ * option bumps the size of `#TN_Task` structure by more than 100 bytes,
+ * see `struct #TN_TaskTiming`.
+ *
+ * Relevant if only `#TN_PROFILER` is non-zero.
+ */
+#ifndef TN_PROFILER_WAIT_TIME
+#  define TN_PROFILER_WAIT_TIME  0
+#endif
+
+
+/**
+ * Whether software stack overflow check is enabled.  Enabling this option adds
+ * small overhead to context switching and system tick processing
+ * (`#tn_tick_int_processing()`). When stack overflow happens, the kernel calls
+ * user-provided callback (see `#tn_callback_stack_overflow_set()`); if this
+ * callback is undefined, the kernel calls `#_TN_FATAL_ERROR()`.
+ *
+ * This option is on by default for all architectures except PIC24/dsPIC, 
+ * since this architecture has hardware stack pointer limit.
+ */
+#ifndef TN_STACK_OVERFLOW_CHECK
+#  if defined(__TN_ARCH_PIC24_DSPIC__)
+/*
+ * On PIC24/dsPIC, we have hardware stack pointer limit, so, no need for
+ * software check
+ */
+#     define TN_STACK_OVERFLOW_CHECK   0
+#  else
+/*
+ * On all other architectures, software stack overflow check is ON by default
+ */
+#     define TN_STACK_OVERFLOW_CHECK   1
+#  endif
+#endif
+
+
+/**
+ * Whether the kernel should use \ref time_ticks__dynamic_tick scheme instead of
+ * \ref time_ticks__static_tick.
+ */
+#ifndef TN_DYNAMIC_TICK
+#  define TN_DYNAMIC_TICK        0
+#endif
+
+
+/**
+ * Whether the old TNKernel events API compatibility mode is active.
+ *
+ * \warning Use it if only you're porting your existing TNKernel project on
+ * TNeo. Otherwise, usage of this option is strongly discouraged.
+ *
+ * Actually, events are the most incompatible thing between TNeo and
+ * TNKernel (for some details, refer to the section \ref tnkernel_diff_event)
+ *
+ * This option is quite useful when you're porting your existing TNKernel app 
+ * to TNeo. When it is non-zero, old events symbols are available and
+ * behave just like they do in TNKernel.
+ *
+ * The full list of what becomes available:
+ *
+ * - Event group attributes:
+ *   - `#TN_EVENT_ATTR_SINGLE`
+ *   - `#TN_EVENT_ATTR_MULTI`
+ *   - `#TN_EVENT_ATTR_CLR`
+ *
+ * - Functions:
+ *   - `#tn_event_create()`
+ *   - `#tn_event_delete()`
+ *   - `#tn_event_wait()`
+ *   - `#tn_event_wait_polling()`
+ *   - `#tn_event_iwait()`
+ *   - `#tn_event_set()`
+ *   - `#tn_event_iset()`
+ *   - `#tn_event_clear()`
+ *   - `#tn_event_iclear()`
+ */
+#ifndef TN_OLD_EVENT_API
+#  define TN_OLD_EVENT_API       0
+#endif
 
 
 

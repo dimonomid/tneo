@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Project version="2G - 1.7.7" name="tneo_cortex_m_coocox">
+  <Target name="tneo_cortex_m_coocox" isCurrent="1">
+    <Device manufacturerId="1" manufacturerName="ARM" chipId="4" chipName="M4" boardId="" boardName=""/>
+    <BuildOption>
+      <Compile>
+        <Option name="OptimizationLevel" value="4"/>
+        <Option name="UseFPU" value="0"/>
+        <Option name="UserEditCompiler" value=""/>
+        <Option name="SupportCPlusplus" value="0"/>
+        <Includepaths>
+          <Includepath path="../../../src"/>
+          <Includepath path="../../../src/core"/>
+          <Includepath path="../../../src/core/internal"/>
+          <Includepath path="../../../src/arch"/>
+          <Includepath path="../../../src/arch/cortex_m"/>
+        </Includepaths>
+        <DefinedSymbols>
+          <Define name="M4"/>
+        </DefinedSymbols>
+      </Compile>
+      <Link useDefault="0">
+        <Option name="DiscardUnusedSection" value="0"/>
+        <Option name="UserEditLinkder" value=""/>
+        <Option name="UseMemoryLayout" value="1"/>
+        <Option name="nostartfiles" value="1"/>
+        <Option name="LTO" value="0"/>
+        <Option name="IsNewStartupCode" value="1"/>
+        <Option name="Library" value="Not use C Library"/>
+        <LinkedLibraries/>
+        <MemoryAreas debugInFlashNotRAM="1">
+          <Memory name="IROM1" type="ReadOnly" size="0x00008000" startValue="0x00000000"/>
+          <Memory name="IRAM1" type="ReadWrite" size="0x00000800" startValue="0x20000000"/>
+          <Memory name="IROM2" type="ReadOnly" size="" startValue=""/>
+          <Memory name="IRAM2" type="ReadWrite" size="" startValue=""/>
+        </MemoryAreas>
+        <LocateLinkFile path="c:/coocox/coide/configuration/programdata/tneo_cortex_m_coocox/arm-gcc-link.ld" type="0"/>
+      </Link>
+      <Output>
+        <Option name="OutputFileType" value="1"/>
+        <Option name="Path" value="./"/>
+        <Option name="Name" value="tneo_cortex_m_coocox"/>
+        <Option name="HEX" value="1"/>
+        <Option name="BIN" value="1"/>
+      </Output>
+      <User>
+        <UserRun name="Run#1" type="Before" checked="0" value=""/>
+        <UserRun name="Run#1" type="After" checked="0" value=""/>
+      </User>
+    </BuildOption>
+    <DebugOption>
+      <Option name="org.coocox.codebugger.gdbjtag.core.adapter" value="ColinkEx"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.debugMode" value="SWD"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.clockDiv" value="1M"/>
+      <Option name="org.coocox.codebugger.gdbjtag.corerunToMain" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.jlinkgdbserver" value=""/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.userDefineGDBScript" value=""/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.targetEndianess" value="0"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.jlinkResetMode" value="Type 0: Normal"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.resetMode" value="SYSRESETREQ"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ifSemihost" value="0"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ifCacheRom" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.ipAddress" value="127.0.0.1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.portNumber" value="2009"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.autoDownload" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.verify" value="1"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.downloadFuction" value="Erase Effected"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.defaultAlgorithm" value="STM32F4xx_1024.elf"/>
+    </DebugOption>
+    <ExcludeFile/>
+  </Target>
+  <Components path="./"/>
+  <Files>
+    <File name="core/tn_timer_dyn.c" path="../../../src/core/tn_timer_dyn.c" type="1"/>
+    <File name="core/tn_eventgrp.c" path="../../../src/core/tn_eventgrp.c" type="1"/>
+    <File name="core/tn_timer_static.c" path="../../../src/core/tn_timer_static.c" type="1"/>
+    <File name="arch/tn_arch_cortex_m_c.c" path="../../../src/arch/cortex_m/tn_arch_cortex_m_c.c" type="1"/>
+    <File name="core/tn_list.c" path="../../../src/core/tn_list.c" type="1"/>
+    <File name="arch" path="" type="2"/>
+    <File name="core/tn_mutex.c" path="../../../src/core/tn_mutex.c" type="1"/>
+    <File name="core/tn_timer.c" path="../../../src/core/tn_timer.c" type="1"/>
+    <File name="core/tn_sys.c" path="../../../src/core/tn_sys.c" type="1"/>
+    <File name="core/tn_dqueue.c" path="../../../src/core/tn_dqueue.c" type="1"/>
+    <File name="core/tn_fmem.c" path="../../../src/core/tn_fmem.c" type="1"/>
+    <File name="core/tn_tasks.c" path="../../../src/core/tn_tasks.c" type="1"/>
+    <File name="core/tn_sem.c" path="../../../src/core/tn_sem.c" type="1"/>
+    <File name="arch/tn_arch_cortex_m.S" path="../../../src/arch/cortex_m/tn_arch_cortex_m.S" type="1"/>
+    <File name="core" path="" type="2"/>
+  </Files>
+</Project>

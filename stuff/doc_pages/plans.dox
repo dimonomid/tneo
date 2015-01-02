@@ -3,12 +3,6 @@
 
 \tableofcontents
 
-I have plans to implement some goodies not yet present in the kernel.
-
-\section plans_event_connect Event connecting
-
-Sometimes we need to wait, say, for messages from several queues simultaneously; currently, the kernel does not have built-in support of it. How I plan to implement it: there should be a way to *connect* an event group and custom events mask to the data queue. Then, data queue will maintain flag(s) specified by mask: when queue is non-empty, it will set flag(s) by mask, when queue becomes empty, it will clear these flag(s).
-
-Then, we can connect single event group to several queues passing different flags, and wait for the messages from all of these queues with just a single call to `tn_eventgrp_wait()`. When event happened, we just check which flags are set, and get message from appropriate queue.
+No specific plans at the moment.
 
 */

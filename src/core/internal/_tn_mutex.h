@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -57,7 +57,7 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 
@@ -78,7 +78,13 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task);
 
 /**
  * Should be called when task finishes waiting
- * for mutex with priority inheritance
+ * for mutex with priority inheritance.
+ *
+ * Preconditions: 
+ *
+ * - `task->task_queue` is removed from the mutex's wait queue;
+ * - `task->pwait_queue` still points to the mutex which task was waiting for;
+ * - `mutex->holder` still points to the task which was holding the mutex.
  */
 void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task);
 
@@ -95,9 +101,9 @@ void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
  * are just compiled out.
  */
 
-static inline void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
-static inline void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
-static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
+static _TN_INLINE void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
+static _TN_INLINE void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
+static _TN_INLINE void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
 #endif
 
 
@@ -110,8 +116,8 @@ static inline void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
  * Checks whether given mutex object is valid 
  * (actually, just checks against `id_mutex` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_mutex_is_valid(
-      struct TN_Mutex   *mutex
+static _TN_INLINE TN_BOOL _tn_mutex_is_valid(
+      const struct TN_Mutex   *mutex
       )
 {
    return (mutex->id_mutex == TN_ID_MUTEX);

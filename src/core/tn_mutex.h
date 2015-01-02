@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -62,7 +62,7 @@
  *
  * ---------------------------------------------------------------------------
  *
- * Mutex features in TNeoKernel:
+ * Mutex features in TNeo:
  *
  *    - Recursive locking is supported (if option `#TN_MUTEX_REC` is non-zero);
  *    - Deadlock detection (if option `#TN_MUTEX_DEADLOCK_DETECT` is non-zero);
@@ -151,7 +151,7 @@ struct TN_Mutex {
 };
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -218,7 +218,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *    * If the mutex is already locked by the same task, lock count is merely
  *      incremented and `#TN_RC_OK` is returned immediately.
  *    * If the mutex is locked by different task, behavior depends on
- *      `timeout` value: refer to `#TN_Timeout`.
+ *      `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -226,7 +226,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  * $(TN_LEGEND_LINK)
  *
  * @param mutex      mutex to lock
- * @param timeout    refer to `#TN_Timeout`
+ * @param timeout    refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if mutex is successfully locked or if lock count was
@@ -240,13 +240,13 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex);
  *       * if recursive locking is disabled (see `#TN_MUTEX_REC`)
  *         and the mutex is already locked by calling task
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  *
  * @see `#TN_MutexProtocol`
  */
-enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout);
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout);
 
 /**
  * The same as `tn_mutex_lock()` with zero timeout

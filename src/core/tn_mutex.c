@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -90,8 +90,8 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static inline enum TN_RCode _check_param_generic(
-      struct TN_Mutex *mutex
+static _TN_INLINE enum TN_RCode _check_param_generic(
+      const struct TN_Mutex *mutex
       )
 {
    enum TN_RCode rc = TN_RC_OK;
@@ -105,8 +105,8 @@ static inline enum TN_RCode _check_param_generic(
    return rc;
 }
 
-static inline enum TN_RCode _check_param_create(
-      struct TN_Mutex        *mutex,
+static _TN_INLINE enum TN_RCode _check_param_create(
+      const struct TN_Mutex        *mutex,
       enum TN_MutexProtocol   protocol,
       int                     ceil_priority
       )
@@ -148,7 +148,7 @@ static inline enum TN_RCode _check_param_create(
  *
  * Max priority (i.e. lowest value) is returned.
  */
-static inline int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+static _TN_INLINE int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int               priority;
    struct TN_Task   *task;
@@ -157,8 +157,11 @@ static inline int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_pri
 
    //-- Iterate through all the tasks that wait for lock mutex.
    //   Highest priority (i.e. lowest number) will be returned eventually.
-   _tn_list_for_each_entry(task, &(mutex->wait_queue), task_queue){
-      if(task->priority < priority){
+   _tn_list_for_each_entry(
+         task, struct TN_Task, &(mutex->wait_queue), task_queue
+         )
+   {
+      if (task->priority < priority){
          //--  task priority is higher, remember it
          priority = task->priority;
       }
@@ -169,9 +172,9 @@ static inline int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_pri
 
 /**
  * Returns max priority that could be set to some task because
- * it locked given mutex, but not less than given ref_priority.
+ * it locked given mutex, but not less than given `ref_priority`.
  */
-static inline int _find_max_priority_by_mutex(
+static _TN_INLINE int _find_max_priority_by_mutex(
       struct TN_Mutex *mutex, int ref_priority
       )
 {
@@ -179,12 +182,18 @@ static inline int _find_max_priority_by_mutex(
 
    switch (mutex->protocol){
       case TN_MUTEX_PROT_CEILING:
+         //-- Mutex protocol is 'priority ceiling':
+         //   just check specified ceil_priority of the mutex
          if (mutex->ceil_priority < priority){
             priority = mutex->ceil_priority;
          }
          break;
 
       case TN_MUTEX_PROT_INHERIT:
+         //-- Mutex protocol is 'priority inheritance':
+         //   we need to iterate through all the tasks that wait for 
+         //   the mutex, checking if task's priority is higher than
+         //   `ref_priority`.
          priority = _find_max_blocked_priority(mutex, priority);
          break;
 
@@ -200,12 +209,13 @@ static inline int _find_max_priority_by_mutex(
 /**
  * Iterate through all the mutexes that are held by task,
  * for each mutex:
- *    * if protocol is TN_MUTEX_PROT_CEILING:
- *       check if ceil priority higher than task's base priority
- *    * if protocol is TN_MUTEX_PROT_INHERIT:
- *       iterate through all the tasks that wait for this mutex,
- *       and check if priority of each task is higher than
- *       our task's base priority
+ *
+ *    - if protocol is TN_MUTEX_PROT_CEILING:
+ *      check if ceil priority higher than task's base priority
+ *    - if protocol is TN_MUTEX_PROT_INHERIT:
+ *      iterate through all the tasks that wait for this mutex,
+ *      and check if priority of each task is higher than
+ *      our task's base priority
  *
  * Eventually, find out highest priority and set it.
  */
@@ -223,7 +233,10 @@ static void _update_task_priority(struct TN_Task *task)
       struct TN_Mutex *mutex;
 
       //-- Iterate through all the mutexes locked by given task
-      _tn_list_for_each_entry(mutex, &(task->mutex_queue), mutex_queue){
+      _tn_list_for_each_entry(
+            mutex, struct TN_Mutex, &(task->mutex_queue), mutex_queue
+            )
+      {
          priority = _find_max_priority_by_mutex(mutex, priority);
       }
    }
@@ -240,7 +253,7 @@ static void _update_task_priority(struct TN_Task *task)
  * If task is waiting for some mutex too, go on to holder of that mutex
  * and elevate its priority too, recursively. And so on.
  */
-static inline void _task_priority_elevate(struct TN_Task *task, int priority)
+static _TN_INLINE void _task_priority_elevate(struct TN_Task *task, int priority)
 {
 in:
    //-- transitive priority changing
@@ -290,7 +303,7 @@ in:
 
 }
 
-static inline void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
+static _TN_INLINE void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
 {
    mutex->holder = task;
    __mutex_lock_cnt_change(mutex, 1);
@@ -361,11 +374,13 @@ static void _unlink_deadlock_lists(struct TN_Mutex *mutex, struct TN_Task *task)
    struct TN_ListItem *item;
    struct TN_ListItem *tmp_item;
 
+   //-- unlink list of mutexes
    _tn_list_for_each_safe(item, tmp_item, &mutex->deadlock_list){
       _tn_list_remove_entry(item);
       _tn_list_reset(item);
    }
 
+   //-- unlink list of tasks
    _tn_list_for_each_safe(item, tmp_item, &task->deadlock_list){
       _tn_list_remove_entry(item);
       _tn_list_reset(item);
@@ -465,9 +480,9 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 {}
 #endif
 
-static inline void _add_curr_task_to_mutex_wait_queue(
+static _TN_INLINE void _add_curr_task_to_mutex_wait_queue(
       struct TN_Mutex *mutex,
-      TN_Timeout timeout
+      TN_TickCnt timeout
       )
 {
    enum TN_WaitReason wait_reason;
@@ -476,8 +491,8 @@ static inline void _add_curr_task_to_mutex_wait_queue(
       //-- Priority inheritance protocol
 
       //-- if run_task curr priority higher holder's curr priority
-      if (tn_curr_run_task->priority < mutex->holder->priority){
-         _task_priority_elevate(mutex->holder, tn_curr_run_task->priority);
+      if (_tn_curr_run_task->priority < mutex->holder->priority){
+         _task_priority_elevate(mutex->holder, _tn_curr_run_task->priority);
       }
 
       wait_reason = TN_WAIT_REASON_MUTEX_I;
@@ -489,7 +504,7 @@ static inline void _add_curr_task_to_mutex_wait_queue(
    _tn_task_curr_to_wait_action(&(mutex->wait_queue), wait_reason, timeout);
 
    //-- check if there is deadlock
-   _check_deadlock_active(mutex, tn_curr_run_task);
+   _check_deadlock_active(mutex, _tn_curr_run_task);
 }
 
 /**
@@ -531,8 +546,7 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
 
       //-- get first task from mutex's wait_queue
       task = _tn_list_first_entry(
-            &(mutex->wait_queue),
-            typeof(*task), task_queue
+            &(mutex->wait_queue), struct TN_Task, task_queue
             );
 
       //-- wake it up.
@@ -548,12 +562,80 @@ static void _mutex_do_unlock(struct TN_Mutex * mutex)
       //   so, special flag invented: priority_already_updated.
       //   It's probably not so elegant, but I believe it is
       //   acceptable tradeoff in the name of efficiency.
+      //
+      //   NOTE that we can't remove the above call _update_task_priority(),
+      //   because it then won't be called if nobody waited for mutex.
       mutex->holder->priority_already_updated = TN_TRUE;
       _tn_task_wait_complete(task, TN_RC_OK);
       mutex->holder->priority_already_updated = TN_FALSE;
 
       //-- lock mutex by it
       _mutex_do_lock(mutex, task);
+   }
+}
+
+/**
+ * Update priority of the holder of mutex which `task` was waiting for. If the
+ * holder itself waits for some mutex2, update priority of mutex2's holder, and
+ * so on, recursively.
+ *
+ * Say, we have the following arrangement:
+ *
+ * - `task_a` locked mutex M1:               `task_a` is runnable;
+ * - `task_b` locked mutex M2, waits for M1: `task_b` is waiting;
+ * - `task_c`                  waits for M2: `task_c` is waiting.
+ * 
+ * Now, `task_c` finishes waiting for mutex by timeout, and
+ * `_update_holders_priority_recursive(task_c)` is eventually called.
+ *
+ * First, we get `task_b` since it is a holder of M2 which `task_c` was waiting
+ * for. So, priority of `task_b` is updated.
+ *
+ * Then, we get `task_a` since it is a holder of M1 which `task_b` is waiting
+ * for. So, priority of `task_a` is updated.
+ *
+ * Then we see that `task_a` doesn't wait for any mutex, and the function 
+ * returns.
+ *
+ * Preconditions:
+ *
+ * - `task->pwait_queue` should point to the mutex wait queue;
+ * - `mutex->holder` should point to the holder.
+ *
+ */
+static void _update_holders_priority_recursive(struct TN_Task *task)
+{
+   struct TN_Task *holder;
+
+in:
+   //-- get the holder of mutex for which `task` is/was waiting for.
+   //   NOTE that this holder might still hold the mutex
+   //   (if `task` stopped waiting by timeout), or it might
+   //   already release it. In either case, `mutex->holder` still
+   //   points to the task which is/was holding the mutex.
+   holder = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
+
+   //-- now, `holder` points to the (ex-)holder, i.e. to the task which is/was
+   //   holding the mutex. Now, we iterate through all the mutexes that are
+   //   still held by (ex-)holder, determining new priority for (ex-)holder.
+   _update_task_priority(holder);
+
+   //-- and check if the (ex-)holder is also waiting for some other mutex
+   if (     (_tn_task_is_waiting(holder))
+         && (holder->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
+      )
+   {
+      //-- holder is waiting for another mutex. In this case, call this
+      //   function again, recursively, for the holder.
+      //
+      //   NOTE: as a workaround for crappy compilers that don't
+      //   convert function call to simple goto here,
+      //   we have to use goto explicitly.
+      //
+      //_update_holders_priority_recursive(holder);
+
+      task = holder;
+      goto in;
    }
 }
 
@@ -611,7 +693,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
       TN_INT_DIS_SAVE();
 
       //-- mutex can be deleted if only it isn't held 
-      if (mutex->holder != TN_NULL && mutex->holder != tn_curr_run_task){
+      if (mutex->holder != TN_NULL && mutex->holder != _tn_curr_run_task){
          rc = TN_RC_ILLEGAL_USE;
       } else {
 
@@ -629,7 +711,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
             _tn_list_reset(&(mutex->mutex_queue));
          }
 
-         mutex->id_mutex = 0; //-- mutex does not exist now
+         mutex->id_mutex = TN_ID_NONE; //-- mutex does not exist now
 
       }
 
@@ -646,7 +728,7 @@ enum TN_RCode tn_mutex_delete(struct TN_Mutex *mutex)
 /*
  * See comments in the header file (tn_mutex.h)
  */
-enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
+enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_TickCnt timeout)
 {
    enum TN_RCode rc = _check_param_generic(mutex);
    TN_BOOL waited_for_mutex = TN_FALSE;
@@ -660,7 +742,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 
       TN_INT_DIS_SAVE();
 
-      if (tn_curr_run_task == mutex->holder){
+      if (_tn_curr_run_task == mutex->holder){
          //-- mutex is already locked by current task
          //   if recursive locking enabled (TN_MUTEX_REC), increment lock count,
          //   otherwise error is returned
@@ -669,7 +751,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 
       } else if (
             mutex->protocol == TN_MUTEX_PROT_CEILING
-            && tn_curr_run_task->base_priority < mutex->ceil_priority
+            && _tn_curr_run_task->base_priority < mutex->ceil_priority
             )
       {
          //-- base priority of current task higher
@@ -678,7 +760,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       } else if (mutex->holder == TN_NULL){
          //-- mutex is not locked, let's lock it
 
-         //-- TODO: probably, we should add special flat to _mutex_do_lock,
+         //-- TODO: probably, we should add special flag to _mutex_do_lock,
          //   something like "other_tasks_can_wait", and set it to false here.
          //   When _mutex_do_lock() is called from _mutex_do_unlock(), this flag
          //   should be set to true there.
@@ -686,7 +768,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
          //   and if that flag is false, _find_max_priority_by_mutex() should not
          //   call _find_max_blocked_priority().
          //   We could save about 30 cycles then. =)
-         _mutex_do_lock(mutex, tn_curr_run_task);
+         _mutex_do_lock(mutex, _tn_curr_run_task);
 
       } else {
          //-- mutex is already locked
@@ -700,7 +782,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
 
             waited_for_mutex = TN_TRUE;
 
-            //-- rc will be set later to tn_curr_run_task->task_wait_rc;
+            //-- rc will be set later to _tn_curr_run_task->task_wait_rc;
          }
       }
 
@@ -714,7 +796,7 @@ enum TN_RCode tn_mutex_lock(struct TN_Mutex *mutex, TN_Timeout timeout)
       _tn_context_switch_pend_if_needed();
       if (waited_for_mutex){
          //-- get wait result
-         rc = tn_curr_run_task->task_wait_rc;
+         rc = _tn_curr_run_task->task_wait_rc;
       }
    }
 
@@ -747,7 +829,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
       TN_INT_DIS_SAVE();
 
       //-- unlocking is enabled only for the owner and already locked mutex
-      if (tn_curr_run_task != mutex->holder){
+      if (_tn_curr_run_task != mutex->holder){
          rc = TN_RC_ILLEGAL_USE;
       } else {
 
@@ -760,7 +842,7 @@ enum TN_RCode tn_mutex_unlock(struct TN_Mutex *mutex)
             //   We're done, TN_RC_OK will be returned.
          } else if (mutex->cnt < 0){
             //-- should never be here: lock count is negative.
-            //   bug in the kernel.
+            //   Bug in the kernel, or memory got corrupted.
             _TN_FATAL_ERROR();
          } else {
             //-- lock counter is 0, so, unlock mutex
@@ -796,7 +878,7 @@ void _tn_mutex_unlock_all_by_task(struct TN_Task *task)
                                  //   in _mutex_do_unlock().
 
    _tn_list_for_each_entry_safe(
-         mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
+         mutex, struct TN_Mutex, tmp_mutex, &(task->mutex_queue), mutex_queue
          )
    {
       //-- NOTE: we don't remove item from the list, because it is removed
@@ -822,32 +904,14 @@ void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task)
       //-- priority is already updated (in _mutex_do_unlock)
       //   so, just do nothing here
       //   (flag will be cleared in _mutex_do_unlock 
-      //   when we exit from _tn_task_wait_complete)
+      //   when we exit from `_tn_task_wait_complete()`)
    } else {
-
-in:
-      task = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
-
-      _update_task_priority(task);
-
-      //-- and check if the task is waiting for mutex
-      if (     (_tn_task_is_waiting(task))
-            && (task->task_wait_reason == TN_WAIT_REASON_MUTEX_I)
-         )
-      {
-         //-- task is waiting for another mutex. In this case, 
-         //   call this function again, recursively,
-         //   for mutex's task
-         //
-         //   NOTE: as a workaround for crappy compilers that don't
-         //   convert function call to simple goto here,
-         //   we have to use goto explicitly.
-         //
-         //_tn_mutex_i_on_task_wait_complete(task);
-
-         goto in;
-      }
-
+      //-- Update priority of the holder of mutex which `task` was waiting
+      //   for. If the holder itself waits for some mutex2, update priority
+      //   of mutex2's holder, and so on, recursively.
+      //
+      //   See comments for `_update_holders_priority_recursive()` for details.
+      _update_holders_priority_recursive(task);
    }
 
 }

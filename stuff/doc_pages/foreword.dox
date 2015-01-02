@@ -16,9 +16,9 @@ inconsistency, all of this leads to bugs. More, TNKernel is not documented well
 enough and there are no unit tests for it, so I decided to reimplement it almost
 completely. Refer to the page \ref why_reimplement for details.
 
-I decided not to care much about compatibility with original TNKernel API
+I decided not to care too much about compatibility with original TNKernel API
 because I really don't like several API decisions, so, I actually had to choose
-new name for this project, in order to avoid confusion, hence "TNeoKernel".
+new name for this project, in order to avoid confusion, hence "TNeo".
 Refer to the \ref tnkernel_diff page for details.
 
 Together with almost totally re-writing TNKernel, I've implemented detailed

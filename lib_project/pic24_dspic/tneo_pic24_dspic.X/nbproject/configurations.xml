@@ -13,19 +13,21 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="arch" displayName="arch" projectFiles="true">
-        <itemPath>../tn_arch_pic24.S</itemPath>
-        <itemPath>../tn_arch_pic24_c.c</itemPath>
+        <itemPath>../../../src/arch/pic24_dspic/tn_arch_pic24.S</itemPath>
+        <itemPath>../../../src/arch/pic24_dspic/tn_arch_pic24_c.c</itemPath>
       </logicalFolder>
       <logicalFolder name="core" displayName="core" projectFiles="true">
-        <itemPath>../../../core/tn_mutex.c</itemPath>
-        <itemPath>../../../core/tn_sem.c</itemPath>
-        <itemPath>../../../core/tn_tasks.c</itemPath>
-        <itemPath>../../../core/tn_dqueue.c</itemPath>
-        <itemPath>../../../core/tn_sys.c</itemPath>
-        <itemPath>../../../core/tn_list.c</itemPath>
-        <itemPath>../../../core/tn_eventgrp.c</itemPath>
-        <itemPath>../../../core/tn_fmem.c</itemPath>
-        <itemPath>../../../core/tn_timer.c</itemPath>
+        <itemPath>../../../src/core/tn_mutex.c</itemPath>
+        <itemPath>../../../src/core/tn_sem.c</itemPath>
+        <itemPath>../../../src/core/tn_tasks.c</itemPath>
+        <itemPath>../../../src/core/tn_dqueue.c</itemPath>
+        <itemPath>../../../src/core/tn_sys.c</itemPath>
+        <itemPath>../../../src/core/tn_list.c</itemPath>
+        <itemPath>../../../src/core/tn_eventgrp.c</itemPath>
+        <itemPath>../../../src/core/tn_fmem.c</itemPath>
+        <itemPath>../../../src/core/tn_timer.c</itemPath>
+        <itemPath>../../../src/core/tn_timer_static.c</itemPath>
+        <itemPath>../../../src/core/tn_timer_dyn.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -35,8 +37,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../../core</Elem>
-    <Elem>../..</Elem>
+    <Elem>../../../src/core</Elem>
+    <Elem>../../../src/arch</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -88,7 +90,7 @@
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="extra-include-directories"
-                  value="../..;../../..;../../../core;../../../core/internal"/>
+                  value="../../../src/arch;../../../src;../../../src/core;../../../src/core/internal"/>
         <property key="isolate-each-function" value="true"/>
         <property key="keep-inline" value="false"/>
         <property key="oXC16gcc-align-arr" value="false"/>
@@ -120,7 +122,7 @@
         <property key="assembler-symbols" value=""/>
         <property key="expand-macros" value="false"/>
         <property key="extra-include-directories-for-assembler"
-                  value="../..;../../..;../../../core;../../../core/internal"/>
+                  value="../../../src/arch;../../../src;../../../src/core;../../../src/core/internal"/>
         <property key="extra-include-directories-for-preprocessor" value=""/>
         <property key="false-conditionals" value="false"/>
         <property key="keep-locals" value="false"/>
@@ -314,7 +316,7 @@
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
         <property key="extra-include-directories"
-                  value="../..;../../..;../../../core;../../../core/internal"/>
+                  value="../../../src/arch;../../../src;../../../src/core;../../../src/core/internal"/>
         <property key="isolate-each-function" value="true"/>
         <property key="keep-inline" value="false"/>
         <property key="oXC16gcc-align-arr" value="false"/>
@@ -346,7 +348,7 @@
         <property key="assembler-symbols" value=""/>
         <property key="expand-macros" value="false"/>
         <property key="extra-include-directories-for-assembler"
-                  value="../..;../../..;../../../core;../../../core/internal"/>
+                  value="../../../src/arch;../../../src;../../../src/core;../../../src/core/internal"/>
         <property key="extra-include-directories-for-preprocessor" value=""/>
         <property key="false-conditionals" value="false"/>
         <property key="keep-locals" value="false"/>

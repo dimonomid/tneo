@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -52,7 +52,7 @@
  *
  * The timer callback approach provides ultimate flexibility.
  *
- * In the spirit of TNeoKernel, timers are as lightweight as possible. That's
+ * In the spirit of TNeo, timers are as lightweight as possible. That's
  * why there is only one type of timer: the single-shot timer. If you need your
  * timer to fire repeatedly, you can easily restart it from the timer function
  * by the `tn_timer_start()`, so it's not a problem.
@@ -76,7 +76,10 @@
  * See `#TN_TimerFunc` for the prototype of the function that could be
  * scheduled.
  *
- * \section timers_implementation Implementation of timers
+ * TNeo offers two implementations of timers: static and dynamic. Refer
+ * to the page \ref time_ticks for details.
+ *
+ * \section timers_static_implementation Implementation of static timers
  *
  * Although you don't have to understand the implementation of timers to use
  * them, it is probably worth knowing, particularly because the kernel have an
@@ -116,7 +119,7 @@
  *
  * This book is freely available at http://lwn.net/Kernel/LDD3/ .
  *
- * So, TNeoKernel's implementation:
+ * So, TNeo's implementation:
  *
  * We have configurable value `N` that is a power of two, typical values are
  * `4`, `8` or `16`.
@@ -147,7 +150,7 @@
  * to the current "tick" list while we are iterating through it. 
  * (although timer can be deleted from that list, but it's ok)
  *
- * The `N` in the TNeoKernel is configured by the compile-time option
+ * The `N` in the TNeo is configured by the compile-time option
  * `#TN_TICK_LISTS_CNT`.
  */
 
@@ -209,17 +212,81 @@ struct TN_Timer {
    ///
    /// User data pointer that is given to user-provided `func`.
    void *p_user_data;
+
+#if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
+   ///
+   /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+   /// 
+   /// Tick count value when timer was started
+   TN_TickCnt start_tick_cnt;
+   ///
+   /// $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+   ///
+   /// Timeout value (it is set just once, and stays unchanged until timer is
+   /// expired, cancelled or restarted)
+   TN_TickCnt timeout;
+#endif
+
+#if !TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
+   ///
+   /// $(TN_IF_ONLY_DYNAMIC_TICK_NOT_SET)
    ///
    /// Current (left) timeout value
-   TN_Timeout timeout_cur;
+   TN_TickCnt timeout_cur;
+#endif
+
    ///
    /// id for object validity verification
    enum TN_ObjId id_timer;
 };
 
 
+
+
+
+#if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
+
+/**
+ * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+ *
+ * Prototype of callback function that should schedule next time to call 
+ * `tn_tick_int_processing()`.
+ *
+ * See `tn_callback_dyn_tick_set()`
+ *
+ * @param timeout 
+ *    Timeout after which `tn_tick_int_processing()` should be called next
+ *    time. Note the following:
+ *    - It might be `#TN_WAIT_INFINITE`, which means that there are no active
+ *      timeouts, and so, there's no need for tick interrupt at all.
+ *    - It might be `0`; in this case, it's <i>already</i> time to call
+ *      `tn_tick_int_processing()`. You might want to set interrupt request
+ *      bit then, in order to get to it as soon as possible.
+ *    - In other cases, the function should schedule next call to
+ *      `tn_tick_int_processing()` in the `timeout` tick periods.
+ *
+ */
+typedef void (TN_CBTickSchedule)(TN_TickCnt timeout);
+
+/**
+ * $(TN_IF_ONLY_DYNAMIC_TICK_SET)
+ *
+ * Prototype of callback function that should return current system tick
+ * counter value.
+ *
+ * See `tn_callback_dyn_tick_set()`
+ *
+ * @return current system tick counter value.
+ */
+typedef TN_TickCnt (TN_CBTickCntGet)(void);
+
+#endif
+
+
+
+
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -298,7 +365,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer);
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
  *      is available: `#TN_RC_INVALID_OBJ`.
  */
-enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout);
 
 /**
  * If timer is active, cancel it. If timer is already inactive, nothing is
@@ -373,7 +440,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active);
  * @param timer
  *    Pointer to timer
  * @param p_time_left
- *    Pointer to `#TN_Timeout` variable in which resulting value should be
+ *    Pointer to `#TN_TickCnt` variable in which resulting value should be
  *    stored
  *
  * @return
@@ -382,7 +449,7 @@ enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active);
  */
 enum TN_RCode tn_timer_time_left(
       struct TN_Timer *timer,
-      TN_Timeout *p_time_left
+      TN_TickCnt *p_time_left
       );
 
 #ifdef __cplusplus

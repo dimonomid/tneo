@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -56,7 +56,7 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 
@@ -121,7 +121,7 @@ enum TN_RCode _tn_eventgrp_link_reset(
  */
 enum TN_RCode _tn_eventgrp_link_manage(
       struct TN_EGrpLink  *eventgrp_link,
-      TN_BOOL                 set
+      TN_BOOL              set
       );
 
 
@@ -134,8 +134,8 @@ enum TN_RCode _tn_eventgrp_link_manage(
  * Checks whether given event group object is valid 
  * (actually, just checks against `id_event` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_eventgrp_is_valid(
-      struct TN_EventGrp   *eventgrp
+static _TN_INLINE TN_BOOL _tn_eventgrp_is_valid(
+      const struct TN_EventGrp   *eventgrp
       )
 {
    return (eventgrp->id_event == TN_ID_EVENTGRP);

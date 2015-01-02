@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -41,6 +41,14 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
+//-- as long as that header file (_tn_timer.h) is a generic one for timers,
+//   we should include headers of each particular timers implementation as well
+//   (static timers and dynamic timers, it depends on TN_DYNAMIC_TICK option
+//   which one is actually used)
+#include "_tn_timer_static.h"
+#include "_tn_timer_dyn.h"
+
+
 #include "_tn_sys.h"
 
 
@@ -56,15 +64,10 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
-///
-/// "generic" list of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__gen;
-///
-/// "tick" lists of timers, for details, refer to \ref timers_implementation
-extern struct TN_ListItem tn_timer_list__tick[ TN_TICK_LISTS_CNT ];
+
 
 
 
@@ -88,7 +91,7 @@ void _tn_timers_init(void);
  * Should be called from $(TN_SYS_TIMER_LINK) interrupt. It performs all
  * necessary timers housekeeping: moving them between lists, firing them, etc.
  *
- * See \ref timers_implementation for details.
+ * See \ref timers_static_implementation for details.
  */
 void _tn_timers_tick_proceed(void);
 
@@ -96,7 +99,7 @@ void _tn_timers_tick_proceed(void);
  * Actual worker function that is called by `#tn_timer_start()`.
  * Interrupts should be disabled when calling it.
  */
-enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_Timeout timeout);
+enum TN_RCode _tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout);
 
 /**
  * Actual worker function that is called by `#tn_timer_cancel()`.
@@ -132,7 +135,7 @@ TN_BOOL _tn_timer_is_active(struct TN_Timer *timer);
  * Actual worker function that is called by `#tn_timer_time_left()`.
  * Interrupts should be disabled when calling it.
  */
-TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
+TN_TickCnt _tn_timer_time_left(struct TN_Timer *timer);
 
 
 
@@ -146,8 +149,8 @@ TN_Timeout _tn_timer_time_left(struct TN_Timer *timer);
  * Checks whether given timer object is valid 
  * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
  */
-static inline TN_BOOL _tn_timer_is_valid(
-      struct TN_Timer   *timer
+static _TN_INLINE TN_BOOL _tn_timer_is_valid(
+      const struct TN_Timer   *timer
       )
 {
    return (timer->id_timer == TN_ID_TIMER);

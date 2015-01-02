@@ -1,0 +1,40 @@
+/**
+\page features Features
+
+TNeo has a complete set of common RTOS features plus some extras. Many features
+are optional, so that if you don't need them you can configure the kernel as
+you wish and probably save memory or improve speed.
+
+\section feature_list Feature list
+
+- \ref tn_tasks.h "Tasks", or threads: the most common feature for which the
+  kernel is written in the first place;
+- \ref tn_mutex.h "Mutexes": objects for shared resources protection.
+  - <b>Recursive mutexes</b>: optionally, mutexes allow nested locking;
+  - <b>Mutex deadlock detection</b>: if deadlock occurs, the kernel can notify
+    you about this problem by calling arbitrary function.
+- \ref tn_sem.h "Semaphores": objects for tasks synchronization;
+- \ref tn_fmem.h "Fixed-size memory blocks": simple and deterministic memory
+  allocator;
+- \ref tn_eventgrp.h "Event groups": objects containing various event bits that
+  tasks may set, clear and wait for;
+  - \ref eventgrp_connect "Event group connection": extremely useful feature
+    when you need to wait, say, for messages from multiple queues, or for other
+    set of different events.
+- \ref tn_dqueue.h "Data queues": FIFO buffer of messages that tasks may send
+  and receive;
+- \ref tn_timer.h "Timers": a tool to ask the kernel to call arbitrary function
+  at a particular time in the future. The callback approach provides ultimate 
+  flexibility.
+- <b>Software stack overflow check</b>: extremely useful feature for
+  architectures without hardware stack pointer limit. Refer to the
+  `#TN_STACK_OVERFLOW_CHECK` option for details.
+- <b>Dynamic tick</b>: if there's nothing to do, don't even bother to manage
+  system timer tick each fixed period of time. Refer to the page \ref
+  time_ticks for details.
+- <b>Profiler</b>: allows you to know how much time each of your tasks was
+  actually running, get maximum consecutive running time of it, and other
+  relevant information. Refer to the option `#TN_PROFILER` and `struct
+  #TN_TaskTiming` for details.
+
+*/

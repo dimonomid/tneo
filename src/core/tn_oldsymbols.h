@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -62,7 +62,7 @@
 #  error TN_OLD_TNKERNEL_NAMES is not defined
 #endif
 
-#if TN_OLD_TNKERNEL_NAMES
+#if TN_OLD_TNKERNEL_NAMES || DOXYGEN_ACTIVE
 
 
 #ifdef __cplusplus
@@ -92,15 +92,17 @@ typedef struct TN_FMem        TN_FMP;
 typedef struct TN_Sem         TN_SEM;
 
 
-//there's no compatibility with TNKernel's event object,
-//so, this one is commented
-//typedef struct TN_EventGrp    TN_EVENT;
+#if TN_OLD_EVENT_API
+/// old TNKernel name of `#TN_EventGrp`
+/// available if only `#TN_OLD_EVENT_API` is non-zero
+typedef struct TN_EventGrp    TN_EVENT;
+#endif
 
 
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -128,9 +130,11 @@ typedef struct TN_Sem         TN_SEM;
 /// old TNKernel struct name of `#TN_Sem`
 #define  _TN_SEM        TN_Sem
 
-//there's no compatibility with TNKernel's event object,
-//so, this one is commented
-//#define  _TN_EVENT      TN_EventGrp
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+/// old TNKernel struct name of `#TN_EventGrp`,
+/// available if only `#TN_OLD_EVENT_API` is non-zero
+#  define  _TN_EVENT      TN_EventGrp
+#endif
 
 /// old TNKernel name of `#TN_MAKE_ALIG` macro
 ///
@@ -321,16 +325,141 @@ typedef struct TN_Sem         TN_SEM;
 /// old TNKernel name of `#TN_INT_WIDTH`
 #define  _TN_BITS_IN_INT                TN_INT_WIDTH
 
-
 /// old TNKernel name for `sizeof(#TN_UWord)`
 #define  TN_ALIG                       sizeof(TN_UWord)
 
+/// old TNKernel name for `#TN_NO_TIME_SLICE`
+#define  NO_TIME_SLICE                 TN_NO_TIME_SLICE
+
+/// old TNKernel name for `#TN_MAX_TIME_SLICE`
+#define  MAX_TIME_SLICE                TN_MAX_TIME_SLICE
 
 
 
-/// old name for `TN_STACK_ARR_DEF`
+
+/// old name for `#TN_STACK_ARR_DEF`
 #define  TN_TASK_STACK_DEF             TN_STACK_ARR_DEF
 
+/// old name for `#TN_TickCnt`
+#define  TN_Timeout                    TN_TickCnt
+
+
+
+//-- event stuff {{{
+
+#if TN_OLD_EVENT_API || DOXYGEN_ACTIVE
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_SINGLE`,
+#define  TN_EVENT_ATTR_SINGLE          TN_EVENTGRP_ATTR_SINGLE
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_MULTI`,
+#define  TN_EVENT_ATTR_MULTI           TN_EVENTGRP_ATTR_MULTI
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#TN_EVENTGRP_ATTR_CLR`,
+#define  TN_EVENT_ATTR_CLR             TN_EVENTGRP_ATTR_CLR
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_create_wattr()`,
+#define  tn_event_create(ev, attr, pattern)  \
+         tn_eventgrp_create_wattr((ev), (enum TN_EGrpAttr)(attr), (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_delete()`,
+#define  tn_event_delete               tn_eventgrp_delete
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_wait()`,
+#define  tn_event_wait                 tn_eventgrp_wait
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_wait_polling()`,
+#define  tn_event_wait_polling         tn_eventgrp_wait_polling
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old name for `#tn_eventgrp_iwait_polling()`,
+#define  tn_event_iwait                tn_eventgrp_iwait_polling
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_modify (event,
+/// #TN_EVENTGRP_OP_SET, pattern)`
+#define  tn_event_set(ev, pattern)     tn_eventgrp_modify ((ev), TN_EVENTGRP_OP_SET, (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_imodify (event,
+/// #TN_EVENTGRP_OP_SET, pattern)`
+#define  tn_event_iset(ev, pattern)    tn_eventgrp_imodify((ev), TN_EVENTGRP_OP_SET, (pattern))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_modify (event,
+/// #TN_EVENTGRP_OP_CLEAR, (~pattern))`
+///
+/// \attention Unlike `#tn_eventgrp_modify()`, the pattern should be inverted!
+#define  tn_event_clear(ev, pattern)   tn_eventgrp_modify ((ev), TN_EVENTGRP_OP_CLEAR, (~(pattern)))
+
+/// \attention Deprecated. Available if only `#TN_OLD_EVENT_API` option is
+/// non-zero.
+///
+/// Old TNKernel-compatible way of calling `#tn_eventgrp_imodify (event,
+/// #TN_EVENTGRP_OP_CLEAR, (~pattern))`
+///
+/// \attention Unlike `#tn_eventgrp_modify()`, the pattern should be inverted!
+#define  tn_event_iclear(ev, pattern)  tn_eventgrp_imodify((ev), TN_EVENTGRP_OP_CLEAR, (~(pattern)))
+
+#else
+//-- no compatibility with event API
+#endif
+
+//}}}
+
+
+//-- Internal implementation details {{{
+
+//-- Exclude it from doxygen-generated docs
+#if !DOXYGEN_SHOULD_SKIP_THIS
+
+#define tn_ready_list         _tn_tasks_ready_list
+#define tn_create_queue       _tn_tasks_created_list
+#define tn_created_tasks_cnt  _tn_tasks_created_cnt
+
+#define tn_tslice_ticks       _tn_tslice_ticks
+
+#define tn_sys_state          _tn_sys_state
+
+#define tn_next_task_to_run   _tn_next_task_to_run
+#define tn_curr_run_task      _tn_curr_run_task
+
+#define tn_ready_to_run_bmp   _tn_ready_to_run_bmp
+
+#define tn_idle_task          _tn_idle_task
+
+#endif
+
+//}}}
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

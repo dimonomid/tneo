@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -76,11 +76,12 @@ extern "C"  {     /*}*/
  *
  * May be not defined: in this case, naive algorithm will be used.
  */
-//#define  _TN_FFS(x) (32 - __builtin_clz((x) & (0 - (x))))
+#define  _TN_FFS(x)     _tn_p24_ffs_asm(x)
+int _tn_p24_ffs_asm(int x);
 
 /**
  * Used by the kernel as a signal that something really bad happened.
- * Indicates TNeoKernel bugs as well as illegal kernel usage
+ * Indicates TNeo bugs as well as illegal kernel usage
  * (e.g. sleeping in the idle task callback)
  *
  * Typically, set to assembler instruction that causes debugger to halt.
@@ -123,7 +124,10 @@ extern "C"  {     /*}*/
  * Minimum task's stack size, in words, not in bytes; includes a space for
  * context plus for parameters passed to task's body function.
  */
-#define  TN_MIN_STACK_SIZE          (25 + _TN_EDS_STACK_ADD)
+#define  TN_MIN_STACK_SIZE          (25            \
+      + _TN_EDS_STACK_ADD                          \
+      + _TN_STACK_OVERFLOW_SIZE_ADD                \
+      )
 
 /**
  * Some devices have two registers: DSRPAG and DSWPAG instead of PSVPAG.
@@ -166,9 +170,9 @@ typedef  unsigned int               TN_UIntPtr;
 
 /**
  * Value for infinite waiting, usually matches `ULONG_MAX`,
- * because `#TN_Timeout` is declared as `unsigned long`.
+ * because `#TN_TickCnt` is declared as `unsigned long`.
  */
-#define  TN_WAIT_INFINITE           (TN_Timeout)0xFFFFFFFF
+#define  TN_WAIT_INFINITE           (TN_TickCnt)0xFFFFFFFF
 
 /**
  * Value for initializing the task's stack
@@ -268,7 +272,9 @@ typedef  unsigned int               TN_UIntPtr;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 1)
 
+#define _TN_INLINE   inline
 
+#define _TN_VOLATILE_WORKAROUND   /* nothing */
 
 //-- internal interrupt macro stuff {{{
 

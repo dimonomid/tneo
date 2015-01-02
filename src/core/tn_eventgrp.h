@@ -1,18 +1,18 @@
 /*******************************************************************************
  *
- * TNeoKernel: real-time kernel initially based on TNKernel
+ * TNeo: real-time kernel initially based on TNKernel
  *
  *    TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
  *    PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
- *    TNeoKernel:                copyright © 2014       Dmitry Frank.
+ *    TNeo:                      copyright © 2014       Dmitry Frank.
  *
- *    TNeoKernel was born as a thorough review and re-implementation of
+ *    TNeo was born as a thorough review and re-implementation of
  *    TNKernel. The new kernel has well-formed code, inherited bugs are fixed
  *    as well as new features being added, and it is tested carefully with
  *    unit-tests.
  *
  *    API is changed somewhat, so it's not 100% compatible with TNKernel,
- *    hence the new name: TNeoKernel.
+ *    hence the new name: TNeo.
  *
  *    Permission to use, copy, modify, and distribute this software in source
  *    and binary forms and its documentation for any purpose and without fee
@@ -39,7 +39,7 @@
  *
  * Event group.
  *
- * An event group has an internal variable (of type `TN_UWord`), which is
+ * An event group has an internal variable (of type `#TN_UWord`), which is
  * interpreted as a bit pattern where each bit represents an event. An event
  * group also has a wait queue for the tasks waiting on these events. A task
  * may set specified bits when an event occurs and may clear specified bits
@@ -67,7 +67,7 @@
  * we lost the main goal of the preemptive kernel when we use polling services
  * like that.
  *
- * TNeoKernel offers a solution: an event group can be connected to other
+ * TNeo offers a solution: an event group can be connected to other
  * kernel objects, and these objects will maintain certain flags inside that
  * event group automatically.
  *
@@ -118,18 +118,23 @@ extern "C"  {     /*}*/
  ******************************************************************************/
 
 /**
- * Events waiting mode: wait for all flags to be set or just for any of the 
- * specified flags to be set.
+ * Events waiting mode that should be given to `#tn_eventgrp_wait()` and
+ * friends.
  */
 enum TN_EGrpWaitMode {
    ///
    /// Task waits for **any** of the event bits from the `wait_pattern` 
    /// to be set in the event group
-   TN_EVENTGRP_WMODE_OR     = (1 << 0),
+   TN_EVENTGRP_WMODE_OR       = (1 << 0),
    ///
    /// Task waits for **all** of the event bits from the `wait_pattern` 
    /// to be set in the event group
-   TN_EVENTGRP_WMODE_AND    = (1 << 1),
+   TN_EVENTGRP_WMODE_AND      = (1 << 1),
+   ///
+   /// When a task <b>successfully</b> ends waiting for event bit(s), these
+   /// bits get cleared atomically and automatically. Other bits stay
+   /// unchanged.
+   TN_EVENTGRP_WMODE_AUTOCLR  = (1 << 2),
 };
 
 /**
@@ -147,11 +152,57 @@ enum TN_EGrpOp {
    /// This operation can **not** lead to the context switch, 
    /// since tasks can't wait for events to be cleared.
    TN_EVENTGRP_OP_CLEAR,
+   ///
    /// Toggle flags that are set in the given `pattern` argument. Note that this
    /// operation can lead to the context switch, since other high-priority 
    /// task(s) might wait for the event that was just set (if any).
    TN_EVENTGRP_OP_TOGGLE,
 };
+
+
+/**
+ * Attributes that could be given to the event group object.
+ *
+ * Makes sense if only `#TN_OLD_EVENT_API` option is non-zero; otherwise,
+ * there's just one dummy attribute available: `#TN_EVENTGRP_ATTR_NONE`.
+ */
+enum TN_EGrpAttr {
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
+   /// non-zero.
+   ///
+   /// Indicates that only one task could wait for events in this event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_ATTR_MULTI` flag.
+   TN_EVENTGRP_ATTR_SINGLE    = (1 << 0),
+   ///
+   /// \attention deprecated. Available if only `#TN_OLD_EVENT_API` option is
+   /// non-zero.
+   ///
+   /// Indicates that multiple tasks could wait for events in this event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_ATTR_SINGLE` flag.
+   TN_EVENTGRP_ATTR_MULTI     = (1 << 1),
+   ///
+   /// \attention strongly deprecated. Available if only `#TN_OLD_EVENT_API`
+   /// option is non-zero. Use `#TN_EVENTGRP_WMODE_AUTOCLR` instead.
+   ///
+   /// Can be specified only in conjunction with `#TN_EVENTGRP_ATTR_SINGLE`
+   /// flag. Indicates that <b>ALL</b> flags in this event group should be
+   /// cleared when task successfully waits for any event in it.
+   ///
+   /// This actually makes little sense to clear ALL events, but this is what
+   /// compatibility mode is for (see `#TN_OLD_EVENT_API`)
+   TN_EVENTGRP_ATTR_CLR       = (1 << 2),
+#endif
+
+#if !TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   ///
+   /// Dummy attribute that does not change anything. It is needed only for
+   /// the assistance of the events compatibility mode (see
+   /// `#TN_OLD_EVENT_API`)
+   TN_EVENTGRP_ATTR_NONE      = (0),
+#endif
+};
+
 
 /**
  * Event group
@@ -160,6 +211,14 @@ struct TN_EventGrp {
    struct TN_ListItem   wait_queue; //!< task wait queue
    TN_UWord             pattern;    //!< current flags pattern
    enum TN_ObjId        id_event;   //!< id for object validity verification
+
+#if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
+   ///
+   /// Attributes that are given to that events group,
+   /// available if only `#TN_OLD_EVENT_API` option is non-zero.
+   enum TN_EGrpAttr     attr;
+#endif
+
 };
 
 /**
@@ -193,7 +252,7 @@ struct TN_EGrpLink {
 
 
 /*******************************************************************************
- *    GLOBAL VARIABLES
+ *    PROTECTED GLOBAL DATA
  ******************************************************************************/
 
 /*******************************************************************************
@@ -205,6 +264,24 @@ struct TN_EGrpLink {
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/
+
+/**
+ * The same as `#tn_eventgrp_create()`, but takes additional argument: `attr`.
+ * It makes sense if only `#TN_OLD_EVENT_API` option is non-zero.
+ *
+ * @param eventgrp
+ *    Pointer to already allocated struct TN_EventGrp
+ * @param attr    
+ *    Attributes for that particular event group object, see `struct
+ *    #TN_EGrpAttr`
+ * @param initial_pattern
+ *    Initial events pattern.
+ */
+enum TN_RCode tn_eventgrp_create_wattr(
+      struct TN_EventGrp  *eventgrp,
+      enum TN_EGrpAttr     attr,
+      TN_UWord             initial_pattern
+      );
 
 /**
  * Construct event group. `id_event` field should not contain `#TN_ID_EVENTGRP`,
@@ -224,10 +301,21 @@ struct TN_EGrpLink {
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return code
  *      is available: `#TN_RC_WPARAM`.
  */
-enum TN_RCode tn_eventgrp_create(
+static _TN_INLINE enum TN_RCode tn_eventgrp_create(
       struct TN_EventGrp  *eventgrp,
       TN_UWord             initial_pattern
-      );
+      )
+{
+   return tn_eventgrp_create_wattr(
+         eventgrp,
+#if TN_OLD_EVENT_API
+         (TN_EVENTGRP_ATTR_MULTI),
+#else
+         (0),
+#endif
+         initial_pattern
+         );
+}
 
 /**
  * Destruct event group.
@@ -252,7 +340,7 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
 /**
  * Wait for specified event(s) in the event group. If the specified event
  * is already active, function returns `#TN_RC_OK` immediately. Otherwise,
- * behavior depends on `timeout` value: refer to `#TN_Timeout`.
+ * behavior depends on `timeout` value: refer to `#TN_TickCnt`.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CAN_SWITCH_CONTEXT)
@@ -272,14 +360,14 @@ enum TN_RCode tn_eventgrp_delete(struct TN_EventGrp *eventgrp);
  *    that caused task to stop waiting will be stored.
  *    May be `TN_NULL`.
  * @param timeout
- *    refer to `#TN_Timeout`
+ *    refer to `#TN_TickCnt`
  *
  * @return
  *    * `#TN_RC_OK` if specified event is active (so the task can check 
  *      variable pointed to by `p_flags_pattern` if it wasn't `TN_NULL`).
  *    * `#TN_RC_WCONTEXT` if called from wrong context;
  *    * Other possible return codes depend on `timeout` value,
- *      refer to `#TN_Timeout`
+ *      refer to `#TN_TickCnt`
  *    * If `#TN_CHECK_PARAM` is non-zero, additional return codes
  *      are available: `#TN_RC_WPARAM` and `#TN_RC_INVALID_OBJ`.
  */
@@ -288,7 +376,7 @@ enum TN_RCode tn_eventgrp_wait(
       TN_UWord             wait_pattern,
       enum TN_EGrpWaitMode wait_mode,
       TN_UWord            *p_flags_pattern,
-      TN_Timeout           timeout
+      TN_TickCnt           timeout
       );
 
 /**
