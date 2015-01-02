@@ -106,6 +106,15 @@
 #  if defined(__TARGET_CPU_CORTEX_M0)
 #     define __TN_ARCH_CORTEX_M0__
 #     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
+
+/*
+ * For Cortex-M0+, ARMCC defines pretty nasty macro __TARGET_CPU_CORTEX_M0_,
+ * see some details here:
+ * http://stackoverflow.com/questions/25973956/predefined-cpu-target-macro-for-cortex-m0
+ */
+#  elif defined(__TARGET_CPU_CORTEX_M0_)
+#     define __TN_ARCH_CORTEX_M0__
+#     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
 #  elif defined(__TARGET_CPU_CORTEX_M3)
 #     define __TN_ARCH_CORTEX_M3__
 #     define __TN_ARCHFEAT_CORTEX_M_ARMv6M_ISA__
