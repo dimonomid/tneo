@@ -11,7 +11,7 @@
             <asminc-extensions/>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects>
-                <make-dep-project>../../../../../src/arch/pic32/tneo_pic32.X</make-dep-project>
+                <make-dep-project>../../../../../lib_project/pic32/tneo_pic32.X</make-dep-project>
             </make-dep-projects>
         </data>
     </configuration>

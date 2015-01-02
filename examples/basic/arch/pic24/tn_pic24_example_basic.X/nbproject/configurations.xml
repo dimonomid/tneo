@@ -13,6 +13,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../tn_pic24_example_basic.c</itemPath>
+      <itemPath>../../../../../src/tn_app_check.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -22,9 +23,8 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../../../../src/arch/pic32</Elem>
-    <Elem>../../../../../src/arch/pic32</Elem>
     <Elem>..</Elem>
-    <Elem>../../../../../src/arch/pic24_dspic</Elem>
+    <Elem>../../../../../src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -43,12 +43,12 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic24_dspic/tneo_pic24_dspic.X"
+              <makeArtifact PL="../../../../../lib_project/pic24_dspic/tneo_pic24_dspic.X"
                             CT="3"
                             CN="no_eds"
                             AC="false"
                             BL="true"
-                            WD="../../../../../src/arch/pic24_dspic/tneo_pic24_dspic.X"
+                            WD="../../../../../lib_project/pic24_dspic/tneo_pic24_dspic.X"
                             BC="${MAKE}  -f Makefile CONF=no_eds"
                             DBC="${MAKE}  -f Makefile CONF=no_eds TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/no_eds&quot; &quot;dist/no_eds&quot;"

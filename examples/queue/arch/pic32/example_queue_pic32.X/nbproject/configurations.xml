@@ -20,6 +20,7 @@
       <itemPath>../../../queue_example.c</itemPath>
       <itemPath>../../../task_consumer.c</itemPath>
       <itemPath>../../../task_producer.c</itemPath>
+      <itemPath>../../../../../src/tn_app_check.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -29,8 +30,8 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../../../../common/queue</Elem>
-    <Elem>../../../../../src/arch/pic32</Elem>
     <Elem>../../..</Elem>
+    <Elem>../../../../../src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -49,12 +50,12 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibProjectItem>
-              <makeArtifact PL="../../../../../src/arch/pic32/tneo_pic32.X"
+              <makeArtifact PL="../../../../../lib_project/pic32/tneo_pic32.X"
                             CT="3"
                             CN="default"
                             AC="true"
                             BL="true"
-                            WD="../../../../../src/arch/pic32/tneo_pic32.X"
+                            WD="../../../../../lib_project/pic32/tneo_pic32.X"
                             BC="${MAKE}  -f Makefile CONF=default"
                             DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
                             CC="rm -rf &quot;build/default&quot; &quot;dist/default&quot;"

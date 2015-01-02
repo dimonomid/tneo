@@ -1,9 +1,8 @@
 /**
 \mainpage TNeo overview
 
-TNeo is a compact and fast real-time kernel for the embedded 32/16 bits
-microprocessors. It performs a preemptive priority-based scheduling and a
-round-robin scheduling for the tasks with identical priority.
+TNeo is a compact and fast real-time kernel for embedded 32/16 bits
+microprocessors. It performs a preemptive priority-based scheduling.
 
 TNeo was born as a thorough review and re-implementation of
 [TNKernel](http://tnkernel.com) 2.7.  The new kernel has well-formed code, 
