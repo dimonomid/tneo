@@ -414,9 +414,19 @@
               <FilePath>..\tn_stm32f4_example_basic.c</FilePath>
             </File>
             <File>
-              <FileName>tneo_cortex_m4f_keil5.lib</FileName>
+              <FileName>tn_app_check.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\..\src\tn_app_check.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>lib</GroupName>
+          <Files>
+            <File>
+              <FileName>tneo_cortex_m4f_keil_rv.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\tneo_cortex_m4f_keil5.lib</FilePath>
+              <FilePath>..\tneo_cortex_m4f_keil_rv.lib</FilePath>
             </File>
           </Files>
         </Group>
