@@ -5,7 +5,9 @@
 
 TNeo changelog
 
-\section changelog_current Current development version (BETA)
+\section changelog_v1_05 v1.05
+
+Release date: 2015-01-02.
 
   - Cortex-M0/M0+/M1/M3/M4/M4F architectures are now supported. 
     - The following compilers are tested:
