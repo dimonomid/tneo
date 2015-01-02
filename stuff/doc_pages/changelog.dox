@@ -44,6 +44,7 @@ TNeo changelog
     directory. If you use these library projects from the repository
     directly in your application, you need to modify path to the library
     project in your application project.
+  - The project's name is shortened to <b>TNeo</b>.
 
 
 \section changelog_v1_04 v1.04
