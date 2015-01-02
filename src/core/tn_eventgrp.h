@@ -311,7 +311,7 @@ static _TN_INLINE enum TN_RCode tn_eventgrp_create(
 #if TN_OLD_EVENT_API
          (TN_EVENTGRP_ATTR_MULTI),
 #else
-         (0),
+         (TN_EVENTGRP_ATTR_NONE),
 #endif
          initial_pattern
          );
