@@ -46,6 +46,14 @@
   * push docs: `$ hg push`
   * cd back to tneo repo: `$ cd ../..`
   * create downloadable archive: `$ bash ./create_version_archive.sh vX.XX`
+  * build Keil binaries manually:
+     * `$ hg up vX.XX`
+     * `$ mv src/tn_cfg.h src/_tn_cfg.h`
+     * `$ cp src/tn_cfg_default.h src/tn_cfg.h`
+     * build all needed binaries, copy them to the archive
+     * `$ rm src/tn_cfg.h`
+     * `$ mv src/_tn_cfg.h src/tn_cfg.h`
+     * `$ hg up tip`
   * go to https://bitbucket.org/dfrank/tneokernel/downloads and upload new archive there
   * push repo to the bitbucket `$ hg push https://dfrank@bitbucket.org/dfrank/tneokernel`
 
