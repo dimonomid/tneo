@@ -335,6 +335,13 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
  * if `#TN_STACK_OVERFLOW_CHECK` is non-zero, this function is called at every
  * context switch as well as inside `#tn_tick_int_processing()`.
  *
+ * It merely checks whether stack bottom is still untouched (that is, whether
+ * it has the value `TN_FILL_STACK_VAL`).
+ *
+ * If the value is corrupted, the function calls user-provided callback
+ * `_tn_cb_stack_overflow()`. If user hasn't provided that callback,
+ * `#_TN_FATAL_ERROR()` is called.
+ *
  * @param task
  *    Task to check
  */

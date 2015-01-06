@@ -272,14 +272,34 @@
 
 
 /**
- * Whether software stack overflow check is enabled.  Enabling this option adds
- * small overhead to context switching and system tick processing
- * (`#tn_tick_int_processing()`). When stack overflow happens, the kernel calls
- * user-provided callback (see `#tn_callback_stack_overflow_set()`); if this
- * callback is undefined, the kernel calls `#_TN_FATAL_ERROR()`.
+ * Whether software stack overflow check is enabled.
+ *
+ * Enabling this option adds small overhead to context switching and system
+ * tick processing (`#tn_tick_int_processing()`), it also reduces the payload
+ * of task stacks by just one word (`#TN_UWord`) for each stack.
+ *
+ * When stack overflow happens, the kernel calls user-provided callback (see
+ * `#tn_callback_stack_overflow_set()`); if this callback is undefined, the
+ * kernel calls `#_TN_FATAL_ERROR()`.
  *
  * This option is on by default for all architectures except PIC24/dsPIC, 
- * since this architecture has hardware stack pointer limit.
+ * since this architecture has hardware stack pointer limit, unlike the others.
+ *
+ * \attention
+ * It is not an absolute guarantee that the kernel will detect any stack
+ * overflow. The kernel tries to detect stack overflow by checking the latest
+ * address of stack, which should have special value `#TN_FILL_STACK_VAL`. 
+ *
+ * \attention
+ * So stack overflow is detected if only the overflow caused this value to
+ * corrupt, which isn't always the case.
+ *
+ * \attention
+ * More, the check is performed only at context switch and timer tick
+ * processing, which may be too late.
+ *
+ * Nevertheless, from my personal experience, it helps to catch stack overflow
+ * bugs a lot.
  */
 #ifndef TN_STACK_OVERFLOW_CHECK
 #  if defined(__TN_ARCH_PIC24_DSPIC__)
