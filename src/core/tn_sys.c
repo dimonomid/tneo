@@ -122,16 +122,16 @@ struct TN_Task _tn_idle_task;
  */
 
 
-/// Pointer to user idle callback function, it is called regularly
+/// Pointer to user idle callback function, it gets called regularly
 /// from the idle task.
 TN_CBIdle *_tn_cb_idle_hook = TN_NULL;
 
 /// Pointer to stack overflow callback function. When stack overflow
-/// is detected by the kernel, this function is called.
+/// is detected by the kernel, this function gets called.
 /// (see `#TN_STACK_OVERFLOW_CHECK`)
 TN_CBStackOverflow *_tn_cb_stack_overflow = TN_NULL;
 
-/// User-provided callback function that is called whenever 
+/// User-provided callback function that gets called whenever 
 /// mutex deadlock occurs.
 /// (see `#TN_MUTEX_DEADLOCK_DETECT`)
 TN_CBDeadlock *_tn_cb_deadlock = TN_NULL;
@@ -359,6 +359,8 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
          );
 
    if (*p_word != TN_FILL_STACK_VAL){
+      //-- stack overflow is detected, so, notify the user about that.
+
       if (_tn_cb_stack_overflow != NULL){
          _tn_cb_stack_overflow(task);
       } else {
@@ -397,13 +399,19 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
          );
 }
 
+/**
+ * If enabled, define a function which ensures that build-time options for the
+ * kernel match the ones for the application.
+ *
+ * See `#TN_CHECK_BUILD_CFG` for details.
+ */
 #if TN_CHECK_BUILD_CFG
 static void _build_cfg_check(void)
 {
    struct _TN_BuildCfg kernel_build_cfg;
    _TN_BUILD_CFG_STRUCT_FILL(&kernel_build_cfg);
 
-   //-- call dummy function that helps user to undefstand that
+   //-- call dummy function that helps user to understand that
    //   he/she forgot to add file tn_app_check.c to the project
    you_should_add_file___tn_app_check_c___to_the_project();
 
