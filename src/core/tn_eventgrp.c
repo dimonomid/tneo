@@ -132,9 +132,9 @@ static _TN_INLINE enum TN_RCode _check_param_create(
 }
 
 #else
-#  define _check_param_generic(event)                             (TN_RC_OK)
-#  define _check_param_job_perform(event, wait_mode, pattern)     (TN_RC_OK)
-#  define _check_param_create(event)                              (TN_RC_OK)
+#  define _check_param_generic(eventgrp)                          (TN_RC_OK)
+#  define _check_param_job_perform(eventgrp, wait_mode, pattern)  (TN_RC_OK)
+#  define _check_param_create(eventgrp, attr)                     (TN_RC_OK)
 #endif
 // }}}
 
