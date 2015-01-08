@@ -387,7 +387,7 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
       unsigned int   idle_task_stack_size
       )
 {
-   return tn_task_create(
+   return tn_task_create_wname(
          (struct TN_Task*)&_tn_idle_task,  //-- task TCB
          _idle_task_body,                 //-- task function
          TN_PRIORITIES_CNT - 1,           //-- task priority
@@ -395,7 +395,8 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
          TN_NULL,                         //-- task function parameter
-         (_TN_TASK_CREATE_OPT_IDLE)       //-- Creation option
+         (_TN_TASK_CREATE_OPT_IDLE),      //-- Creation option
+         "Idle"                           //-- Task name
          );
 }
 
