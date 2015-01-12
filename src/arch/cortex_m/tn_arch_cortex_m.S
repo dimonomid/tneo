@@ -42,8 +42,9 @@
  *
  * Assemblers supported:
  *
- * - ARMCC
  * - GCC
+ * - clang
+ * - ARMCC
  * - IAR
  *
  * NOTE: this file should be parsed by C preprocessor before assembling.
