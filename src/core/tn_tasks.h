@@ -331,7 +331,7 @@ struct TN_Task {
    /// pointer to task's current top of the stack;
    /// Note that this field **must** be a first field in the struct,
    /// this fact is exploited by platform-specific routines.
-   TN_UWord *stack_top;   
+   TN_UWord *stack_cur_pt;
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     

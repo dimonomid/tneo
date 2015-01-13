@@ -1117,7 +1117,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
 
    //--- Init task stack, save pointer to task top of stack,
    //    when not running
-   task->stack_top = _tn_arch_stack_init(
+   task->stack_cur_pt = _tn_arch_stack_init(
          task->task_func_addr,
          task->stack_origin,
          task->stack_size,
