@@ -362,8 +362,10 @@ struct TN_Task {
 #endif
 #endif
 
-   /// base top of the stack for this task
-   TN_UWord *base_stack_top;
+   /// stack origin for this task (Note: it's not the same as lowest address 
+   /// of the stack, actual value depends on stack implementation for each 
+   /// particular architecture, see `_tn_sys_stack_origin_get()` for details)
+   TN_UWord *stack_origin;
    ///
    /// size of task's stack (in `sizeof(TN_UWord)`, not bytes)
    int stack_size;

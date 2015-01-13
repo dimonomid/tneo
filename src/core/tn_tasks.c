@@ -436,7 +436,7 @@ enum TN_RCode tn_task_create(
    //--- Init task structure
    task->task_func_addr  = task_func;
    task->task_func_param = param;
-   task->base_stack_top  = _tn_arch_stack_top_get(
+   task->stack_origin  = _tn_sys_stack_origin_get(
          task_stack_low_addr,
          task_stack_size
          );
@@ -1119,7 +1119,7 @@ void _tn_task_clear_dormant(struct TN_Task *task)
    //    when not running
    task->stack_top = _tn_arch_stack_init(
          task->task_func_addr,
-         task->base_stack_top,
+         task->stack_origin,
          task->stack_size,
          task->task_func_param
          );

@@ -53,6 +53,34 @@
 
 
 /*******************************************************************************
+ *    OPTION VALUES
+ ******************************************************************************/
+
+#define _TN_ARCH_STACK_DIR__ASC        1
+#define _TN_ARCH_STACK_DIR__DESC       2
+
+//-- Note: the macro _TN_ARCH_STACK_DIR is defined in the header for each
+//   particular achitecture
+
+
+#define _TN_ARCH_STACK_PT_TYPE__FULL   3
+#define _TN_ARCH_STACK_PT_TYPE__EMPTY  4
+
+//-- Note: the macro _TN_ARCH_STACK_PT_TYPE is defined in the header for each
+//   particular achitecture
+
+
+
+#define _TN_ARCH_STACK_IMPL__FULL_ASC        5
+#define _TN_ARCH_STACK_IMPL__FULL_DESC       6
+#define _TN_ARCH_STACK_IMPL__EMPTY_ASC       7
+#define _TN_ARCH_STACK_IMPL__EMPTY_DESC      8
+
+//-- Note: the macro _TN_ARCH_STACK_IMPL is defined below in this file
+
+
+
+/*******************************************************************************
  *    ACTUAL PORT IMPLEMENTATION
  ******************************************************************************/
 
@@ -65,6 +93,41 @@
 #else
 #  error "unknown platform"
 #endif
+
+
+
+
+//-- Now, define _TN_ARCH_STACK_IMPL depending on _TN_ARCH_STACK_DIR and
+//   _TN_ARCH_STACK_PT_TYPE
+
+#if !defined(_TN_ARCH_STACK_DIR)
+#  error _TN_ARCH_STACK_DIR is not defined
+#endif
+
+#if !defined(_TN_ARCH_STACK_PT_TYPE)
+#  error _TN_ARCH_STACK_PT_TYPE is not defined
+#endif
+
+#if (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__ASC)
+#  if (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__FULL)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__FULL_ASC
+#  elif (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__EMPTY)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__EMPTY_ASC
+#  else
+#     error wrong _TN_ARCH_STACK_PT_TYPE
+#  endif
+#elif (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__DESC)
+#  if (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__FULL)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__FULL_DESC
+#  elif (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__EMPTY)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__EMPTY_DESC
+#  else
+#     error wrong _TN_ARCH_STACK_PT_TYPE
+#  endif
+#else
+#  error wrong _TN_ARCH_STACK_DIR
+#endif
+
 
 
 
@@ -117,60 +180,27 @@ void tn_arch_sr_restore(TN_UWord sr);
 
 
 /**
- * Should return top of the stack.
- *
- * A stack implementation is characterized by two attributes:
- *
- * - Where the stack pointer points:
- *   - *Full stack*: The stack pointer points to the last full location;
- *   - *Empty stack*: The stack pointer points to the first empty location.
- * - How the stack grows:
- *   - *Descending stack*: The stack grows downward (i.e., toward lower memory
- *     addresses);
- *   - *Ascending stack*: The stack grows upward (i.e., toward higher memory
- *     addresses).
- *
- * So, depending on the stack implementation used in the particular
- * architecture, the value returned from this function can be one of the
- * following:
- *
- * - `(stack_low_address - 1)` (*Full ascending stack*)
- * - `(stack_low_address + stack_size)` (*Full descending stack*)
- * - `(stack_low_address)` (*Empty ascending stack*)
- * - `(stack_low_address + stack_size - 1)` (*Empty descending stack*)
- *
- * @param   stack_low_address
- *    Start address of the stack array.
- * @param   stack_size
- *    Size of the stack in `#TN_UWord`-s, not in bytes.
- */
-TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord   *stack_low_address,
-      int         stack_size
-      );
-
-/**
  * This function should return address of bottom empty element of stack, it is
  * needed for software stack overflow control (see `#TN_STACK_OVERFLOW_CHECK`).
  *
  * For details on various hardware stack implementations, refer to
- * `#_tn_arch_stack_top_get()`.
+ * `#_tn_sys_stack_origin_get()`.
  *
  * Depending on the stack implementation used in the particular architecture,
  * the value returned from this function can be one of the following:
  *
- * - `(stack_top - stack_size)` (*Full descending stack*)
- * - `(stack_top + stack_size)` (*Full ascending stack*)
- * - `(stack_top - stack_size + 1)` (*Empty descending stack*)
- * - `(stack_top + stack_size - 1)` (*Empty ascending stack*)
+ * - `(stack_origin - stack_size)` (*Full descending stack*)
+ * - `(stack_origin + stack_size)` (*Full ascending stack*)
+ * - `(stack_origin - stack_size + 1)` (*Empty descending stack*)
+ * - `(stack_origin + stack_size - 1)` (*Empty ascending stack*)
  *
- * @param stack_top
- *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
+ * @param stack_origin
+ *    Origin of the stack, returned by `_tn_sys_stack_origin_get()`.
  * @param stack_size
  *    Size of the stack in `#TN_UWord`-s, not in bytes.
  */
 TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_top,
+      TN_UWord      *stack_origin,
       int            stack_size
       );
 
@@ -189,8 +219,8 @@ TN_UWord *_tn_arch_stack_bottom_empty_get(
  *
  * @param task_func
  *    Pointer to task body function.
- * @param stack_top
- *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
+ * @param stack_origin
+ *    Origin of the stack, returned by `_tn_sys_stack_origin_get()`.
  * @param stack_size
  *    Size of the stack in `#TN_UWord`-s, not in bytes.
  * @param param
@@ -200,7 +230,7 @@ TN_UWord *_tn_arch_stack_bottom_empty_get(
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_top,
+      TN_UWord      *stack_origin,
       int            stack_size,
       void          *param
       );

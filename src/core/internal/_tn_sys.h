@@ -195,6 +195,38 @@ void _tn_sys_on_context_switch(
       );
 #endif
 
+/**
+ * Returns origin of the stack.
+ *
+ * A stack implementation is characterized by two attributes:
+ *
+ * - Where the stack pointer points:
+ *   - *Full stack*: The stack pointer points to the last full location;
+ *   - *Empty stack*: The stack pointer points to the first empty location.
+ * - How the stack grows:
+ *   - *Descending stack*: The stack grows downward (i.e., toward lower memory
+ *     addresses);
+ *   - *Ascending stack*: The stack grows upward (i.e., toward higher memory
+ *     addresses).
+ *
+ * So, depending on the stack implementation used in the particular
+ * architecture, the value returned from this function can be one of the
+ * following:
+ *
+ * - `(stack_low_address - 1)` (*Full ascending stack*)
+ * - `(stack_low_address + stack_size)` (*Full descending stack*)
+ * - `(stack_low_address)` (*Empty ascending stack*)
+ * - `(stack_low_address + stack_size - 1)` (*Empty descending stack*)
+ *
+ * @param   stack_low_address
+ *    Start address of the stack array.
+ * @param   stack_size
+ *    Size of the stack in `#TN_UWord`-s, not in bytes.
+ */
+TN_UWord *_tn_sys_stack_origin_get(
+      TN_UWord *stack_low_address,
+      int stack_size
+      );
 
 /*******************************************************************************
  *    PROTECTED INLINE FUNCTIONS

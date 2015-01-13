@@ -76,6 +76,7 @@
  ******************************************************************************/
 
 #include "_tn_tasks.h"
+#include "_tn_sys.h"
 #include <xc.h>
 
 
@@ -144,7 +145,7 @@ void _tn_arch_sys_start(
    tn_p32_int_nest_count = 0;
 
    //-- set interrupt's top of the stack
-   tn_p32_int_sp = _tn_arch_stack_top_get(
+   tn_p32_int_sp = _tn_sys_stack_origin_get(
          int_stack,
          int_stack_size
          );
@@ -170,25 +171,12 @@ void _tn_arch_sys_start(
 /*
  * See comments in the `tn_arch.h` file
  */
-TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   //-- on MIPS, stack is "full descending stack", so
-   //   we return highest stack address plus one.
-   return stack_low_address + stack_size;
-}
-
-/*
- * See comments in the `tn_arch.h` file
- */
 TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_top,
+      TN_UWord      *stack_origin,
       int            stack_size
       )
 {
-   return (stack_top - stack_size);
+   return (stack_origin - stack_size);
 }
 
 
@@ -197,11 +185,13 @@ TN_UWord *_tn_arch_stack_bottom_empty_get(
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_top,
+      TN_UWord      *stack_origin,
       int            stack_size,
       void          *param
       )
 {
+   TN_UWord *cur_stack_pt = stack_origin;
+
    //-- if you got "undefined reference" error here, it means that you
    //   forgot to include the file 
    //
@@ -220,55 +210,55 @@ TN_UWord *_tn_arch_stack_init(
    //-- filling register's position in the stack - for debugging only
 
    //-- ABI argument area
-   *(--stack_top) = 0;
-   *(--stack_top) = 0;
-   *(--stack_top) = 0;
-   *(--stack_top) = 0;
+   *(--cur_stack_pt) = 0;
+   *(--cur_stack_pt) = 0;
+   *(--cur_stack_pt) = 0;
+   *(--cur_stack_pt) = 0;
 
    //-- EPC: address that PC is set to when context switch is done
    //   and `eret` is executed.
    //   We should set it to task body function address.
-   *(--stack_top) = (TN_UWord)task_func;
+   *(--cur_stack_pt) = (TN_UWord)task_func;
 
    //-- Status register: EXL and IE bits are set
-   *(--stack_top) = 0x00000003L;                       
+   *(--cur_stack_pt) = 0x00000003L;                       
 
    //-- Return address that is used when task body function returns:
    //   we set it to _tn_task_exit_nodelete, so that returning from task
    //   body function is equivalent to calling tn_task_exit(0)
-   *(--stack_top) = (TN_UWord)_tn_task_exit_nodelete;
+   *(--cur_stack_pt) = (TN_UWord)_tn_task_exit_nodelete;
 
-   *(--stack_top) = 0x30303030L;          //-- fp
-   *(--stack_top) = (TN_UWord)&_gp;       //-- gp - provided by linker
-   *(--stack_top) = 0x25252525L;          //-- t9
-   *(--stack_top) = 0x24242424L;          //-- t8
-   *(--stack_top) = 0x23232323L;          //-- s7
-   *(--stack_top) = 0x22222222L;          //-- s6
-   *(--stack_top) = 0x21212121L;          //-- s5
-   *(--stack_top) = 0x20202020L;          //-- s4
-   *(--stack_top) = 0x19191919L;          //-- s3
-   *(--stack_top) = 0x18181818L;          //-- s2
-   *(--stack_top) = 0x17171717L;          //-- s1
-   *(--stack_top) = 0x16161616L;          //-- s0
-   *(--stack_top) = 0x15151515L;          //-- t7
-   *(--stack_top) = 0x14141414L;          //-- t6
-   *(--stack_top) = 0x13131313L;          //-- t5
-   *(--stack_top) = 0x12121212L;          //-- t4
-   *(--stack_top) = 0x11111111L;          //-- t3
-   *(--stack_top) = 0x10101010L;          //-- t2
-   *(--stack_top) = 0x09090909L;          //-- t1
-   *(--stack_top) = 0x08080808L;          //-- t0
-   *(--stack_top) = 0x07070707L;          //-- a3
-   *(--stack_top) = 0x06060606L;          //-- a2
-   *(--stack_top) = 0x05050505L;          //-- a1
-   *(--stack_top) = (TN_UWord)param;      //-- a0 - task's function argument
-   *(--stack_top) = 0x03030303L;          //-- v1
-   *(--stack_top) = 0x02020202L;          //-- v0
-   *(--stack_top) = 0x01010101L;          //-- at
-   *(--stack_top) = 0x33333333L;          //-- hi
-   *(--stack_top) = 0x32323232L;          //-- lo
+   *(--cur_stack_pt) = 0x30303030L;          //-- fp
+   *(--cur_stack_pt) = (TN_UWord)&_gp;       //-- gp - provided by linker
+   *(--cur_stack_pt) = 0x25252525L;          //-- t9
+   *(--cur_stack_pt) = 0x24242424L;          //-- t8
+   *(--cur_stack_pt) = 0x23232323L;          //-- s7
+   *(--cur_stack_pt) = 0x22222222L;          //-- s6
+   *(--cur_stack_pt) = 0x21212121L;          //-- s5
+   *(--cur_stack_pt) = 0x20202020L;          //-- s4
+   *(--cur_stack_pt) = 0x19191919L;          //-- s3
+   *(--cur_stack_pt) = 0x18181818L;          //-- s2
+   *(--cur_stack_pt) = 0x17171717L;          //-- s1
+   *(--cur_stack_pt) = 0x16161616L;          //-- s0
+   *(--cur_stack_pt) = 0x15151515L;          //-- t7
+   *(--cur_stack_pt) = 0x14141414L;          //-- t6
+   *(--cur_stack_pt) = 0x13131313L;          //-- t5
+   *(--cur_stack_pt) = 0x12121212L;          //-- t4
+   *(--cur_stack_pt) = 0x11111111L;          //-- t3
+   *(--cur_stack_pt) = 0x10101010L;          //-- t2
+   *(--cur_stack_pt) = 0x09090909L;          //-- t1
+   *(--cur_stack_pt) = 0x08080808L;          //-- t0
+   *(--cur_stack_pt) = 0x07070707L;          //-- a3
+   *(--cur_stack_pt) = 0x06060606L;          //-- a2
+   *(--cur_stack_pt) = 0x05050505L;          //-- a1
+   *(--cur_stack_pt) = (TN_UWord)param;      //-- a0 - task's function argument
+   *(--cur_stack_pt) = 0x03030303L;          //-- v1
+   *(--cur_stack_pt) = 0x02020202L;          //-- v0
+   *(--cur_stack_pt) = 0x01010101L;          //-- at
+   *(--cur_stack_pt) = 0x33333333L;          //-- hi
+   *(--cur_stack_pt) = 0x32323232L;          //-- lo
 
-   return stack_top;
+   return cur_stack_pt;
 }
 
 

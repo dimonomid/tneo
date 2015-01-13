@@ -415,6 +415,9 @@ typedef  unsigned int               TN_UIntPtr;
 
 // }}}
 
+#define _TN_ARCH_STACK_PT_TYPE   _TN_ARCH_STACK_PT_TYPE__EMPTY
+#define _TN_ARCH_STACK_DIR       _TN_ARCH_STACK_DIR__ASC
+
 #endif   //-- DOXYGEN_SHOULD_SKIP_THIS
 
 
