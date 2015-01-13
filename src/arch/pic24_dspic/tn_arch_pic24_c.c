@@ -59,8 +59,8 @@ TN_UWord *_tn_p24_int_splim            = TN_NULL;
  * See comments in the file `tn_arch.h`
  */
 void _tn_arch_sys_start(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
+      TN_UWord      *int_stack,
+      TN_UWord       int_stack_size
       )
 {
    //-- set interrupt stack pointers.
@@ -83,32 +83,20 @@ void _tn_arch_sys_start(
 
 
 /*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_origin,
-      int            stack_size
-      )
-{
-   return (stack_origin + stack_size - 1);
-}
-
-
-/*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_origin,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       )
 {
-   TN_UWord *cur_stack_pt = stack_origin;
+   TN_UWord *cur_stack_pt = stack_low_addr/*'empty asc stack' model*/;
 
    //-- calculate stack pointer limit: we need to subtract additional 1 from
    //   it because PIC24/dsPIC hardware works this way.
-   TN_UWord *p_splim = stack_origin + stack_size - 1 - 1;
+   TN_UWord *p_splim = stack_high_addr - 1;
 
    //-- set return address that is used when task body function returns:
    //   we set it to _tn_task_exit_nodelete, so that returning from task

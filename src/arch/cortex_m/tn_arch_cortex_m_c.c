@@ -108,28 +108,16 @@
 
 
 /*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_origin,
-      int            stack_size
-      )
-{
-   return (stack_origin - stack_size);
-}
-
-
-/*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_origin,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       )
 {
-   TN_UWord *cur_stack_pt = stack_origin;
+   TN_UWord *cur_stack_pt = stack_high_addr + 1/*'full desc stack' model*/;
 
    //-- xPSR register: the bit "T" (Thumb) should be set,
    //   its offset is 24.

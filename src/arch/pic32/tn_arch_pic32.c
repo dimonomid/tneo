@@ -137,18 +137,15 @@ void *tn_p32_int_sp;
  ******************************************************************************/
 
 void _tn_arch_sys_start(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
+      TN_UWord      *int_stack,
+      TN_UWord       int_stack_size
       )
 {
    //-- reset interrupt nesting count
    tn_p32_int_nest_count = 0;
 
    //-- set interrupt's top of the stack
-   tn_p32_int_sp = _tn_sys_stack_origin_get(
-         int_stack,
-         int_stack_size
-         );
+   tn_p32_int_sp = int_stack + int_stack_size/*'full desc stack' model*/;
 
 
    //-- setup core software 0 interrupt, it should be set to lowest priority
@@ -168,29 +165,18 @@ void _tn_arch_sys_start(
 
 
 
-/*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_origin,
-      int            stack_size
-      )
-{
-   return (stack_origin - stack_size);
-}
-
 
 /*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_origin,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       )
 {
-   TN_UWord *cur_stack_pt = stack_origin;
+   TN_UWord *cur_stack_pt = stack_high_addr + 1/*'full desc stack' model*/;
 
    //-- if you got "undefined reference" error here, it means that you
    //   forgot to include the file 

@@ -377,6 +377,23 @@ TN_BOOL _tn_task_first_wait_complete(
  */
 void _tn_task_exit_nodelete(void);
 
+/**
+ * Returns end address of the stack. It depends on architecture stack
+ * implementation, so there are two possible variants:
+ *
+ * - descending stack: `task->stack_low_addr`
+ * - ascending stack:  `task->stack_high_addr`
+ *
+ * @param task
+ *    Task in the subject
+ *
+ * @return
+ *    End address of the stack.
+ */
+TN_UWord *_tn_task_stack_end_get(
+      struct TN_Task *task
+      );
+
 /*******************************************************************************
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/

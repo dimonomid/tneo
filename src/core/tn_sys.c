@@ -354,9 +354,7 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
 
    //-- check that stack bottom has the value `TN_FILL_STACK_VAL`
 
-   TN_UWord *p_word = _tn_arch_stack_bottom_empty_get(
-         task->stack_origin, task->stack_size
-         );
+   TN_UWord *p_word = _tn_task_stack_end_get(task);
 
    if (*p_word != TN_FILL_STACK_VAL){
       //-- stack overflow is detected, so, notify the user about that.
@@ -845,77 +843,6 @@ void _tn_sys_on_context_switch(
 }
 #endif
 
-
-
-
-
-#if !defined(_TN_ARCH_STACK_IMPL)
-#  error _TN_ARCH_STACK_IMPL is not defined
-#endif
-
-#if (_TN_ARCH_STACK_IMPL == _TN_ARCH_STACK_IMPL__FULL_ASC)
-//-- full ascending stack {{{
-
-/*
- * See comments in the file _tn_sys.h
- */
-TN_UWord *_tn_sys_stack_origin_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   return (stack_low_address - 1);
-}
-
-// }}}
-#elif (_TN_ARCH_STACK_IMPL == _TN_ARCH_STACK_IMPL__EMPTY_ASC)
-//-- empty ascending stack {{{
-
-/*
- * See comments in the file _tn_sys.h
- */
-TN_UWord *_tn_sys_stack_origin_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   return (stack_low_address);
-}
-
-// }}}
-#elif (_TN_ARCH_STACK_IMPL == _TN_ARCH_STACK_IMPL__FULL_DESC)
-//-- full descending stack {{{
-
-/*
- * See comments in the file _tn_sys.h
- */
-TN_UWord *_tn_sys_stack_origin_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   return (stack_low_address + stack_size);
-}
-
-// }}}
-#elif (_TN_ARCH_STACK_IMPL == _TN_ARCH_STACK_IMPL__EMPTY_DESC)
-//-- empty descending stack {{{
-
-/*
- * See comments in the file _tn_sys.h
- */
-TN_UWord *_tn_sys_stack_origin_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   return (stack_low_address + stack_size - 1);
-}
-
-// }}}
-#else
-#  error wrong _TN_ARCH_STACK_IMPL
-#endif
 
 
 

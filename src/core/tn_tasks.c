@@ -436,11 +436,10 @@ enum TN_RCode tn_task_create(
    //--- Init task structure
    task->task_func_addr  = task_func;
    task->task_func_param = param;
-   task->stack_origin  = _tn_sys_stack_origin_get(
-         task_stack_low_addr,
-         task_stack_size
-         );
-   task->stack_size      = task_stack_size;
+
+   task->stack_low_addr = task_stack_low_addr;
+   task->stack_high_addr = task_stack_low_addr + task_stack_size - 1;
+
    task->base_priority   = priority;
    task->task_state      = TN_TASK_STATE_NONE;
    task->id_task         = TN_ID_TASK;
@@ -1119,8 +1118,8 @@ void _tn_task_clear_dormant(struct TN_Task *task)
    //    when not running
    task->stack_cur_pt = _tn_arch_stack_init(
          task->task_func_addr,
-         task->stack_origin,
-         task->stack_size,
+         task->stack_low_addr,
+         task->stack_high_addr,
          task->task_func_param
          );
 
@@ -1266,4 +1265,42 @@ void _tn_task_exit_nodelete(void)
 {
    tn_task_exit((enum TN_TaskExitOpt)(0));
 }
+
+
+
+#if !defined(_TN_ARCH_STACK_DIR)
+#  error _TN_ARCH_STACK_DIR is not defined
+#endif
+
+#if (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__ASC)
+//-- full ascending stack {{{
+
+/*
+ * See comments in the file _tn_sys.h
+ */
+TN_UWord *_tn_task_stack_end_get(
+      struct TN_Task *task
+      )
+{
+   return task->stack_high_addr;
+}
+
+// }}}
+#elif (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__DESC)
+//-- full descending stack {{{
+
+/*
+ * See comments in the file _tn_tasks.h
+ */
+TN_UWord *_tn_task_stack_end_get(
+      struct TN_Task *task
+      )
+{
+   return task->stack_low_addr;
+}
+
+// }}}
+#else
+#  error wrong _TN_ARCH_STACK_DIR
+#endif
 
