@@ -362,7 +362,13 @@ struct TN_Task {
 #endif
 #endif
 
+   ///-- lowest address of stack. It is independent of architecture:
+   ///   it's always the lowest address (which may be actually origin 
+   ///   or end of stack, depending on the architecture)
    TN_UWord *stack_low_addr;
+   ///-- Highest address of stack. It is independent of architecture:
+   ///   it's always the highest address (which may be actually origin 
+   ///   or end of stack, depending on the architecture)
    TN_UWord *stack_high_addr;
    ///
    /// pointer to task's body function given to `tn_task_create()`

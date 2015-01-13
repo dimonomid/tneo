@@ -56,6 +56,8 @@
  *    OPTION VALUES
  ******************************************************************************/
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #define _TN_ARCH_STACK_DIR__ASC        1
 #define _TN_ARCH_STACK_DIR__DESC       2
 
@@ -79,6 +81,11 @@
 //-- Note: the macro _TN_ARCH_STACK_IMPL is defined below in this file
 
 
+#endif
+
+
+
+
 
 /*******************************************************************************
  *    ACTUAL PORT IMPLEMENTATION
@@ -99,6 +106,8 @@
 
 //-- Now, define _TN_ARCH_STACK_IMPL depending on _TN_ARCH_STACK_DIR and
 //   _TN_ARCH_STACK_PT_TYPE
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #if !defined(_TN_ARCH_STACK_DIR)
 #  error _TN_ARCH_STACK_DIR is not defined
@@ -128,6 +137,7 @@
 #  error wrong _TN_ARCH_STACK_DIR
 #endif
 
+#endif
 
 
 
