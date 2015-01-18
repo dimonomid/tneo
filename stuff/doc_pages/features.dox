@@ -28,6 +28,8 @@ you wish and probably save memory or improve speed.
 - \ref tn_timer.h "Timers": a tool to ask the kernel to call arbitrary function
   at a particular time in the future. The callback approach provides ultimate 
   flexibility.
+- <b>Separate interrupt stack</b>: interrupts use separate stack, this approach
+  saves a lot of RAM. Refer to the page \ref interrupts for details.
 - <b>Software stack overflow check</b>: extremely useful feature for
   architectures without hardware stack pointer limit. Refer to the
   `#TN_STACK_OVERFLOW_CHECK` option for details.
