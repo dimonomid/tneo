@@ -59,8 +59,8 @@ TN_UWord *_tn_p24_int_splim            = TN_NULL;
  * See comments in the file `tn_arch.h`
  */
 void _tn_arch_sys_start(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
+      TN_UWord      *int_stack,
+      TN_UWord       int_stack_size
       )
 {
    //-- set interrupt stack pointers.
@@ -81,87 +81,64 @@ void _tn_arch_sys_start(
 }
 
 
-/*
- * See comments in the file `tn_arch.h`
- */
-TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   //-- on PIC24/dsPIC, stack grows from low address to high address,
-   //   so, we return low address here.
-   return stack_low_address;
-}
-
-
-/*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_top,
-      int            stack_size
-      )
-{
-   return (stack_top + stack_size - 1);
-}
-
 
 /*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_top,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       )
 {
+   TN_UWord *cur_stack_pt = stack_low_addr/*'empty asc stack' model*/;
+
    //-- calculate stack pointer limit: we need to subtract additional 1 from
    //   it because PIC24/dsPIC hardware works this way.
-   TN_UWord *p_splim = stack_top + stack_size - 1 - 1;
+   TN_UWord *p_splim = stack_high_addr - 1;
 
    //-- set return address that is used when task body function returns:
    //   we set it to _tn_task_exit_nodelete, so that returning from task
    //   body function is equivalent to calling tn_task_exit(0)
-   *(stack_top++) = (TN_UWord)_tn_task_exit_nodelete;
-   *(stack_top++) = 0;
+   *(cur_stack_pt++) = (TN_UWord)_tn_task_exit_nodelete;
+   *(cur_stack_pt++) = 0;
 
    //-- set return address that is used when context is switched to the task
    //   for the first time. We set it to the task body function.
-   *(stack_top++) = (TN_UWord)task_func;
-   *(stack_top++) = 0;
+   *(cur_stack_pt++) = (TN_UWord)task_func;
+   *(cur_stack_pt++) = 0;
 
    //-- save usual context for PIC24/dsPIC.
-   *(stack_top++) = 0x0103;               // SR
-   *(stack_top++) = 0x1414;               // W14
-   *(stack_top++) = 0x1212;               // W12
-   *(stack_top++) = 0x1313;               // W13
-   *(stack_top++) = 0x1010;               // W10
-   *(stack_top++) = 0x1111;               // W11
-   *(stack_top++) = 0x0808;               // W08
-   *(stack_top++) = 0x0909;               // W09
-   *(stack_top++) = 0x0606;               // W06
-   *(stack_top++) = 0x0707;               // W07
-   *(stack_top++) = 0x0404;               // W04
-   *(stack_top++) = 0x0505;               // W05
-   *(stack_top++) = 0x0202;               // W02
-   *(stack_top++) = 0x0303;               // W03
-   *(stack_top++) = (TN_UWord)param;      // W00 - task func param
-   *(stack_top++) = 0x0101;               // W01
-   *(stack_top++) = 0;                    // RCOUNT
-   *(stack_top++) = 0;                    // TBLPAG
-   *(stack_top++) = 0x04;                 // CORCON: the PSV bit is set.
+   *(cur_stack_pt++) = 0x0103;               // SR
+   *(cur_stack_pt++) = 0x1414;               // W14
+   *(cur_stack_pt++) = 0x1212;               // W12
+   *(cur_stack_pt++) = 0x1313;               // W13
+   *(cur_stack_pt++) = 0x1010;               // W10
+   *(cur_stack_pt++) = 0x1111;               // W11
+   *(cur_stack_pt++) = 0x0808;               // W08
+   *(cur_stack_pt++) = 0x0909;               // W09
+   *(cur_stack_pt++) = 0x0606;               // W06
+   *(cur_stack_pt++) = 0x0707;               // W07
+   *(cur_stack_pt++) = 0x0404;               // W04
+   *(cur_stack_pt++) = 0x0505;               // W05
+   *(cur_stack_pt++) = 0x0202;               // W02
+   *(cur_stack_pt++) = 0x0303;               // W03
+   *(cur_stack_pt++) = (TN_UWord)param;      // W00 - task func param
+   *(cur_stack_pt++) = 0x0101;               // W01
+   *(cur_stack_pt++) = 0;                    // RCOUNT
+   *(cur_stack_pt++) = 0;                    // TBLPAG
+   *(cur_stack_pt++) = 0x04;                 // CORCON: the PSV bit is set.
 #ifdef __HAS_EDS__
-   *(stack_top++) = 0;                    // DSRPAG
-   *(stack_top++) = 0;                    // DSWPAG
+   *(cur_stack_pt++) = 0;                    // DSRPAG
+   *(cur_stack_pt++) = 0;                    // DSWPAG
 #else
-   *(stack_top++) = 0;                    // PSVPAG
+   *(cur_stack_pt++) = 0;                    // PSVPAG
 #endif
 
-   *(stack_top++) = (TN_UWord)p_splim;    // SPLIM
+   *(cur_stack_pt++) = (TN_UWord)p_splim;    // SPLIM
 
-   return stack_top;
+   return cur_stack_pt;
 }
 
 

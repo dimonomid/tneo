@@ -7,7 +7,7 @@ TNeo changelog
 
 \section changelog_current Current development version (BETA)
 
-  - <i>No changes yet</i>
+  - Fix: project was unable to build with `#TN_CHECK_PARAM` set to 0
 
 \section changelog_v1_06 v1.06
 

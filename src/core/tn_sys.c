@@ -354,9 +354,7 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
 
    //-- check that stack bottom has the value `TN_FILL_STACK_VAL`
 
-   TN_UWord *p_word = _tn_arch_stack_bottom_empty_get(
-         task->base_stack_top, task->stack_size
-         );
+   TN_UWord *p_word = _tn_task_stack_end_get(task);
 
    if (*p_word != TN_FILL_STACK_VAL){
       //-- stack overflow is detected, so, notify the user about that.
@@ -845,5 +843,8 @@ void _tn_sys_on_context_switch(
    _tn_sys_on_context_switch_profiler(task_prev, task_new);
 }
 #endif
+
+
+
 
 
