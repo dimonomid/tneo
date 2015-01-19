@@ -104,6 +104,11 @@ extern "C"  {  /*}*/
  */
 struct TN_DQueue {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId id_dque;
+   ///
    /// list of tasks waiting to send data
    struct TN_ListItem  wait_send_list;
    ///
@@ -125,9 +130,6 @@ struct TN_DQueue {
    ///
    /// index of the item which will be read next time
    int            tail_idx;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId  id_dque;
    ///
    /// connected event group
    struct TN_EGrpLink eventgrp_link;

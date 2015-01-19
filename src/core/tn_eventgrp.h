@@ -208,9 +208,17 @@ enum TN_EGrpAttr {
  * Event group
  */
 struct TN_EventGrp {
-   struct TN_ListItem   wait_queue; //!< task wait queue
-   TN_UWord             pattern;    //!< current flags pattern
-   enum TN_ObjId        id_event;   //!< id for object validity verification
+   ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId        id_event;
+   ///
+   /// task wait queue
+   struct TN_ListItem   wait_queue;
+   ///
+   /// current flags pattern
+   TN_UWord             pattern;
 
 #if TN_OLD_EVENT_API || defined(DOXYGEN_ACTIVE)
    ///

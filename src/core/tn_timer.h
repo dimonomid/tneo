@@ -204,6 +204,11 @@ typedef void (TN_TimerFunc)(struct TN_Timer *timer, void *p_user_data);
  */
 struct TN_Timer {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId id_timer;
+   ///
    /// A list item to be included in the $(TN_SYS_TIMER_LINK) queue
    struct TN_ListItem timer_queue;
    ///
@@ -234,10 +239,6 @@ struct TN_Timer {
    /// Current (left) timeout value
    TN_TickCnt timeout_cur;
 #endif
-
-   ///
-   /// id for object validity verification
-   enum TN_ObjId id_timer;
 };
 
 

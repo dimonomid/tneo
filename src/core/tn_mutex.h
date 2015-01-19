@@ -121,6 +121,11 @@ enum TN_MutexProtocol {
  */
 struct TN_Mutex {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId id_mutex;
+   ///
    /// List of tasks that wait a mutex
    struct TN_ListItem wait_queue;
    ///
@@ -145,9 +150,6 @@ struct TN_Mutex {
    ///
    /// Lock count (for recursive locking)
    int cnt;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId id_mutex;
 };
 
 /*******************************************************************************

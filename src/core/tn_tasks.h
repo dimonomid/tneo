@@ -333,6 +333,13 @@ struct TN_Task {
    /// this fact is exploited by platform-specific routines.
    TN_UWord *stack_cur_pt;
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   /// For `struct TN_Task`, we can't make it the very first field, since
+   /// stack pointer should be there.
+   enum TN_ObjId id_task;
+   ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     
    ///
@@ -383,9 +390,6 @@ struct TN_Task {
    ///
    /// current task priority
    int priority;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId id_task;
    ///
    /// task state
    enum TN_TaskState task_state;

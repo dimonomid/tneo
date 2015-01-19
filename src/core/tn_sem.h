@@ -87,6 +87,11 @@ extern "C"  {     /*}*/
  */
 struct TN_Sem {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId id_sem;
+   ///
    /// List of tasks that wait for the semaphore
    struct TN_ListItem wait_queue;
    ///
@@ -95,9 +100,6 @@ struct TN_Sem {
    ///
    /// Max value of `count`
    int max_count;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId id_sem;
 };
 
 

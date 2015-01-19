@@ -77,6 +77,11 @@ extern "C"  {     /*}*/
  */
 struct TN_FMem {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId        id_fmp;
+   ///
    /// list of tasks waiting for free memory block
    struct TN_ListItem   wait_queue;
 
@@ -99,9 +104,6 @@ struct TN_FMem {
    ///
    /// ptr to free block list
    void                *free_list;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId        id_fmp;
 };
 
 
