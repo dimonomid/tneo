@@ -8,8 +8,10 @@
 
 == Routine ==
 
-   * [ ] Exchange object
+   * [ ] add new flag for mutex that makes mutex recursive. Then, compile-time option should just set default behavior, but in either build any mutex can be made recursive or non-recursive.
+   * [ ] remove int-s, add like TN_WORD, and so on. Remember that you definitely need for some type that is never less than 16 bits width.
    * [ ] Make round-robin supported in dynamic tick mode (it should be powered by timers)
+   * [ ] ?Exchange object
    * [X] rename tn_callback_... to _tn_cb_....
    * [X] check_param functions: make them take pointer to `const` struct.
    * [X] remove "public data" sections, there might be protected or private data only.
