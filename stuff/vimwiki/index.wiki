@@ -8,6 +8,7 @@
 
 == Routine ==
 
+   * [ ] cortex_m: add tn_arch_sched_dis_save() / tn_arch_sched_restore().
    * [ ] add new flag for mutex that makes mutex recursive. Then, compile-time option should just set default behavior, but in either build any mutex can be made recursive or non-recursive.
    * [ ] remove int-s, add like TN_WORD, and so on. Remember that you definitely need for some type that is never less than 16 bits width.
    * [ ] Make round-robin supported in dynamic tick mode (it should be powered by timers)

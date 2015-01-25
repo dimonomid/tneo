@@ -142,3 +142,26 @@ TN_UWord *_tn_arch_stack_init(
 }
 
 
+/*
+ * See comments in the file `tn_arch.h`
+ */
+TN_UWord tn_arch_sched_dis_save(void)
+{
+   TN_UWord ret = TN_BFA(TN_BFA_RD, IEC0, INT0IE);
+   TN_BFA(TN_BFA_WR, IEC0, INT0IE, 0);
+   return ret;
+}
+
+
+
+/*
+ * See comments in the file `tn_arch.h`
+ */
+void tn_arch_sched_restore(TN_UWord sched_state)
+{
+   TN_BFA(TN_BFA_WR, IEC0, INT0IE, !!sched_state);
+}
+
+
+
+

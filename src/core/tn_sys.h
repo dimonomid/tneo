@@ -553,6 +553,38 @@ struct TN_Task *tn_cur_task_get(void);
  */
 TN_TaskBody *tn_cur_task_body_get(void);
 
+/**
+ * Disable kernel scheduler and return previous scheduler state.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
+ *
+ * @return
+ *    State to be restored later by `#tn_sched_restore()`
+ */
+static _TN_INLINE TN_UWord tn_sched_dis_save(void)
+{
+   return tn_arch_sched_dis_save();
+}
+
+/**
+ * Restore state of the kernel scheduler. See `#tn_sched_dis_save()`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param sched_state
+ *    Value returned from `#tn_sched_dis_save()`
+ */
+static _TN_INLINE void tn_sched_restore(TN_UWord sched_state)
+{
+   tn_arch_sched_restore(sched_state);
+}
+
 
 #if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)
 /**

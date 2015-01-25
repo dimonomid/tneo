@@ -187,8 +187,21 @@ TN_UWord tn_arch_sr_save_int_dis(void);
  */
 void tn_arch_sr_restore(TN_UWord sr);
 
+/**
+ * Disable kernel scheduler and return previous state.
+ *
+ * @return
+ *    Scheduler state to be restored later by `#tn_arch_sched_restore()`.
+ */
+TN_UWord tn_arch_sched_dis_save(void);
 
-
+/**
+ * Restore state of the kernel scheduler. See `#tn_arch_sched_dis_save()`.
+ *
+ * @param sched_state
+ *    Value returned from `#tn_arch_sched_dis_save()`
+ */
+void tn_arch_sched_restore(TN_UWord sched_state);
 
 /**
  * Should put initial CPU context to the provided stack pointer for new task
@@ -308,6 +321,7 @@ void _tn_arch_sys_start(
       TN_UWord      *int_stack,
       TN_UWord       int_stack_size
       );
+
 
 #ifdef __cplusplus
 }  /* extern "C" */

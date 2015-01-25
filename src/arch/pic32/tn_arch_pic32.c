@@ -267,3 +267,26 @@ void tn_arch_int_en(void)
 
 
 
+/*
+ * See comments in the file `tn_arch.h`
+ */
+TN_UWord tn_arch_sched_dis_save(void)
+{
+   TN_UWord ret = TN_BFA(TN_BFA_RD, IEC0, CS0IE);
+   TN_BFA(TN_BFA_WR, IEC0, CS0IE, 0);
+   return ret;
+}
+
+
+
+/*
+ * See comments in the file `tn_arch.h`
+ */
+void tn_arch_sched_restore(TN_UWord sched_state)
+{
+   TN_BFA(TN_BFA_WR, IEC0, CS0IE, !!sched_state);
+}
+
+
+
+

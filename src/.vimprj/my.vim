@@ -16,7 +16,7 @@ let g:indexer_handlePath = 0
 
 let g:indexer_ctagsCommandLineOptions = '--c++-kinds=+p+l --c-kinds=+l --fields=+iaS --extra=+q'
 
-let s:o_dir = $INDEXER_PROJECT_ROOT.'/arch/pic32/tneo_pic32.X/build/tmp/compiled_in_vim'
+let s:o_dir = $INDEXER_PROJECT_ROOT.'/../lib_project/pic32/tneo_pic32.X/build/tmp/compiled_in_vim'
 
 if !isdirectory(s:o_dir)
    call mkdir(s:o_dir, "p")
