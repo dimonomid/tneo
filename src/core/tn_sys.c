@@ -605,31 +605,23 @@ void tn_sys_start(
 /*
  * See comments in the header file (tn_sys.h)
  */
-enum TN_RCode tn_tick_int_processing(void)
+void tn_tick_int_processing(void)
 {
-   enum TN_RCode rc = TN_RC_OK;
+   TN_INTSAVE_DATA_INT;
 
-   if (!tn_is_isr_context()){
-      rc = TN_RC_WCONTEXT;
-   } else {
-      TN_INTSAVE_DATA_INT;
+   TN_INT_IDIS_SAVE();
 
-      TN_INT_IDIS_SAVE();
+   //-- check stack overflow
+   _tn_sys_stack_overflow_check(_tn_curr_run_task);
 
-      //-- check stack overflow
-      _tn_sys_stack_overflow_check(_tn_curr_run_task);
+   //-- manage timers
+   _tn_timers_tick_proceed();
 
-      //-- manage timers
-      _tn_timers_tick_proceed();
+   //-- manage round-robin (if used)
+   _round_robin_manage();
 
-      //-- manage round-robin (if used)
-      _round_robin_manage();
-
-      TN_INT_IRESTORE();
-      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-   }
-   return rc;
+   TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 }
 
 /*

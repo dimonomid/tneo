@@ -409,12 +409,8 @@ void tn_sys_start(
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_LEGEND_LINK)
- *
- * @return
- *    * `#TN_RC_OK` on success;
- *    * `#TN_RC_WCONTEXT` if called from wrong context.
  */
-enum TN_RCode tn_tick_int_processing(void);
+void tn_tick_int_processing(void);
 
 /**
  * Set time slice ticks value for specified priority (see \ref round_robin).
