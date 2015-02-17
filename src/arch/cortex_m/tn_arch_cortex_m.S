@@ -177,7 +177,8 @@
    .align 4
    .syntax unified
    .thumb
-   .subsections_via_symbols
+   // Commented because it causes problems, see issue #3
+   //.subsections_via_symbols
 
 #elif defined(__TN_COMPILER_CLANG__)
 
@@ -185,7 +186,8 @@
    .align 4
    .syntax unified
    .thumb
-   .subsections_via_symbols
+   // Commented because it causes problems, see issue #3
+   //.subsections_via_symbols
 
 #else
 #  error unknown compiler for Cortex-M
