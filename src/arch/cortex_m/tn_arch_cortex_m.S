@@ -174,20 +174,20 @@
 #elif defined(__TN_COMPILER_GCC__)
 
    .text
-   .align 4
    .syntax unified
    .thumb
    // Commented because it causes problems, see issue #3
    //.subsections_via_symbols
+   //.align 4
 
 #elif defined(__TN_COMPILER_CLANG__)
 
    .text
-   .align 4
    .syntax unified
    .thumb
    // Commented because it causes problems, see issue #3
    //.subsections_via_symbols
+   //.align 4
 
 #else
 #  error unknown compiler for Cortex-M
