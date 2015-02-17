@@ -96,40 +96,52 @@
 #if defined(__TN_COMPILER_ARMCC__)
 
 #  define   _TN_NAME(x)             x
+#  define   _TN_LOCAL_NAME(x)       x
 #  define   _TN_EXTERN(x)           IMPORT _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           EXPORT _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        _TN_NAME(label)
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_IAR__)
 
 #  define   _TN_NAME(x)             x
+#  define   _TN_LOCAL_NAME(x)       x
 #  define   _TN_EXTERN(x)           IMPORT x
 #  define   _TN_GLOBAL(x)           EXPORT x
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        label:
+#  define   _TN_LOCAL_LABEL(label)  label:
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_GCC__)
 
 #  define   _TN_NAME(x)             x
+//-- We need to declare local labels prepended with "L" so that they aren't
+//   stripped by .subsections_via_symbols
+#  define   _TN_LOCAL_NAME(x)       L ## x
 #  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
 #  define   _TN_LABEL(label)        _TN_NAME(label):
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
 #elif defined(__TN_COMPILER_CLANG__)
 
 #  define   _TN_NAME(x)             _ ## x
+//-- We need to declare local labels prepended with "L" so that they aren't
+//   stripped by .subsections_via_symbols
+#  define   _TN_LOCAL_NAME(x)       L ## x
 #  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
 #  define   _TN_LABEL(label)        _TN_NAME(label):
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
@@ -159,11 +171,21 @@
    REQUIRE8
    PRESERVE8
 
-#elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
+#elif defined(__TN_COMPILER_GCC__)
 
    .text
+   .align 4
    .syntax unified
    .thumb
+   .subsections_via_symbols
+
+#elif defined(__TN_COMPILER_CLANG__)
+
+   .text
+   .align 4
+   .syntax unified
+   .thumb
+   .subsections_via_symbols
 
 #else
 #  error unknown compiler for Cortex-M
@@ -302,7 +324,7 @@ _TN_LABEL(PendSV_Handler)
 
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      /* 
+      /*
        * arguments are set:
        * - r0: _tn_curr_run_task
        * - r1: _tn_next_task_to_run
@@ -316,8 +338,7 @@ _TN_LABEL(PendSV_Handler)
 
       //-- r4 is now _tn_curr_run_task
 
-_TN_THUMB_FUNC()
-_TN_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run_task
+_TN_LOCAL_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run_task
 
       //-- load stack pointer of newly activated task to r0
       ldr      r0, [r4]       //-- r0 = _tn_curr_run_task->stack_top
@@ -372,7 +393,7 @@ _TN_LABEL(_tn_arch_sys_start)
       //-- modify CONTROL register so that PSP becomes active
 
       mrs      r2, CONTROL    //-- read current CONTROL
-      movs     r3, #0x02      //-- used intermediary register r3 in order to 
+      movs     r3, #0x02      //-- used intermediary register r3 in order to
                               //   work on M0 too
       orrs     r2, r2, r3
       msr      CONTROL, r2    //-- write to CONTROL
@@ -403,7 +424,7 @@ _TN_LABEL(_tn_arch_sys_start)
       str      r0, [r1]
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
-      //-- disable lazy stacking (so that if interrupted task uses FPU 
+      //-- disable lazy stacking (so that if interrupted task uses FPU
       //   at the moment, registers S0-S16 are certainly saved by the hardware)
       ldr      r1, =FPU_FPCCR_ADDR               //-- Load the System 8-11 Priority Register
       ldr      r0, [r1]
@@ -443,7 +464,7 @@ _TN_LABEL(SVC_Handler)
       ldr      r1, [r6]                            //-- r1 =  _tn_next_task_to_run
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      /* 
+      /*
        * arguments are set:
        * - r0: _tn_curr_run_task
        * - r1: _tn_next_task_to_run
@@ -457,9 +478,9 @@ _TN_LABEL(SVC_Handler)
       //-- r4 is now _tn_curr_run_task
 
       //-- proceed to context restore (r4 must be set to _tn_curr_run_task)
-      b        _TN_NAME(__context_restore)
+      b        _TN_LOCAL_NAME(__context_restore)
 
-      
+
 
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_dis)
@@ -514,10 +535,10 @@ _TN_LABEL(_tn_arch_inside_isr)
       //-- Code for Cortex-M0/M0+
       movs     r1, #0x02
       tst      r0, r1      //-- test SPSEL bit (0: MSP, 1: PSP)
-      bne      __ne
+      bne      _TN_LOCAL_NAME(__ne)
       movs     r0, #1      //-- SPSEL bit is clear: return true
       bx       lr
-_TN_LABEL(__ne)
+_TN_LOCAL_LABEL(__ne)
       movs     r0, #0      //-- SPSEL bit is set: return false
       bx       lr
 #endif
