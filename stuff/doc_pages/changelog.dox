@@ -8,6 +8,17 @@ TNeo changelog
 \section changelog_current Current development version (BETA)
 
   - Fix: project was unable to build with `#TN_CHECK_PARAM` set to 0
+  - Added an option `#TN_INIT_INTERRUPT_STACK_SPACE`
+  - Removed some checks from `tn_tick_int_processing()`, since they aren't too
+    useful there, but they add overhead (See
+    [bitbucket issue #2](https://bitbucket.org/dfrank/tneokernel/issue/2/system-clock-service-routine-could-be-more)
+    )
+  - Added functions for disabling/enabling scheduler: `tn_sched_dis_save()` /
+    `tn_sched_restore()`. Only for Microchip platforms for now, TODO: make for
+    Cortex-M platforms as well.
+  - Id fields of objects (`enum #TN_ObjId`) are moved to the beginning of
+    object structures, to make memory corruptions detected earlier.
+  - Idle task is now created with name "Idle" specified.
 
 \section changelog_v1_06 v1.06
 

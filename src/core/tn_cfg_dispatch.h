@@ -133,6 +133,10 @@
 #  error TN_PROFILER_WAIT_TIME is not defined
 #endif
 
+#if !defined(TN_INIT_INTERRUPT_STACK_SPACE)
+#  error TN_INIT_INTERRUPT_STACK_SPACE is not defined
+#endif
+
 #if !defined(TN_STACK_OVERFLOW_CHECK)
 #  error TN_STACK_OVERFLOW_CHECK is not defined
 #endif

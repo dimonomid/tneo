@@ -270,6 +270,13 @@
 #  define TN_PROFILER_WAIT_TIME  0
 #endif
 
+/**
+ * Whether interrupt stack space should be initialized with
+ * `#TN_FILL_STACK_VAL` on system start. It is useful to disable this option if
+ * you don't want to allocate separate array for interrupt stack, but use
+ * initialization stack for it.
+ */
+#define TN_INIT_INTERRUPT_STACK_SPACE  1
 
 /**
  * Whether software stack overflow check is enabled.

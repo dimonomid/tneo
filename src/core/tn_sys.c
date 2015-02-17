@@ -547,9 +547,11 @@ void tn_sys_start(
    _tn_cb_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
+#if TN_INIT_INTERRUPT_STACK_SPACE
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
+#endif
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
