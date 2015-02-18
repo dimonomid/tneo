@@ -276,7 +276,9 @@
  * you don't want to allocate separate array for interrupt stack, but use
  * initialization stack for it.
  */
-#define TN_INIT_INTERRUPT_STACK_SPACE  1
+#ifndef TN_INIT_INTERRUPT_STACK_SPACE
+#  define TN_INIT_INTERRUPT_STACK_SPACE  1
+#endif
 
 /**
  * Whether software stack overflow check is enabled.
