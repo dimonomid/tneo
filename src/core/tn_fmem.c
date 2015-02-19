@@ -116,7 +116,7 @@ static _TN_INLINE enum TN_RCode _check_param_job_perform(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_valid_object(
+static _TN_INLINE enum TN_RCode _check_param_generic(
       const struct TN_FMem *fmem
       )
 {
@@ -134,7 +134,7 @@ static _TN_INLINE enum TN_RCode _check_param_valid_object(
 #  define _check_param_fmem_create(fmem)               (TN_RC_OK)
 #  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
 #  define _check_param_job_perform(fmem, p_data)       (TN_RC_OK)
-#  define _check_param_valid_object(fmem)              (TN_RC_OK)
+#  define _check_param_generic(fmem)                   (TN_RC_OK)
 #endif
 // }}}
 
@@ -477,8 +477,10 @@ int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem)
 {
    int ret = -1;
 
-   enum TN_RCode rc = _check_param_valid_object(fmem);
+   enum TN_RCode rc = _check_param_generic(fmem);
    if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `free_blocks_cnt`
+      //   is read by just one assembler instruction
       ret = fmem->free_blocks_cnt;
    }
 
@@ -492,8 +494,11 @@ int tn_fmem_used_blocks_cnt_get(struct TN_FMem *fmem)
 {
    int ret = -1;
 
-   enum TN_RCode rc = _check_param_valid_object(fmem);
+   enum TN_RCode rc = _check_param_generic(fmem);
    if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `free_blocks_cnt`
+      //   is read by just one assembler instruction, and `blocks_cnt` never
+      //   changes.
       ret = fmem->blocks_cnt - fmem->free_blocks_cnt;
    }
 

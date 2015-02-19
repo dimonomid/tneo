@@ -336,12 +336,13 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
  *    Pointer to memory pool.
  *
  * @return
- *    Number of free blocks in the memory pool
+ *    Number of free blocks in the memory pool, or -1 if wrong params were
+ *    given (the check is performed if only `#TN_CHECK_PARAM` is non-zero)
  */
 int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem);
 
 /**
- * Returns number of used (allocated) blocks in the memory pool
+ * Returns number of used (non-free) blocks in the memory pool
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
@@ -351,7 +352,9 @@ int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem);
  *    Pointer to memory pool.
  *
  * @return
- *    Number of used blocks in the memory pool
+ *    Number of used (non-free) blocks in the memory pool, or -1 if wrong
+ *    params were given (the check is performed if only `#TN_CHECK_PARAM` is
+ *    non-zero)
  */
 int tn_fmem_used_blocks_cnt_get(struct TN_FMem *fmem);
 

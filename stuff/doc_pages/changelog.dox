@@ -9,6 +9,10 @@ TNeo changelog
 
   - Fix: project was unable to build with `#TN_CHECK_PARAM` set to 0
   - Added an option `#TN_INIT_INTERRUPT_STACK_SPACE`
+  - Added services to get count of free and used memory blocks
+    (`tn_fmem_free_blocks_cnt_get()` / `tn_fmem_used_blocks_cnt_get()`) and
+    items in the queue (`tn_queue_free_items_cnt_get()` /
+    `tn_queue_used_items_cnt_get()`). TODO: test it.
   - Removed some checks from `tn_tick_int_processing()`, since they aren't too
     useful there, but they add overhead (See
     [bitbucket issue #2](https://bitbucket.org/dfrank/tneokernel/issue/2/system-clock-service-routine-could-be-more)

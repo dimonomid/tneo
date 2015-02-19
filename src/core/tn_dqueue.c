@@ -731,5 +731,44 @@ enum TN_RCode tn_queue_eventgrp_disconnect(
    return rc;
 }
 
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_queue_free_items_cnt_get(
+      struct TN_DQueue    *dque
+      )
+{
+   int ret = -1;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `filled_items_cnt`
+      //   is read by just one assembler instruction, and `items_cnt` never
+      //   changes.
+      ret = dque->items_cnt - dque->filled_items_cnt;
+   }
+
+   return ret;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_queue_used_items_cnt_get(
+      struct TN_DQueue    *dque
+      )
+{
+   int ret = -1;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `filled_items_cnt`
+      //   is read by just one assembler instruction.
+      ret = dque->filled_items_cnt;
+   }
+
+   return ret;
+}
+
 
 
