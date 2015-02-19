@@ -115,10 +115,26 @@ static _TN_INLINE enum TN_RCode _check_param_job_perform(
 
    return rc;
 }
+
+static _TN_INLINE enum TN_RCode _check_param_valid_object(
+      const struct TN_FMem *fmem
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (fmem == TN_NULL){
+      rc = TN_RC_WPARAM;
+   } else if (!_tn_fmem_is_valid(fmem)){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
 #else
 #  define _check_param_fmem_create(fmem)               (TN_RC_OK)
 #  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
 #  define _check_param_job_perform(fmem, p_data)       (TN_RC_OK)
+#  define _check_param_valid_object(fmem)              (TN_RC_OK)
 #endif
 // }}}
 
@@ -454,4 +470,33 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
    return rc;
 }
 
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem)
+{
+   int ret = -1;
+
+   enum TN_RCode rc = _check_param_valid_object(fmem);
+   if (rc == TN_RC_OK){
+      ret = fmem->free_blocks_cnt;
+   }
+
+   return ret;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_fmem_used_blocks_cnt_get(struct TN_FMem *fmem)
+{
+   int ret = -1;
+
+   enum TN_RCode rc = _check_param_valid_object(fmem);
+   if (rc == TN_RC_OK){
+      ret = fmem->blocks_cnt - fmem->free_blocks_cnt;
+   }
+
+   return ret;
+}
 
