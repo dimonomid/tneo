@@ -46,6 +46,8 @@
  * placed into the wait queue until a free memory block arrives (another task
  * returns it to the memory pool).
  *
+ * The operations of getting the block from memory pool and releasing it back
+ * take O(1) time independently of number or size of the blocks.
  *   
  * For the useful pattern on how to use fixed memory pool together with \ref
  * tn_dqueue.h "queue", refer to the example: `examples/queue`. Be sure to
@@ -102,7 +104,9 @@ struct TN_FMem {
    /// `sizeof(#TN_UWord)`.
    void                *start_addr;
    ///
-   /// ptr to free block list
+   /// Pointer to the first free memory block. Each free block contains the
+   /// pointer to the next free memory block as the first word, or `NULL` if
+   /// this is the last block.
    void                *free_list;
 };
 
