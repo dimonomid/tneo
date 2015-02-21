@@ -714,46 +714,6 @@ enum TN_RCode tn_queue_ireceive_polling(struct TN_DQueue *dque, void **pp_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
-enum TN_RCode tn_queue_eventgrp_connect(
-      struct TN_DQueue    *dque,
-      struct TN_EventGrp  *eventgrp,
-      TN_UWord             pattern
-      )
-{
-   int sr_saved;
-   enum TN_RCode rc = _check_param_generic(dque);
-
-   if (rc == TN_RC_OK){
-      sr_saved = tn_arch_sr_save_int_dis();
-      rc = _tn_eventgrp_link_set(&dque->eventgrp_link, eventgrp, pattern);
-      tn_arch_sr_restore(sr_saved);
-   }
-
-   return rc;
-}
-
-/*
- * See comments in the header file (tn_dqueue.h)
- */
-enum TN_RCode tn_queue_eventgrp_disconnect(
-      struct TN_DQueue    *dque
-      )
-{
-   int sr_saved;
-   enum TN_RCode rc = _check_param_generic(dque);
-
-   if (rc == TN_RC_OK){
-      sr_saved = tn_arch_sr_save_int_dis();
-      rc = _tn_eventgrp_link_reset(&dque->eventgrp_link);
-      tn_arch_sr_restore(sr_saved);
-   }
-
-   return rc;
-}
-
-/*
- * See comments in the header file (tn_dqueue.h)
- */
 int tn_queue_free_items_cnt_get(
       struct TN_DQueue    *dque
       )
@@ -790,5 +750,44 @@ int tn_queue_used_items_cnt_get(
    return ret;
 }
 
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_RCode tn_queue_eventgrp_connect(
+      struct TN_DQueue    *dque,
+      struct TN_EventGrp  *eventgrp,
+      TN_UWord             pattern
+      )
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_eventgrp_link_set(&dque->eventgrp_link, eventgrp, pattern);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+enum TN_RCode tn_queue_eventgrp_disconnect(
+      struct TN_DQueue    *dque
+      )
+{
+   int sr_saved;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      sr_saved = tn_arch_sr_save_int_dis();
+      rc = _tn_eventgrp_link_reset(&dque->eventgrp_link);
+      tn_arch_sr_restore(sr_saved);
+   }
+
+   return rc;
+}
 
 

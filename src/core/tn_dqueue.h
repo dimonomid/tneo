@@ -332,6 +332,44 @@ enum TN_RCode tn_queue_ireceive_polling(
 
 
 /**
+ * Returns number of free items in the queue
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param dque
+ *    Pointer to queue.
+ *
+ * @return
+ *    Number of free items in the queue, or -1 if wrong params were given (the
+ *    check is performed if only `#TN_CHECK_PARAM` is non-zero)
+ */
+int tn_queue_free_items_cnt_get(
+      struct TN_DQueue    *dque
+      );
+
+
+/**
+ * Returns number of used (non-free) items in the queue
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param dque
+ *    Pointer to queue.
+ *
+ * @return
+ *    Number of used (non-free) items in the queue, or -1 if wrong params were
+ *    given (the check is performed if only `#TN_CHECK_PARAM` is non-zero)
+ */
+int tn_queue_used_items_cnt_get(
+      struct TN_DQueue    *dque
+      );
+
+
+/**
  * Connect an event group to the queue. 
  * Refer to the section \ref eventgrp_connect for details.
  *
@@ -373,43 +411,6 @@ enum TN_RCode tn_queue_eventgrp_disconnect(
       struct TN_DQueue    *dque
       );
 
-
-/**
- * Returns number of free items in the queue
- *
- * $(TN_CALL_FROM_TASK)
- * $(TN_CALL_FROM_ISR)
- * $(TN_LEGEND_LINK)
- *
- * @param dque
- *    Pointer to queue.
- *
- * @return
- *    Number of free items in the queue, or -1 if wrong params were given (the
- *    check is performed if only `#TN_CHECK_PARAM` is non-zero)
- */
-int tn_queue_free_items_cnt_get(
-      struct TN_DQueue    *dque
-      );
-
-
-/**
- * Returns number of used (non-free) items in the queue
- *
- * $(TN_CALL_FROM_TASK)
- * $(TN_CALL_FROM_ISR)
- * $(TN_LEGEND_LINK)
- *
- * @param dque
- *    Pointer to queue.
- *
- * @return
- *    Number of used (non-free) items in the queue, or -1 if wrong params were
- *    given (the check is performed if only `#TN_CHECK_PARAM` is non-zero)
- */
-int tn_queue_used_items_cnt_get(
-      struct TN_DQueue    *dque
-      );
 
 #ifdef __cplusplus
 }  /* extern "C" */
