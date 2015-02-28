@@ -39,31 +39,39 @@
  *
  * First of all, there is a stack frame created by hardware:
  *
- *    xPSR
- *    Return Address
- *    LR
- *    R12
- *    R3
- *    R2
- *    R1
- *    R0
+ *    - xPSR
+ *    - Return Address
+ *    - LR
+ *    - R12
+ *    - R3
+ *    - R2
+ *    - R1
+ *    - R0
  *
- *    {Probably, "caller-saved" floating point registers}
+ *    - {Probably, "caller-saved" floating point registers}
  *
  * Then, all the "callee-saved" registers:
  *
- *    {Probably, "callee-saved" floating-point registers S16-S31}
+ *    - {Probably, "callee-saved" floating-point registers S16-S31}
  *
- *    EXC_RETURN (i.e. value of LR when ISR is called)
+ *    - EXC_RETURN (i.e. value of LR when ISR is called, saved on M3/M4/M4F only)
  *
- *    R11
- *    R10
- *    R9
- *    R8
- *    R7
- *    R6
- *    R5
- *    R4
+ *          Actually, saving of EXC_RETURN in task context is necessary for M4F
+ *          only, because usage of FPU the only thing that can differ in
+ *          EXC_RETURN for different tasks, but I don't want to complicate
+ *          things even more, so let it be. 
+ *
+ *          But on Cortex-M0/M0+ we anyway have different code for
+ *          saving/restoring context.
+ *
+ *    - R11
+ *    - R10
+ *    - R9
+ *    - R8
+ *    - R7
+ *    - R6
+ *    - R5
+ *    - R4
  *
  *
  */
@@ -148,6 +156,9 @@ TN_UWord *_tn_arch_stack_init(
    //    - floating point is not used by the task at the moment;
    //    - return to Thread mode;
    //    - use PSP.
+   //
+   //   It is saved in task context for M3/M4/M4F only, see comments
+   //   about context layout above for details.
    *(--cur_stack_pt) = 0xFFFFFFFD;
 #endif
 

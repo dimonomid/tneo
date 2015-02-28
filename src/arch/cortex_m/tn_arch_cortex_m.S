@@ -150,6 +150,25 @@
 #endif
 
 
+/*
+ * Since we have on-context-switch handler (see _TN_ON_CONTEXT_SWITCH_HANDLER),
+ * LR is corrupted during context switch. So, we need to save it.
+ * On Cortex M3/M4/M4F we have EXC_RETURN right in the task context,
+ * so it is already saved and restored just fine.
+ *
+ * (actually saving of EXC_RETURN in task context is necessary for M4F only,
+ * because usage of FPU the only thing that can differ in EXC_RETURN for
+ * different tasks, but I don't want to complicate things even more)
+ *
+ * On M0/M0+ there's no need to store EXC_RETURN in the task context, but if
+ * there is some on-context-switch handler, then we should save/restore LR on
+ * MSP during context switch.
+ */
+#define     _TN_NEED_SAVE_LR()      (                                         \
+      !defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)                           \
+      && _TN_ON_CONTEXT_SWITCH_HANDLER                                        \
+      )
+
 
 
 
@@ -284,6 +303,11 @@ _TN_LABEL(ffs_asm)
 _TN_THUMB_FUNC()
 _TN_LABEL(PendSV_Handler)
 
+      //-- Save LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      push     {lr}
+#endif
+
       cpsid    i                       //-- Disable core int
 
       //-- Now, PSP contains task's stack pointer.
@@ -375,6 +399,13 @@ _TN_LOCAL_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_cu
       msr      PSP, r0        //-- update PSP to stack of newly activated task
 
       cpsie    i              //-- enable core int
+
+      //-- Restore LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      pop      {r0}
+      mov      lr, r0
+#endif
+
       bx       lr
 
 
@@ -457,6 +488,11 @@ _TN_LABEL(SVC_Handler)
 
       //-- there is just one service possible: context_switch_now_nosave,
       //   so, we don't check params.
+
+      //-- Save LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      push     {lr}
+#endif
 
       cpsid    i              //-- Disable core int
 
