@@ -101,7 +101,7 @@
 #  define   _TN_GLOBAL(x)           EXPORT _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        _TN_NAME(label)
-#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label)
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
