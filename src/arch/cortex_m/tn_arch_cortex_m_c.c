@@ -57,7 +57,7 @@
  *    - EXC_RETURN (i.e. value of LR when ISR is called, saved on M3/M4/M4F only)
  *
  *          Actually, saving of EXC_RETURN in task context is necessary for M4F
- *          only, because usage of FPU the only thing that can differ in
+ *          only, because usage of FPU is the only thing that can differ in
  *          EXC_RETURN for different tasks, but I don't want to complicate
  *          things even more, so let it be. 
  *

@@ -157,7 +157,7 @@
  * so it is already saved and restored just fine.
  *
  * (actually saving of EXC_RETURN in task context is necessary for M4F only,
- * because usage of FPU the only thing that can differ in EXC_RETURN for
+ * because usage of FPU is the only thing that can differ in EXC_RETURN for
  * different tasks, but I don't want to complicate things even more)
  *
  * On M0/M0+ there's no need to store EXC_RETURN in the task context, but if
@@ -195,18 +195,12 @@
    .text
    .syntax unified
    .thumb
-   // Commented because it causes problems, see issue #3
-   //.subsections_via_symbols
-   //.align 4
 
 #elif defined(__TN_COMPILER_CLANG__)
 
    .text
    .syntax unified
    .thumb
-   // Commented because it causes problems, see issue #3
-   //.subsections_via_symbols
-   //.align 4
 
 #else
 #  error unknown compiler for Cortex-M
