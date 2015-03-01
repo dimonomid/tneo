@@ -8,6 +8,8 @@ TNeo changelog
 \section changelog_current Current development version (BETA)
 
   - Fix: project was unable to build with `#TN_CHECK_PARAM` set to 0
+  - Fix: Cortex-M0/M0+ port didn't work if there is some on-context-switch
+    handler (`#TN_PROFILER` or `#TN_STACK_OVERFLOW_CHECK`)
   - Added an option `#TN_INIT_INTERRUPT_STACK_SPACE`
   - Added services to get count of free and used memory blocks
     (`tn_fmem_free_blocks_cnt_get()` / `tn_fmem_used_blocks_cnt_get()`) and
