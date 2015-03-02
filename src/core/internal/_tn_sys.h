@@ -241,7 +241,7 @@ static _TN_INLINE void _tn_context_switch_pend_if_needed(void)
 template <typename T>
 static _TN_INLINE T operator|=(T &a, int b)
 {
-   a = (T)(a | b);
+   a = (T)((int)a | (int)b);
    return a;
 }
 
@@ -251,7 +251,7 @@ static _TN_INLINE T operator|=(T &a, int b)
 template <typename T>
 static _TN_INLINE T operator&=(T &a, int b)
 {
-   a = (T)(a & b);
+   a = (T)((int)a & (int)b);
    return a;
 }
 
@@ -270,6 +270,46 @@ static _TN_INLINE T operator|(T a, int b)
  */
 template <typename T>
 static _TN_INLINE T operator&(T a, int b)
+{
+   a &= b;
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator|=(T &a, T b)
+{
+   a = (T)((int)a | (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&=(T &a, T b)
+{
+   a = (T)((int)a & (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator|(T a, T b)
+{
+   a |= b;
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&(T a, T b)
 {
    a &= b;
    return a;
