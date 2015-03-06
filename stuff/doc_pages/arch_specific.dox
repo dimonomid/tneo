@@ -150,21 +150,22 @@ priorities and their characteristics:
   - Kernel services **are** allowed to call;
   - The macro `tn_p24_soft_isr()` <b>must</b> be used.
   - Separate interrupt stack is used by ISR;
-  - Interrupts get disabled for short periods of time when modifying critical
-    kernel data (for about 100 cycles or the like).
+  - Interrupts of these priorities get disabled for short periods of time when
+    modifying critical kernel data (for about 100 cycles or the like).
 - priorities `[(#TN_P24_SYS_IPL + 1) .. 6]`:
   - Kernel services **are not** allowed to call;
   - The macro `tn_p24_soft_isr()` <b>must not</b> be used.
   - Task's stack is used by ISR;
-  - Interrupts are not disabled when modifying critical kernel data, but they
-    are disabled for 4..8 cycles by `disi` instruction when entering/exiting
-    system ISR: we need to safely modify `SP` and `SPLIM`.
+  - Interrupts of these priorities are not disabled when modifying critical
+    kernel data, but they are disabled for 4..8 cycles by `disi` instruction
+    when entering/exiting system ISR: we need to safely modify `SP` and
+    `SPLIM`.
 - priority `7`:
   - Kernel services **are not** allowed to call;
   - The macro `tn_p24_soft_isr()` <b>must not</b> be used.
   - Task's stack is used by ISR;
-  - Interrupts are never disabled by the kernel. Note that `disi` instruction
-    leaves interrupts of priority 7 enabled. 
+  - Interrupts of these priorities are never disabled by the kernel (note that
+    `disi` instruction leaves interrupts of priority 7 enabled). 
 
 The kernel provides C-language macro for calling C-language **system**
 interrupt service routines.
