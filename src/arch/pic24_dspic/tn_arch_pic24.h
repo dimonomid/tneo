@@ -45,15 +45,29 @@
 #ifndef  _TN_ARCH_PIC24_H
 #define  _TN_ARCH_PIC24_H
 
+
+/*******************************************************************************
+ *    INCLUDED FILES
+ ******************************************************************************/
+
+//-- Include `tn_common_macros.h` for `_TN_STRINGIZE_MACRO()`
+#include "tn_common_macros.h"
 #include "../../core/tn_cfg_dispatch.h"
 
 //-- include macros for atomic assess to structure bit fields so that
 //   application can use it too.
 #include "tn_arch_pic24_bfa.h"
 
+
 #ifdef __cplusplus
 extern "C"  {     /*}*/
 #endif
+
+
+
+/*******************************************************************************
+ *    ARCH-DEPENDENT DEFINITIONS
+ ******************************************************************************/
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -297,7 +311,7 @@ typedef  unsigned int               TN_UIntPtr;
    "   mov     #0xE0,   W0                                              \n"   \
    "   and     _SR,     WREG                                            \n"   \
    "   lsr     W0,      #5,      W0                                     \n"   \
-   "   cp      W0,      #" TN_P24_SYS_IPL_STR "                         \n"   \
+   "   cp      W0,      #" _TN_STRINGIZE_MACRO(TN_P24_SYS_IPL) "        \n"   \
    "   bra     leu,     1f                                              \n"   \
                                                                               \
    /* Interrupt priority is too high. Halt the debugger here.           */    \

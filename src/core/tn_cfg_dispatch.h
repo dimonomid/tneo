@@ -145,10 +145,6 @@
 #  if !defined(TN_P24_SYS_IPL)
 #     error TN_P24_SYS_IPL is not defined
 #  endif
-
-#  if !defined(TN_P24_SYS_IPL_STR)
-#     error TN_P24_SYS_IPL_STR is not defined
-#  endif
 #endif
 
 #if !defined(TN_DYNAMIC_TICK)
