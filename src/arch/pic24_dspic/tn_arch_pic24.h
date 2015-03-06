@@ -51,7 +51,7 @@
  ******************************************************************************/
 
 //-- Include `tn_common_macros.h` for `_TN_STRINGIZE_MACRO()`
-#include "tn_common_macros.h"
+#include "../../core/tn_common_macros.h"
 #include "../../core/tn_cfg_dispatch.h"
 
 //-- include macros for atomic assess to structure bit fields so that
