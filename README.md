@@ -69,5 +69,5 @@ company, Alexey Morozov and Alexey Gromov, for being flexible about my time.
 
 For comprehensive information, refer to the documentation (see links at the top of this page)
 
-Feel free to contact me at the Microchip forum, [TNeo thread](http://goo.gl/1xKUwA).
+If you have any comments, feel free to leave them at [dmitryfrank.com/projects/tneo](http://dmitryfrank.com/projects/tneo).
 
