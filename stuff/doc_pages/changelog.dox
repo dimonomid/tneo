@@ -15,14 +15,13 @@ TNeo changelog
   - Added services to get count of free and used memory blocks
     (`tn_fmem_free_blocks_cnt_get()` / `tn_fmem_used_blocks_cnt_get()`) and
     items in the queue (`tn_queue_free_items_cnt_get()` /
-    `tn_queue_used_items_cnt_get()`). TODO: test it.
+    `tn_queue_used_items_cnt_get()`).
   - Removed some checks from `tn_tick_int_processing()`, since they aren't too
     useful there, but they add overhead (See
     [bitbucket issue #2](https://bitbucket.org/dfrank/tneokernel/issue/2/system-clock-service-routine-could-be-more)
     )
   - Added functions for disabling/enabling scheduler: `tn_sched_dis_save()` /
-    `tn_sched_restore()`. Only for Microchip platforms for now, TODO: make for
-    Cortex-M platforms as well.
+    `tn_sched_restore()`.
   - Id fields of objects (`enum #TN_ObjId`) are moved to the beginning of
     object structures, to make memory corruptions detected earlier.
   - Idle task is now created with name "Idle" specified.

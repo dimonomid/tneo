@@ -586,5 +586,33 @@ _TN_LABEL(_tn_arch_context_switch_pend)
       bx       lr
 
 
+/*
+ * Disable kernel scheduler and return previous state.
+ * See comments in `tn_arch.h` for details.
+ *
+ * On Cortex-M architecture, we can't precisely disable PendSV interrupt,
+ * but we should disable interrupts based on their priorities. So,
+ * here we disable all interrupts with lowest priority (0xff)
+ *
+ * @return
+ *    Scheduler state to be restored later by `#tn_arch_sched_restore()`.
+ */
+_TN_THUMB_FUNC()
+_TN_LABEL(tn_arch_sched_dis_save)
+
+      mrs      r0, BASEPRI
+      movs     r1, #0xff
+      msr      BASEPRI_MAX, r1
+      bx       lr
+
+
+_TN_THUMB_FUNC()
+_TN_LABEL(tn_arch_sched_restore)
+
+      msr      BASEPRI_MAX, r0
+      bx       lr
+
+
+
    _TN_END()
 
