@@ -241,6 +241,8 @@
    _TN_GLOBAL(_tn_arch_is_int_disabled)
    _TN_GLOBAL(_tn_arch_inside_isr)
    _TN_GLOBAL(_tn_arch_context_switch_pend)
+   _TN_GLOBAL(tn_arch_sched_dis_save)
+   _TN_GLOBAL(tn_arch_sched_restore)
 
 
 
@@ -600,16 +602,32 @@ _TN_LABEL(_tn_arch_context_switch_pend)
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sched_dis_save)
 
+      //-- Actual number of interrupt priority levels is
+      //   implementation-dependent, so, we can't assume any exact value of the
+      //   lowest priority to be set in BASEPRI. The portable way is to read
+      //   actual priority level of PendSV and put it to BASEPRI.
+
+      //-- Get current BASEPRI value (to be returned)
       mrs      r0, BASEPRI
-      movs     r1, #0xff
+
+      //-- Load the System 8-11 Priority Register
+      ldr      r1, =PR_08_11_ADDR
+      ldr      r1, [r1]
+
+      //-- Shift it by 24 bits, i.e. get the MSB
+      lsr      r1, r1, #24
+
+      //-- Store that value to BASEPRI, if current value isn't already
+      //   equal or lower
       msr      BASEPRI_MAX, r1
+
       bx       lr
 
 
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sched_restore)
 
-      msr      BASEPRI_MAX, r0
+      msr      BASEPRI, r0
       bx       lr
 
 
