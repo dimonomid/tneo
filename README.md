@@ -1,4 +1,4 @@
-TNeo: a real-time kernel
+TNeo: a real-time kernel (RTOS)
 ==============
 
 TNeo is a compact and fast real-time kernel for embedded 32/16 bits
