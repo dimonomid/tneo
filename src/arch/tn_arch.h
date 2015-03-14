@@ -190,13 +190,6 @@ void tn_arch_sr_restore(TN_UWord sr);
 /**
  * Disable kernel scheduler and return previous state.
  *
- * On several platforms (namely, on Microchip platforms), there's possible to
- * just disable scheduler, but on others (Cortex-M platforms) we can only
- * disable interrupts based on priority. So, on Cortex-M platforms, this
- * function disables all interrupts with lowest priority (since scheduler works
- * at lowest interrupt priority), but on Microchip platforms this function
- * disables scheduler precisely, no other interrupts are affected.
- *
  * @return
  *    Scheduler state to be restored later by `#tn_arch_sched_restore()`.
  */
