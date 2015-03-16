@@ -21,7 +21,7 @@
 
 
 //-- idle task stack size, in words
-#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 16)
+#define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 32)
 
 //-- interrupt stack size, in words
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)
