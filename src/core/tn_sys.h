@@ -552,12 +552,14 @@ TN_TaskBody *tn_cur_task_body_get(void);
 /**
  * Disable kernel scheduler and return previous scheduler state.
  *
- * On several platforms (namely, on Microchip platforms), there's possible to
- * just disable scheduler, but on others (Cortex-M platforms) we can only
- * disable interrupts based on priority. So, on Cortex-M platforms, this
- * function disables all interrupts with lowest priority (since scheduler works
- * at lowest interrupt priority), but on Microchip platforms this function
- * disables scheduler precisely, no other interrupts are affected.
+ * Actual behavior depends on the platform:
+ *
+ * - On Microchip platforms, only scheduler's interrupt gets disabled. All
+ *   other interrupts are not affected, independently of their priorities.
+ * - On Cortex-M3/M4 platforms, we can only disable interrupts based on 
+ *   priority. So, this function disables all interrupts with lowest priority
+ *   (since scheduler works at lowest interrupt priority).
+ * - On Cortex-M0/M0+, we have to disable all interrupts.
  *
  * $(TN_CALL_FROM_TASK)
  * $(TN_CALL_FROM_ISR)
