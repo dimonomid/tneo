@@ -115,13 +115,35 @@ static _TN_INLINE enum TN_RCode _check_param_job_perform(
 
    return rc;
 }
+
+static _TN_INLINE enum TN_RCode _check_param_generic(
+      const struct TN_FMem *fmem
+      )
+{
+   enum TN_RCode rc = TN_RC_OK;
+
+   if (fmem == TN_NULL){
+      rc = TN_RC_WPARAM;
+   } else if (!_tn_fmem_is_valid(fmem)){
+      rc = TN_RC_INVALID_OBJ;
+   }
+
+   return rc;
+}
 #else
 #  define _check_param_fmem_create(fmem)               (TN_RC_OK)
 #  define _check_param_fmem_delete(fmem)               (TN_RC_OK)
 #  define _check_param_job_perform(fmem, p_data)       (TN_RC_OK)
+#  define _check_param_generic(fmem)                   (TN_RC_OK)
 #endif
 // }}}
 
+/**
+ * Callback function that is given to `_tn_task_first_wait_complete()`
+ * when task finishes waiting for free block in the memory pool.
+ *
+ * See `#_TN_CBBeforeTaskWaitComplete` for details on function signature.
+ */
 static void _cb_before_task_wait_complete(
       struct TN_Task   *task,
       void             *user_data_1,
@@ -131,29 +153,79 @@ static void _cb_before_task_wait_complete(
    task->subsys_wait.fmem.data_elem = user_data_1;
 }
 
+/**
+ * Try to allocate memory block from the pool.
+ *
+ * If there is free memory block, it is allocated and the address of it is
+ * stored at the provided location (`p_data`). Otherwise (no free blocks),
+ * `#TN_RC_TIMEOUT` is returned, and this case can be handled by the caller.
+ *
+ * @param fmem
+ *    Memory pool from which block should be taken
+ * @param p_data
+ *    Pointer to where the result should be stored (if `#TN_RC_TIMEOUT` is
+ *    returned, this location isn't altered)
+ */
 static _TN_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = TN_NULL;
 
    if (fmem->free_blocks_cnt > 0){
+      //-- Get first block from the pool
       ptr = fmem->free_list;
-      fmem->free_list = *(void **)fmem->free_list;   //-- ptr - to new free list
+
+      //-- Alter pointer to the first block: make it point to the next free
+      //   block.
+      //
+      //   Each free memory block contains the pointer to the next free memory
+      //   block as the first word, or `NULL` if it is the last free block.
+      //
+      //   So, just read that word and save to `free_list`.
+      fmem->free_list = *(void **)fmem->free_list;
+
+      //-- And just decrement free blocks count.
       fmem->free_blocks_cnt--;
 
+      //-- Store pointer to newly allocated memory block to the user-provided
+      //   location.
       *p_data = ptr;
+
       rc = TN_RC_OK;
    } else {
+      //-- There are no free memory blocks.
       rc = TN_RC_TIMEOUT;
    }
 
    return rc;
 }
 
+/**
+ * Return memory block to the pool.
+ *
+ * First of all, check if there is some task that waits for free block
+ * in the pool. If there is, the block is given to it, task is woken up, and
+ * the memory pool isn't altered at all.
+ *
+ * If there aren't waiting tasks, then put memory block to the pool.
+ *
+ * @param fmem
+ *    Memory pool
+ * @param p_data
+ *    Pointer to the memory block to release.
+ *
+ * @return
+ *    - `#TN_RC_OK`, if operation was successful
+ *    - `#TN_RC_OVERFLOW`, if memory pool already has all its blocks free.
+ *      This may never happen in normal program execution; if that happens,
+ *      it's a programmer's mistake.
+ */
 static _TN_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 
+   //-- Check if there are tasks waiting for memory block. If there is,
+   //   give the block to the first task from the queue.
    if (  !_tn_task_first_wait_complete(
             &fmem->wait_queue, TN_RC_OK,
             _cb_before_task_wait_complete, p_data, TN_NULL
@@ -164,7 +236,9 @@ static _TN_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data
       //   insert in to the memory pool
 
       if (fmem->free_blocks_cnt < fmem->blocks_cnt){
-         //-- insert block into free block list
+         //-- Insert block into free block list. 
+         //   See comments inside `_fmem_get()` for more detailed explanation
+         //   of how the kernel keeps track of free blocks.
          *(void **)p_data = fmem->free_list;
          fmem->free_list = p_data;
          fmem->free_blocks_cnt++;
@@ -454,4 +528,38 @@ enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data)
    return rc;
 }
 
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem)
+{
+   int ret = -1;
+
+   enum TN_RCode rc = _check_param_generic(fmem);
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `free_blocks_cnt`
+      //   is read by just one assembler instruction
+      ret = fmem->free_blocks_cnt;
+   }
+
+   return ret;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_fmem_used_blocks_cnt_get(struct TN_FMem *fmem)
+{
+   int ret = -1;
+
+   enum TN_RCode rc = _check_param_generic(fmem);
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `free_blocks_cnt`
+      //   is read by just one assembler instruction, and `blocks_cnt` never
+      //   changes.
+      ret = fmem->blocks_cnt - fmem->free_blocks_cnt;
+   }
+
+   return ret;
+}
 

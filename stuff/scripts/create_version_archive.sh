@@ -30,11 +30,17 @@ hg clone $repo_path $tmp_repo_path
 # cd to temp dir
 cd $tmp_repo_path
 
+# update to the needed revision
+hg up $target_tag_name
+
 # copy default cfg as tn_cfg.h
 cp src/tn_cfg_default.h src/tn_cfg.h
 
 # make all targets
 make -f Makefile-all-arch
+
+# delete obj files
+rm -r ./_obj
 
 # delete tn_cfg.h
 rm src/tn_cfg.h
@@ -42,9 +48,6 @@ rm src/tn_cfg.h
 
 # cd to doxygen dir
 cd stuff/doxygen
-
-# update the needed revision
-hg up $target_tag_name
 
 # get version string
 version_string="$(bash ../scripts/hg_ver_echo.sh)"

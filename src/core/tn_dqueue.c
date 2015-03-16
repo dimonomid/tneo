@@ -439,12 +439,18 @@ static enum TN_RCode _dqueue_job_perform(
       TN_INT_DIS_SAVE();
 
       switch (job_type){
+
          case _JOB_TYPE__SEND:
+            //-- try to put new item to the queue
             rc = _queue_send(dque, p_data);
 
             if (rc == TN_RC_TIMEOUT && timeout != 0){
-               //-- save user-provided data in the dqueue.data_elem task field,
-               //   and put current task to wait until there's room in the queue.
+               //-- We can't put new item to the queue right now (queue is
+               //   full), and user asked to wait if that happens.
+               //
+               //   Save user-provided data in the `dqueue.data_elem` task
+               //   field, and put current task to wait until there's room in
+               //   the queue.
                _tn_curr_run_task->subsys_wait.dqueue.data_elem = p_data;
                _tn_task_curr_to_wait_action(
                      &(dque->wait_send_list),
@@ -454,13 +460,17 @@ static enum TN_RCode _dqueue_job_perform(
 
                waited = TN_TRUE;
             }
-
             break;
+
          case _JOB_TYPE__RECEIVE:
+            //-- try to get the item from the queue
             rc = _queue_receive(dque, pp_data);
 
             if (rc == TN_RC_TIMEOUT && timeout != 0){
-               //-- put current task to wait until new data comes.
+               //-- Queue is empty right now, and user asked to wait if that
+               //   happens.
+               //
+               //   Put current task to wait until new data comes.
                _tn_task_curr_to_wait_action(
                      &(dque->wait_receive_list),
                      TN_WAIT_REASON_DQUE_WRECEIVE,
@@ -525,17 +535,27 @@ static enum TN_RCode _dqueue_job_iperform(
    if (rc != TN_RC_OK){
       //-- just return rc as it is
    } else if (!tn_is_isr_context()){
+      //-- wrong context
       rc = TN_RC_WCONTEXT;
    } else {
       TN_INTSAVE_DATA_INT;
 
       TN_INT_IDIS_SAVE();
 
+      //-- depending on the job type, call appropriate function
       switch (job_type){
+
          case _JOB_TYPE__SEND:
+            //-- Try to put new item to the queue. We don't handle returned
+            //   value here, since we can't wait in interrupt, so, just return
+            //   the value to the caller.
             rc = _queue_send(dque, p_data);
             break;
+
          case _JOB_TYPE__RECEIVE:
+            //-- try to get the item from the queue. We don't handle returned
+            //   value here, since we can't wait in interrupt, so, just return
+            //   the value to the caller.
             rc = _queue_receive(dque, pp_data);
             break;
       }
@@ -694,6 +714,45 @@ enum TN_RCode tn_queue_ireceive_polling(struct TN_DQueue *dque, void **pp_data)
 /*
  * See comments in the header file (tn_dqueue.h)
  */
+int tn_queue_free_items_cnt_get(
+      struct TN_DQueue    *dque
+      )
+{
+   int ret = -1;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `filled_items_cnt`
+      //   is read by just one assembler instruction, and `items_cnt` never
+      //   changes.
+      ret = dque->items_cnt - dque->filled_items_cnt;
+   }
+
+   return ret;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
+int tn_queue_used_items_cnt_get(
+      struct TN_DQueue    *dque
+      )
+{
+   int ret = -1;
+   enum TN_RCode rc = _check_param_generic(dque);
+
+   if (rc == TN_RC_OK){
+      //-- It's not needed to disable interrupts here, since `filled_items_cnt`
+      //   is read by just one assembler instruction.
+      ret = dque->filled_items_cnt;
+   }
+
+   return ret;
+}
+
+/*
+ * See comments in the header file (tn_dqueue.h)
+ */
 enum TN_RCode tn_queue_eventgrp_connect(
       struct TN_DQueue    *dque,
       struct TN_EventGrp  *eventgrp,
@@ -730,6 +789,5 @@ enum TN_RCode tn_queue_eventgrp_disconnect(
 
    return rc;
 }
-
 
 

@@ -198,12 +198,20 @@ typedef unsigned long TN_TickCnt;
 
 /// NULL pointer definition
 #ifndef TN_NULL
-#  define TN_NULL       ((void *)0)
+#  ifdef __cplusplus
+#     define TN_NULL    0
+#  else
+#     define TN_NULL    ((void *)0)
+#  endif
 #endif
 
 /// boolean type definition
 #ifndef TN_BOOL
-#  define TN_BOOL       int
+#  ifdef __cplusplus
+#     define TN_BOOL    bool
+#  else
+#     define TN_BOOL    int
+#  endif
 #endif
 
 /// `true` value definition for type `#TN_BOOL`

@@ -1,0 +1,87 @@
+@startuml
+
+package "Core" {
+
+' TNTracerCore {{{
+class TNTracerCore {
+   -data_codec : DataCodec
+}
+' }}}
+
+' DataSrc {{{
+class DataSrc <<interface>> {
+}
+
+class DataSrcSerial {
+}
+
+class DataSrcSnapshot {
+}
+
+DataSrc <|-- DataSrcSerial
+DataSrc <|-- DataSrcSnapshot
+' }}}
+
+' DataCodec {{{
+class DataCodec <<interface>> {
+   -data_src : DataSrc
+}
+
+class DataCodecTN {
+}
+
+DataCodec <|-- DataCodecTN
+' }}}
+
+' TNTracerEvent {{{
+class TNTracerEvent <<interface>> {
+}
+
+class TNTracerEventTaskCreated {
+}
+
+class TNTracerEventTaskDestroyed {
+}
+
+class TNTracerEventMutexCreated {
+}
+
+class TNTracerEventMutexDestroyed {
+}
+
+class TNTracerEventMutexLocked {
+}
+
+class TNTracerEventMutexUnlocked {
+}
+
+TNTracerEvent <|-- TNTracerEventTaskCreated
+TNTracerEvent <|-- TNTracerEventTaskDestroyed
+TNTracerEvent <|-- TNTracerEventMutexCreated
+TNTracerEvent <|-- TNTracerEventMutexDestroyed
+TNTracerEvent <|-- TNTracerEventMutexLocked
+TNTracerEvent <|-- TNTracerEventMutexUnlocked
+' }}}
+
+TNTracerCore o-- "1" DataCodec : data_codec
+TNTracerCore o-- "1" DataSrc : data_src
+TNTracerCore o-- "*" TNTracerEvent : events
+
+DataCodec ..> TNTracerEvent : emit
+
+DataSrc <.. DataCodec : listen for raw data
+DataCodec <.. TNTracerCore : listen for TNTracerEvent's
+
+}
+
+package "Gui" {
+
+   class SomeGUI {
+   }
+
+}
+
+SomeGUI <..> TNTracerCore : <<interact>>
+
+
+@enduml

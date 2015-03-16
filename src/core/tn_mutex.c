@@ -288,8 +288,8 @@ in:
          //   for mutex's holder
          //
          //   NOTE: as a workaround for crappy compilers that don't
-         //   convert function call to simple goto here,
-         //   we have to use goto explicitly.
+         //   know what is tail-recursion, we have to use goto explicitly.
+         //   (see SICP, section 1.2.1: Linear Recursion and Iteration)
          //
          //_task_priority_elevate(
          //      _get_mutex_by_wait_queque(task->pwait_queue)->holder,
@@ -356,8 +356,8 @@ in:
       //-- call this function again, recursively
       //
       //   NOTE: as a workaround for crappy compilers that don't
-      //   convert function call to simple goto here,
-      //   we have to use goto explicitly.
+      //   know what is tail-recursion, we have to use goto explicitly.
+      //   (see SICP, section 1.2.1: Linear Recursion and Iteration)
       //
       //_link_deadlock_lists(mutex2, task);
 
@@ -432,8 +432,8 @@ in:
          //-- call this function again, recursively
          //
          //   NOTE: as a workaround for crappy compilers that don't
-         //   convert function call to simple goto here,
-         //   we have to use goto explicitly.
+         //   know what is tail-recursion, we have to use goto explicitly.
+         //   (see SICP, section 1.2.1: Linear Recursion and Iteration)
          //
          //_check_deadlock_active(mutex2, task);
 
@@ -629,8 +629,8 @@ in:
       //   function again, recursively, for the holder.
       //
       //   NOTE: as a workaround for crappy compilers that don't
-      //   convert function call to simple goto here,
-      //   we have to use goto explicitly.
+      //   know what is tail-recursion, we have to use goto explicitly.
+      //   (see SICP, section 1.2.1: Linear Recursion and Iteration)
       //
       //_update_holders_priority_recursive(holder);
 

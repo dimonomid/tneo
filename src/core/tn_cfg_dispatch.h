@@ -133,6 +133,10 @@
 #  error TN_PROFILER_WAIT_TIME is not defined
 #endif
 
+#if !defined(TN_INIT_INTERRUPT_STACK_SPACE)
+#  error TN_INIT_INTERRUPT_STACK_SPACE is not defined
+#endif
+
 #if !defined(TN_STACK_OVERFLOW_CHECK)
 #  error TN_STACK_OVERFLOW_CHECK is not defined
 #endif
@@ -140,10 +144,6 @@
 #if defined (__TN_ARCH_PIC24_DSPIC__)
 #  if !defined(TN_P24_SYS_IPL)
 #     error TN_P24_SYS_IPL is not defined
-#  endif
-
-#  if !defined(TN_P24_SYS_IPL_STR)
-#     error TN_P24_SYS_IPL_STR is not defined
 #  endif
 #endif
 

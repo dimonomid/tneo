@@ -42,8 +42,9 @@
  *
  * Assemblers supported:
  *
- * - ARMCC
  * - GCC
+ * - clang
+ * - ARMCC
  * - IAR
  *
  * NOTE: this file should be parsed by C preprocessor before assembling.
@@ -95,40 +96,52 @@
 #if defined(__TN_COMPILER_ARMCC__)
 
 #  define   _TN_NAME(x)             x
+#  define   _TN_LOCAL_NAME(x)       x
 #  define   _TN_EXTERN(x)           IMPORT _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           EXPORT _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        _TN_NAME(label)
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label)
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_IAR__)
 
 #  define   _TN_NAME(x)             x
+#  define   _TN_LOCAL_NAME(x)       x
 #  define   _TN_EXTERN(x)           IMPORT x
 #  define   _TN_GLOBAL(x)           EXPORT x
 #  define   _TN_EQU(symbol, value)  symbol EQU value
 #  define   _TN_LABEL(label)        label:
+#  define   _TN_LOCAL_LABEL(label)  label:
 #  define   _TN_END()               END
 #  define   _TN_THUMB_FUNC()        /* nothing */
 
 #elif defined(__TN_COMPILER_GCC__)
 
 #  define   _TN_NAME(x)             x
+//-- We need to declare local labels prepended with "L" so that they aren't
+//   stripped by .subsections_via_symbols
+#  define   _TN_LOCAL_NAME(x)       L ## x
 #  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
 #  define   _TN_LABEL(label)        _TN_NAME(label):
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
 #elif defined(__TN_COMPILER_CLANG__)
 
 #  define   _TN_NAME(x)             _ ## x
+//-- We need to declare local labels prepended with "L" so that they aren't
+//   stripped by .subsections_via_symbols
+#  define   _TN_LOCAL_NAME(x)       L ## x
 #  define   _TN_EXTERN(x)           .extern _TN_NAME(x)
 #  define   _TN_GLOBAL(x)           .global _TN_NAME(x)
 #  define   _TN_EQU(symbol, value)  .equ symbol, value
 #  define   _TN_LABEL(label)        _TN_NAME(label):
+#  define   _TN_LOCAL_LABEL(label)  _TN_LOCAL_NAME(label):
 #  define   _TN_END()               /* nothing */
 #  define   _TN_THUMB_FUNC()        .thumb_func
 
@@ -136,6 +149,25 @@
 #  error unknown compiler for Cortex-M
 #endif
 
+
+/*
+ * Since we have on-context-switch handler (see _TN_ON_CONTEXT_SWITCH_HANDLER),
+ * LR is corrupted during context switch. So, we need to save it.
+ * On Cortex M3/M4/M4F we have EXC_RETURN right in the task context,
+ * so it is already saved and restored just fine.
+ *
+ * (actually saving of EXC_RETURN in task context is necessary for M4F only,
+ * because usage of FPU is the only thing that can differ in EXC_RETURN for
+ * different tasks, but I don't want to complicate things even more)
+ *
+ * On M0/M0+ there's no need to store EXC_RETURN in the task context, but if
+ * there is some on-context-switch handler, then we should save/restore LR on
+ * MSP during context switch.
+ */
+#define     _TN_NEED_SAVE_LR()      (                                         \
+      !defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)                           \
+      && _TN_ON_CONTEXT_SWITCH_HANDLER                                        \
+      )
 
 
 
@@ -158,7 +190,13 @@
    REQUIRE8
    PRESERVE8
 
-#elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
+#elif defined(__TN_COMPILER_GCC__)
+
+   .text
+   .syntax unified
+   .thumb
+
+#elif defined(__TN_COMPILER_CLANG__)
 
    .text
    .syntax unified
@@ -203,6 +241,8 @@
    _TN_GLOBAL(_tn_arch_is_int_disabled)
    _TN_GLOBAL(_tn_arch_inside_isr)
    _TN_GLOBAL(_tn_arch_context_switch_pend)
+   _TN_GLOBAL(tn_arch_sched_dis_save)
+   _TN_GLOBAL(tn_arch_sched_restore)
 
 
 
@@ -259,6 +299,11 @@ _TN_LABEL(ffs_asm)
 _TN_THUMB_FUNC()
 _TN_LABEL(PendSV_Handler)
 
+      //-- Save LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      push     {lr}
+#endif
+
       cpsid    i                       //-- Disable core int
 
       //-- Now, PSP contains task's stack pointer.
@@ -301,7 +346,7 @@ _TN_LABEL(PendSV_Handler)
 
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      /* 
+      /*
        * arguments are set:
        * - r0: _tn_curr_run_task
        * - r1: _tn_next_task_to_run
@@ -315,8 +360,7 @@ _TN_LABEL(PendSV_Handler)
 
       //-- r4 is now _tn_curr_run_task
 
-_TN_THUMB_FUNC()
-_TN_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run_task
+_TN_LOCAL_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run_task
 
       //-- load stack pointer of newly activated task to r0
       ldr      r0, [r4]       //-- r0 = _tn_curr_run_task->stack_top
@@ -351,6 +395,13 @@ _TN_LABEL(__context_restore)  //-- if you branch here, r4 should be _tn_curr_run
       msr      PSP, r0        //-- update PSP to stack of newly activated task
 
       cpsie    i              //-- enable core int
+
+      //-- Restore LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      pop      {r0}
+      mov      lr, r0
+#endif
+
       bx       lr
 
 
@@ -371,7 +422,7 @@ _TN_LABEL(_tn_arch_sys_start)
       //-- modify CONTROL register so that PSP becomes active
 
       mrs      r2, CONTROL    //-- read current CONTROL
-      movs     r3, #0x02      //-- used intermediary register r3 in order to 
+      movs     r3, #0x02      //-- used intermediary register r3 in order to
                               //   work on M0 too
       orrs     r2, r2, r3
       msr      CONTROL, r2    //-- write to CONTROL
@@ -402,7 +453,7 @@ _TN_LABEL(_tn_arch_sys_start)
       str      r0, [r1]
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
-      //-- disable lazy stacking (so that if interrupted task uses FPU 
+      //-- disable lazy stacking (so that if interrupted task uses FPU
       //   at the moment, registers S0-S16 are certainly saved by the hardware)
       ldr      r1, =FPU_FPCCR_ADDR               //-- Load the System 8-11 Priority Register
       ldr      r0, [r1]
@@ -434,6 +485,11 @@ _TN_LABEL(SVC_Handler)
       //-- there is just one service possible: context_switch_now_nosave,
       //   so, we don't check params.
 
+      //-- Save LR if needed (see comment for macro _TN_NEED_SAVE_LR())
+#if _TN_NEED_SAVE_LR()
+      push     {lr}
+#endif
+
       cpsid    i              //-- Disable core int
 
       ldr      r5, =_TN_NAME(_tn_curr_run_task)    //-- r5 = &_tn_curr_run_task
@@ -442,7 +498,7 @@ _TN_LABEL(SVC_Handler)
       ldr      r1, [r6]                            //-- r1 =  _tn_next_task_to_run
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
-      /* 
+      /*
        * arguments are set:
        * - r0: _tn_curr_run_task
        * - r1: _tn_next_task_to_run
@@ -456,9 +512,9 @@ _TN_LABEL(SVC_Handler)
       //-- r4 is now _tn_curr_run_task
 
       //-- proceed to context restore (r4 must be set to _tn_curr_run_task)
-      b        _TN_NAME(__context_restore)
+      b        _TN_LOCAL_NAME(__context_restore)
 
-      
+
 
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_int_dis)
@@ -513,10 +569,10 @@ _TN_LABEL(_tn_arch_inside_isr)
       //-- Code for Cortex-M0/M0+
       movs     r1, #0x02
       tst      r0, r1      //-- test SPSEL bit (0: MSP, 1: PSP)
-      bne      __ne
+      bne      _TN_LOCAL_NAME(__ne)
       movs     r0, #1      //-- SPSEL bit is clear: return true
       bx       lr
-_TN_LABEL(__ne)
+_TN_LOCAL_LABEL(__ne)
       movs     r0, #0      //-- SPSEL bit is set: return false
       bx       lr
 #endif
@@ -530,6 +586,66 @@ _TN_LABEL(_tn_arch_context_switch_pend)
       str      r0, [r1]
 
       bx       lr
+
+
+/*
+ * Disable kernel scheduler and return previous state.
+ * See comments in `tn_arch.h` for details.
+ *
+ * On Cortex-M architecture, we can't precisely disable PendSV interrupt,
+ * but we should disable interrupts based on their priorities. So,
+ * here we disable all interrupts with lowest priority (0xff)
+ *
+ * @return
+ *    Scheduler state to be restored later by `#tn_arch_sched_restore()`.
+ */
+_TN_THUMB_FUNC()
+_TN_LABEL(tn_arch_sched_dis_save)
+
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
+
+      //-- Actual number of interrupt priority levels is
+      //   implementation-dependent, so, we can't assume any exact value of the
+      //   lowest priority to be set in BASEPRI. The portable way is to read
+      //   actual priority level of PendSV and put it to BASEPRI.
+
+      //-- Get current BASEPRI value (to be returned)
+      mrs      r0, BASEPRI
+
+      //-- Load the System 8-11 Priority Register
+      ldr      r1, =PR_08_11_ADDR
+      ldr      r1, [r1]
+
+      //-- Shift it by 24 bits, i.e. get the MSB
+      lsr      r1, r1, #24
+
+      //-- Store that value to BASEPRI, if current value isn't already
+      //   equal or lower
+      msr      BASEPRI_MAX, r1
+
+      bx       lr
+
+#else
+      //-- Code for Cortex-M0/M0+
+      //   Cortex-M0/M0+ don't have BASEPRI register, so, we have to disable
+      //   all interrupts
+      b        _TN_NAME(tn_arch_sr_save_int_dis)
+#endif
+
+_TN_THUMB_FUNC()
+_TN_LABEL(tn_arch_sched_restore)
+
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
+      msr      BASEPRI, r0
+      bx       lr
+#else
+      //-- Code for Cortex-M0/M0+
+      //   Cortex-M0/M0+ don't have BASEPRI register, so, here we just jump
+      //   to tn_arch_sr_restore, which enables all interrupts back
+      b        _TN_NAME(tn_arch_sr_restore)
+#endif
 
 
    _TN_END()

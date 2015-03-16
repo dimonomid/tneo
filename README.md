@@ -1,19 +1,22 @@
-TNeo: a real-time kernel
+TNeo: a real-time kernel (RTOS)
 ==============
 
-TNeo is a compact and fast real-time kernel for the embedded 32/16 bits
+TNeo is a compact and fast real-time kernel for embedded 32/16 bits
 microprocessors. It performs a preemptive priority-based scheduling and a
 round-robin scheduling for the tasks with identical priority.
 
 TNeo was born as a thorough review and re-implementation of [TNKernel](http://tnkernel.com) v2.7. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
 
-Currently it is available for PIC32/PIC24/dsPIC (Cortex-M0/M0+/M3/M4/M4F are
-also supported in BETA)
+Currently it is available for the following architectures:
+
+- ARM Cortex-M cores: Cortex-M0/M0+/M1/M3/M4/M4F *(supported toolchains: GCC,
+  Keil RealView, clang, IAR)*
+- Microchip: PIC32/PIC24/dsPIC
 
 Comprehensive documentation is available in two forms: html and pdf.
 
-  * Latest stable TNeo: [html](http://goo.gl/bwyAxZ), [pdf](http://goo.gl/d9W9HE)
-  * Current development TNeo BETA: [html](http://goo.gl/6S6Lv6), [pdf](http://goo.gl/c2Fp6e)
+  * Latest stable TNeo: [html](http://goo.gl/bwyAxZ), [pdf](http://goo.gl/YkA22X)
+  * Current development TNeo BETA: [html](http://goo.gl/6S6Lv6), [pdf](http://goo.gl/kxyRlg)
   * [Changelog](http://goo.gl/N9v65n)
 
 Index of all available docs can be found [here](http://goo.gl/HJFOqe).
@@ -35,7 +38,7 @@ inconsistency, all of this leads to bugs. More, TNKernel is not documented well
 enough and there are no unit tests for it, so I decided to reimplement it almost
 completely. Refer to the page [Why reimplement TNKernel](http://dfrank.bitbucket.org/tneokernel_api/latest/html/why_reimplement.html) for details.
 
-I decided not to care much about compatibility with original TNKernel API
+I decided not to care too much about compatibility with original TNKernel API
 because I really don't like several API decisions, so, I actually had to choose
 new name for this project, in order to avoid confusion, hence "TNeo".
 Refer to the [Differences from TNKernel API](http://dfrank.bitbucket.org/tneokernel_api/latest/html/tnkernel_diff.html) page for details.
@@ -66,5 +69,5 @@ company, Alexey Morozov and Alexey Gromov, for being flexible about my time.
 
 For comprehensive information, refer to the documentation (see links at the top of this page)
 
-Feel free to contact me at the Microchip forum, [TNeo thread](http://goo.gl/1xKUwA).
+If you have any comments, feel free to leave them at [dmitryfrank.com/projects/tneo](http://dmitryfrank.com/projects/tneo).
 

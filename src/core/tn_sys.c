@@ -122,16 +122,16 @@ struct TN_Task _tn_idle_task;
  */
 
 
-/// Pointer to user idle callback function, it is called regularly
+/// Pointer to user idle callback function, it gets called regularly
 /// from the idle task.
 TN_CBIdle *_tn_cb_idle_hook = TN_NULL;
 
 /// Pointer to stack overflow callback function. When stack overflow
-/// is detected by the kernel, this function is called.
+/// is detected by the kernel, this function gets called.
 /// (see `#TN_STACK_OVERFLOW_CHECK`)
 TN_CBStackOverflow *_tn_cb_stack_overflow = TN_NULL;
 
-/// User-provided callback function that is called whenever 
+/// User-provided callback function that gets called whenever 
 /// mutex deadlock occurs.
 /// (see `#TN_MUTEX_DEADLOCK_DETECT`)
 TN_CBDeadlock *_tn_cb_deadlock = TN_NULL;
@@ -335,6 +335,13 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
  * if `#TN_STACK_OVERFLOW_CHECK` is non-zero, this function is called at every
  * context switch as well as inside `#tn_tick_int_processing()`.
  *
+ * It merely checks whether stack bottom is still untouched (that is, whether
+ * it has the value `TN_FILL_STACK_VAL`).
+ *
+ * If the value is corrupted, the function calls user-provided callback
+ * `_tn_cb_stack_overflow()`. If user hasn't provided that callback,
+ * `#_TN_FATAL_ERROR()` is called.
+ *
  * @param task
  *    Task to check
  */
@@ -347,11 +354,11 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
 
    //-- check that stack bottom has the value `TN_FILL_STACK_VAL`
 
-   TN_UWord *p_word = _tn_arch_stack_bottom_empty_get(
-         task->base_stack_top, task->stack_size
-         );
+   TN_UWord *p_word = _tn_task_stack_end_get(task);
 
    if (*p_word != TN_FILL_STACK_VAL){
+      //-- stack overflow is detected, so, notify the user about that.
+
       if (_tn_cb_stack_overflow != NULL){
          _tn_cb_stack_overflow(task);
       } else {
@@ -378,25 +385,32 @@ static _TN_INLINE enum TN_RCode _idle_task_create(
       unsigned int   idle_task_stack_size
       )
 {
-   return tn_task_create(
-         (struct TN_Task*)&_tn_idle_task,  //-- task TCB
+   return tn_task_create_wname(
+         (struct TN_Task*)&_tn_idle_task, //-- task TCB
          _idle_task_body,                 //-- task function
          TN_PRIORITIES_CNT - 1,           //-- task priority
          idle_task_stack,                 //-- task stack
          idle_task_stack_size,            //-- task stack size
                                           //   (in int, not bytes)
          TN_NULL,                         //-- task function parameter
-         (_TN_TASK_CREATE_OPT_IDLE)       //-- Creation option
+         (_TN_TASK_CREATE_OPT_IDLE),      //-- Creation option
+         "Idle"                           //-- Task name
          );
 }
 
+/**
+ * If enabled, define a function which ensures that build-time options for the
+ * kernel match the ones for the application.
+ *
+ * See `#TN_CHECK_BUILD_CFG` for details.
+ */
 #if TN_CHECK_BUILD_CFG
 static void _build_cfg_check(void)
 {
    struct _TN_BuildCfg kernel_build_cfg;
    _TN_BUILD_CFG_STRUCT_FILL(&kernel_build_cfg);
 
-   //-- call dummy function that helps user to undefstand that
+   //-- call dummy function that helps user to understand that
    //   he/she forgot to add file tn_app_check.c to the project
    you_should_add_file___tn_app_check_c___to_the_project();
 
@@ -533,9 +547,11 @@ void tn_sys_start(
    _tn_cb_idle_hook = cb_idle;
 
    //-- Fill interrupt stack space with TN_FILL_STACK_VAL
+#if TN_INIT_INTERRUPT_STACK_SPACE
    for (i = 0; i < int_stack_size; i++){
       int_stack[i] = TN_FILL_STACK_VAL;
    }
+#endif
 
    /*
     * NOTE: we need to separate creation of tasks and making them runnable,
@@ -591,31 +607,23 @@ void tn_sys_start(
 /*
  * See comments in the header file (tn_sys.h)
  */
-enum TN_RCode tn_tick_int_processing(void)
+void tn_tick_int_processing(void)
 {
-   enum TN_RCode rc = TN_RC_OK;
+   TN_INTSAVE_DATA_INT;
 
-   if (!tn_is_isr_context()){
-      rc = TN_RC_WCONTEXT;
-   } else {
-      TN_INTSAVE_DATA_INT;
+   TN_INT_IDIS_SAVE();
 
-      TN_INT_IDIS_SAVE();
+   //-- check stack overflow
+   _tn_sys_stack_overflow_check(_tn_curr_run_task);
 
-      //-- check stack overflow
-      _tn_sys_stack_overflow_check(_tn_curr_run_task);
+   //-- manage timers
+   _tn_timers_tick_proceed();
 
-      //-- manage timers
-      _tn_timers_tick_proceed();
+   //-- manage round-robin (if used)
+   _round_robin_manage();
 
-      //-- manage round-robin (if used)
-      _round_robin_manage();
-
-      TN_INT_IRESTORE();
-      _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
-
-   }
-   return rc;
+   TN_INT_IRESTORE();
+   _TN_CONTEXT_SWITCH_IPEND_IF_NEEDED();
 }
 
 /*
@@ -829,5 +837,8 @@ void _tn_sys_on_context_switch(
    _tn_sys_on_context_switch_profiler(task_prev, task_new);
 }
 #endif
+
+
+
 
 

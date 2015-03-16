@@ -104,6 +104,11 @@ extern "C"  {  /*}*/
  */
 struct TN_DQueue {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId id_dque;
+   ///
    /// list of tasks waiting to send data
    struct TN_ListItem  wait_send_list;
    ///
@@ -125,9 +130,6 @@ struct TN_DQueue {
    ///
    /// index of the item which will be read next time
    int            tail_idx;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId  id_dque;
    ///
    /// connected event group
    struct TN_EGrpLink eventgrp_link;
@@ -326,6 +328,44 @@ enum TN_RCode tn_queue_receive_polling(
 enum TN_RCode tn_queue_ireceive_polling(
       struct TN_DQueue *dque,
       void **pp_data
+      );
+
+
+/**
+ * Returns number of free items in the queue
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param dque
+ *    Pointer to queue.
+ *
+ * @return
+ *    Number of free items in the queue, or -1 if wrong params were given (the
+ *    check is performed if only `#TN_CHECK_PARAM` is non-zero)
+ */
+int tn_queue_free_items_cnt_get(
+      struct TN_DQueue    *dque
+      );
+
+
+/**
+ * Returns number of used (non-free) items in the queue
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param dque
+ *    Pointer to queue.
+ *
+ * @return
+ *    Number of used (non-free) items in the queue, or -1 if wrong params were
+ *    given (the check is performed if only `#TN_CHECK_PARAM` is non-zero)
+ */
+int tn_queue_used_items_cnt_get(
+      struct TN_DQueue    *dque
       );
 
 

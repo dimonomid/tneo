@@ -53,6 +53,41 @@
 
 
 /*******************************************************************************
+ *    OPTION VALUES
+ ******************************************************************************/
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#define _TN_ARCH_STACK_DIR__ASC        1
+#define _TN_ARCH_STACK_DIR__DESC       2
+
+//-- Note: the macro _TN_ARCH_STACK_DIR is defined in the header for each
+//   particular achitecture
+
+
+#define _TN_ARCH_STACK_PT_TYPE__FULL   3
+#define _TN_ARCH_STACK_PT_TYPE__EMPTY  4
+
+//-- Note: the macro _TN_ARCH_STACK_PT_TYPE is defined in the header for each
+//   particular achitecture
+
+
+
+#define _TN_ARCH_STACK_IMPL__FULL_ASC        5
+#define _TN_ARCH_STACK_IMPL__FULL_DESC       6
+#define _TN_ARCH_STACK_IMPL__EMPTY_ASC       7
+#define _TN_ARCH_STACK_IMPL__EMPTY_DESC      8
+
+//-- Note: the macro _TN_ARCH_STACK_IMPL is defined below in this file
+
+
+#endif
+
+
+
+
+
+/*******************************************************************************
  *    ACTUAL PORT IMPLEMENTATION
  ******************************************************************************/
 
@@ -64,6 +99,44 @@
 #  include "cortex_m/tn_arch_cortex_m.h"
 #else
 #  error "unknown platform"
+#endif
+
+
+
+
+//-- Now, define _TN_ARCH_STACK_IMPL depending on _TN_ARCH_STACK_DIR and
+//   _TN_ARCH_STACK_PT_TYPE
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#if !defined(_TN_ARCH_STACK_DIR)
+#  error _TN_ARCH_STACK_DIR is not defined
+#endif
+
+#if !defined(_TN_ARCH_STACK_PT_TYPE)
+#  error _TN_ARCH_STACK_PT_TYPE is not defined
+#endif
+
+#if (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__ASC)
+#  if (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__FULL)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__FULL_ASC
+#  elif (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__EMPTY)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__EMPTY_ASC
+#  else
+#     error wrong _TN_ARCH_STACK_PT_TYPE
+#  endif
+#elif (_TN_ARCH_STACK_DIR == _TN_ARCH_STACK_DIR__DESC)
+#  if (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__FULL)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__FULL_DESC
+#  elif (_TN_ARCH_STACK_PT_TYPE == _TN_ARCH_STACK_PT_TYPE__EMPTY)
+#     define _TN_ARCH_STACK_IMPL    _TN_ARCH_STACK_IMPL__EMPTY_DESC
+#  else
+#     error wrong _TN_ARCH_STACK_PT_TYPE
+#  endif
+#else
+#  error wrong _TN_ARCH_STACK_DIR
+#endif
+
 #endif
 
 
@@ -114,65 +187,21 @@ TN_UWord tn_arch_sr_save_int_dis(void);
  */
 void tn_arch_sr_restore(TN_UWord sr);
 
-
+/**
+ * Disable kernel scheduler and return previous state.
+ *
+ * @return
+ *    Scheduler state to be restored later by `#tn_arch_sched_restore()`.
+ */
+TN_UWord tn_arch_sched_dis_save(void);
 
 /**
- * Should return top of the stack.
+ * Restore state of the kernel scheduler. See `#tn_arch_sched_dis_save()`.
  *
- * A stack implementation is characterized by two attributes:
- *
- * - Where the stack pointer points:
- *   - *Full stack*: The stack pointer points to the last full location;
- *   - *Empty stack*: The stack pointer points to the first empty location.
- * - How the stack grows:
- *   - *Descending stack*: The stack grows downward (i.e., toward lower memory
- *     addresses);
- *   - *Ascending stack*: The stack grows upward (i.e., toward higher memory
- *     addresses).
- *
- * So, depending on the stack implementation used in the particular
- * architecture, the value returned from this function can be one of the
- * following:
- *
- * - `(stack_low_address - 1)` (*Full ascending stack*)
- * - `(stack_low_address + stack_size)` (*Full descending stack*)
- * - `(stack_low_address)` (*Empty ascending stack*)
- * - `(stack_low_address + stack_size - 1)` (*Empty descending stack*)
- *
- * @param   stack_low_address
- *    Start address of the stack array.
- * @param   stack_size
- *    Size of the stack in `#TN_UWord`-s, not in bytes.
+ * @param sched_state
+ *    Value returned from `#tn_arch_sched_dis_save()`
  */
-TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord   *stack_low_address,
-      int         stack_size
-      );
-
-/**
- * This function should return address of bottom empty element of stack, it is
- * needed for software stack overflow control (see `#TN_STACK_OVERFLOW_CHECK`).
- *
- * For details on various hardware stack implementations, refer to
- * `#_tn_arch_stack_top_get()`.
- *
- * Depending on the stack implementation used in the particular architecture,
- * the value returned from this function can be one of the following:
- *
- * - `(stack_top - stack_size)` (*Full descending stack*)
- * - `(stack_top + stack_size)` (*Full ascending stack*)
- * - `(stack_top - stack_size + 1)` (*Empty descending stack*)
- * - `(stack_top + stack_size - 1)` (*Empty ascending stack*)
- *
- * @param stack_top
- *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
- * @param stack_size
- *    Size of the stack in `#TN_UWord`-s, not in bytes.
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_top,
-      int            stack_size
-      );
+void tn_arch_sched_restore(TN_UWord sched_state);
 
 /**
  * Should put initial CPU context to the provided stack pointer for new task
@@ -189,10 +218,12 @@ TN_UWord *_tn_arch_stack_bottom_empty_get(
  *
  * @param task_func
  *    Pointer to task body function.
- * @param stack_top
- *    Top of the stack, returned by `_tn_arch_stack_top_get()`.
- * @param stack_size
- *    Size of the stack in `#TN_UWord`-s, not in bytes.
+ * @param stack_low_addr
+ *    Lowest address of the stack, independently of the architecture stack
+ *    implementation
+ * @param stack_high_addr
+ *    Highest address of the stack, independently of the architecture stack
+ *    implementation
  * @param param
  *    User-provided parameter for task body function.
  *
@@ -200,8 +231,8 @@ TN_UWord *_tn_arch_stack_bottom_empty_get(
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_top,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       );
 
@@ -287,9 +318,10 @@ void _tn_arch_context_switch_now_nosave(void);
  * but it also can perform any architecture-dependent actions first, if needed.
  */
 void _tn_arch_sys_start(
-      TN_UWord            *int_stack,
-      unsigned int         int_stack_size
+      TN_UWord      *int_stack,
+      TN_UWord       int_stack_size
       );
+
 
 #ifdef __cplusplus
 }  /* extern "C" */

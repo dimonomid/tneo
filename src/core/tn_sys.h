@@ -409,12 +409,8 @@ void tn_sys_start(
  * $(TN_CALL_FROM_ISR)
  * $(TN_CAN_SWITCH_CONTEXT)
  * $(TN_LEGEND_LINK)
- *
- * @return
- *    * `#TN_RC_OK` on success;
- *    * `#TN_RC_WCONTEXT` if called from wrong context.
  */
-enum TN_RCode tn_tick_int_processing(void);
+void tn_tick_int_processing(void);
 
 /**
  * Set time slice ticks value for specified priority (see \ref round_robin).
@@ -552,6 +548,45 @@ struct TN_Task *tn_cur_task_get(void);
  * $(TN_LEGEND_LINK)
  */
 TN_TaskBody *tn_cur_task_body_get(void);
+
+/**
+ * Disable kernel scheduler and return previous scheduler state.
+ *
+ * On several platforms (namely, on Microchip platforms), there's possible to
+ * just disable scheduler, but on others (Cortex-M platforms) we can only
+ * disable interrupts based on priority. So, on Cortex-M platforms, this
+ * function disables all interrupts with lowest priority (since scheduler works
+ * at lowest interrupt priority), but on Microchip platforms this function
+ * disables scheduler precisely, no other interrupts are affected.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
+ *
+ * @return
+ *    State to be restored later by `#tn_sched_restore()`
+ */
+static _TN_INLINE TN_UWord tn_sched_dis_save(void)
+{
+   return tn_arch_sched_dis_save();
+}
+
+/**
+ * Restore state of the kernel scheduler. See `#tn_sched_dis_save()`.
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_CALL_FROM_MAIN)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param sched_state
+ *    Value returned from `#tn_sched_dis_save()`
+ */
+static _TN_INLINE void tn_sched_restore(TN_UWord sched_state)
+{
+   tn_arch_sched_restore(sched_state);
+}
 
 
 #if TN_DYNAMIC_TICK || defined(DOXYGEN_ACTIVE)

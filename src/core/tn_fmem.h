@@ -46,6 +46,8 @@
  * placed into the wait queue until a free memory block arrives (another task
  * returns it to the memory pool).
  *
+ * The operations of getting the block from memory pool and releasing it back
+ * take O(1) time independently of number or size of the blocks.
  *   
  * For the useful pattern on how to use fixed memory pool together with \ref
  * tn_dqueue.h "queue", refer to the example: `examples/queue`. Be sure to
@@ -77,6 +79,11 @@ extern "C"  {     /*}*/
  */
 struct TN_FMem {
    ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   enum TN_ObjId        id_fmp;
+   ///
    /// list of tasks waiting for free memory block
    struct TN_ListItem   wait_queue;
 
@@ -97,11 +104,10 @@ struct TN_FMem {
    /// `sizeof(#TN_UWord)`.
    void                *start_addr;
    ///
-   /// ptr to free block list
+   /// Pointer to the first free memory block. Each free block contains the
+   /// pointer to the next free memory block as the first word, or `NULL` if
+   /// this is the last block.
    void                *free_list;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId        id_fmp;
 };
 
 
@@ -323,6 +329,38 @@ enum TN_RCode tn_fmem_release(struct TN_FMem *fmem, void *p_data);
  */
 enum TN_RCode tn_fmem_irelease(struct TN_FMem *fmem, void *p_data);
 
+/**
+ * Returns number of free blocks in the memory pool
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param fmem
+ *    Pointer to memory pool.
+ *
+ * @return
+ *    Number of free blocks in the memory pool, or -1 if wrong params were
+ *    given (the check is performed if only `#TN_CHECK_PARAM` is non-zero)
+ */
+int tn_fmem_free_blocks_cnt_get(struct TN_FMem *fmem);
+
+/**
+ * Returns number of used (non-free) blocks in the memory pool
+ *
+ * $(TN_CALL_FROM_TASK)
+ * $(TN_CALL_FROM_ISR)
+ * $(TN_LEGEND_LINK)
+ *
+ * @param fmem
+ *    Pointer to memory pool.
+ *
+ * @return
+ *    Number of used (non-free) blocks in the memory pool, or -1 if wrong
+ *    params were given (the check is performed if only `#TN_CHECK_PARAM` is
+ *    non-zero)
+ */
+int tn_fmem_used_blocks_cnt_get(struct TN_FMem *fmem);
 
 
 #ifdef __cplusplus

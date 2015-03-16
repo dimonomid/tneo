@@ -196,6 +196,7 @@ void _tn_sys_on_context_switch(
 #endif
 
 
+
 /*******************************************************************************
  *    PROTECTED INLINE FUNCTIONS
  ******************************************************************************/
@@ -227,6 +228,94 @@ static _TN_INLINE void _tn_context_switch_pend_if_needed(void)
 }  /* extern "C" */
 #endif
 
+
+#ifdef __cplusplus
+//-- C++: bitwise operators for enum types {{{
+/**
+ * Since the kernel should be able to compile by C++ compiler as well,
+ * we have to explicitly write bitwise operators for enum types.
+ *
+ * NOTE that this file is an internal header, so these templates won't
+ * pollute application namespace.
+ */
+template <typename T>
+static _TN_INLINE T operator|=(T &a, int b)
+{
+   a = (T)((int)a | (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&=(T &a, int b)
+{
+   a = (T)((int)a & (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator|(T a, int b)
+{
+   a |= b;
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&(T a, int b)
+{
+   a &= b;
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator|=(T &a, T b)
+{
+   a = (T)((int)a | (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&=(T &a, T b)
+{
+   a = (T)((int)a & (int)b);
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator|(T a, T b)
+{
+   a |= b;
+   return a;
+}
+
+/**
+ * See comments for `operator|=` above
+ */
+template <typename T>
+static _TN_INLINE T operator&(T a, T b)
+{
+   a &= b;
+   return a;
+}
+// }}}
+#endif
 
 #endif // __TN_SYS_H
 

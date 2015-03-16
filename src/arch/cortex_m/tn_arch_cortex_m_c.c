@@ -39,31 +39,39 @@
  *
  * First of all, there is a stack frame created by hardware:
  *
- *    xPSR
- *    Return Address
- *    LR
- *    R12
- *    R3
- *    R2
- *    R1
- *    R0
+ *    - xPSR
+ *    - Return Address
+ *    - LR
+ *    - R12
+ *    - R3
+ *    - R2
+ *    - R1
+ *    - R0
  *
- *    {Probably, "caller-saved" floating point registers}
+ *    - {Probably, "caller-saved" floating point registers}
  *
  * Then, all the "callee-saved" registers:
  *
- *    {Probably, "callee-saved" floating-point registers S16-S31}
+ *    - {Probably, "callee-saved" floating-point registers S16-S31}
  *
- *    EXC_RETURN (i.e. value of LR when ISR is called)
+ *    - EXC_RETURN (i.e. value of LR when ISR is called, saved on M3/M4/M4F only)
  *
- *    R11
- *    R10
- *    R9
- *    R8
- *    R7
- *    R6
- *    R5
- *    R4
+ *          Actually, saving of EXC_RETURN in task context is necessary for M4F
+ *          only, because usage of FPU is the only thing that can differ in
+ *          EXC_RETURN for different tasks, but I don't want to complicate
+ *          things even more, so let it be. 
+ *
+ *          But on Cortex-M0/M0+ we anyway have different code for
+ *          saving/restoring context.
+ *
+ *    - R11
+ *    - R10
+ *    - R9
+ *    - R8
+ *    - R7
+ *    - R6
+ *    - R5
+ *    - R4
  *
  *
  */
@@ -106,57 +114,34 @@
 
 
 
-/*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_top_get(
-      TN_UWord *stack_low_address,
-      int stack_size
-      )
-{
-   //-- on Cortex-M, stack is "full descending stack", so
-   //   we return highest stack address plus one.
-   return stack_low_address + stack_size;
-}
-
-
-/*
- * See comments in the `tn_arch.h` file
- */
-TN_UWord *_tn_arch_stack_bottom_empty_get(
-      TN_UWord      *stack_top,
-      int            stack_size
-      )
-{
-   return (stack_top - stack_size);
-}
-
 
 /*
  * See comments in the file `tn_arch.h`
  */
 TN_UWord *_tn_arch_stack_init(
       TN_TaskBody   *task_func,
-      TN_UWord      *stack_top,
-      int            stack_size,
+      TN_UWord      *stack_low_addr,
+      TN_UWord      *stack_high_addr,
       void          *param
       )
 {
+   TN_UWord *cur_stack_pt = stack_high_addr + 1/*'full desc stack' model*/;
+
    //-- xPSR register: the bit "T" (Thumb) should be set,
    //   its offset is 24.
-   *(--stack_top) = (1 << 24);
+   *(--cur_stack_pt) = (1 << 24);
 
    //-- Return address: this is address of the task body function.
-   *(--stack_top) = (TN_UWord)task_func;
+   *(--cur_stack_pt) = (TN_UWord)task_func;
 
    //-- LR: where to go if task body function returns
-   *(--stack_top) = (TN_UWord)_tn_task_exit_nodelete;
+   *(--cur_stack_pt) = (TN_UWord)_tn_task_exit_nodelete;
 
-   *(--stack_top) = 0x12121212;           //-- R12
-   *(--stack_top) = 0x03030303;           //-- R3
-   *(--stack_top) = 0x02020202;           //-- R2
-   *(--stack_top) = 0x01010101;           //-- R1
-   *(--stack_top) = (TN_UWord)param;      //-- R0: argument for task body func
+   *(--cur_stack_pt) = 0x12121212;           //-- R12
+   *(--cur_stack_pt) = 0x03030303;           //-- R3
+   *(--cur_stack_pt) = 0x02020202;           //-- R2
+   *(--cur_stack_pt) = 0x01010101;           //-- R1
+   *(--cur_stack_pt) = (TN_UWord)param;      //-- R0: argument for task body func
 
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_FPU__)
@@ -171,19 +156,22 @@ TN_UWord *_tn_arch_stack_init(
    //    - floating point is not used by the task at the moment;
    //    - return to Thread mode;
    //    - use PSP.
-   *(--stack_top) = 0xFFFFFFFD;
+   //
+   //   It is saved in task context for M3/M4/M4F only, see comments
+   //   about context layout above for details.
+   *(--cur_stack_pt) = 0xFFFFFFFD;
 #endif
 
-   *(--stack_top) = 0x11111111;           //-- R11
-   *(--stack_top) = 0x10101010;           //-- R10
-   *(--stack_top) = 0x09090909;           //-- R9
-   *(--stack_top) = 0x08080808;           //-- R8
-   *(--stack_top) = 0x07070707;           //-- R7
-   *(--stack_top) = 0x06060606;           //-- R6
-   *(--stack_top) = 0x05050505;           //-- R5
-   *(--stack_top) = 0x04040404;           //-- R4
+   *(--cur_stack_pt) = 0x11111111;           //-- R11
+   *(--cur_stack_pt) = 0x10101010;           //-- R10
+   *(--cur_stack_pt) = 0x09090909;           //-- R9
+   *(--cur_stack_pt) = 0x08080808;           //-- R8
+   *(--cur_stack_pt) = 0x07070707;           //-- R7
+   *(--cur_stack_pt) = 0x06060606;           //-- R6
+   *(--cur_stack_pt) = 0x05050505;           //-- R5
+   *(--cur_stack_pt) = 0x04040404;           //-- R4
 
-   return stack_top;
+   return cur_stack_pt;
 }
 
 

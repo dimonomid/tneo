@@ -331,7 +331,14 @@ struct TN_Task {
    /// pointer to task's current top of the stack;
    /// Note that this field **must** be a first field in the struct,
    /// this fact is exploited by platform-specific routines.
-   TN_UWord *stack_top;   
+   TN_UWord *stack_cur_pt;
+   ///
+   /// id for object validity verification.
+   /// This field is in the beginning of the structure to make it easier
+   /// to detect memory corruption.
+   /// For `struct TN_Task`, we can't make it the very first field, since
+   /// stack pointer should be there.
+   enum TN_ObjId id_task;
    ///
    /// queue is used to include task in ready/wait lists
    struct TN_ListItem task_queue;     
@@ -362,11 +369,14 @@ struct TN_Task {
 #endif
 #endif
 
-   /// base top of the stack for this task
-   TN_UWord *base_stack_top;
-   ///
-   /// size of task's stack (in `sizeof(TN_UWord)`, not bytes)
-   int stack_size;
+   ///-- lowest address of stack. It is independent of architecture:
+   ///   it's always the lowest address (which may be actually origin 
+   ///   or end of stack, depending on the architecture)
+   TN_UWord *stack_low_addr;
+   ///-- Highest address of stack. It is independent of architecture:
+   ///   it's always the highest address (which may be actually origin 
+   ///   or end of stack, depending on the architecture)
+   TN_UWord *stack_high_addr;
    ///
    /// pointer to task's body function given to `tn_task_create()`
    TN_TaskBody *task_func_addr;
@@ -380,9 +390,6 @@ struct TN_Task {
    ///
    /// current task priority
    int priority;
-   ///
-   /// id for object validity verification
-   enum TN_ObjId id_task;
    ///
    /// task state
    enum TN_TaskState task_state;

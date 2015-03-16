@@ -5,6 +5,29 @@
 
 TNeo changelog
 
+\section changelog_v1_07 v1.07
+
+Release date: 2015-03-17
+
+  - Fix: project was unable to build with `#TN_CHECK_PARAM` set to 0
+  - Fix: Cortex-M0/M0+ port didn't work if there is some on-context-switch
+    handler (`#TN_PROFILER` or `#TN_STACK_OVERFLOW_CHECK`)
+  - Added support of C++ compiler (experimental)
+  - Added an option `#TN_INIT_INTERRUPT_STACK_SPACE`
+  - Added services to get count of free and used memory blocks
+    (`tn_fmem_free_blocks_cnt_get()` / `tn_fmem_used_blocks_cnt_get()`) and
+    items in the queue (`tn_queue_free_items_cnt_get()` /
+    `tn_queue_used_items_cnt_get()`).
+  - Removed some checks from `tn_tick_int_processing()`, since they aren't too
+    useful there, but they add overhead (See
+    [bitbucket issue #2](https://bitbucket.org/dfrank/tneokernel/issue/2/system-clock-service-routine-could-be-more)
+    )
+  - Added functions for disabling/enabling scheduler: `tn_sched_dis_save()` /
+    `tn_sched_restore()`.
+  - Id fields of objects (`enum #TN_ObjId`) are moved to the beginning of
+    object structures, to make memory corruptions detected earlier.
+  - Idle task is now created with name "Idle" specified.
+
 \section changelog_v1_06 v1.06
 
 Release date: 2015-01-02.
