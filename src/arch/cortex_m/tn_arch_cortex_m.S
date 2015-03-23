@@ -602,6 +602,9 @@ _TN_LABEL(_tn_arch_context_switch_pend)
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sched_dis_save)
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
+
       //-- Actual number of interrupt priority levels is
       //   implementation-dependent, so, we can't assume any exact value of the
       //   lowest priority to be set in BASEPRI. The portable way is to read
@@ -623,13 +626,26 @@ _TN_LABEL(tn_arch_sched_dis_save)
 
       bx       lr
 
+#else
+      //-- Code for Cortex-M0/M0+
+      //   Cortex-M0/M0+ don't have BASEPRI register, so, we have to disable
+      //   all interrupts
+      b        _TN_NAME(tn_arch_sr_save_int_dis)
+#endif
 
 _TN_THUMB_FUNC()
 _TN_LABEL(tn_arch_sched_restore)
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
       msr      BASEPRI, r0
       bx       lr
-
+#else
+      //-- Code for Cortex-M0/M0+
+      //   Cortex-M0/M0+ don't have BASEPRI register, so, here we just jump
+      //   to tn_arch_sr_restore, which enables all interrupts back
+      b        _TN_NAME(tn_arch_sr_restore)
+#endif
 
 
    _TN_END()

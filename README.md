@@ -38,7 +38,7 @@ inconsistency, all of this leads to bugs. More, TNKernel is not documented well
 enough and there are no unit tests for it, so I decided to reimplement it almost
 completely. Refer to the page [Why reimplement TNKernel](http://dfrank.bitbucket.org/tneokernel_api/latest/html/why_reimplement.html) for details.
 
-I decided not to care much about compatibility with original TNKernel API
+I decided not to care too much about compatibility with original TNKernel API
 because I really don't like several API decisions, so, I actually had to choose
 new name for this project, in order to avoid confusion, hence "TNeo".
 Refer to the [Differences from TNKernel API](http://dfrank.bitbucket.org/tneokernel_api/latest/html/tnkernel_diff.html) page for details.
