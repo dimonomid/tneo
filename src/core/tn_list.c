@@ -151,7 +151,7 @@ TN_BOOL _tn_list_contains_entry(
    struct TN_ListItem *item;
 
    _tn_list_for_each(item, list){
-      if (item == list){
+      if (item == entry){
          ret = TN_TRUE;
          break;
       }
