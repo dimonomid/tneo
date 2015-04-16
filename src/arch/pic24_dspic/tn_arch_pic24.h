@@ -76,7 +76,7 @@ extern "C"  {     /*}*/
 #if TN_DEBUG
 #  define   _TN_PIC24_INTSAVE_CHECK()                          \
 {                                                              \
-   if (tn_save_status_reg == _TN_PIC24_INTSAVE_DATA_INVALID){  \
+   if (TN_INTSAVE_VAR == _TN_PIC24_INTSAVE_DATA_INVALID){      \
       _TN_FATAL_ERROR("");                                     \
    }                                                           \
 }
@@ -195,6 +195,11 @@ typedef  unsigned int               TN_UIntPtr;
 
 
 
+/**
+ * Variable name that is used for storing interrupts state
+ * by macros TN_INTSAVE_DATA and friends
+ */
+#define TN_INTSAVE_VAR              tn_save_status_reg
 
 /**
  * Declares variable that is used by macros `TN_INT_DIS_SAVE()` and
@@ -209,7 +214,7 @@ typedef  unsigned int               TN_UIntPtr;
  * @see `TN_INT_RESTORE()`
  */
 #define  TN_INTSAVE_DATA            \
-   int tn_save_status_reg = _TN_PIC24_INTSAVE_DATA_INVALID;
+   TN_UWord TN_INTSAVE_VAR = _TN_PIC24_INTSAVE_DATA_INVALID;
 
 /**
  * The same as `#TN_INTSAVE_DATA` but for using in ISR together with
@@ -246,9 +251,9 @@ typedef  unsigned int               TN_UIntPtr;
  * @see `tn_arch_sr_save_int_dis()`
  */
 
-#  define TN_INT_DIS_SAVE()   tn_save_status_reg = tn_arch_sr_save_int_dis()
+#  define TN_INT_DIS_SAVE()   TN_INTSAVE_VAR = tn_arch_sr_save_int_dis()
 #  define TN_INT_RESTORE()    _TN_PIC24_INTSAVE_CHECK();                      \
-                              tn_arch_sr_restore(tn_save_status_reg)
+                              tn_arch_sr_restore(TN_INTSAVE_VAR)
 
 /**
  * The same as `TN_INT_DIS_SAVE()` but for using in ISR.
