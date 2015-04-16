@@ -8,6 +8,7 @@
 
 == Routine ==
 
+   * [ ] timers: since callback is called with interrupts enabled, and task's _task_wait_timeout needs them to be disabled, they are disabled/enabled many times, wastefully. Probably we should add flags to timer object, with at least one flag: `INT_DISABLED`. If it is set,` _tn_timers_tick_proceed` won't enable interrupts before calling callback.
    * [ ] cortex_m: add tn_arch_sched_dis_save() / tn_arch_sched_restore().
    * [ ] add new flag for mutex that makes mutex recursive. Then, compile-time option should just set default behavior, but in either build any mutex can be made recursive or non-recursive.
    * [ ] remove int-s, add like TN_WORD, and so on. Remember that you definitely need for some type that is never less than 16 bits width.

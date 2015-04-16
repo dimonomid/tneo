@@ -371,8 +371,18 @@ static void _task_terminate(struct TN_Task *task)
 static void _task_wait_timeout(struct TN_Timer *timer, void *p_user_data)
 {
    struct TN_Task *task = (struct TN_Task *)p_user_data;
+   
+   //-- interrupts should be enabled
+   _TN_BUG_ON( TN_IS_INT_DISABLED() );
+
+   //-- since timer callback is called with interrupts enabled,
+   //   we need to disable them before calling `_tn_task_wait_complete()`.
+   TN_INTSAVE_DATA_INT;
+   TN_INT_IDIS_SAVE();
 
    _tn_task_wait_complete(task, TN_RC_TIMEOUT);
+
+   TN_INT_IRESTORE();
 }
 
 /*******************************************************************************

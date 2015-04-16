@@ -62,7 +62,7 @@
  *
  * - Function is called from an ISR context (namely, from $(TN_SYS_TIMER_LINK)
  *   ISR, by the `tn_tick_int_processing()`);
- * - Function is called with global interrupts disabled.
+ * - Function is called with global interrupts enabled.
  *
  * Consequently:
  *
@@ -70,8 +70,6 @@
  * - You should make sure that your interrupt stack is enough for this
  *   function;
  * - The function should be as fast as possible;
- * - The function should not enable interrupts unconditionally. Consider using
- *   `tn_arch_sr_save_int_dis()` and `tn_arch_sr_restore()` if you need.
  *
  * See `#TN_TimerFunc` for the prototype of the function that could be
  * scheduled.
@@ -185,7 +183,7 @@ struct TN_Timer;
  * following:
  *    - Function is called from ISR context (namely, from $(TN_SYS_TIMER_LINK)
  *      ISR, by the `tn_tick_int_processing()`);
- *    - Function is called with global interrupts disabled.
+ *    - Function is called with global interrupts enabled.
  *
  * Consequently:
  *

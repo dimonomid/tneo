@@ -149,7 +149,7 @@ void _tn_timers_init(void)
 /**
  * See comments in the _tn_timer.h file.
  */
-void _tn_timers_tick_proceed(void)
+void _tn_timers_tick_proceed(TN_UWord TN_INTSAVE_VAR)
 {
    //-- first of all, increment system timer
    _tn_sys_time_count++;
@@ -234,7 +234,7 @@ void _tn_timers_tick_proceed(void)
          _tn_timer_cancel(timer);
 
          //-- call user callback function
-         timer->func(timer, timer->p_user_data);
+         _tn_timer_callback_call(timer, TN_INTSAVE_VAR);
       }
 
       _TN_BUG_ON( !_tn_list_is_empty(p_cur_timer_list) );

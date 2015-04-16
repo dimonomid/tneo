@@ -226,7 +226,7 @@ void _tn_timers_init(void)
 /*
  * See comments in the _tn_timer.h file.
  */
-void _tn_timers_tick_proceed(void)
+void _tn_timers_tick_proceed(TN_UWord TN_INTSAVE_VAR)
 {
    //-- Since user is allowed to manage timers from timer callbacks, we can't
    //   just iterate through timers list and fire expired timers, because
@@ -281,7 +281,7 @@ void _tn_timers_tick_proceed(void)
          _timer_cancel(timer);
 
          //-- call user callback function
-         timer->func(timer, timer->p_user_data);
+         _tn_timer_callback_call(timer, TN_INTSAVE_VAR);
       }
    }
 

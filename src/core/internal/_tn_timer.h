@@ -93,7 +93,7 @@ void _tn_timers_init(void);
  *
  * See \ref timers_static_implementation for details.
  */
-void _tn_timers_tick_proceed(void);
+void _tn_timers_tick_proceed(TN_UWord TN_INTSAVE_VAR);
 
 /**
  * Actual worker function that is called by `#tn_timer_start()`.
@@ -156,6 +156,38 @@ static _TN_INLINE TN_BOOL _tn_timer_is_valid(
    return (timer->id_timer == TN_ID_TIMER);
 }
 
+/**
+ * Called by `_tn_timers_tick_proceed()`, which is implemented differently
+ * depending on `TN_DYNAMIC_TICK` option.
+ * 
+ * Enables interrupts, calls callback function, disables interrupts back.
+ * 
+ * @param timer
+ *    Timer to operate on
+ * @param TN_INTSAVE_VAR
+ *    Status of interrupts, used by `TN_INT_IDIS_SAVE()` and friends.
+ */
+static _TN_INLINE void _tn_timer_callback_call(
+      struct TN_Timer  *timer,
+      TN_UWord          TN_INTSAVE_VAR
+      )
+{
+   //-- we're going to enable interrupt before calling callback, so,
+   //   remember user data before enabling them, since the structure
+   //   might be changed by interrupt
+   void *p_user_data = timer->p_user_data;
+
+   //-- before calling callback function, enable interrupts, so that
+   //   they aren't disabled for too long
+   TN_INT_IRESTORE();
+
+   //-- call user callback function
+   timer->func(timer, p_user_data);
+
+   //-- after callback is done, disable interrupts back
+   //   (saved value won't be used by anyone though)
+   TN_INT_IDIS_SAVE();
+}
 
 
 #ifdef __cplusplus

@@ -617,7 +617,7 @@ void tn_tick_int_processing(void)
    _tn_sys_stack_overflow_check(_tn_curr_run_task);
 
    //-- manage timers
-   _tn_timers_tick_proceed();
+   _tn_timers_tick_proceed(TN_INTSAVE_VAR);
 
    //-- manage round-robin (if used)
    _round_robin_manage();

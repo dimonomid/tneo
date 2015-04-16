@@ -7,7 +7,8 @@ TNeo changelog
 
 \section changelog_current Current development version (BETA)
 
-  - *no changes yet*
+  - <b>Timers API changed</b>: now, timer callback `#TN_TimerFunc` is called
+    with global interrupts enabled.
 
 \section changelog_v1_07 v1.07
 
