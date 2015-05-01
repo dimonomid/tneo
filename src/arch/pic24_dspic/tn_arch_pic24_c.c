@@ -126,14 +126,14 @@ TN_UWord *_tn_arch_stack_init(
    *(cur_stack_pt++) = 0x0303;               // W03
    *(cur_stack_pt++) = (TN_UWord)param;      // W00 - task func param
    *(cur_stack_pt++) = 0x0101;               // W01
-   *(cur_stack_pt++) = 0;                    // RCOUNT
-   *(cur_stack_pt++) = 0;                    // TBLPAG
-   *(cur_stack_pt++) = 0x04;                 // CORCON: the PSV bit is set.
+   *(cur_stack_pt++) = RCOUNT;/*0*/          // RCOUNT
+   *(cur_stack_pt++) = TBLPAG;/*0*/          // TBLPAG
+   *(cur_stack_pt++) = CORCON;/*0x04*/       // CORCON: the PSV bit is set.
 #ifdef __HAS_EDS__
-   *(cur_stack_pt++) = 0;                    // DSRPAG
-   *(cur_stack_pt++) = 0;                    // DSWPAG
+   *(cur_stack_pt++) = DSRPAG;/*0*/          // DSRPAG
+   *(cur_stack_pt++) = DSWPAG;/*0*/          // DSWPAG
 #else
-   *(cur_stack_pt++) = 0;                    // PSVPAG
+   *(cur_stack_pt++) = PSVPAG;/*0*/          // PSVPAG
 #endif
 
    *(cur_stack_pt++) = (TN_UWord)p_splim;    // SPLIM
@@ -161,7 +161,5 @@ void tn_arch_sched_restore(TN_UWord sched_state)
 {
    TN_BFA(TN_BFA_WR, IEC0, INT0IE, !!sched_state);
 }
-
-
 
 
