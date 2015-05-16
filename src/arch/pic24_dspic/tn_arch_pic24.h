@@ -291,7 +291,7 @@ typedef  unsigned int               TN_UIntPtr;
  */
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 1)
 
-#define _TN_INLINE   inline
+#define _TN_INLINE   inline __attribute__ ((always_inline))
 
 #define _TN_VOLATILE_WORKAROUND   /* nothing */
 

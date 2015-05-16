@@ -14,6 +14,7 @@ TNeo changelog
     with constants in program space. Now, when initializing stack for new task,
     current value of PSVPAG is used.
   - Added an option `#TN_MAX_INLINE`
+  - Force inline to make sure all wanted functions are inlined.
 
 \section changelog_v1_07 v1.07
 
