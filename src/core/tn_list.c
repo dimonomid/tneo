@@ -39,6 +39,8 @@
 
 
 
+#if !TN_MAX_INLINE
+
 /*
  * See comments in the header file tn_list.h
  */
@@ -159,5 +161,7 @@ TN_BOOL _tn_list_contains_entry(
 
    return ret;
 }
+
+#endif // TN_MAX_INLINE
 
 

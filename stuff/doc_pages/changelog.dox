@@ -13,6 +13,7 @@ TNeo changelog
     was always 0, but it is not necessarily correct. This might cause troubles
     with constants in program space. Now, when initializing stack for new task,
     current value of PSVPAG is used.
+  - Added an option `#TN_MAX_INLINE`
 
 \section changelog_v1_07 v1.07
 

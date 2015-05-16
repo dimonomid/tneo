@@ -50,6 +50,7 @@
  ******************************************************************************/
 
 #include "tn_common.h"
+#include "tn_sys.h"
 #include "tn_list.h"
 
 #ifdef __cplusplus
@@ -451,12 +452,26 @@ extern "C"  {     /*}*/
  * Reset the list: make next and prev items to reference the list itself.
  * As a result, we got empty list.
  */
+#if TN_MAX_INLINE
+static _TN_INLINE void _tn_list_reset(struct TN_ListItem *list)
+{
+   list->prev = list->next = list;
+}
+#else
 void _tn_list_reset(struct TN_ListItem *list);
+#endif // TN_MAX_INLINE
 
 /**
  * Checks whether the list is empty.
  */
+#if TN_MAX_INLINE
+static _TN_INLINE TN_BOOL _tn_list_is_empty(struct TN_ListItem *list)
+{
+   return (list->next == list && list->prev == list);
+}
+#else
 TN_BOOL _tn_list_is_empty(struct TN_ListItem *list);
+#endif // TN_MAX_INLINE
 
 /**
  * Insert an entry at the beginning of the list.
@@ -467,7 +482,19 @@ TN_BOOL _tn_list_is_empty(struct TN_ListItem *list);
  * @param entry
  *    New item to insert
  */
+#if TN_MAX_INLINE
+static _TN_INLINE void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
+{
+  //--  Insert an entry at the head of the queue.
+
+   entry->next = list->next;
+   entry->prev = list;
+   entry->next->prev = entry;
+   list->next = entry;
+}
+#else
 void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry);
+#endif // TN_MAX_INLINE
 
 /**
  * Insert an entry at the end of the list.
@@ -478,7 +505,19 @@ void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry);
  * @param entry
  *    New item to insert
  */
+#if TN_MAX_INLINE
+static _TN_INLINE void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
+{
+  //-- Insert an entry at the tail of the queue.
+
+   entry->next = list;
+   entry->prev = list->prev;
+   entry->prev->next = entry;
+   list->prev = entry;
+}
+#else
 void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry);
+#endif // TN_MAX_INLINE
 
 /**
  * Remove first item from the list.
@@ -486,7 +525,26 @@ void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry);
  * @param list
  *    List from which first item should be removed.
  */
+#if TN_MAX_INLINE
+static _TN_INLINE struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
+{
+   //-- Remove and return an entry at the head of the queue.
+
+   struct TN_ListItem *entry = TN_NULL;
+
+   if (list != TN_NULL && list->next != list){
+      entry             = list->next;
+      entry->next->prev = list;
+      list->next        = entry->next;
+   } else {
+      //-- TN_NULL will be returned
+   }
+
+   return entry;
+}
+#else
 struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list);
+#endif // TN_MAX_INLINE
 
 /**
  * Remove last item from the list.
@@ -494,7 +552,26 @@ struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list);
  * @param list
  *    List from which last item should be removed.
  */
+#if TN_MAX_INLINE
+static _TN_INLINE struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list)
+{
+   //-- Remove and return an entry at the tail of the queue.
+
+   struct TN_ListItem *entry;
+
+   if (list->prev == list){
+      return (struct TN_ListItem *) 0;
+   }
+
+   entry = list->prev;
+   entry->prev->next = list;
+   list->prev = entry->prev;
+
+   return entry;
+}
+#else
 struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list);
+#endif // TN_MAX_INLINE
 
 /**
  * Remove item from the list. Please note that the item itself is left
@@ -505,7 +582,24 @@ struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list);
  * @param entry
  *    An entry to remove from the list (if any).
  */
+#if TN_MAX_INLINE
+static _TN_INLINE void _tn_list_remove_entry(struct TN_ListItem *entry)
+{
+   //--  Remove an entry from the queue.
+   entry->prev->next = entry->next;
+   entry->next->prev = entry->prev;
+
+   //-- NOTE: we shouldn't reset the entry itself, because the pointers in
+   //         the removed item are often needed to get the next item of the
+   //         list from which it was just removed.
+   //
+   //         Typical usage: iterate over the list, check some condition and
+   //         probably remove the item. After removal, we are still able
+   //         to get the next item.
+}
+#else
 void _tn_list_remove_entry(struct TN_ListItem *entry);
+#endif // TN_MAX_INLINE
 
 /**
  * Checks whether given item is contained in the list. Note that the list 
@@ -519,10 +613,30 @@ void _tn_list_remove_entry(struct TN_ListItem *entry);
  * @param entry
  *    Item to check.
  */
+#if TN_MAX_INLINE
+static _TN_INLINE TN_BOOL _tn_list_contains_entry(
+      struct TN_ListItem *list,
+      struct TN_ListItem *entry
+      )
+{
+   TN_BOOL ret = TN_FALSE;
+   struct TN_ListItem *item;
+
+   _tn_list_for_each(item, list){
+      if (item == entry){
+         ret = TN_TRUE;
+         break;
+      }
+   }
+
+   return ret;
+}
+#else
 TN_BOOL _tn_list_contains_entry(
       struct TN_ListItem *list,
       struct TN_ListItem *entry
       );
+#endif // TN_MAX_INLINE
 
 #ifdef __cplusplus
 }  /* extern "C" */

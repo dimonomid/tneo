@@ -371,6 +371,16 @@
 #endif
 
 
+/**
+ * Whether a maximum of reasonable functions should be inlined. Depending of the
+ * configuration this may increase the size of he kernel, but it will also
+ * increase the performance.
+ */
+#ifndef TN_MAX_INLINE
+#  define TN_MAX_INLINE          0
+#endif
+
+
 
 /*******************************************************************************
  *    PIC24/dsPIC-specific configuration
