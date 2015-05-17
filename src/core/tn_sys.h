@@ -145,6 +145,17 @@ struct TN_Mutex;
 #endif   // TN_CHECK_BUILD_CFG
 
 
+/**
+ * For internal kernel usage: helper macro that allows functions to be inlined
+ * or not pending on configuration.
+ */
+#if TN_MAX_INLINE
+#  define _TN_MAX_INLINED_FUNC static _TN_INLINE
+#else
+#  define _TN_MAX_INLINED_FUNC /* nothing */
+#endif
+
+
 
 /*******************************************************************************
  *    PUBLIC TYPES

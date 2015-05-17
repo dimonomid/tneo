@@ -39,12 +39,12 @@
 
 
 
-#if !TN_MAX_INLINE
+#if (!TN_MAX_INLINE || defined(_TN_MAX_INLINE_INCLUDE_SOURCE))
 
 /*
  * See comments in the header file tn_list.h
  */
-void _tn_list_reset(struct TN_ListItem *list)
+_TN_MAX_INLINED_FUNC void _tn_list_reset(struct TN_ListItem *list)
 {
    list->prev = list->next = list;
 }
@@ -52,7 +52,7 @@ void _tn_list_reset(struct TN_ListItem *list)
 /*
  * See comments in the header file tn_list.h
  */
-TN_BOOL _tn_list_is_empty(struct TN_ListItem *list)
+_TN_MAX_INLINED_FUNC TN_BOOL _tn_list_is_empty(struct TN_ListItem *list)
 {
    return (list->next == list && list->prev == list);
 }
@@ -60,7 +60,7 @@ TN_BOOL _tn_list_is_empty(struct TN_ListItem *list)
 /*
  * See comments in the header file tn_list.h
  */
-void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
+_TN_MAX_INLINED_FUNC void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
   //--  Insert an entry at the head of the queue.
 
@@ -73,7 +73,7 @@ void _tn_list_add_head(struct TN_ListItem *list, struct TN_ListItem *entry)
 /*
  * See comments in the header file tn_list.h
  */
-void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
+_TN_MAX_INLINED_FUNC void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
 {
   //-- Insert an entry at the tail of the queue.
 
@@ -86,7 +86,7 @@ void _tn_list_add_tail(struct TN_ListItem *list, struct TN_ListItem *entry)
 /*
  * See comments in the header file tn_list.h
  */
-struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
+_TN_MAX_INLINED_FUNC struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the head of the queue.
 
@@ -106,7 +106,7 @@ struct TN_ListItem *_tn_list_remove_head(struct TN_ListItem *list)
 /*
  * See comments in the header file tn_list.h
  */
-struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list)
+_TN_MAX_INLINED_FUNC struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list)
 {
    //-- Remove and return an entry at the tail of the queue.
 
@@ -126,7 +126,7 @@ struct TN_ListItem *_tn_list_remove_tail(struct TN_ListItem *list)
 /*
  * See comments in the header file tn_list.h
  */
-void _tn_list_remove_entry(struct TN_ListItem *entry)
+_TN_MAX_INLINED_FUNC void _tn_list_remove_entry(struct TN_ListItem *entry)
 {
    //--  Remove an entry from the queue.
    entry->prev->next = entry->next;
@@ -144,7 +144,7 @@ void _tn_list_remove_entry(struct TN_ListItem *entry)
 /*
  * See comments in the header file tn_list.h
  */
-TN_BOOL _tn_list_contains_entry(
+_TN_MAX_INLINED_FUNC TN_BOOL _tn_list_contains_entry(
       struct TN_ListItem *list,
       struct TN_ListItem *entry
       )
