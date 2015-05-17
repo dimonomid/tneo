@@ -373,7 +373,7 @@
 
 /**
  * Whether a maximum of reasonable functions should be inlined. Depending of the
- * configuration this may increase the size of he kernel, but it will also
+ * configuration this may increase the size of the kernel, but it will also
  * increase the performance.
  */
 #ifndef TN_MAX_INLINE

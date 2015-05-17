@@ -446,7 +446,10 @@ extern "C"  {     /*}*/
 
 #if TN_MAX_INLINE
 
-/* just include source file: all functions inside it should be defined with _TN_MAX_INLINED_FUNC modifier */
+/* 
+ * Just include source file: all functions inside it should be defined with 
+ * `_TN_MAX_INLINED_FUNC` modifier 
+ */
 #  define _TN_MAX_INLINE_INCLUDE_SOURCE
 #  include "tn_list.c"
 #  undef  _TN_MAX_INLINE_INCLUDE_SOURCE

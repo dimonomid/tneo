@@ -147,7 +147,7 @@ struct TN_Mutex;
 
 /**
  * For internal kernel usage: helper macro that allows functions to be inlined
- * or not pending on configuration.
+ * or not depending on configuration (see `#TN_MAX_INLINE`)
  */
 #if TN_MAX_INLINE
 #  define _TN_MAX_INLINED_FUNC static _TN_INLINE
