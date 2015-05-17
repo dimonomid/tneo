@@ -62,8 +62,14 @@
  *    DEFINITIONS
  ******************************************************************************/
 
-#define _get_mutex_by_wait_queque(que)               \
-   (que ? container_of(que, struct TN_Mutex, wait_queue) : 0)
+#if TN_DEBUG
+#  define _get_mutex_by_wait_queque(que)               \
+      (que ? container_of(que, struct TN_Mutex, wait_queue) : 0)
+#else
+//-- when `TN_DEBUG` isn't set, don't check for `que` to be not `NULL`
+#  define _get_mutex_by_wait_queque(que)               \
+      container_of(que, struct TN_Mutex, wait_queue)
+#endif
 
 
 
