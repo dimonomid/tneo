@@ -15,6 +15,8 @@ As a result of the two above, the kernel is buggy. And even more, the kernel is 
 
 - It is unsupported. I've written to the Yuri Tiomkin about \ref tnkernel_diff_make_alig "troubles with MAKE_ALIG() macro" as well as about bugs in the kernel, my messages were just ignored;
 
+- People are unable to \ref contribution "contribute to the kernel". There is even no some kind of main repository: there's just an archive with source code published on the website. When someone wants to contribute, he or she has no way to do this but to write to Yuri, but, as I've already mentioned, messages like this are ignored. So, eventually people end up maintaining their own modification of TNKernel. Rest assured this will never happen with TNeo: even if some day I completely stop maintaining the kernel, I'll transfer ownership of the repository to someone who is interested in maintaining it.
+
 - Documentation is far from perfect and it lives separately of the project itself: latest kernel version at the moment is 2.7 (published at 2013), but latest documentation is for 2.3 (published at 2006).
 
 

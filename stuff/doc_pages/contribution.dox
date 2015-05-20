@@ -1,0 +1,54 @@
+/**
+\page contribution Contribution
+
+Some guidelines on contribution to TNeo.
+
+\tableofcontents
+
+\section contribution_main Contribution
+
+So you want to contribute to the kernel. That's really cool! Then, please
+consider the following:
+
+- Please contact me first ([email](mail@dmitryfrank.com) is probably the best),
+  so that we can discuss changes you're going to implement and ways to do that.
+  It is really important to understand each other well, before actual work is
+  done;
+- If you haven't yet the account on [bitbucket.org](http://bitbucket.org),
+  create it;
+- Fork [TNeo repository on bitbucket](https://bitbucket.org/dfrank/tneokernel);
+- Perform needed changes in your own fork;
+- Create a pull request to main repository;
+- Your changes get merged into main TNeo repository. You're done! Now, you're
+  free to delete your fork or keep it, as you wish.
+
+
+\section contribution_coding_standard Coding standard
+
+I haven't much to say on this topic. The most important and universal thing is:
+<b>please see as other code is written and write in a similar manner</b>.
+
+As an addition, I just want to emphasize several aspects that are often a
+subject to forget:
+
+- Set your editor so that it doesn't use tabs, use exactly 3 spaces for
+  indentation. By the way, you're encouraged to read my article 
+  [Indent with tabs, align with spaces](http://dmitryfrank.com/articles/indent_with_tabs_align_with_spaces),
+  which explains how to use tabs properly. I really like the idea, but at the
+  moment editors are unfortunately too dumb to follow these guidelines, and
+  people (including me) generally aren't ready to maintain these conventions
+  manually, so, at least for now, the easiest and practical solution is to just
+  use spaces only.
+- When you add or change something observable, explain it in \ref changelog.
+- Don't forget to write comments so that
+  [doxygen](http://www.stack.nl/~dimitri/doxygen/) can parse them. You don't
+  have to learn doxygen manual for that, just look as others comments are
+  written.
+- When you add new kernel option (to the file `tn_cfg_default.h`), modify
+  `tn_cfg_dispatch.h` as well: add a check that option macro is defined.
+
+And thank you for contribution!
+
+*/
+
+
