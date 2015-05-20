@@ -186,10 +186,6 @@
 /**
  * Internal kernel definition: set to non-zero if `_tn_sys_on_context_switch()`
  * should be called on context switch. 
- *
- * Currently, the only actual handler is available: profiler (see
- * #TN_PROFILER).  In the future, software stack overflow check will be
- * implemented as well.
  */
 #if TN_PROFILER || TN_STACK_OVERFLOW_CHECK
 #  define   _TN_ON_CONTEXT_SWITCH_HANDLER  1
