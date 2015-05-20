@@ -155,6 +155,14 @@
 #  error TN_OLD_EVENT_API is not defined
 #endif
 
+#if !defined(TN_FORCED_INLINE)
+#  error TN_FORCED_INLINE is not defined
+#endif
+
+#if !defined(TN_MAX_INLINE)
+#  error TN_MAX_INLINE is not defined
+#endif
+
 
 // }}}
 

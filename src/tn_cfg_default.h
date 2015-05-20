@@ -372,9 +372,18 @@
 
 
 /**
+ * Whether the kernel should use compiler-specific forced inline qualifiers (if
+ * possible) instead of "usual" `inline`, which is just a hint for the
+ * compiler.
+ */
+#ifndef TN_FORCED_INLINE
+#  define TN_FORCED_INLINE       1
+#endif
+
+/**
  * Whether a maximum of reasonable functions should be inlined. Depending of the
  * configuration this may increase the size of the kernel, but it will also
- * increase the performance.
+ * improve the performance.
  */
 #ifndef TN_MAX_INLINE
 #  define TN_MAX_INLINE          0
