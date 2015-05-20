@@ -301,6 +301,8 @@ typedef  unsigned int               TN_UIntPtr;
 
 #define _TN_INLINE   inline __attribute__ ((always_inline))
 
+#define _TN_STATIC_INLINE        static _TN_INLINE
+
 #define _TN_VOLATILE_WORKAROUND   /* nothing */
 
 #define _TN_ARCH_STACK_PT_TYPE   _TN_ARCH_STACK_PT_TYPE__FULL

@@ -216,7 +216,13 @@ typedef  unsigned int               TN_UIntPtr;
  * If compiler does not conform to c99 standard, there's no inline keyword.
  * So, there's a special macro for that.
  */
-#define _TN_INLINE   inline
+#define _TN_INLINE               inline
+
+/**
+ * For some compilers, order of these qualifiers matters
+ * (at least when _TN_INLINE expands to some compiler-specific forced inline)
+ */
+#define _TN_STATIC_INLINE        static _TN_INLINE
 
 /**
  * Sometimes compilers are buggy in high-optimization modes, and these

@@ -70,7 +70,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_fmem_create(
+_TN_STATIC_INLINE enum TN_RCode _check_param_fmem_create(
       const struct TN_FMem *fmem
       )
 {
@@ -85,7 +85,7 @@ static _TN_INLINE enum TN_RCode _check_param_fmem_create(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_fmem_delete(
+_TN_STATIC_INLINE enum TN_RCode _check_param_fmem_delete(
       const struct TN_FMem *fmem
       )
 {
@@ -100,7 +100,7 @@ static _TN_INLINE enum TN_RCode _check_param_fmem_delete(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_job_perform(
+_TN_STATIC_INLINE enum TN_RCode _check_param_job_perform(
       const struct TN_FMem *fmem,
       void *p_data
       )
@@ -116,7 +116,7 @@ static _TN_INLINE enum TN_RCode _check_param_job_perform(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_generic(
+_TN_STATIC_INLINE enum TN_RCode _check_param_generic(
       const struct TN_FMem *fmem
       )
 {
@@ -166,7 +166,7 @@ static void _cb_before_task_wait_complete(
  *    Pointer to where the result should be stored (if `#TN_RC_TIMEOUT` is
  *    returned, this location isn't altered)
  */
-static _TN_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
+_TN_STATIC_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
 {
    enum TN_RCode rc;
    void *ptr = TN_NULL;
@@ -220,7 +220,7 @@ static _TN_INLINE enum TN_RCode _fmem_get(struct TN_FMem *fmem, void **p_data)
  *      This may never happen in normal program execution; if that happens,
  *      it's a programmer's mistake.
  */
-static _TN_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
+_TN_STATIC_INLINE enum TN_RCode _fmem_release(struct TN_FMem *fmem, void *p_data)
 {
    enum TN_RCode rc = TN_RC_OK;
 

@@ -308,13 +308,22 @@ typedef  unsigned int               TN_UIntPtr;
 #define _TN_SIZE_BYTES_TO_UWORDS(size_in_bytes)    ((size_in_bytes) >> 2)
 
 #if defined(__TN_COMPILER_ARMCC__)
-#  define _TN_INLINE   __forceinline
+#  define _TN_INLINE                __forceinline
+#  define _TN_STATIC_INLINE         static _TN_INLINE
 #  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_GCC__) || defined(__TN_COMPILER_CLANG__)
-#  define _TN_INLINE   inline __attribute__ ((always_inline))
+#  define _TN_INLINE                inline __attribute__ ((always_inline))
+#  define _TN_STATIC_INLINE         static _TN_INLINE
 #  define _TN_VOLATILE_WORKAROUND   /* nothing */
 #elif defined(__TN_COMPILER_IAR__)
-#  define _TN_INLINE   _Pragma("inline=forced")
+#  define _TN_INLINE                _Pragma("inline=forced")
+/*
+ * NOTE: for IAR, `_TN_INLINE` should go before `static`, because
+ * when we use forced inline by _Pragma, and `static` is before _Pragma,
+ * then IAR compiler generates a warning that pragma should immediately
+ * precede the declaration.
+ */
+#  define _TN_STATIC_INLINE         _TN_INLINE static
 #  define _TN_VOLATILE_WORKAROUND   volatile
 #else
 #  error unknown Cortex compiler

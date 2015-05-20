@@ -181,7 +181,7 @@ static void _idle_task_body(void *par)
  */
 #if TN_DYNAMIC_TICK
 
-static _TN_INLINE void _round_robin_manage(void) {
+_TN_STATIC_INLINE void _round_robin_manage(void) {
    /*TODO: round-robin should be powered by timers mechanism.
     * So, when round-robin is active, the system isn't so "tickless".
     */
@@ -189,7 +189,7 @@ static _TN_INLINE void _round_robin_manage(void) {
 
 #else
 
-static _TN_INLINE void _round_robin_manage(void)
+_TN_STATIC_INLINE void _round_robin_manage(void)
 {
    //-- volatile is used here only to solve
    //   IAR(c) compiler's high optimization mode problem
@@ -237,7 +237,7 @@ static _TN_INLINE void _round_robin_manage(void)
  * @param task_new
  *    Task that was waiting, and now it is going to run
  */
-static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+_TN_STATIC_INLINE void _tn_sys_on_context_switch_profiler(
       struct TN_Task *task_prev,
       struct TN_Task *task_new
       )
@@ -321,7 +321,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
 /**
  * Stub empty function, it is needed when `#TN_PROFILER` is zero.
  */
-static _TN_INLINE void _tn_sys_on_context_switch_profiler(
+_TN_STATIC_INLINE void _tn_sys_on_context_switch_profiler(
       struct TN_Task *task_prev, //-- task was running, going to wait
       struct TN_Task *task_new   //-- task was waiting, going to run
       )
@@ -345,7 +345,7 @@ static _TN_INLINE void _tn_sys_on_context_switch_profiler(
  * @param task
  *    Task to check
  */
-static _TN_INLINE void _tn_sys_stack_overflow_check(
+_TN_STATIC_INLINE void _tn_sys_stack_overflow_check(
       struct TN_Task *task
       )
 {
@@ -371,7 +371,7 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
 /**
  * Stub empty function, it is needed when `#TN_STACK_OVERFLOW_CHECK` is zero.
  */
-static _TN_INLINE void _tn_sys_stack_overflow_check(
+_TN_STATIC_INLINE void _tn_sys_stack_overflow_check(
       struct TN_Task *task
       )
 {}
@@ -380,7 +380,7 @@ static _TN_INLINE void _tn_sys_stack_overflow_check(
 /**
  * Create idle task, the task is NOT started after creation.
  */
-static _TN_INLINE enum TN_RCode _idle_task_create(
+_TN_STATIC_INLINE enum TN_RCode _idle_task_create(
       TN_UWord      *idle_task_stack,
       unsigned int   idle_task_stack_size
       )

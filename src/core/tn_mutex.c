@@ -96,7 +96,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_generic(
+_TN_STATIC_INLINE enum TN_RCode _check_param_generic(
       const struct TN_Mutex *mutex
       )
 {
@@ -111,7 +111,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_create(
+_TN_STATIC_INLINE enum TN_RCode _check_param_create(
       const struct TN_Mutex        *mutex,
       enum TN_MutexProtocol   protocol,
       int                     ceil_priority
@@ -154,7 +154,7 @@ static _TN_INLINE enum TN_RCode _check_param_create(
  *
  * Max priority (i.e. lowest value) is returned.
  */
-static _TN_INLINE int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
+_TN_STATIC_INLINE int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref_priority)
 {
    int               priority;
    struct TN_Task   *task;
@@ -180,7 +180,7 @@ static _TN_INLINE int _find_max_blocked_priority(struct TN_Mutex *mutex, int ref
  * Returns max priority that could be set to some task because
  * it locked given mutex, but not less than given `ref_priority`.
  */
-static _TN_INLINE int _find_max_priority_by_mutex(
+_TN_STATIC_INLINE int _find_max_priority_by_mutex(
       struct TN_Mutex *mutex, int ref_priority
       )
 {
@@ -259,7 +259,7 @@ static void _update_task_priority(struct TN_Task *task)
  * If task is waiting for some mutex too, go on to holder of that mutex
  * and elevate its priority too, recursively. And so on.
  */
-static _TN_INLINE void _task_priority_elevate(struct TN_Task *task, int priority)
+_TN_STATIC_INLINE void _task_priority_elevate(struct TN_Task *task, int priority)
 {
 in:
    //-- transitive priority changing
@@ -309,7 +309,7 @@ in:
 
 }
 
-static _TN_INLINE void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
+_TN_STATIC_INLINE void _mutex_do_lock(struct TN_Mutex *mutex, struct TN_Task *task)
 {
    mutex->holder = task;
    __mutex_lock_cnt_change(mutex, 1);
@@ -486,7 +486,7 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 {}
 #endif
 
-static _TN_INLINE void _add_curr_task_to_mutex_wait_queue(
+_TN_STATIC_INLINE void _add_curr_task_to_mutex_wait_queue(
       struct TN_Mutex *mutex,
       TN_TickCnt timeout
       )

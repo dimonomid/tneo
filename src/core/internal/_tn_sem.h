@@ -79,7 +79,7 @@ extern "C"  {     /*}*/
  * Checks whether given semaphore object is valid 
  * (actually, just checks against `id_sem` field, see `enum #TN_ObjId`)
  */
-static _TN_INLINE TN_BOOL _tn_sem_is_valid(
+_TN_STATIC_INLINE TN_BOOL _tn_sem_is_valid(
       const struct TN_Sem    *sem
       )
 {

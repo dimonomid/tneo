@@ -150,7 +150,7 @@ struct TN_Mutex;
  * or not depending on configuration (see `#TN_MAX_INLINE`)
  */
 #if TN_MAX_INLINE
-#  define _TN_MAX_INLINED_FUNC static _TN_INLINE
+#  define _TN_MAX_INLINED_FUNC _TN_STATIC_INLINE
 #else
 #  define _TN_MAX_INLINED_FUNC /* nothing */
 #endif
@@ -518,7 +518,7 @@ enum TN_Context tn_sys_context_get(void);
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static _TN_INLINE TN_BOOL tn_is_task_context(void)
+_TN_STATIC_INLINE TN_BOOL tn_is_task_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_TASK);
 }
@@ -537,7 +537,7 @@ static _TN_INLINE TN_BOOL tn_is_task_context(void)
  * @see `tn_sys_context_get()`
  * @see `enum #TN_Context`
  */
-static _TN_INLINE TN_BOOL tn_is_isr_context(void)
+_TN_STATIC_INLINE TN_BOOL tn_is_isr_context(void)
 {
    return (tn_sys_context_get() == TN_CONTEXT_ISR);
 }
@@ -580,7 +580,7 @@ TN_TaskBody *tn_cur_task_body_get(void);
  * @return
  *    State to be restored later by `#tn_sched_restore()`
  */
-static _TN_INLINE TN_UWord tn_sched_dis_save(void)
+_TN_STATIC_INLINE TN_UWord tn_sched_dis_save(void)
 {
    return tn_arch_sched_dis_save();
 }
@@ -596,7 +596,7 @@ static _TN_INLINE TN_UWord tn_sched_dis_save(void)
  * @param sched_state
  *    Value returned from `#tn_sched_dis_save()`
  */
-static _TN_INLINE void tn_sched_restore(TN_UWord sched_state)
+_TN_STATIC_INLINE void tn_sched_restore(TN_UWord sched_state)
 {
    tn_arch_sched_restore(sched_state);
 }

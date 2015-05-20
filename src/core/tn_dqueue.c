@@ -77,7 +77,7 @@ enum _JobType {
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_generic(
+_TN_STATIC_INLINE enum TN_RCode _check_param_generic(
       const struct TN_DQueue *dque
       )
 {
@@ -92,7 +92,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_create(
+_TN_STATIC_INLINE enum TN_RCode _check_param_create(
       const struct TN_DQueue *dque,
       void **data_fifo,
       int items_cnt
@@ -109,7 +109,7 @@ static _TN_INLINE enum TN_RCode _check_param_create(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _check_param_read(
+_TN_STATIC_INLINE enum TN_RCode _check_param_read(
       void **pp_data
       )
 {

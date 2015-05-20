@@ -63,7 +63,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_generic(
+_TN_STATIC_INLINE enum TN_RCode _check_param_generic(
       const struct TN_Sem *sem
       )
 {
@@ -81,7 +81,7 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
 /**
  * Additional param checking when creating semaphore
  */
-static _TN_INLINE enum TN_RCode _check_param_create(
+_TN_STATIC_INLINE enum TN_RCode _check_param_create(
       const struct TN_Sem *sem,
       int start_count,
       int max_count
@@ -118,7 +118,7 @@ static _TN_INLINE enum TN_RCode _check_param_create(
  * @param p_worker   pointer to actual worker function
  * @param timeout    see `#TN_TickCnt`
  */
-static _TN_INLINE enum TN_RCode _sem_job_perform(
+_TN_STATIC_INLINE enum TN_RCode _sem_job_perform(
       struct TN_Sem *sem,
       enum TN_RCode (p_worker)(struct TN_Sem *sem),
       TN_TickCnt timeout
@@ -171,7 +171,7 @@ static _TN_INLINE enum TN_RCode _sem_job_perform(
  * @param sem        semaphore to perform job on
  * @param p_worker   pointer to actual worker function
  */
-static _TN_INLINE enum TN_RCode _sem_job_iperform(
+_TN_STATIC_INLINE enum TN_RCode _sem_job_iperform(
       struct TN_Sem *sem,
       enum TN_RCode (p_worker)(struct TN_Sem *sem)
       )
@@ -194,7 +194,7 @@ static _TN_INLINE enum TN_RCode _sem_job_iperform(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _sem_signal(struct TN_Sem *sem)
+_TN_STATIC_INLINE enum TN_RCode _sem_signal(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -217,7 +217,7 @@ static _TN_INLINE enum TN_RCode _sem_signal(struct TN_Sem *sem)
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _sem_wait(struct TN_Sem *sem)
+_TN_STATIC_INLINE enum TN_RCode _sem_wait(struct TN_Sem *sem)
 {
    enum TN_RCode rc = TN_RC_OK;
 

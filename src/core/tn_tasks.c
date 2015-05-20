@@ -72,7 +72,7 @@
 
 //-- Additional param checking {{{
 #if TN_CHECK_PARAM
-static _TN_INLINE enum TN_RCode _check_param_generic(
+_TN_STATIC_INLINE enum TN_RCode _check_param_generic(
       const struct TN_Task *task
       )
 {
@@ -96,13 +96,13 @@ static _TN_INLINE enum TN_RCode _check_param_generic(
 
 #if TN_USE_MUTEXES
 
-static _TN_INLINE void _init_mutex_queue(struct TN_Task *task)
+_TN_STATIC_INLINE void _init_mutex_queue(struct TN_Task *task)
 {
    _tn_list_reset(&(task->mutex_queue));
 }
 
 #if TN_MUTEX_DEADLOCK_DETECT
-static _TN_INLINE void _init_deadlock_list(struct TN_Task *task)
+_TN_STATIC_INLINE void _init_deadlock_list(struct TN_Task *task)
 {
    _tn_list_reset(&(task->deadlock_list));
 }
@@ -165,7 +165,7 @@ static void _find_next_task_to_run(void)
 /**
  * See the comment for tn_task_wakeup, tn_task_iwakeup in the tn_tasks.h
  */
-static _TN_INLINE enum TN_RCode _task_wakeup(struct TN_Task *task)
+_TN_STATIC_INLINE enum TN_RCode _task_wakeup(struct TN_Task *task)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -185,7 +185,7 @@ static _TN_INLINE enum TN_RCode _task_wakeup(struct TN_Task *task)
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _task_release_wait(struct TN_Task *task)
+_TN_STATIC_INLINE enum TN_RCode _task_release_wait(struct TN_Task *task)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -200,7 +200,7 @@ static _TN_INLINE enum TN_RCode _task_release_wait(struct TN_Task *task)
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _task_delete(struct TN_Task *task)
+_TN_STATIC_INLINE enum TN_RCode _task_delete(struct TN_Task *task)
 {
    enum TN_RCode rc = TN_RC_OK;
 
@@ -216,7 +216,7 @@ static _TN_INLINE enum TN_RCode _task_delete(struct TN_Task *task)
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _task_job_perform(
+_TN_STATIC_INLINE enum TN_RCode _task_job_perform(
       struct TN_Task *task,
       enum TN_RCode (p_worker)(struct TN_Task *task)
       )
@@ -241,7 +241,7 @@ static _TN_INLINE enum TN_RCode _task_job_perform(
    return rc;
 }
 
-static _TN_INLINE enum TN_RCode _task_job_iperform(
+_TN_STATIC_INLINE enum TN_RCode _task_job_iperform(
       struct TN_Task *task,
       enum TN_RCode (p_worker)(struct TN_Task *task)
       )
@@ -271,7 +271,7 @@ static _TN_INLINE enum TN_RCode _task_job_iperform(
  * Returns TN_TRUE if there are no more items in the runqueue for given
  * priority, TN_FALSE otherwise.
  */
-static _TN_INLINE TN_BOOL _remove_entry_from_ready_queue(
+_TN_STATIC_INLINE TN_BOOL _remove_entry_from_ready_queue(
       struct TN_ListItem *list_node,
       int priority
       )
@@ -292,7 +292,7 @@ static _TN_INLINE TN_BOOL _remove_entry_from_ready_queue(
    return ret;
 }
 
-static _TN_INLINE void _add_entry_to_ready_queue(
+_TN_STATIC_INLINE void _add_entry_to_ready_queue(
       struct TN_ListItem *list_node, int priority
       )
 {

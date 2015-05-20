@@ -79,7 +79,7 @@ extern "C"  {     /*}*/
  * Checks whether given fixed memory pool object is valid 
  * (actually, just checks against `id_fmp` field, see `enum #TN_ObjId`)
  */
-static _TN_INLINE TN_BOOL _tn_fmem_is_valid(
+_TN_STATIC_INLINE TN_BOOL _tn_fmem_is_valid(
       const struct TN_FMem   *fmem
       )
 {

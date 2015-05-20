@@ -79,7 +79,7 @@ extern "C"  {     /*}*/
  * Checks whether given queue object is valid 
  * (actually, just checks against `id_dque` field, see `enum #TN_ObjId`)
  */
-static _TN_INLINE TN_BOOL _tn_dqueue_is_valid(
+_TN_STATIC_INLINE TN_BOOL _tn_dqueue_is_valid(
       const struct TN_DQueue    *dqueue
       )
 {

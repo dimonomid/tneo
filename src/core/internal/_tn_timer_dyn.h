@@ -114,7 +114,7 @@ void _tn_timer_dyn_callback_set(
 /**
  * Returns current value of system tick counter.
  */
-static _TN_INLINE TN_TickCnt _tn_timer_sys_time_get(void)
+_TN_STATIC_INLINE TN_TickCnt _tn_timer_sys_time_get(void)
 {
    return _tn_cb_tick_cnt_get();
 }

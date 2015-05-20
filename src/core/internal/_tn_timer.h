@@ -149,7 +149,7 @@ TN_TickCnt _tn_timer_time_left(struct TN_Timer *timer);
  * Checks whether given timer object is valid 
  * (actually, just checks against `id_timer` field, see `enum #TN_ObjId`)
  */
-static _TN_INLINE TN_BOOL _tn_timer_is_valid(
+_TN_STATIC_INLINE TN_BOOL _tn_timer_is_valid(
       const struct TN_Timer   *timer
       )
 {
@@ -167,7 +167,7 @@ static _TN_INLINE TN_BOOL _tn_timer_is_valid(
  * @param TN_INTSAVE_VAR
  *    Status of interrupts, used by `TN_INT_IDIS_SAVE()` and friends.
  */
-static _TN_INLINE void _tn_timer_callback_call(
+_TN_STATIC_INLINE void _tn_timer_callback_call(
       struct TN_Timer  *timer,
       TN_UWord          TN_INTSAVE_VAR
       )
