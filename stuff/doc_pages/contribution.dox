@@ -10,23 +10,23 @@ Some guidelines on contribution to TNeo.
 So you want to contribute to the kernel. That's really cool! Then, please
 consider the following:
 
-- Please contact me first ([email](mail@dmitryfrank.com) is probably the best),
-  so that we can discuss changes you're going to implement and ways to do that.
-  It is really important to understand each other well, before actual work is
-  done;
-- If you haven't yet the account on [bitbucket.org](http://bitbucket.org),
+- Please contact me first (<mail@dmitryfrank.com> is probably the
+  best), so that we can discuss changes you're going to implement and ways to
+  do that.  It is really important to understand each other well, before actual
+  work is done;
+- If you don't have an account on [bitbucket.org](http://bitbucket.org) yet,
   create it;
 - Fork [TNeo repository on bitbucket](https://bitbucket.org/dfrank/tneokernel);
 - Perform needed changes in your own fork;
 - Create a pull request to main repository;
-- Your changes get merged into main TNeo repository. You're done! Now, you're
-  free to delete your fork or keep it, as you wish.
+- Your changes get merged into main TNeo repository. You're done, thanks! Now,
+  you're free to delete your fork or keep it, as you wish.
 
 
 \section contribution_coding_standard Coding standard
 
-I haven't much to say on this topic. The most important and universal thing is:
-<b>please see as other code is written and write in a similar manner</b>.
+I don't have much to say on this topic. The most important and universal thing
+is: <b>please see as other code is written and write in a similar manner</b>.
 
 As an addition, I just want to emphasize several aspects that are often a
 subject to forget:
