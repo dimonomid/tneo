@@ -124,11 +124,13 @@ extern "C"  {     /*}*/
 enum TN_EGrpWaitMode {
    ///
    /// Task waits for **any** of the event bits from the `wait_pattern` 
-   /// to be set in the event group
+   /// to be set in the event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_WMODE_AND`.
    TN_EVENTGRP_WMODE_OR       = (1 << 0),
    ///
    /// Task waits for **all** of the event bits from the `wait_pattern` 
-   /// to be set in the event group
+   /// to be set in the event group.
+   /// This flag is mutually exclusive with `#TN_EVENTGRP_WMODE_OR`.
    TN_EVENTGRP_WMODE_AND      = (1 << 1),
    ///
    /// When a task <b>successfully</b> ends waiting for event bit(s), these
