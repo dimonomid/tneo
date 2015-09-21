@@ -5,6 +5,8 @@ TNeo is a compact and fast real-time kernel for embedded 32/16 bits
 microprocessors. It performs a preemptive priority-based scheduling and a
 round-robin scheduling for the tasks with identical priority.
 
+You might want to read an article: [How I ended up writing new real-time kernel](http://dmitryfrank.com/articles/how_i_ended_up_writing_my_own_kernel).
+
 TNeo was born as a thorough review and re-implementation of [TNKernel](http://tnkernel.com) v2.7. The new kernel has well-formed code, inherited bugs are fixed as well as new features being added, it is well documented and tested carefully with unit-tests.
 
 Currently it is available for the following architectures:
@@ -70,4 +72,3 @@ company, Alexey Morozov and Alexey Gromov, for being flexible about my time.
 For comprehensive information, refer to the documentation (see links at the top of this page)
 
 If you have any comments, feel free to leave them at [dmitryfrank.com/projects/tneo](http://dmitryfrank.com/projects/tneo).
-
