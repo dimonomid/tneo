@@ -214,9 +214,10 @@ _TN_STATIC_INLINE void _round_robin_manage(void)
             //-- ready queue for current priority
 
             curr_que = _tn_list_remove_head(&(_tn_tasks_ready_list[priority]));
-            _tn_list_add_tail(
-                  &(_tn_tasks_ready_list[priority]),
-                  (struct TN_ListItem *)curr_que
+            _tn_list_add_tail(&(_tn_tasks_ready_list[priority]), curr_que);
+
+            _tn_next_task_to_run = _tn_get_task_by_tsk_queue(
+                  _tn_tasks_ready_list[priority].next
                   );
          }
       }
