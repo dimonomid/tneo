@@ -203,7 +203,7 @@ _TN_STATIC_INLINE void _round_robin_manage(void)
       if (_tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
          _tn_curr_run_task->tslice_count++;
 
-         if (_tn_curr_run_task->tslice_count > _tn_tslice_ticks[priority]){
+         if (_tn_curr_run_task->tslice_count >= _tn_tslice_ticks[priority]){
             _tn_curr_run_task->tslice_count = 0;
 
             pri_queue = &(_tn_tasks_ready_list[priority]);
