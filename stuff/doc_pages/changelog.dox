@@ -9,10 +9,14 @@ TNeo changelog
 
   - <b>Timers API changed</b>: now, timer callback `#TN_TimerFunc` is called
     with global interrupts enabled (experimentally).
-  - fix for pic24/dspic: previously, initial value of PSVPAG for new tasks
+  - Fix for pic24/dspic: previously, initial value of PSVPAG for new tasks
     was always 0, but it is not necessarily correct. This might cause troubles
     with constants in program space. Now, when initializing stack for new task,
     current value of PSVPAG is used.
+  - Fixed round robin:
+    - Even though the tasks were flipped in the runnable tasks queue, the
+      actual context switch wasn't performed;
+    - Tasks were switched with a requested period + 1 tick.
   - Added an option `#TN_FORCED_INLINE`
   - Added an option `#TN_MAX_INLINE`
 
