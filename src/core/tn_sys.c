@@ -191,34 +191,38 @@ _TN_STATIC_INLINE void _round_robin_manage(void) {
 
 _TN_STATIC_INLINE void _round_robin_manage(void)
 {
-   //-- volatile is used here only to solve
-   //   IAR(c) compiler's high optimization mode problem
-   _TN_VOLATILE_WORKAROUND struct TN_ListItem *curr_que;
-   _TN_VOLATILE_WORKAROUND struct TN_ListItem *pri_queue;
-   _TN_VOLATILE_WORKAROUND int priority = _tn_curr_run_task->priority;
+   //-- Manage round robin if only context switch is not already needed for
+   //   some other reason
+   if (_tn_curr_run_task == _tn_next_task_to_run) {
+      //-- volatile is used here only to solve
+      //   IAR(c) compiler's high optimization mode problem
+      _TN_VOLATILE_WORKAROUND struct TN_ListItem *curr_que;
+      _TN_VOLATILE_WORKAROUND struct TN_ListItem *pri_queue;
+      _TN_VOLATILE_WORKAROUND int priority = _tn_curr_run_task->priority;
 
-   if (_tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
-      _tn_curr_run_task->tslice_count++;
+      if (_tn_tslice_ticks[priority] != TN_NO_TIME_SLICE){
+         _tn_curr_run_task->tslice_count++;
 
-      if (_tn_curr_run_task->tslice_count > _tn_tslice_ticks[priority]){
-         _tn_curr_run_task->tslice_count = 0;
+         if (_tn_curr_run_task->tslice_count > _tn_tslice_ticks[priority]){
+            _tn_curr_run_task->tslice_count = 0;
 
-         pri_queue = &(_tn_tasks_ready_list[priority]);
-         //-- If ready queue is not empty and there are more than 1 
-         //   task in the queue
-         if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
-               && pri_queue->next->next != pri_queue
-            )
-         {
-            //-- Remove task from head and add it to the tail of
-            //-- ready queue for current priority
+            pri_queue = &(_tn_tasks_ready_list[priority]);
+            //-- If ready queue is not empty and there are more than 1 
+            //   task in the queue
+            if (     !(_tn_list_is_empty((struct TN_ListItem *)pri_queue))
+                  && pri_queue->next->next != pri_queue
+               )
+            {
+               //-- Remove task from head and add it to the tail of
+               //-- ready queue for current priority
 
-            curr_que = _tn_list_remove_head(&(_tn_tasks_ready_list[priority]));
-            _tn_list_add_tail(&(_tn_tasks_ready_list[priority]), curr_que);
+               curr_que = _tn_list_remove_head(&(_tn_tasks_ready_list[priority]));
+               _tn_list_add_tail(&(_tn_tasks_ready_list[priority]), curr_que);
 
-            _tn_next_task_to_run = _tn_get_task_by_tsk_queue(
-                  _tn_tasks_ready_list[priority].next
-                  );
+               _tn_next_task_to_run = _tn_get_task_by_tsk_queue(
+                     _tn_tasks_ready_list[priority].next
+                     );
+            }
          }
       }
    }
