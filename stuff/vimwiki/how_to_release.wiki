@@ -18,22 +18,22 @@
   
   * add 'current development version' in the changelog back
   * commit it:
-      `git commit -m "Add current dev version to the changelog"`
+      `git commit -a -m "Add current dev version to the changelog"`
   
   * publish release docs:
-      `$ cd stuff/doxygen && bash ./publish_doc_release.sh vX.XX`
+      `$ (cd stuff/doxygen && bash ./publish_doc_release.sh vX.XX)`
  
   * publish dev docs:
-      `$ cd stuff/doxygen && bash ./publish_doc_dev.sh`
+      `$ (cd stuff/doxygen && bash ./publish_doc_dev.sh)`
  
   * add link to docs index.html: 
-     * `$ cd dfrank.bitbucket.org/tneokernel_api`
+     * `$ cd stuff/doxygen/dfrank.bitbucket.org/tneokernel_api`
      * in the index.html, add link to new vX.XX dir docs
      * `$ hg ci -m"index.html : added link to docs vX.XX"`
  
   * push docs: `$ hg push`
-  * cd back to tneo repo: `$ cd ../..`
-  * create downloadable archive: `$ bash ./create_version_archive.sh vX.XX`
+  * cd back to the root of the tneo repo: `$ cd ../../../..`
+  * create downloadable archive: `$ (cd stuff/scripts && bash ./create_version_archive.sh vX.XX)`
   * (optionally) build Keil binaries manually:
      * `$ git checkout vX.XX`
      * `$ mv src/tn_cfg.h src/_tn_cfg.h`
@@ -42,7 +42,8 @@
      * `$ rm src/tn_cfg.h`
      * `$ mv src/_tn_cfg.h src/tn_cfg.h`
      * `$ git checkout master`
-  * push repo to the github `$ git push`
+  * push repo to the github with tags `$ git push --tags`
+  * push the stable branch as well `$ git checkout stable && git push && git checkout master`
   * go to https://github.com/dimonomid/tneo/tags , add release notes for the new tag and upload new archive
 
 
