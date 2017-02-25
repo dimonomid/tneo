@@ -294,15 +294,27 @@ enum TN_Context {
 typedef void (TN_CBUserTaskCreate)(void);
 
 /**
- * User-provided callback function that is called repeatedly from the idle task 
- * loop. Make sure that idle task has enough stack space to call this function.
+ * User-provided callback function which is called repeatedly from the idle
+ * task loop. Make sure that idle task has enough stack space to call this
+ * function.
+ *
+ * Typically, this callback can be used for things like:
+ *
+ *   * MCU sleep/idle mode. When system has nothing to do, it often makes sense
+ *     to bring processor to some power-saving mode. Of course, the application
+ *     is responsible for setting some condition to wake up: typically, it's an
+ *     interrupt.
+ *   * Calculation of system load. The easiest implementation is to just
+ *     increment some variable in the idle task. The faster value grows, the
+ *     less busy system is.
  *
  * \attention 
- *    * It is illegal to sleep here, because idle task (from which this
- *      function is called) should always be runnable, by design. If `#TN_DEBUG`
- *      option is set, then sleeping in idle task is checked, so if you try to
- *      sleep here, `_TN_FATAL_ERROR()` macro will be called.
- *
+ *    * From withing this callback, it is illegal to invoke `#tn_task_sleep()`
+ *      or any other service which could put task to waiting state, because
+ *      idle task (from which this function is called) should always be
+ *      runnable, by design. If `#TN_DEBUG` option is set, then this is
+ *      checked, so if idle task becomes non-runnable, `_TN_FATAL_ERROR()`
+ *      macro will be called.
  *
  * @see `tn_sys_start()`
  */
