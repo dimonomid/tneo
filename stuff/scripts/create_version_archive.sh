@@ -50,7 +50,7 @@ rm src/tn_cfg.h
 cd stuff/doxygen
 
 # get version string
-version_string="$(bash ../scripts/hg_ver_echo.sh)"
+version_string="$(bash ../scripts/git_ver_echo.sh)"
 
 # generate archive name (and directory name)
 archive_name="tneo-$version_string"

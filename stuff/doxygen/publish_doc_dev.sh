@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # get version string
-version_string="$(bash ../scripts/hg_ver_echo.sh)"
+version_string="$(bash ../scripts/git_ver_echo.sh)"
+echo "TNeo version: $version_string"
 
 # generate commit message
 new_commit_message="docs updated: $version_string"
@@ -9,7 +10,7 @@ new_commit_message="docs updated: $version_string"
 # make sure we have docs repo
 if ! [ -d ./dfrank.bitbucket.org ]; then
    # clone docs repo
-   hg clone https://bitbucket.org/dfrank/dfrank.bitbucket.org
+   hg clone ssh://hg@bitbucket.org/dfrank/dfrank.bitbucket.org
 fi
 
 # now, docs repo should be cloned in any case, go to it
@@ -26,7 +27,7 @@ cd ..
 
 # compare it
 if [[ "$new_commit_message" == "$last_commit_message" ]]; then
-   echo "tneo repository has not changed, exiting"
+   echo "tneo repository did not change, exiting"
    exit 0
 fi
 

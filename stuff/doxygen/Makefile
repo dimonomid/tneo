@@ -78,7 +78,7 @@ TN_TASK_STATE_DORMANT   = \link TN_TASK_STATE_DORMANT <code>DORMANT</code>\endli
 # --- Kernel version
 # (we don't export it since it is included in the make "all" target, see below)
 
-TN_VERSION              = `bash ../scripts/hg_ver_echo.sh`
+TN_VERSION              = `bash ../scripts/git_ver_echo.sh`
 
 
 
