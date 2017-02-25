@@ -2,41 +2,29 @@
 = tneo dev / how to release =
 
   * recheck plans page: probably you have already implemented something?
-  * make sure ALL binaries are built with default configuration
-  * TODO: think how to build binaries. Besides the auto-generated ones (for PICs), we need the following:
-     * Keil ARMCC
-        * Cortex-M0
-        * Cortex-M0P
-        * Cortex-M3
-        * Cortex-M4
-        * Cortex-M4F
-     * GCC
-        * -- the same --
+  * make sure the working dir is clean.
   * modify changelog: move everything from "_current development version_" to the new release section, specify release date.
   * make sure changelog does NOT containt "_current development version_", because it should not be present in the release documentation.
   * from the repo:
   {{{
-  
-  $ hg ci -m"changelog is updated for release vX.XX"
-  $ hg up stable
-  $ hg merge default
-  $ hg ci -m "merge default into stable for release vX.XX"
-  $ hg tag vX.XX
-  $ hg up default
-  $ hg merge stable
-  $ hg ci -m "merged stable vX.XX into default: ready for more development"
-  
+
+  $ git commit -a -m "Update changelog for the release vX.XX"
+  $ git checkout stable
+  $ git merge master
+  $ git tag vX.XX
+  $ git checkout master
+
   }}}
   
   * add 'current development version' in the changelog back
   * commit it:
-      `hg ci -m"changelog: added current development version section"`
+      `git commit -m "Add current dev version to the changelog"`
   
   * publish release docs:
-      `$ bash ./publish_doc_release.sh vX.XX`
+      `$ cd stuff/doxygen && bash ./publish_doc_release.sh vX.XX`
  
   * publish dev docs:
-      `$ bash ./publish_doc_dev.sh`
+      `$ cd stuff/doxygen && bash ./publish_doc_dev.sh`
  
   * add link to docs index.html: 
      * `$ cd dfrank.bitbucket.org/tneokernel_api`
@@ -46,16 +34,16 @@
   * push docs: `$ hg push`
   * cd back to tneo repo: `$ cd ../..`
   * create downloadable archive: `$ bash ./create_version_archive.sh vX.XX`
-  * build Keil binaries manually:
-     * `$ hg up vX.XX`
+  * (optionally) build Keil binaries manually:
+     * `$ git checkout vX.XX`
      * `$ mv src/tn_cfg.h src/_tn_cfg.h`
      * `$ cp src/tn_cfg_default.h src/tn_cfg.h`
      * build all needed binaries, copy them to the archive
      * `$ rm src/tn_cfg.h`
      * `$ mv src/_tn_cfg.h src/tn_cfg.h`
-     * `$ hg up tip`
-  * go to https://bitbucket.org/dfrank/tneokernel/downloads and upload new archive there
-  * push repo to the bitbucket `$ hg push https://dfrank@bitbucket.org/dfrank/tneokernel`
+     * `$ git checkout master`
+  * push repo to the github `$ git push`
+  * go to https://github.com/dimonomid/tneo/tags , add release notes for the new tag and upload new archive
 
 
 
