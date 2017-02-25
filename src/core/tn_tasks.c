@@ -371,9 +371,19 @@ static void _task_terminate(struct TN_Task *task)
 static void _task_wait_timeout(struct TN_Timer *timer, void *p_user_data)
 {
    struct TN_Task *task = (struct TN_Task *)p_user_data;
-   
+
    //-- interrupts should be enabled
+   //   NOTE: we can't perform this check on PIC24/dsPIC, because on this arch
+   //   TNeo has a distinction between "user" and "system" interrupts, and 
+   //   TN_IS_INT_DISABLED() returns true if (IPL >= system_IPL_level).
+   //   Since timer callback is called from system interrupt,
+   //   TN_IS_INT_DISABLED() returns true.
+   //
+   //   TODO: probably make a distinction between disabled interrupts and
+   //   system IPL level.
+#if !defined(__TN_ARCH_PIC24_DSPIC__)
    _TN_BUG_ON( TN_IS_INT_DISABLED() );
+#endif
 
    //-- since timer callback is called with interrupts enabled,
    //   we need to disable them before calling `_tn_task_wait_complete()`.
