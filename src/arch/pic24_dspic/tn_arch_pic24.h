@@ -50,7 +50,7 @@
  *    INCLUDED FILES
  ******************************************************************************/
 
-//-- Include `tn_common_macros.h` for `_TN_STRINGIZE_MACRO()`
+//-- Include `tn_common_macros.h` for `_TN_STRINGIFY_MACRO()`
 #include "../../core/tn_common_macros.h"
 #include "../../core/tn_cfg_dispatch.h"
 
@@ -322,7 +322,7 @@ typedef  unsigned int               TN_UIntPtr;
    "   mov     #0xE0,   W0                                              \n"   \
    "   and     _SR,     WREG                                            \n"   \
    "   lsr     W0,      #5,      W0                                     \n"   \
-   "   cp      W0,      #" _TN_STRINGIZE_MACRO(TN_P24_SYS_IPL) "        \n"   \
+   "   cp      W0,      #" _TN_STRINGIFY_MACRO(TN_P24_SYS_IPL) "        \n"   \
    "   bra     leu,     1f                                              \n"   \
                                                                               \
    /* Interrupt priority is too high. Halt the debugger here.           */    \

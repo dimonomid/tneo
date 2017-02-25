@@ -56,7 +56,7 @@
  * for example, 
  *
  * \code{.c}
- *    _TN_STRINGIZE_LITERAL(5)
+ *    _TN_STRINGIFY_LITERAL(5)
  * \endcode
  *
  * expands to:
@@ -65,9 +65,9 @@
  *    "5"
  * \endcode
  *
- * See also _TN_STRINGIZE_MACRO()
+ * See also _TN_STRINGIFY_MACRO()
  */
-#define _TN_STRINGIZE_LITERAL(x)    #x
+#define _TN_STRINGIFY_LITERAL(x)    #x
 
 /**
  * Macro that expands to string representation of its argument, which is
@@ -76,7 +76,7 @@
  *
  * \code{.c}
  *    #define MY_VALUE     10
- *    _TN_STRINGIZE_MACRO(MY_VALUE)
+ *    _TN_STRINGIFY_MACRO(MY_VALUE)
  * \endcode
  *
  * expands to:
@@ -85,7 +85,7 @@
  *    "10"
  * \endcode
  */
-#define _TN_STRINGIZE_MACRO(x)      _TN_STRINGIZE_LITERAL(x)
+#define _TN_STRINGIFY_MACRO(x)      _TN_STRINGIFY_LITERAL(x)
 
 
 
