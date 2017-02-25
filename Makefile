@@ -208,7 +208,7 @@ REDIRECT_CMD = | tee $(BUILD_LOG_FILE)
 all: 
 	mkdir -p $(BIN_DIR)
 	touch $(BUILD_LOG_FILE)
-	$(MAKE) all-actual $(REDIRECT_CMD)
+	bash -c 'set -o pipefail; $(MAKE) all-actual $(REDIRECT_CMD)'
 
 # this is actual 'all' rule
 all-actual: $(BINARY)
