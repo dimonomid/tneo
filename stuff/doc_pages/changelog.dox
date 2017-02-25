@@ -5,12 +5,14 @@
 
 TNeo changelog
 
-\section changelog_current Current development version (BETA)
+\section changelog_v1_08 v1.08
+
+Release date: 2017-02-25
 
   - <b>Timers API changed</b>: now, timer callback `#TN_TimerFunc` is called
-    with global interrupts enabled (experimentally).
+    with global interrupts enabled.
   - Fix for pic24/dspic: previously, initial value of PSVPAG for new tasks
-    was always 0, but it is not necessarily correct. This might cause troubles
+    was always 0, but it is not necessarily the case. This might cause troubles
     with constants in program space. Now, when initializing stack for new task,
     current value of PSVPAG is used.
   - Fixed round robin:
