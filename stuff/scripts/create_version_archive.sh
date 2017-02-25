@@ -25,13 +25,13 @@ if test -d "$tmp_repo_path"; then
 fi
 
 # clone it from the current one
-hg clone $repo_path $tmp_repo_path
+git clone $repo_path $tmp_repo_path
 
 # cd to temp dir
 cd $tmp_repo_path
 
 # update to the needed revision
-hg up $target_tag_name
+git checkout $target_tag_name
 
 # copy default cfg as tn_cfg.h
 cp src/tn_cfg_default.h src/tn_cfg.h
@@ -90,7 +90,7 @@ fi
 mkdir -p "$archive_full_name"
 
 # copy data there
-rsync -av --exclude=".hg*" --exclude=".vimprj" . "$archive_full_name"
+rsync -av --exclude=".git*" --exclude=".vimprj" . "$archive_full_name"
 
 # cd to newly created directory (that will be packed soon)
 cd "$archive_full_name"
