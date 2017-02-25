@@ -393,6 +393,8 @@ static void _task_wait_timeout(struct TN_Timer *timer, void *p_user_data)
    _tn_task_wait_complete(task, TN_RC_TIMEOUT);
 
    TN_INT_IRESTORE();
+
+   _TN_UNUSED(timer);
 }
 
 /*******************************************************************************

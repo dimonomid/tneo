@@ -257,7 +257,10 @@ typedef unsigned long TN_TickCnt;
 #  error wrong TN_API_MAKE_ALIG_ARG
 #endif
 
-
+/**
+ * Suppresses "unused" compiler warning for some particular symbol
+ */
+#define _TN_UNUSED(x) (void)(x)
 
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES

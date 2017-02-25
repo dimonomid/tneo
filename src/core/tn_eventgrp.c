@@ -102,6 +102,8 @@ _TN_STATIC_INLINE enum TN_RCode _check_param_job_perform(
       }
    }
 
+   _TN_UNUSED(eventgrp);
+
    return rc;
 }
 
@@ -127,6 +129,8 @@ _TN_STATIC_INLINE enum TN_RCode _check_param_create(
       rc = TN_RC_WPARAM;
    }
 #endif
+
+   _TN_UNUSED(attr);
 
    return rc;
 }

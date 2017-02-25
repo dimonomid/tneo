@@ -174,6 +174,7 @@ static void _idle_task_body(void *par)
    {
       _tn_cb_idle_hook();
    }
+   _TN_UNUSED(par);
 }
 
 /**
@@ -330,7 +331,10 @@ _TN_STATIC_INLINE void _tn_sys_on_context_switch_profiler(
       struct TN_Task *task_prev, //-- task was running, going to wait
       struct TN_Task *task_new   //-- task was waiting, going to run
       )
-{}
+{
+   _TN_UNUSED(task_prev);
+   _TN_UNUSED(task_new);
+}
 #endif
 #endif
 
@@ -379,7 +383,9 @@ _TN_STATIC_INLINE void _tn_sys_stack_overflow_check(
 _TN_STATIC_INLINE void _tn_sys_stack_overflow_check(
       struct TN_Task *task
       )
-{}
+{
+   _TN_UNUSED(task);
+}
 #endif
 
 /**

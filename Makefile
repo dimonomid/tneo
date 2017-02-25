@@ -35,6 +35,7 @@
 #     $ make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc
 #
 
+CFLAGS_COMMON = -Wall -Wunused-parameter -Werror -ffunction-sections -fdata-sections -g3 -Os
 
 
 
@@ -70,7 +71,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
       ifeq ($(TN_COMPILER), arm-none-eabi-gcc)
          CC = arm-none-eabi-gcc
          AR = arm-none-eabi-ar
-         CFLAGS = $(CORTEX_M_FLAGS) -mthumb -Os -fsigned-char -ffunction-sections -fdata-sections -g3 -Wall
+         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -mthumb -fsigned-char
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -80,7 +81,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
       ifeq ($(TN_COMPILER), clang)
          CC = clang
          AR = ar  #TODO: probably use clang archiver?
-         CFLAGS = $(CORTEX_M_FLAGS) -target arm-none-eabi -mthumb -Os -fsigned-char -ffunction-sections -fdata-sections -g3 -Wall
+         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -target arm-none-eabi -mthumb -fsigned-char
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -109,7 +110,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
       ifeq ($(TN_COMPILER), xc32)
          CC = xc32-gcc
          AR = xc32-ar
-         CFLAGS = $(PIC32MX_FLAGS) -g -x c -Os -ffunction-sections -fdata-sections -Wall
+         CFLAGS = $(PIC32MX_FLAGS) $(CFLAGS_COMMON) -g -x c
          ASFLAGS = $(PIC32MX_FLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -140,7 +141,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic24_dspic_noeds pic24_dspic_eds))
       ifeq ($(TN_COMPILER), xc16)
          CC = xc16-gcc
          AR = xc16-ar
-         CFLAGS = $(PIC24_DSPIC_FLAGS) -Os -ffunction-sections -fdata-sections -mlarge-code -mlarge-data -mconst-in-code -msmart-io=1 -msfr-warn=off -Wall -omf=elf
+         CFLAGS = $(PIC24_DSPIC_FLAGS) $(CFLAGS_COMMON) -mlarge-code -mlarge-data -mconst-in-code -msmart-io=1 -msfr-warn=off -omf=elf
          ASFLAGS = $(CFLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 

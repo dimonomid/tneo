@@ -171,6 +171,8 @@ TN_UWord *_tn_arch_stack_init(
    *(--cur_stack_pt) = 0x05050505;           //-- R5
    *(--cur_stack_pt) = 0x04040404;           //-- R4
 
+   _TN_UNUSED(stack_low_addr);
+
    return cur_stack_pt;
 }
 

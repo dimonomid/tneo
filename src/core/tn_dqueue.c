@@ -106,6 +106,8 @@ _TN_STATIC_INLINE enum TN_RCode _check_param_create(
       rc = TN_RC_WPARAM;
    }
 
+   _TN_UNUSED(data_fifo);
+
    return rc;
 }
 
@@ -220,6 +222,7 @@ static void _cb_before_task_wait_complete__send(
 {
    //-- before task is woken up, set data that it is waiting for
    task->subsys_wait.dqueue.data_elem = user_data_1;
+   _TN_UNUSED(user_data_2);
 }
 
 /**
@@ -241,6 +244,7 @@ static void _cb_before_task_wait_complete__receive_ok(
    if (rc != TN_RC_OK){
       _TN_FATAL_ERROR("rc should always be TN_RC_OK here");
    }
+   _TN_UNUSED(user_data_2);
 }
 
 /**
@@ -260,6 +264,7 @@ static void _cb_before_task_wait_complete__receive_timeout(
    void **pp_data = (void **)user_data_1;
 
    *pp_data = task->subsys_wait.dqueue.data_elem; //-- Return to caller
+   _TN_UNUSED(user_data_2);
 }
 
 

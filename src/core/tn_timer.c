@@ -97,6 +97,8 @@ _TN_STATIC_INLINE enum TN_RCode _check_param_create(
       rc = TN_RC_WPARAM;
    }
 
+   _TN_UNUSED(func);
+
    return rc;
 }
 

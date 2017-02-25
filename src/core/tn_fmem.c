@@ -151,6 +151,7 @@ static void _cb_before_task_wait_complete(
       )
 {
    task->subsys_wait.fmem.data_elem = user_data_1;
+   _TN_UNUSED(user_data_2);
 }
 
 /**
