@@ -4,9 +4,9 @@
 
 TNeo: real-time kernel initially based on TNKernel
 
-- TNKernel:                  copyright © 2004, 2013 Yuri Tiomkin.
-- PIC32-specific routines:   copyright © 2013, 2014 Anders Montonen.
-- TNeo:                      copyright © 2014       Dmitry Frank.
+- TNKernel:                  copyright 2004, 2013 Yuri Tiomkin.
+- PIC32-specific routines:   copyright 2013, 2014 Anders Montonen.
+- TNeo:                      copyright 2014       Dmitry Frank.
 
 TNeo was born as a thorough review and re-implementation of
 TNKernel. The new kernel has well-formed code, inherited bugs are fixed
