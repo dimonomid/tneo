@@ -186,7 +186,7 @@ TN_UWord *_tn_arch_stack_init(
    //   to the main project.
    //   This requirement is stated in the documentation, here:
    //
-   //   http://dfrank.bitbucket.org/tneokernel_api/latest/html/pic32_details.html
+   //   https://dfrank.bitbucket.io/tneokernel_api/latest/html/arch_specific.html#pic32_details
    //
    //-- see comments above of the following function for a bit more details:
    _you_should_add_file___tn_arch_pic32_int_vec1_S___to_the_project();
