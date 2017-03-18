@@ -7,7 +7,8 @@ TNeo changelog
 
 \section changelog_current Current development version (BETA)
 
-  - *no changes yet*
+  - Fixed build without `#TN_USE_MUTEXES` or `#TN_MUTEX_DEADLOCK_DETECT`
+  - Added support of `-pedantic` mode for Cortex-M architectures
 
 \section changelog_v1_08 v1.08
 
