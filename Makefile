@@ -110,7 +110,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
       ifeq ($(TN_COMPILER), xc32)
          CC = xc32-gcc
          AR = xc32-ar
-         CFLAGS = $(PIC32MX_FLAGS) $(CFLAGS_COMMON) -g -x c
+         CFLAGS = $(PIC32MX_FLAGS) $(CFLAGS_COMMON) -g -x c -std=c99
          ASFLAGS = $(PIC32MX_FLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -141,7 +141,9 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic24_dspic_noeds pic24_dspic_eds))
       ifeq ($(TN_COMPILER), xc16)
          CC = xc16-gcc
          AR = xc16-ar
-         CFLAGS = $(PIC24_DSPIC_FLAGS) $(CFLAGS_COMMON) -mlarge-code -mlarge-data -mconst-in-code -msmart-io=1 -msfr-warn=off -omf=elf
+         CFLAGS = $(PIC24_DSPIC_FLAGS) $(CFLAGS_COMMON) -mlarge-code \
+                  -mlarge-data -mconst-in-code -msmart-io=1 -msfr-warn=off \
+                  -omf=elf -std=c99
          ASFLAGS = $(CFLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
