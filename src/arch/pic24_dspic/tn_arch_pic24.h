@@ -100,7 +100,7 @@ int _tn_p24_ffs_asm(int x);
  *
  * Typically, set to assembler instruction that causes debugger to halt.
  */
-#define  _TN_FATAL_ERROR(error_msg, ...)         \
+#define  _TN_FATAL_ERRORF(error_msg, ...)         \
    {__asm__ volatile(".pword 0xDA4000"); __asm__ volatile ("nop");}
 
 

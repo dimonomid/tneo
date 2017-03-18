@@ -262,6 +262,8 @@ typedef unsigned long TN_TickCnt;
  */
 #define _TN_UNUSED(x) (void)(x)
 
+#define _TN_FATAL_ERROR(error_msg) _TN_FATAL_ERRORF(error_msg, NULL)
+
 /*******************************************************************************
  *    PUBLIC FUNCTION PROTOTYPES
  ******************************************************************************/

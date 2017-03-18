@@ -205,7 +205,7 @@ _TN_STATIC_INLINE int _find_max_priority_by_mutex(
 
       default:
          //-- should never happen
-         _TN_FATAL_ERROR("wrong mutex protocol=%d", mutex->protocol);
+         _TN_FATAL_ERRORF("wrong mutex protocol=%d", mutex->protocol);
          break;
    }
 

@@ -106,10 +106,10 @@ int ffs_asm(int x);
  */
 
 #if defined(__TN_COMPILER_IAR__)
-#  define  _TN_FATAL_ERROR(error_msg, ...)         \
+#  define  _TN_FATAL_ERRORF(error_msg, ...)         \
       {asm("bkpt #0");}
 #else
-#  define  _TN_FATAL_ERROR(error_msg, ...)         \
+#  define  _TN_FATAL_ERRORF(error_msg, ...)         \
       {__asm__ volatile("bkpt #0");}
 #endif
 

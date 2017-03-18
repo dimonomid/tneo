@@ -60,7 +60,7 @@
  *
  * Typically, set to assembler instruction that causes debugger to halt.
  */
-#define  _TN_FATAL_ERROR(error_msg, ...)         \
+#define  _TN_FATAL_ERRORF(error_msg, ...)         \
    {__asm__ volatile(" sdbbp 0"); __asm__ volatile ("nop");}
 
 
