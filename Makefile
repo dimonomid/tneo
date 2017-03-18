@@ -71,7 +71,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
       ifeq ($(TN_COMPILER), arm-none-eabi-gcc)
          CC = arm-none-eabi-gcc
          AR = arm-none-eabi-ar
-         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -mthumb -fsigned-char
+         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -mthumb -fsigned-char -pedantic
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -81,7 +81,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
       ifeq ($(TN_COMPILER), clang)
          CC = clang
          AR = ar  #TODO: probably use clang archiver?
-         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -target arm-none-eabi -mthumb -fsigned-char
+         CFLAGS = $(CORTEX_M_FLAGS) $(CFLAGS_COMMON) -target arm-none-eabi -mthumb -fsigned-char -pedantic
          ASFLAGS = $(CFLAGS) -x assembler-with-cpp
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
