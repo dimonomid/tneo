@@ -73,17 +73,17 @@ extern "C"  {     /*}*/
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#define  _TN_PIC32_INTSAVE_DATA_INVALID   0xffffffff
+#define  _TN_CORTEX_INTSAVE_DATA_INVALID   0xffffffff
 
 #if TN_DEBUG
-#  define   _TN_PIC32_INTSAVE_CHECK()                          \
+#  define   _TN_CORTEX_INTSAVE_CHECK()                         \
 {                                                              \
-   if (TN_INTSAVE_VAR == _TN_PIC32_INTSAVE_DATA_INVALID){      \
+   if (TN_INTSAVE_VAR == _TN_CORTEX_INTSAVE_DATA_INVALID){     \
       _TN_FATAL_ERROR("");                                     \
    }                                                           \
 }
 #else
-#  define   _TN_PIC32_INTSAVE_CHECK()  /* nothing */
+#  define   _TN_CORTEX_INTSAVE_CHECK()  /* nothing */
 #endif
 
 #if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
@@ -230,7 +230,7 @@ typedef  unsigned int               TN_UIntPtr;
  * @see `TN_INT_RESTORE()`
  */
 #define  TN_INTSAVE_DATA            \
-   TN_UWord TN_INTSAVE_VAR = _TN_PIC32_INTSAVE_DATA_INVALID;
+   TN_UWord TN_INTSAVE_VAR = _TN_CORTEX_INTSAVE_DATA_INVALID;
 
 /**
  * The same as `#TN_INTSAVE_DATA` but for using in ISR together with
@@ -268,7 +268,7 @@ typedef  unsigned int               TN_UIntPtr;
  */
 
 #define TN_INT_DIS_SAVE()   TN_INTSAVE_VAR = tn_arch_sr_save_int_dis()
-#define TN_INT_RESTORE()    _TN_PIC32_INTSAVE_CHECK();                      \
+#define TN_INT_RESTORE()    _TN_CORTEX_INTSAVE_CHECK();                     \
                             tn_arch_sr_restore(TN_INTSAVE_VAR)
 
 /**
