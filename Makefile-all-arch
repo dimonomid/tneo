@@ -1,4 +1,4 @@
-BIN_DIR=bin
+BIN_DIRS=bin _obj
 
 
 .PHONY: all
@@ -26,5 +26,5 @@ all:
 .PHONY: clean
 
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf $(BIN_DIRS)
 
