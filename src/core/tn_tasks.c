@@ -1114,12 +1114,18 @@ void _tn_task_set_dormant(struct TN_Task* task)
 #if TN_DEBUG
    if (task->task_state != TN_TASK_STATE_NONE){
       _TN_FATAL_ERROR("");
-   } else if (!_tn_list_is_empty(&task->mutex_queue)){
-      _TN_FATAL_ERROR("");
-   } else if (!_tn_list_is_empty(&task->deadlock_list)){
+   }
+#if TN_USE_MUTEXES
+   else if (!_tn_list_is_empty(&task->mutex_queue)){
       _TN_FATAL_ERROR("");
    }
-#endif
+#if TN_MUTEX_DEADLOCK_DETECT
+   else if (!_tn_list_is_empty(&task->deadlock_list)){
+      _TN_FATAL_ERROR("");
+   }
+#endif // TN_MUTEX_DEADLOCK_DETECT
+#endif // TN_USE_MUTEXES
+#endif // TN_DEBUG
 
    task->priority    = task->base_priority;      //-- Task curr priority
    task->task_state  |= TN_TASK_STATE_DORMANT;   //-- Task state

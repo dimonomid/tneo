@@ -101,9 +101,15 @@ void _tn_mutex_on_task_wait_complete(struct TN_Task *task);
  * are just compiled out.
  */
 
-_TN_STATIC_INLINE void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {}
-_TN_STATIC_INLINE void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {}
-_TN_STATIC_INLINE void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {}
+_TN_STATIC_INLINE void _tn_mutex_unlock_all_by_task(struct TN_Task *task) {
+   (void) task;
+}
+_TN_STATIC_INLINE void _tn_mutex_i_on_task_wait_complete(struct TN_Task *task) {
+   (void) task;
+}
+_TN_STATIC_INLINE void _tn_mutex_on_task_wait_complete(struct TN_Task *task) {
+   (void) task;
+}
 #endif
 
 

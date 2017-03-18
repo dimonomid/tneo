@@ -481,9 +481,15 @@ static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
 }
 #else
 static void _check_deadlock_active(struct TN_Mutex *mutex, struct TN_Task *task)
-{}
+{
+   (void) mutex;
+   (void) task;
+}
 static void _cry_deadlock_inactive(struct TN_Mutex *mutex, struct TN_Task *task)
-{}
+{
+   (void) mutex;
+   (void) task;
+}
 #endif
 
 _TN_STATIC_INLINE void _add_curr_task_to_mutex_wait_queue(
