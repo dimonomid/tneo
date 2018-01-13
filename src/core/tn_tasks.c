@@ -512,6 +512,9 @@ enum TN_RCode tn_task_create(
 
    if (context == TN_CONTEXT_TASK){
       TN_INT_RESTORE();
+      if ((opts & TN_TASK_CREATE_OPT_START)){
+         _tn_context_switch_pend_if_needed();
+      }
    }
 
    return rc;
