@@ -764,7 +764,7 @@ enum TN_RCode tn_queue_eventgrp_connect(
       TN_UWord             pattern
       )
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(dque);
 
    if (rc == TN_RC_OK){
@@ -783,7 +783,7 @@ enum TN_RCode tn_queue_eventgrp_disconnect(
       struct TN_DQueue    *dque
       )
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(dque);
 
    if (rc == TN_RC_OK){

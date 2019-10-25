@@ -139,7 +139,7 @@ enum TN_RCode tn_timer_create(
  */
 enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
@@ -160,7 +160,7 @@ enum TN_RCode tn_timer_delete(struct TN_Timer *timer)
  */
 enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
@@ -177,7 +177,7 @@ enum TN_RCode tn_timer_start(struct TN_Timer *timer, TN_TickCnt timeout)
  */
 enum TN_RCode tn_timer_cancel(struct TN_Timer *timer)
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
@@ -198,7 +198,7 @@ enum TN_RCode tn_timer_set_func(
       void             *p_user_data
       )
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
@@ -215,7 +215,7 @@ enum TN_RCode tn_timer_set_func(
  */
 enum TN_RCode tn_timer_is_active(struct TN_Timer *timer, TN_BOOL *p_is_active)
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
@@ -235,7 +235,7 @@ enum TN_RCode tn_timer_time_left(
       TN_TickCnt *p_time_left
       )
 {
-   int sr_saved;
+   TN_UWord sr_saved;
    enum TN_RCode rc = _check_param_generic(timer);
 
    if (rc == TN_RC_OK){
