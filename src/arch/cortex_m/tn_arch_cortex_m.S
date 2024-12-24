@@ -585,6 +585,28 @@ _TN_LABEL(_tn_arch_context_switch_pend)
       ldr      r0, =PENDSVSET
       str      r0, [r1]
 
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      //-- Code for Cortex-M3/M4/M4F
+
+      //   From https://developer.arm.com/documentation/107565/0101/Memory-system/Memory-barriers/When-do-you-need-a-DSB-followed-by-an-ISB- :
+      //
+      //   > If a pended interrupt request needs to be recognized immediately
+      //   > after being enabled in the NVIC, a DSB instruction followed by an
+      //   > ISB instruction is recommended. The DSB instruction ensures that the
+      //   > write to the NVIC enable register is complete, while the ISB
+      //   > instruction ensures that IRQ is executed.
+      //
+      //   Originally we didn't have it here, but the problems were observed
+      //   that sometimes the interrupt didn't fire immediately, which caused
+      //   problems e.g. in `tn_eventgrp_wait` function, since it reaches the
+      //   `rc = _tn_curr_run_task->task_wait_rc;` line before the interrupt
+      //   fires, and we get incorrect wait result. Having these barriers fixed
+      //   the issue. See https://github.com/dimonomid/tneo/pull/16 for more
+      //   details.
+      dsb
+      isb
+#endif
+
       bx       lr
 
 
