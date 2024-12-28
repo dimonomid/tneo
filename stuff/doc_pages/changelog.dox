@@ -7,8 +7,39 @@ TNeo changelog
 
 \section changelog_current Current development version (BETA)
 
-  - Fixed build without `#TN_USE_MUTEXES` or `#TN_MUTEX_DEADLOCK_DETECT`
-  - Added support of `-pedantic` mode for Cortex-M architectures
+no changes yet
+
+\section changelog_v1_09 v1.09
+
+Release date: 2024-12-28
+
+Most of the changes are various bugfixes provided by the community. Thanks a
+lot guys, I really appreciate the time and effort you spent on making this
+project better!
+
+  - Fix: at least on ARM Cortex-M7, and probably also on M3, M4 and some other
+    ARMs, sometimes the context switch did not happen in time, and it was
+    causing issues in e.g. `tn_eventgrp_wait`, where the waiting result was
+    wrong. Thanks to [Anatol Shiro](https://github.com/AnatolShiro) for
+    identifying and [fixing this bug](https://github.com/dimonomid/tneo/commit/d036aa22269eb1d3557c2d1b6df4fd41fd1c55ec);
+  - Fix: when the system is recovering from a deadlock (when one of the tasks
+    stopped waiting after a timeout), the kernel was stuck in an endless loop.
+    Thanks to [Travis Griggs](https://github.com/travisgriggs) for identifying
+    and [fixing this bug](https://github.com/dimonomid/tneo/commit/2d8e8d38635413fdd86fb7934b18e3637b3ffa04),
+    as part of his effort to [implement an even better set of tests for
+    TNeo](https://github.com/travisgriggs/tneo_tests);
+  - Fix: when creating a higher-priority task from a lower-priority task,
+    and the `TN_TASK_CREATE_OPT_START` flag was set, the kernel should switch
+    context to the new task right away, but it wasn't happening. Again, thanks
+    to [Travis Griggs](https://github.com/travisgriggs) for [this
+    fix](https://github.com/dimonomid/tneo/commit/9d886c9448b9d93dcb07309bcc5b45c84a1bfdd9);
+  - Fix: the project was unable to build for 64-bit platforms where `unsigned
+    long int` and `int` have different sizes. Thanks to
+    [alecoding](https://github.com/alecoding) for
+    [the fix](https://github.com/dimonomid/tneo/commit/5a89f5a39dd6ed60e09f4c0385aba294944f1265);
+  - Fix: the project was unable to build without `#TN_USE_MUTEXES` or
+    `#TN_MUTEX_DEADLOCK_DETECT`;
+  - Added support of `-pedantic` mode for Cortex-M architectures.
 
 \section changelog_v1_08 v1.08
 

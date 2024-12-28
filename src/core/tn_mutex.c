@@ -628,7 +628,8 @@ in:
    //   points to the task which is/was holding the mutex.
    holder = _get_mutex_by_wait_queque(task->pwait_queue)->holder;
 
-   //-- check for infinite recursion and exit if loop is detected
+   //-- check for infinite recursion and exit if loop is detected. It can
+   //   happen if the kernel is recovering from a deadlock.
    if (holder == original) {
       return;
    }

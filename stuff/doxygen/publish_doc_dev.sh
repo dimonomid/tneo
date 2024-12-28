@@ -1,26 +1,27 @@
 #!/bin/bash
 
+set -e
+
 # get version string
 version_string="$(bash ../scripts/git_ver_echo.sh)"
-echo "TNeo version: $version_string"
 
 # generate commit message
 new_commit_message="docs updated: $version_string"
 
 # make sure we have docs repo
-if ! [ -d ./dfrank.bitbucket.org ]; then
+if ! [ -d ./dimonomid.github.io ]; then
    # clone docs repo
-   hg clone ssh://hg@bitbucket.org/dfrank/dfrank.bitbucket.org
+   git clone git@github.com:dimonomid/dimonomid.github.io
 fi
 
 # now, docs repo should be cloned in any case, go to it
-cd dfrank.bitbucket.org
+cd dimonomid.github.io
 
 # make sure we have the latest revision
-hg pull -u
+git pull origin master
 
 # check last commit message
-last_commit_message="$(hg log -l1 --template '{desc}')"
+last_commit_message="$(git log -1 --pretty=%B)"
 
 # go back
 cd ..
@@ -30,7 +31,6 @@ if [[ "$new_commit_message" == "$last_commit_message" ]]; then
    echo "tneo repository did not change, exiting"
    exit 0
 fi
-
 
 # ---- tneo repo has changed, so, continue ----
 
@@ -51,7 +51,7 @@ mv refman.pdf tneo.pdf
 cd ../..
 
 # go to dev documentation dir
-cd dfrank.bitbucket.org/tneokernel_api/dev
+cd dimonomid.github.io/tneokernel_api/dev
 
 # remove everything from there
 rm -r ./*
@@ -60,20 +60,16 @@ rm -r ./*
 cp -r ../../../output/* .
 
 # addremove
-hg addremove
+git add -A
 
 # commit
-hg ci -m"$new_commit_message"
+git commit -m"$new_commit_message"
 
-# push it
-# COMMENTED to be more safe
-# hg push
 echo "--------------------------------------------------------------------------"
-echo "DON'T FORGET to push your changes now, if everything is ok:"
-echo "    $ cd dfrank.bitbucket.org"
-echo "    $ hg push"
+echo "DON'T FORGET:"
+echo "  1. Add the new version link to dimonomid.github.io/tneokernel_api/index.html"
+echo "  2. Git push"
 echo "--------------------------------------------------------------------------"
 
 # go back
 cd ../../..
-
