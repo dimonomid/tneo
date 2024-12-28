@@ -584,7 +584,10 @@ _TN_LABEL(_tn_arch_context_switch_pend)
       ldr      r1, =ICSR_ADDR
       ldr      r0, =PENDSVSET
       str      r0, [r1]
-
+#if defined(__TN_ARCHFEAT_CORTEX_M_ARMv7M_ISA__)
+      dsb      //Sometimes interrupt doesn't fires immediately on cortex-m7, 
+      isb      //so we need to set those barriers here
+#endif
       bx       lr
 
 
