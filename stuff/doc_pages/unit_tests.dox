@@ -145,7 +145,7 @@ to keep the kernel really stable.
 \section get_tests Get unit-tests
 
 
-Currently, there is a separate repository with unit tests for TNeo. 
+Currently, there is a separate repository with unit tests for TNeo: https://bitbucket.org/dfrank/tntest/src/master/ .
 
 Please note that code of unit tests project is not as polished as the code of
 the kernel itself. My open-source time is limited, and I prefer to invest it in
@@ -153,16 +153,11 @@ the kernel as much as possible.
 
 Nevertheless, unit tests do their job efficiently, which is needed.
 
-There is an "environment" repository, which contains tests and all the
-necessary library subrepos: http://hg.dfrank.ru/tntest/_env
-
-You can clone it as follows:
-
-    hg clone http://hg.dfrank.ru/tntest/_env tntest
-
-The single repository with the tests resides here:
-http://hg.dfrank.ru/tntest/project_common
-
-
+Also, there is a totally separate, and even better set of tests, implemented by
+[Travis Griggs](https://github.com/travisgriggs):
+https://github.com/travisgriggs/tneo_tests/ . It allowed him to find and fix a
+couple of bugs which I didn't catch with my tests originally (see Changelog for
+[v1.09](https://github.com/dimonomid/tneo/releases/tag/v1.09) to see his
+contributions).
 
 */
